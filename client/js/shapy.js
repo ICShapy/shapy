@@ -1,12 +1,13 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-'use strict';
-
 goog.require('shapy.HttpService');
 goog.require('shapy.AuthService');
+goog.require('shapy.main.module');
+goog.require('shapy.editor.module');
 
-goog.provide('shapy');
+goog.provide('shapy.module');
+
 
 
 /**
@@ -15,26 +16,16 @@ goog.provide('shapy');
  * @private
  * @ngInject
  */
-shapy.configRoutes_ = function($routeProvider) {
+shapy.configRoutes_ = function($routeProvider, $locationProvider) {
   $routeProvider
     .when('/', {
-      templateUrl: 'home.html',
-      controller: MainController,
+      templateUrl: 'main.html',
+      controller: 'MainController',
       controllerAs: 'mainCtrl'
-    })
-    .when('/models', {
-      templateUrl: 'models.html',
-      controller: ModelsController,
-      controllerAs: 'modelsCtrl',
-      resolve: {
-        user: function(shAuth) {
-          return shAuth.login();
-        }
-      }
     })
     .when('/editor/:model', {
       templateUrl: 'editor.html',
-      controller: EditorController,
+      controller: 'EditorController',
       controllerAs: 'editorCtrl',
       resolve: {
         user: function(shAuth) {
@@ -54,16 +45,27 @@ shapy.configRoutes_ = function($routeProvider) {
  * @private
  * @ngInject
  */
-shapy.configHttp_ = function(shHttp) {
-  $httpProvider.interceptors.push(shHttp);
+shapy.configHttp_ = function($httpProvider) {
+  $httpProvider.interceptors.push(['$q', function($q) {
+    return new shapy.HttpService($q);
+  }]);
 };
 
 
 
-angular
-  .module('shapy', ['shEditor', 'ngSanitize', 'ngRoute'])
+/**
+ * Main application module.
+ * @public {Object}
+ * @const
+ */
+shapy.module = angular
+  .module('shShapy', [
+      'shMain',
+      'shEditor',
+      'ngSanitize',
+      'ngRoute'
+  ])
   .service('shAuth', shapy.AuthService)
-  .service('shHttp', shapy.HttpService)
   .config(shapy.configRoutes_)
   .config(shapy.configHttp_);
 

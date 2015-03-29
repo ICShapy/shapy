@@ -14,3 +14,17 @@ shapy.HttpService = function() {
 };
 
 
+/**
+ *
+ */
+shapy.HttpService.prototype.request = function(request) {
+  return request;
+};
+
+
+/**
+ *
+ */
+shapy.HttpService.prototype.response = function(response) {
+  return response;
+};

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="shShapy">
   <head>
     <title>Shapy</title>
 
@@ -17,14 +17,21 @@
           'shapy.AuthService.User'
       ], []);
       goog.addDependency('../js/editor.js', [
+          'shapy.editor.module'
       ], []);
       goog.addDependency('../js/http.js', [
           'shapy.HttpService'
       ], []);
+      goog.addDependency('../js/main.js', [
+          'shapy.main.module'
+      ], []);
+      goog.addDependency('../js/shapy.js', [
+        'shapy.module'
+      ], []);
       goog.addDependency('../js/util.js', [
       ], []);
+      goog.require('shapy.module');
     </script>
-    <script src="/js/shapy.js"></script>
   </head>
   <body>
     <ng-view></ng-view>
