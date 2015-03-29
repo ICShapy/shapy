@@ -1,9 +1,12 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
+'use strict';
+
 goog.require('shapy.HttpService');
 goog.require('shapy.AuthService');
 
+goog.provide('shapy');
 
 
 /**
@@ -24,18 +27,18 @@ shapy.configRoutes_ = function($routeProvider) {
       controller: ModelsController,
       controllerAs: 'modelsCtrl',
       resolve: {
-        user: function(shAuth) { 
-          return shAuth.login(); 
+        user: function(shAuth) {
+          return shAuth.login();
         }
       }
     })
     .when('/editor/:model', {
       templateUrl: 'editor.html',
       controller: EditorController,
-     eq controllerAs: 'editorCtrl',
+      controllerAs: 'editorCtrl',
       resolve: {
-        user: function(shAuth) { 
-          return shAuth.login(); 
+        user: function(shAuth) {
+          return shAuth.login();
         }
       }
     })

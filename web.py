@@ -15,7 +15,7 @@ PORT = int(os.environ.get('PORT', 8000))
 
 class APIHandler(tornado.web.RequestHandler):
   """Handles requests to the REST API."""
-  
+
   def get(self, url):
     """Handles a GET request."""
     self.write('get')
@@ -23,7 +23,7 @@ class APIHandler(tornado.web.RequestHandler):
   def post(self, url):
     """Handles a POST request."""
     self.write('post')
-      
+
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):
@@ -52,12 +52,11 @@ def main(args):
   tornado.web.Application([
     (r'/api/sock',    WSHandler),
     (r'/api/(.*)',    APIHandler),
-    (r'/static/(.*)', tornado.web.StaticFileHandler, { 'path': 'static' }),
-    (r'/',            tornado.web.RedirectHandler, { 'url':  '/index.html' }),  
-    (r'/(.*)',        tornado.web.StaticFileHandler, { 'path': 'static' }),
-  ]).listen(PORT)
+    (r'/',            tornado.web.RedirectHandler, { 'url':  '/index.html' }),
+    (r'/(.*)',        tornado.web.StaticFileHandler, { 'path': 'client' }),
+  ], debug=True).listen(PORT)
   tornado.ioloop.IOLoop.instance().start()
-    
+
 
 
 if __name__ == '__main__':

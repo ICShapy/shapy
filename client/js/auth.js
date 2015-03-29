@@ -26,7 +26,7 @@ shapy.AuthService = function($q, $http) {
 /**
  * Logs the user in.
  */
-shapy.AuthService.prototype.login = function() 
+shapy.AuthService.prototype.login = function() {
 };
 
 
