@@ -20,6 +20,8 @@ shapy.AuthService = function($q, $http) {
   this.q_ = $q;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
+  /** @private {shapy.AuthService.User} */
+  this.user_ = null;
 };
 
 
@@ -27,7 +29,16 @@ shapy.AuthService = function($q, $http) {
  * Logs the user in.
  */
 shapy.AuthService.prototype.login = function() {
-  console.log('login');
+  if (this.user) {
+    var defer = this.q_.defer();
+    defer.resolve(this.user_);
+    return defer.promise;
+  }
+
+  return this.http_.get('/api/user/auth').success(function(data) {
+    this.user = shapy.AuthService.User(this, data);
+    return this.user;
+  }.bind(this));
 };
 
 

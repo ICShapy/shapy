@@ -40,7 +40,7 @@ shapy.configStates_ = function(
           }
         },
         'body@': {
-          template: 'body'
+          templateUrl: '/html/main.html'
         }
       }
     })
@@ -48,7 +48,14 @@ shapy.configStates_ = function(
       url: 'projects'
     })
     .state('main.editor', {
-      url: 'editor'
+      url: 'editor',
+      views: {
+        'body@': {
+          templateUrl: '/html/editor.html',
+          controllerAs: 'editorCtrl',
+          controller: 'EditorController'
+        }
+      }
     })
     .state('main.help', {
       url: 'help'
