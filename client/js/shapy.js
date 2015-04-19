@@ -17,14 +17,15 @@ goog.provide('shapy.module');
  * @ngInject
  */
 shapy.configRoutes_ = function($routeProvider, $locationProvider) {
+  $locationProvider.html5Mode(true);
   $routeProvider
     .when('/', {
-      templateUrl: 'main.html',
+      templateUrl: '/html/main.html',
       controller: 'MainController',
       controllerAs: 'mainCtrl'
     })
     .when('/editor/:model', {
-      templateUrl: 'editor.html',
+      templateUrl: '/html/editor.html',
       controller: 'EditorController',
       controllerAs: 'editorCtrl',
       resolve: {

@@ -43,6 +43,16 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
 
 
+class IndexHandler(tornado.web.StaticFileHandler):
+  def initialize(self, path):
+    self.dirname, self.filename = os.path.split(path)
+    super(IndexHandler, self).initialize(self.dirname)
+
+  def get(self, path=None, include_body=True):
+    super(IndexHandler, self).get(self.filename, include_body)
+
+
+
 def main(args):
   """Entry point of the application.
 
@@ -52,8 +62,10 @@ def main(args):
   tornado.web.Application([
     (r'/api/sock',    WSHandler),
     (r'/api/(.*)',    APIHandler),
-    (r'/',            tornado.web.RedirectHandler, { 'url':  '/index.html' }),
-    (r'/(.*)',        tornado.web.StaticFileHandler, { 'path': 'client' }),
+    (r'/css/(.*)',    tornado.web.StaticFileHandler, { 'path': 'client/css' }),
+    (r'/js/(.*)',     tornado.web.StaticFileHandler, { 'path': 'client/js' }),
+    (r'/html/(.*)',   tornado.web.StaticFileHandler, { 'path': 'client/html' }),
+    (r'(.*)',         IndexHandler, { 'path': 'client/index.html' }),
   ], debug=True).listen(PORT)
   tornado.ioloop.IOLoop.instance().start()
 

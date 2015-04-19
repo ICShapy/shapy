@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="shShapy">
   <head>
+    <base href="/">
     <title>Shapy</title>
 
     <!-- External dependencies. -->
@@ -10,25 +11,25 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 
     <!-- Closure library dependency tree. -->
-    <script src="/goog/base.js"></script>
+    <script src="/js/goog/base.js"></script>
     <script type="text/javascript">
-      goog.addDependency('../js/auth.js', [
+      goog.addDependency('../auth.js', [
           'shapy.AuthService',
           'shapy.AuthService.User'
       ], []);
-      goog.addDependency('../js/editor.js', [
+      goog.addDependency('../editor.js', [
           'shapy.editor.module'
       ], []);
-      goog.addDependency('../js/http.js', [
+      goog.addDependency('../http.js', [
           'shapy.HttpService'
       ], []);
-      goog.addDependency('../js/main.js', [
+      goog.addDependency('../main.js', [
           'shapy.main.module'
       ], []);
-      goog.addDependency('../js/shapy.js', [
+      goog.addDependency('../shapy.js', [
         'shapy.module'
       ], []);
-      goog.addDependency('../js/util.js', [
+      goog.addDependency('../util.js', [
       ], []);
       goog.require('shapy.module');
     </script>
