@@ -5,41 +5,14 @@ import sys
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import tornado.websocket
+import shapy.editor
+import shapy.user
 
 
 
 PORT = int(os.environ.get('PORT', 8000))
-
-
-
-class APIHandler(tornado.web.RequestHandler):
-  """Handles requests to the REST API."""
-
-  def get(self, url):
-    """Handles a GET request."""
-    self.write('get')
-
-  def post(self, url):
-    """Handles a POST request."""
-    self.write('post')
-
-
-
-class WSHandler(tornado.websocket.WebSocketHandler):
-  """Handles websocket connections."""
-
-  def open(self):
-    """Handles an incoming connection."""
-    pass
-
-  def on_message(self, message):
-    """Handles an incoming message."""
-    pass
-
-  def on_close(self, message):
-    """Handles connection termination."""
-    pass
+FB_API_KEY = os.environ.get('FB_API_KEY')
+FB_SECRET = os.environ.get('FB_SECRET')
 
 
 
@@ -60,12 +33,18 @@ def main(args):
     args: Command line arguments.
   """
   tornado.web.Application([
-    (r'/api/sock',    WSHandler),
-    (r'/api/(.*)',    APIHandler),
-    (r'/css/(.*)',    tornado.web.StaticFileHandler, { 'path': 'client/css' }),
-    (r'/js/(.*)',     tornado.web.StaticFileHandler, { 'path': 'client/js' }),
-    (r'/html/(.*)',   tornado.web.StaticFileHandler, { 'path': 'client/html' }),
-    (r'(.*)',         IndexHandler, { 'path': 'client/index.html' }),
+    # API handlers.
+    (r'/api/user/auth',     shapy.user.AuthHandler),
+    (r'/api/user/login',    shapy.user.LoginHandler),
+    (r'/api/user/logout',   shapy.user.LogoutHandler),
+    (r'/api/user/register', shapy.user.RegisterHandler),
+    (r'/api/sock',          shapy.editor.WSHandler),
+
+    # Static files.
+    (r'/css/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/css' }),
+    (r'/js/(.*)',   tornado.web.StaticFileHandler, { 'path': 'client/js' }),
+    (r'/html/(.*)', tornado.web.StaticFileHandler, { 'path': 'client/html' }),
+    (r'(.*)',       IndexHandler, { 'path': 'client/index.html' }),
   ], debug=True).listen(PORT)
   tornado.ioloop.IOLoop.instance().start()
 
