@@ -1,0 +1,55 @@
+
+html {
+  font-family: sans-serif;
+}
+
+#header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background-color: #222222;
+  border-bottom: 1px solid #111111;
+}
+
+#header a, #header span {
+  color: white;
+  padding: 7px;
+  height: 16px;
+  font-size: 16px;
+  display: block;
+}
+
+#header a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#header > a {
+  float: left;
+}
+
+#header a:hover {
+  background-color: #555555;
+}
+
+#header .profile {
+  float: right;
+}
+
+#header .profile > span {
+  float: right;
+}
+
+#header .profile > a {
+  float: right;
+}
+
+#body {
+  position: fixed;
+  top: 31px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}

@@ -1,3 +1,17 @@
-<div>
-  Header
-</div>
+<nav id="header">
+  <a ui-sref="main">Home</a>
+  <a ui-sref="main.projects">Projects</a>
+  <a ui-sref="main.editor">Editor</a>
+  <a ui-sref="main.warehouse">Warehouse</a>
+  <a ui-sref="main.help">Help</a>
+  <div ng-show="headerCtrl.user" class="profile">
+    <a ui-sref="main.logout">Logout</a>
+    <span>
+    {{ headerCtrl.user.name }}
+    </span>
+  </div>
+  <div ng-hide="headerCtrl.user" class="profile">
+    <a ui-sref="main.register">Register</a>
+    <a ui-sref="main.login">Login</a>
+  </div>
+</nav>

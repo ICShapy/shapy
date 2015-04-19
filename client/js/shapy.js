@@ -16,27 +16,67 @@ goog.provide('shapy.module');
  * @private
  * @ngInject
  */
-shapy.configRoutes_ = function($routeProvider, $locationProvider) {
+shapy.configStates_ = function(
+    $stateProvider,
+    $urlRouterProvider,
+    $locationProvider)
+{
   $locationProvider.html5Mode(true);
-  $routeProvider
-    .when('/', {
-      templateUrl: '/html/main.html',
-      controller: 'MainController',
-      controllerAs: 'mainCtrl'
-    })
-    .when('/editor/:model', {
-      templateUrl: '/html/editor.html',
-      controller: 'EditorController',
-      controllerAs: 'editorCtrl',
+  $urlRouterProvider.otherwise('/');
+  $stateProvider
+    .state('main', {
+      url: '/',
       resolve: {
         user: function(shAuth) {
           return shAuth.login();
         }
+      },
+      views: {
+        'header@': {
+          templateUrl: '/html/header.html',
+          controllerAs: 'headerCtrl',
+          controller: function(user) {
+            this.user = user;
+          }
+        },
+        'body@': {
+          template: 'body'
+        }
       }
     })
-    .otherwise({
-      redirectTo: '/'
-    });
+    .state('main.projects', {
+      url: 'projects'
+    })
+    .state('main.editor', {
+      url: 'editor'
+    })
+    .state('main.help', {
+      url: 'help'
+    })
+    .state('main.warehouse', {
+      url: 'warehouse'
+    })
+    .state('main.register', {
+      url: 'register',
+      views: {
+        'body@': {
+          template: 'register'
+        }
+      }
+    })
+    .state('main.login', {
+      url: 'login',
+      views: {
+        'body@': {
+          template: 'login'
+        }
+      }
+    })
+    .state('main.logout', {
+      url: 'logout',
+      onEnter: function() {
+      }
+    })
 };
 
 
@@ -64,10 +104,9 @@ shapy.module = angular
       'shMain',
       'shEditor',
       'ngSanitize',
-      'ngRoute'
+      'ngRoute',
+      'ui.router'
   ])
   .service('shAuth', shapy.AuthService)
-  .config(shapy.configRoutes_)
+  .config(shapy.configStates_)
   .config(shapy.configHttp_);
-
-
