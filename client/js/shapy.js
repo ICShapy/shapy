@@ -28,7 +28,8 @@ shapy.configStates_ = function(
       url: '/',
       resolve: {
         user: function(shAuth) {
-          return shAuth.login();
+          //return shAuth.login();
+          return null;
         }
       },
       views: {

@@ -10,3 +10,5 @@ logs
 .c9
 target
 
+# Secret stuff.
+config.sh
