@@ -5,7 +5,7 @@
   <a ui-sref="main.warehouse">Warehouse</a>
   <a ui-sref="main.help">Help</a>
   <div ng-show="headerCtrl.user" class="profile">
-    <a ui-sref="main.logout">Logout</a>
+    <a ng-click="headerCtrl.logout()">Logout</a>
     <span>
     {{ headerCtrl.user.name }}
     </span>

@@ -20,27 +20,64 @@ shapy.AuthService = function($q, $http) {
   this.q_ = $q;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
+  /** @private {boolean} */
+  this.fetched_ = false;
   /** @private {shapy.AuthService.User} */
   this.user_ = null;
 };
 
 
 /**
- * Logs the user in.
+ * Returns data of an authenticated user.
  */
-shapy.AuthService.prototype.login = function() {
-  if (this.user) {
-    var defer = this.q_.defer();
+shapy.AuthService.prototype.auth = function() {
+  var defer = this.q_.defer();
+  if (this.fetched_) {
     defer.resolve(this.user_);
     return defer.promise;
   }
 
-  return this.http_.get('/api/user/auth').success(function(data) {
-    this.user = shapy.AuthService.User(this, data);
-    return this.user;
-  }.bind(this));
+  this.http_.get('/api/user/auth')
+      .success(function(data) {
+        this.user_ = new shapy.AuthService.User(this, data);
+        this.fetched_ = true;
+        defer.resolve(this.user_);
+      }.bind(this))
+      .error(function() {
+        this.user_ = null;
+        this.fetched_ = true;
+        defer.resolve(this.user_);
+      });
+  return defer.promise;
 };
 
+
+/**
+ * Logs a user in.
+ *
+ * @param {string} email
+ * @param {string} passw
+ *
+ * @return {!angular.$q}
+ */
+shapy.AuthService.prototype.login = function(email, passw) {
+  this.fetched_ = false;
+  this.user_ = null;
+  return this.http_.post('/api/user/login', {
+      email: email,
+      passw: passw
+  });
+};
+
+
+/**
+ * Logs a user out.
+ */
+shapy.AuthService.prototype.logout = function() {
+  this.fetched_ = false;
+  this.user_ = null;
+  return this.http_.post('/api/user/logout');
+};
 
 
 /**
@@ -54,6 +91,6 @@ shapy.AuthService.prototype.login = function() {
 shapy.AuthService.User = function(shAuth, data) {
   /** @private {!shapy.AuthService} @const */
   this.shAuth_ = shAuth;
+  /** @private {string} */
+  this.name = data['first_name'] + ' ' + data['last_name']
 };
-
-

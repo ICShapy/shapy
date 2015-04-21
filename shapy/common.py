@@ -12,14 +12,16 @@ from tornado.web import RequestHandler, HTTPError
 class APIHandler(RequestHandler):
   """Handles requests to the REST API."""
 
-  def __init__(self, *args, **kwargs):
-    """Initialises the API handler object."""
-    super(APIHandler, self).__init__(*args, **kwargs)
-    self.db = self.application.db
+  @property
+  def db(self):
+    return self.application.db
 
   def get_current_user(self):
     """Returns the currently authenticated user."""
-    return None
+    try:
+      return int(self.get_secure_cookie('session_id'))
+    except:
+      return None
 
   def write_error(self, status_code, **kwargs):
     """Handles error messages, outputting a properly formatted JSON message."""

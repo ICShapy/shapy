@@ -28,20 +28,46 @@ shapy.configStates_ = function(
       url: '/',
       resolve: {
         user: function(shAuth) {
-          //return shAuth.login();
-          return null;
+          return shAuth.auth();
         }
       },
       views: {
         'header@': {
           templateUrl: '/html/header.html',
           controllerAs: 'headerCtrl',
-          controller: function(user) {
+          controller: function($state, shAuth, user) {
             this.user = user;
+            /** @export */
+            this.logout = function() {
+              shAuth.logout().then(function() {
+                $state.go('main', null, { reload: true });
+              });
+            };
           }
         },
         'body@': {
           templateUrl: '/html/main.html'
+        }
+      }
+    })
+    .state('main.login', {
+      url: 'login',
+      views: {
+        'body@': {
+          templateUrl: '/html/login.html',
+          controllerAs: 'loginCtrl',
+          controller: function($state, shAuth) {
+            /** @public {string} @export */
+            this.passw = '';
+            /** @public {string} @export */
+            this.email = '';
+            /** @export */
+            this.login = function() {
+              shAuth.login(this.email, this.passw).then(function() {
+                $state.go('main', null, { reload: true });
+              });
+            };
+          }
         }
       }
     })
@@ -71,20 +97,7 @@ shapy.configStates_ = function(
           template: 'register'
         }
       }
-    })
-    .state('main.login', {
-      url: 'login',
-      views: {
-        'body@': {
-          template: 'login'
-        }
-      }
-    })
-    .state('main.logout', {
-      url: 'logout',
-      onEnter: function() {
-      }
-    })
+    });
 };
 
 
