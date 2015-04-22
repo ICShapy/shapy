@@ -18,24 +18,43 @@
     <!-- Closure library dependency tree. -->
     <script src="/js/goog/base.js"></script>
     <script type="text/javascript">
+      goog.addDependency('../gfx/mesh.js', [
+          'shapy.gfx.Mesh'
+      ], []);
+      goog.addDependency('../gfx/renderer.js', [
+          'shapy.gfx.Renderer'
+      ], []);
+      goog.addDependency('../gfx/shader.js', [
+          'shapy.gfx.Shader'
+      ], []);
       goog.addDependency('../auth.js', [
           'shapy.AuthService',
           'shapy.AuthService.User'
       ], []);
+      goog.addDependency('../camera.js', [
+          'shapy.Camera'
+      ], []);
       goog.addDependency('../editor.js', [
           'shapy.editor.module'
-      ], []);
+      ], [
+          'shapy.Object',
+          'shapy.gfx.Mesh',
+          'shapy.gfx.Renderer'
+      ]);
       goog.addDependency('../http.js', [
           'shapy.HttpService'
       ], []);
       goog.addDependency('../main.js', [
           'shapy.main.module'
       ], []);
+      goog.addDependency('../object.js', [
+          'shapy.Object'
+      ], []);
       goog.addDependency('../shapy.js', [
-        'shapy.module'
+          'shapy.module'
       ], [
-        'shapy.AuthService',
-        'shapy.editor.module'
+          'shapy.AuthService',
+          'shapy.editor.module'
       ]);
       goog.addDependency('../util.js', [
       ], []);

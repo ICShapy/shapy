@@ -6,6 +6,9 @@ goog.provide('shapy.editor.module');
 goog.require('goog.dom');
 goog.require('goog.math.Size');
 goog.require('goog.webgl');
+goog.require('shapy.Camera');
+goog.require('shapy.Object');
+goog.require('shapy.gfx.Renderer');
 
 
 
@@ -42,6 +45,18 @@ shapy.editor.CanvasController = function() {
   this.gl_ = null;
 
   /**
+   * Renderer that manages all WebGL resources.
+   * @private {shapy.gfx.Renderer} @const
+   */
+  this.renderer_ = null;
+
+  /**
+   * Map of all objects in the scene.
+   * @private {!Object<string, shapy.Object>} @const
+   */
+  this.objects_ = {};
+
+  /**
    * Size of the canvas.
    * @private {!goog.math.Size} @const
    */
@@ -62,6 +77,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.canvas_ = canvas;
   this.parent_ = goog.dom.getParentElement(this.canvas_);
   this.gl_ = this.canvas_.getContext('webgl');
+  this.renderer_ = new shapy.gfx.Renderer(this.gl_);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
