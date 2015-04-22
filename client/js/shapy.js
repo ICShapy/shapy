@@ -3,7 +3,6 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.HttpService');
 goog.require('shapy.AuthService');
-goog.require('shapy.main.module');
 goog.require('shapy.editor.module');
 
 goog.provide('shapy.module');
@@ -122,7 +121,6 @@ shapy.configHttp_ = function($httpProvider) {
  */
 shapy.module = angular
   .module('shShapy', [
-      'shMain',
       'shEditor',
       'ngSanitize',
       'ngRoute',
