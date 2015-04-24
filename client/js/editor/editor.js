@@ -9,6 +9,7 @@ goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
 goog.require('shapy.editor.Object');
 goog.require('shapy.editor.Renderer');
+goog.require('shapy.editor.Viewport');
 
 
 

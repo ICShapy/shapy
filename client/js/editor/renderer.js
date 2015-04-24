@@ -11,8 +11,10 @@ goog.require('shapy.editor.Shader');
 
 /** @private {string} @const */
 shapy.editor.COLOUR_VS =
-  'void main() {' +
-  '}';
+  'uniform mat4 u_mvp;                      \n' +
+  'void main() {                            \n' +
+  '  gl_Position = u_mvp * vec4(0, 0, 0, 1);\n' +
+  '}                                        \n';
 
 
 /** @private {string} @const */
