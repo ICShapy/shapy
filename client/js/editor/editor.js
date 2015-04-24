@@ -5,8 +5,13 @@ goog.provide('shapy.editor.module');
 
 goog.require('goog.dom');
 goog.require('goog.math.Size');
+goog.require('goog.object');
 goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
+goog.require('shapy.editor.Layout');
+goog.require('shapy.editor.Layout.Single');
+goog.require('shapy.editor.Layout.Double');
+goog.require('shapy.editor.Layout.Quad');
 goog.require('shapy.editor.Object');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Viewport');
@@ -47,9 +52,15 @@ shapy.editor.CanvasController = function() {
 
   /**
    * Renderer that manages all WebGL resources.
-   * @private {shapy.gfx.Renderer} @const
+   * @private {shapy.editor.Renderer} @const
    */
   this.renderer_ = null;
+
+  /**
+   * Root layout.
+   * @private {!shapy.editor.Layout} @const
+   */
+  this.layout_ = new shapy.editor.Layout.Double();
 
   /**
    * Map of all objects in the scene.
@@ -89,13 +100,20 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
  * Render callback.
  */
 shapy.editor.CanvasController.prototype.render = function() {
-  // Resize the canvas.
-  this.vp_.width = this.canvas_.width = this.parent_.offsetWidth;
-  this.vp_.height = this.canvas_.height = this.parent_.offsetHeight;
-  this.gl_.viewport(0, 0, this.vp_.width, this.vp_.height);
+  var width = this.parent_.offsetWidth, height = this.parent_.offsetHeight;
+
+  // Resize the canvas if it changes.
+  if (this.vp_.width != width || this.vp_.height != height) {
+    this.vp_.width = this.canvas_.width = this.parent_.offsetWidth;
+    this.vp_.height = this.canvas_.height = this.parent_.offsetHeight;
+    this.layout_.resize(width, height);
+  }
 
   // Clear the screen.
-  this.gl_.clear(goog.webgl.COLOR_BUFFER_BIT | goog.webgl.DEPTH_BUFFER_BIT);
+  this.renderer_.start();
+  goog.object.forEach(this.layout_.viewports, function(vp, name) {
+    this.renderer_.render(vp);
+  }, this);
 };
 
 

@@ -1,6 +1,10 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
+goog.provide('shapy.editor.Layout');
+goog.provide('shapy.editor.Layout.Single');
+goog.provide('shapy.editor.Layout.Double');
+goog.provide('shapy.editor.Layout.Quad');
 goog.provide('shapy.editor.Viewport');
 
 goog.require('goog.math.Rect');
@@ -18,10 +22,10 @@ goog.require('goog.math.Size');
 shapy.editor.Layout = function(viewports) {
   /**
    * Map of all viewports on the screen.
-   * @private {!Object<string, shapy.editor.Viewport>}
+   * @public {!Object<string, shapy.editor.Viewport>}
    * @const
    */
-  this.viewports_ = viewports;
+  this.viewports = viewports;
 
   /**
    * The size of the entire screen.
@@ -48,7 +52,7 @@ shapy.editor.Layout.prototype.resize = goog.abstractMethod;
  * @constructor
  * @extends {shapy.editor.Layout}
  */
-shapy.editor.SingleLayout = function() {
+shapy.editor.Layout.Single = function() {
   /** @private {!shapy.editor.Viewport} @const */
   this.viewport = new shapy.editor.Viewport('viewport');
 
@@ -56,13 +60,13 @@ shapy.editor.SingleLayout = function() {
       'viewport': this.viewport
   });
 };
-goog.inherits(shapy.editor.SingleLayout, shapy.editor.Layout);
+goog.inherits(shapy.editor.Layout.Single, shapy.editor.Layout);
 
 
 /**
  * Recomputes the positions & sizes of all viewports.
  */
-shapy.editor.SingleLayout.prototype.resize = function(w, h) {
+shapy.editor.Layout.Single.prototype.resize = function(w, h) {
   this.viewport.resize(0, 0, w, h);
 };
 
@@ -74,7 +78,7 @@ shapy.editor.SingleLayout.prototype.resize = function(w, h) {
  * @constructor
  * @extends {shapy.editor.Layout}
  */
-shapy.editor.DoubleLayout = function() {
+shapy.editor.Layout.Double = function() {
   /** @private {!shapy.editor.Viewport} @const */
   this.left = new shapy.editor.Viewport('left');
   /** @private {!shapy.editor.Viewport} @const */
@@ -85,13 +89,13 @@ shapy.editor.DoubleLayout = function() {
       'right': this.right,
   });
 };
-goog.inherits(shapy.editor.DoubleLayout, shapy.editor.Layout);
+goog.inherits(shapy.editor.Layout.Double, shapy.editor.Layout);
 
 
 /**
  * Recomputes the positions & sizes of all viewports.
  */
-shapy.editor.DoubleLayout.prototype.resize = function(w, h) {
+shapy.editor.Layout.Double.prototype.resize = function(w, h) {
   this.left.resize(0, 0, w / 2, h);
   this.right.resize(w / 2, 0, w / 2, h);
 };
@@ -104,7 +108,7 @@ shapy.editor.DoubleLayout.prototype.resize = function(w, h) {
  * @constructor
  * @extends {shapy.editor.Layout}
  */
-shapy.editor.QuadLayout = function() {
+shapy.editor.Layout.Quad = function() {
   /** @private {!shapy.editor.Viewport} @const */
   this.topLeft = new shapy.editor.Viewport('top-left');
   /** @private {!shapy.editor.Viewport} @const */
@@ -121,13 +125,13 @@ shapy.editor.QuadLayout = function() {
       'bottom-right': this.bottomRight
   });
 };
-goog.inherits(shapy.editor.QuadLayout, shapy.editor.Layout);
+goog.inherits(shapy.editor.Layout.Quad, shapy.editor.Layout);
 
 
 /**
  * Recomputes the positions & sizes of all viewports.
  */
-shapy.editor.QuadLayout.prototype.resize = function(w, h) {
+shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
   this.topLeft.resize(0, 0, w / 2, h / 2);
   this.topRight.resize(w / 2, 0, w / 2, h / 2);
   this.bottomLeft.resize(0, h / 2, w / 2, h / 2);
@@ -149,27 +153,27 @@ shapy.editor.Viewport = function(name) {
    * @private {string}
    * @const
    */
-  this.name_ = name;
+  this.name = name;
 
   /**
    * The camera attached to the viewport.
    * @private {!shapy.editor.Camera}
    * @const
    */
-  this.camera_ = new shapy.editor.Camera();
+  this.camera = new shapy.editor.Camera.Persp();
 
   /**
    * The size and position of the viewport.
    * @private {!goog.math.Size}
    * @const
    */
-  this.rect_ = new goog.math.Rect(0, 0, 0, 0);
+  this.rect = new goog.math.Rect(0, 0, 0, 0);
 
   /**
    * Type of the viewport.
    * @private {!shapy.editor.Viewport.Type}
    */
-  this.type_ = shapy.editor.Viewport.Type.PERSPECTIVE;
+  this.type = shapy.editor.Viewport.Type.PERSPECTIVE;
 };
 
 
@@ -182,11 +186,11 @@ shapy.editor.Viewport = function(name) {
  * @param {number} h
  */
 shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
-  this.rect_.x = x;
-  this.rect_.y = y;
-  this.rect_.w = w;
-  this.rect_.h = h;
-  this.camera_.setAspectRatio(w / h);
+  this.rect.x = x;
+  this.rect.y = y;
+  this.rect.w = w;
+  this.rect.h = h;
+  this.camera.resize(w, h);
 };
 
 

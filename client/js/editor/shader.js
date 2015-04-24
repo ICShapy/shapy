@@ -63,6 +63,14 @@ shapy.editor.Shader.prototype.link = function() {
 
 
 /**
+ * Binds the shader to the context.
+ */
+shapy.editor.Shader.prototype.use = function() {
+  this.gl_.useProgram(this.prog_);
+};
+
+
+/**
  * Sets the value of a uniform matrix.
  *
  * @param {string}       name  Name of the uniform matrix.
