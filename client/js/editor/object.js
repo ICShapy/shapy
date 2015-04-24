@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.Object');
+goog.provide('shapy.editor.Object');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec3');
@@ -21,7 +21,7 @@ goog.require('goog.vec.Vec3');
  *
  * @constructor
  */
-shapy.Object = function() {
+shapy.editor.Object = function() {
   /** @private {goog.vec.Vec3} @const */
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
   /** @private {goog.vec.Vec3} @const */
@@ -54,7 +54,7 @@ shapy.Object = function() {
  *
  * @private
  */
-shapy.Object.prototype.computeModel_ = function() {
+shapy.editor.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);

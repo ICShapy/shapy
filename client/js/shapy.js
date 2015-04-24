@@ -56,9 +56,9 @@ shapy.configStates_ = function(
           templateUrl: '/html/login.html',
           controllerAs: 'loginCtrl',
           controller: function($state, shAuth) {
-            /** @public {string} @export */
+            /** @public {string} */
             this.passw = '';
-            /** @public {string} @export */
+            /** @public {string} */
             this.email = '';
             /** @export */
             this.login = function() {
@@ -116,7 +116,7 @@ shapy.configHttp_ = function($httpProvider) {
 
 /**
  * Main application module.
- * @public {Object}
+ * @public {!angular.Module}
  * @const
  */
 shapy.module = angular

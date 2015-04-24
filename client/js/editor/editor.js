@@ -6,9 +6,9 @@ goog.provide('shapy.editor.module');
 goog.require('goog.dom');
 goog.require('goog.math.Size');
 goog.require('goog.webgl');
-goog.require('shapy.Camera');
-goog.require('shapy.Object');
-goog.require('shapy.gfx.Renderer');
+goog.require('shapy.editor.Camera');
+goog.require('shapy.editor.Object');
+goog.require('shapy.editor.Renderer');
 
 
 
@@ -77,7 +77,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.canvas_ = canvas;
   this.parent_ = goog.dom.getParentElement(this.canvas_);
   this.gl_ = this.canvas_.getContext('webgl');
-  this.renderer_ = new shapy.gfx.Renderer(this.gl_);
+  this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -137,7 +137,7 @@ shapy.editor.CanvasDirective = function() {
 
 
 /**
- * @public {Object}
+ * @public {!angular.Module}
  * @const
  */
 shapy.editor.module = angular

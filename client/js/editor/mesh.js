@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.gfx.Mesh');
+goog.provide('shapy.editor.Mesh');
 
 
 
@@ -10,7 +10,7 @@ goog.provide('shapy.gfx.Mesh');
  *
  * @constructor
  */
-shapy.gfx.Mesh = function() {
+shapy.editor.Mesh = function() {
 
 };
 
@@ -18,7 +18,7 @@ shapy.gfx.Mesh = function() {
 /**
  * Renders the mesh.
  */
-shapy.gfx.Mesh.prototype.render = function() {
+shapy.editor.Mesh.prototype.render = function() {
 
 };
 
@@ -26,7 +26,7 @@ shapy.gfx.Mesh.prototype.render = function() {
 /**
  * Checks if the mesh intersects a ray.
  */
-shapy.gfx.Mesh.prototype.intersects = function(ray) {
+shapy.editor.Mesh.prototype.intersects = function(ray) {
 
 };
 
@@ -34,7 +34,7 @@ shapy.gfx.Mesh.prototype.intersects = function(ray) {
 /**
  * Creates a plane.
  */
-shapy.gfx.Mesh.createPlane = function(gl, w, h, sx, sy) {
+shapy.editor.Mesh.createPlane = function(gl, w, h, sx, sy) {
 
 };
 
@@ -42,7 +42,7 @@ shapy.gfx.Mesh.createPlane = function(gl, w, h, sx, sy) {
 /**
  * Creates an arrow.
  */
-shapy.gfx.Mesh.createArrow = function(gl, dir) {
+shapy.editor.Mesh.createArrow = function(gl, dir) {
 
 };
 
@@ -50,7 +50,7 @@ shapy.gfx.Mesh.createArrow = function(gl, dir) {
 /**
  * Creates a cube.
  */
-shapy.gfx.Mesh.createCube = function(gl, w, h, d) {
+shapy.editor.Mesh.createCube = function(gl, w, h, d) {
 
 };
 
@@ -58,7 +58,7 @@ shapy.gfx.Mesh.createCube = function(gl, w, h, d) {
 /**
  * Creates a sphere.
  */
-shapy.gfx.Mesh.createSphere = function(gl, r, phi, theta) {
+shapy.editor.Mesh.createSphere = function(gl, r, phi, theta) {
 
 };
 
@@ -66,6 +66,6 @@ shapy.gfx.Mesh.createSphere = function(gl, r, phi, theta) {
 /**
  * Creates a circle.
  */
-shapy.gfx.Mesh.createCircle = function(gl, norm, r) {
+shapy.editor.Mesh.createCircle = function(gl, norm, r) {
 
 };

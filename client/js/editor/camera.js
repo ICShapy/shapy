@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.Camera');
+goog.provide('shapy.editor.Camera');
 
 
 
@@ -10,7 +10,7 @@ goog.provide('shapy.Camera');
  *
  * @constructor
  */
-shapy.Camera = function() {
+shapy.editor.Camera = function() {
   /** @private {!goog.vec.Mat4} @const */
   this.proj_ = goog.vec.Mat4.createFloat32();
   /** @private {!goog.vec.Mat4} @const */
@@ -23,7 +23,7 @@ shapy.Camera = function() {
 /**
  * Recomputes the matrices.
  */
-shapy.Camera.prototype.computeMatrices = goog.abstractMethod;
+shapy.editor.Camera.prototype.computeMatrices = goog.abstractMethod;
 
 
 
@@ -31,12 +31,12 @@ shapy.Camera.prototype.computeMatrices = goog.abstractMethod;
  * Perspective camera.
  *
  * @constructor
- * @extends {shapy.Camera}
+ * @extends {shapy.editor.Camera}
  */
-shapy.PerspCamera = function() {
+shapy.editor.PerspCamera = function() {
 
 };
-goog.inherits(shapy.PerspCamera, shapy.Camera);
+goog.inherits(shapy.editor.PerspCamera, shapy.editor.Camera);
 
 
 
@@ -44,9 +44,9 @@ goog.inherits(shapy.PerspCamera, shapy.Camera);
  * Ortho camera.
  *
  * @constructor
- * @extends {shapy.Camera}
+ * @extends {shapy.editor.Camera}
  */
-shapy.OrthoCamera = function() {
+shapy.editor.OrthoCamera = function() {
 
 };
-goog.inherits(shapy.OrthoCamera, shapy.Camera);
+goog.inherits(shapy.editor.OrthoCamera, shapy.editor.Camera);
