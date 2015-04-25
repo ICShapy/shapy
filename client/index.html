@@ -51,11 +51,15 @@
       goog.addDependency('../http.js', [
           'shapy.HttpService'
       ], []);
+      goog.addDependency('../notification.js', [
+          'shapy.notification.module'
+      ], []);
       goog.addDependency('../shapy.js', [
           'shapy.module'
       ], [
           'shapy.AuthService',
-          'shapy.editor.module'
+          'shapy.editor.module',
+          'shapy.notification.module'
       ]);
       goog.addDependency('../util.js', [
       ], []);
@@ -64,6 +68,7 @@
   </head>
   <body>
     <div id="header" ui-view="header"></div>
+    <sh-notify-bar></sh-notify-bar>
     <div id="body" ui-view="body"></div>
   </body>
 </html>

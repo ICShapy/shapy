@@ -26,7 +26,7 @@ html {
   cursor: pointer;
 }
 
-#header > a {
+#header a {
   float: left;
 }
 
@@ -52,6 +52,7 @@ html {
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 999;
 }
 
 #login {
@@ -59,4 +60,61 @@ html {
   height: 300px;
   margin-left: auto;
   margin-right: auto;
+}
+
+sh-notify-bar {
+  position: fixed;
+  display: block;
+  top: 25px;
+  left: 50%;
+  margin-left: -250px;
+  width: 500px;
+  z-index: 1000;
+}
+
+.notification {
+  text-align: center;
+}
+
+.notification > span {
+  display: inline-block;
+  border-width: 1px;
+  border-style: solid;
+  transition: opacity 1s ease-in-out;
+  transition: 1;
+  font-size: 14px;
+  padding: 1px 5px 2px 5px;
+  margin-top: 2px;
+  border-radius: 2px;
+  box-shadow: 1px 1px 2px #222;
+  font-weight: bold;
+}
+
+.notification > span.fade {
+  opacity: 0.2;
+}
+
+.notification > span.notice {
+  border-color: #045400;
+  background-color: #1cb814;
+}
+
+.notification > span.warning {
+  border-color: #f76300;
+  background-color: #f79d00;
+}
+
+.notification > span.error {
+  border-color: #4a0000;
+  background-color: #8c0a0a;
+}
+
+.notification a.content {
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.notification span.content {
+  cursor: pointer;
 }

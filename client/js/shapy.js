@@ -4,6 +4,7 @@
 goog.require('shapy.HttpService');
 goog.require('shapy.AuthService');
 goog.require('shapy.editor.module');
+goog.require('shapy.notification.module');
 
 goog.provide('shapy.module');
 
@@ -122,6 +123,7 @@ shapy.configHttp_ = function($httpProvider) {
 shapy.module = angular
   .module('shShapy', [
       'shEditor',
+      'shNotify',
       'ngSanitize',
       'ngRoute',
       'ui.router'

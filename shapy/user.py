@@ -17,8 +17,12 @@ class AuthHandler(APIHandler):
   """Handles requests to the REST API."""
 
   @coroutine
-  @authenticated
   def get(self):
+    # If user not logged in, return an error.
+    if not self.current_user:
+      self.write(json.dumps({ 'id': 0 }))
+      return
+
     # Fetch user data.
     cursor = yield momoko.Op(self.db.execute,
         '''SELECT first_name, last_name, email FROM users WHERE id=%s''',

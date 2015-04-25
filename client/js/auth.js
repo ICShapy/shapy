@@ -39,15 +39,15 @@ shapy.AuthService.prototype.auth = function() {
 
   this.http_.get('/api/user/auth')
       .success(function(data) {
-        this.user_ = new shapy.AuthService.User(this, data);
-        this.fetched_ = true;
+        if (data['id']) {
+          this.user_ = new shapy.AuthService.User(this, data);
+          this.fetched_ = true;
+        } else {
+          this.user_ = null;
+          this.fetched_ = true;
+        }
         defer.resolve(this.user_);
-      }.bind(this))
-      .error(function() {
-        this.user_ = null;
-        this.fetched_ = true;
-        defer.resolve(this.user_);
-      });
+      }.bind(this));
   return defer.promise;
 };
 
