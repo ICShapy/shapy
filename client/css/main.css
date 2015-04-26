@@ -34,6 +34,11 @@ html {
   background-color: #555555;
 }
 
+#header a.highlight {
+  border-bottom: 2px solid #ffff00;
+  height: 15px;
+}
+
 #header .profile {
   float: right;
 }

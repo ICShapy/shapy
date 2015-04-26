@@ -201,7 +201,7 @@ shapy.notification.Controller_.prototype.dismiss = function(notif) {
  *
  * @return {!angular.Directive}
  */
-shapy.notification.Directive = function() {
+shapy.notification.notifyBar = function() {
   return {
     restrict: 'E',
     template:
@@ -237,4 +237,4 @@ shapy.notification.Directive = function() {
 shapy.notification.module = angular
     .module('shNotify', [])
     .service('shNotify', shapy.notification.Service)
-    .directive('shNotifyBar', shapy.notification.Directive);
+    .directive('shNotifyBar', shapy.notification.notifyBar);

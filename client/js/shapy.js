@@ -3,6 +3,7 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
 goog.require('shapy.editor.module');
+goog.require('shapy.highlight');
 goog.require('shapy.notification.module');
 
 goog.provide('shapy.module');
@@ -169,6 +170,7 @@ shapy.module = angular
       'ui.router'
   ])
   .service('shAuth', shapy.AuthService)
+  .directive('shHighlight', shapy.highlight)
   .factory('shHttp', shapy.HttpInterceptor)
   .config(shapy.configStates_)
   .config(shapy.configHttp_);
