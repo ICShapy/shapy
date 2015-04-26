@@ -1,7 +1,6 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.require('shapy.HttpService');
 goog.require('shapy.AuthService');
 goog.require('shapy.editor.module');
 goog.require('shapy.notification.module');
@@ -88,7 +87,12 @@ shapy.configStates_ = function(
       url: 'help'
     })
     .state('main.warehouse', {
-      url: 'warehouse'
+      url: 'warehouse',
+      views: {
+        'body@': {
+          templateUrl: '/html/warehouse.html'
+        }
+      }
     })
     .state('main.register', {
       url: 'register',
@@ -102,15 +106,51 @@ shapy.configStates_ = function(
 
 
 /**
+ * Intercepts failed HTTP requests.
+ *
+ * @ngInject
+ *
+ * @param {!angular.$q}                 $q       The angular promise serivce.
+ * @param {!shapy.notification.Service} shNotify Notification service.
+ *
+ * @return {!angular.$httpInterceptor}
+ */
+shapy.HttpInterceptor = function($q, shNotify) {
+  return {
+    responseError: function(error) {
+      var data, message;
+
+      try {
+        data = JSON.parse(error.data);
+      } catch (e) {
+        data = null;
+      }
+
+      if (data && data['error']) {
+        message = data['error'];
+      } else {
+        message = 'HTTP ' + error.status + ': ' + error.statusText;
+      }
+
+      shNotify.error({
+        text: message,
+        dismiss: 3000
+      });
+
+      return $q.reject(message);
+    }
+  };
+};
+
+
+/**
  * Ses up the http interceptor.
  *
  * @private
  * @ngInject
  */
 shapy.configHttp_ = function($httpProvider) {
-  $httpProvider.interceptors.push(['$q', function($q) {
-    return new shapy.HttpService($q);
-  }]);
+  $httpProvider.interceptors.push('shHttp');
 };
 
 
@@ -129,5 +169,6 @@ shapy.module = angular
       'ui.router'
   ])
   .service('shAuth', shapy.AuthService)
+  .factory('shHttp', shapy.HttpInterceptor)
   .config(shapy.configStates_)
   .config(shapy.configHttp_);
