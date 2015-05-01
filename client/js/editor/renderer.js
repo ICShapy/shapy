@@ -11,7 +11,7 @@ goog.require('shapy.editor.Mesh');
 
 
 /** @private {string} @const */
-shapy.editor.COLOUR_VS =
+shapy.editor.OBJECT_VS =
   'attribute vec3 a_vertex;                         \n' +
   'attribute vec3 a_bary;                           \n' +
   'uniform mat4 u_view;                             \n' +
@@ -25,7 +25,7 @@ shapy.editor.COLOUR_VS =
 
 
 /** @private {string} @const */
-shapy.editor.COLOUR_FS =
+shapy.editor.OBJECT_FS =
   '#extension GL_OES_standard_derivatives : enable                    \n' +
   'precision mediump float;                                           \n' +
   'varying vec3 v_bary;                                               \n' +
@@ -39,6 +39,15 @@ shapy.editor.COLOUR_FS =
   '  }                                                                \n' +
   '}                                                                  \n';
 
+
+/** @private {string} @const */
+shapy.editor.GROUND_VS =
+  '';
+
+
+/** @private {string} @const */
+shapy.editor.GROUND_FS =
+  '';
 
 
 /**
@@ -54,8 +63,8 @@ shapy.editor.Renderer = function(gl) {
 
   /** @private {!shapy.editor.Shader} @const */
   this.shColour_ = new shapy.editor.Shader(this.gl_);
-  this.shColour_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.COLOUR_VS);
-  this.shColour_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.COLOUR_FS);
+  this.shColour_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_VS);
+  this.shColour_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_FS);
   this.shColour_.link();
 
   /** @private {!shapy.editor.Mesh} @const */

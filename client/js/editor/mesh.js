@@ -169,7 +169,7 @@ shapy.editor.Mesh.createGroundPlane = function(gl, w, h) {
       d[k++] = 0;       d[k++] = 1; d[k++] = 0;
       d[k++] = 0;       d[k++] = 1;
       d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 0;       d[k++] = 0; d[k++] = 1;
+      d[k++] = 1;       d[k++] = 1; d[k++] = 1;
       d[k++] = 0;
 
       d[k++] = (x + 0); d[k++] = 0; d[k++] = (y + 0);
@@ -183,7 +183,7 @@ shapy.editor.Mesh.createGroundPlane = function(gl, w, h) {
       d[k++] = 0;       d[k++] = 1; d[k++] = 0;
       d[k++] = 0;       d[k++] = 1;
       d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
+      d[k++] = 1;       d[k++] = 1; d[k++] = 1;
       d[k++] = 0;
 
       d[k++] = (x + 0); d[k++] = 0; d[k++] = (y + 1);
