@@ -47,6 +47,13 @@ shapy.editor.Shader.prototype.compile = function(type, source) {
 shapy.editor.Shader.prototype.link = function() {
   var count, unif;
 
+  // Bind attribute locations.
+  this.gl_.bindAttribLocation(this.prog_, 0, "a_vertex");
+  this.gl_.bindAttribLocation(this.prog_, 1, "a_normal");
+  this.gl_.bindAttribLocation(this.prog_, 2, "a_uv");
+  this.gl_.bindAttribLocation(this.prog_, 3, "a_colour");
+  this.gl_.bindAttribLocation(this.prog_, 4, "a_bary");
+
   // Link the shader.
   this.gl_.linkProgram(this.prog_);
   if (!this.gl_.getProgramParameter(this.prog_, goog.webgl.LINK_STATUS)) {
@@ -81,4 +88,18 @@ shapy.editor.Shader.prototype.uniform4fv = function(name, value) {
     return;
   }
   this.gl_.uniformMatrix4fv(this.unifs_[name], false, value);
+};
+
+
+/**
+ * Sets the value of a uniform 4D vector.
+ *
+ * @param {string}       name  Name of the vector.
+ * @param {Float32Array} value Value of the vector.
+ */
+shapy.editor.Shader.prototype.uniform3f = function(name, value) {
+  if (!goog.object.containsKey(this.unifs_, name)) {
+    return;
+  }
+  this.gl_.uniform3fv(this.unifs_[name], value);
 };

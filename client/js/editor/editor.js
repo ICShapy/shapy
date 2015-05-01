@@ -89,6 +89,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.canvas_ = canvas;
   this.parent_ = goog.dom.getParentElement(this.canvas_);
   this.gl_ = this.canvas_.getContext('webgl');
+  this.gl_.getExtension("OES_standard_derivatives");
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
   // Set up resources.
