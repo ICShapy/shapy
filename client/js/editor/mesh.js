@@ -40,7 +40,7 @@ shapy.editor.Mesh = function(gl, buffer, data) {
   /** @private {!goog.vec.Vec4} @const */
   this.border_ = data.border ?
       goog.vec.Vec4.createFloat32FromValues(
-          data.border[0], data.border[1], data.border[2], 1.0) :
+          data.border[0], data.border[1], data.border[2], data.border[3]) :
       goog.vec.Vec3.createFloat32FromValues(
           0, 0, 0, 0);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
@@ -80,6 +80,7 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.vertexAttribPointer(4, 3, goog.webgl.FLOAT, false, 64, 48);
 
+  sh.uniform4f('u_border', this.border_);
   this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.indices_);
 
   this.gl_.disableVertexAttribArray(4);
@@ -147,7 +148,7 @@ shapy.editor.Mesh.createCircle = function(gl, norm, r) {
  * @return {shapy.editor.mesh}
  */
 shapy.editor.Mesh.createGroundPlane = function(gl, w, h) {
-  var r = 0.2, g = 0.2, b = 0.2, a = 1.0;
+  var r = 0.5, g = 0.5, b = 0.5, a = 1.0;
   var d = new Float32Array((w + 1) * (h + 1) * 6 << 4);
   for (var i = 0, k = 0, x = -w / 2; i < w; ++i, ++x) {
     for (var j = 0, y = -h / 2; j < h; ++j, ++y) {
@@ -196,7 +197,7 @@ shapy.editor.Mesh.createGroundPlane = function(gl, w, h) {
   }
 
   return new shapy.editor.Mesh(gl, d, {
-      border: [1, 1, 1]
+      border: [1, 1, 1, 1]
   });
 };
 

@@ -13,13 +13,19 @@ goog.require('shapy.editor.Mesh');
 /** @private {string} @const */
 shapy.editor.OBJECT_VS =
   'attribute vec3 a_vertex;                         \n' +
+  'attribute vec4 a_colour;                         \n' +
   'attribute vec3 a_bary;                           \n' +
+
   'uniform mat4 u_view;                             \n' +
   'uniform mat4 u_proj;                             \n' +
   'uniform mat4 u_vp;                               \n' +
+
   'varying vec3 v_bary;                             \n' +
+  'varying vec4 v_colour;                           \n' +
+
   'void main() {                                    \n' +
   '  v_bary = a_bary;                               \n' +
+  '  v_colour = a_colour;                           \n' +
   '  gl_Position = u_vp * vec4(a_vertex, 1);        \n' +
   '}                                                \n';
 
@@ -27,16 +33,27 @@ shapy.editor.OBJECT_VS =
 /** @private {string} @const */
 shapy.editor.OBJECT_FS =
   '#extension GL_OES_standard_derivatives : enable                    \n' +
+
   'precision mediump float;                                           \n' +
+
+  'uniform vec4 u_border;                                             \n' +
+  'varying vec4 v_colour;                                             \n' +
   'varying vec3 v_bary;                                               \n' +
+
   'void main() {                                                      \n' +
-  '  vec3 a3 = smoothstep(vec3(0.0), fwidth(v_bary) * 1.5, v_bary);   \n' +
+  // The border's alpha determines its intensity.
+  '  vec3 a3 = smoothstep(vec3(0.0), fwidth(v_bary) * 0.25, v_bary);  \n' +
   '  float e = min(min(a3.x, a3.y), a3.z);                            \n' +
-  '  if (any(lessThan(v_bary, vec3(0.02)))) {                         \n' +
-  '    gl_FragColor = mix(vec4(vec3(1), 1.0), vec4(vec3(0.5), 1), e); \n' +
+  '  vec4 border = u_border;                                          \n' +
+  '  if (any(lessThan(v_bary, vec3(0.03)))) {                         \n' +
+  '    border.a *= e;                                                 \n' +
   '  } else {                                                         \n' +
-  '    gl_FragColor = vec4(0.5, 0.5, 0.5, 1);                         \n' +
+  '    border.a = 0.0;                                                \n' +
   '  }                                                                \n' +
+
+  // The final colour is lerped diffuse + border.
+  '  vec3 colour = mix(v_colour.rgb, border.rgb, border.a);           \n' +
+  '  gl_FragColor = vec4(colour.rgb, v_colour.a);                     \n' +
   '}                                                                  \n';
 
 
@@ -104,12 +121,6 @@ shapy.editor.Renderer.prototype.render = function(vp) {
   this.shColour_.uniform4fv('u_view', vp.camera.view);
   this.shColour_.uniform4fv('u_proj', vp.camera.proj);
   this.shColour_.uniform4fv('u_vp', vp.camera.vp);
-
-  //this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
-  //this.gl_.enableVertexAttribArray(0);
-  //this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 32, 0);
-  //this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, 6);
-  //this.gl_.disableVertexAttribArray(0);
 
   this.msGround_.render(this.shColour_);
 };

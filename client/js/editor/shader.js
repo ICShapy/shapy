@@ -92,7 +92,7 @@ shapy.editor.Shader.prototype.uniform4fv = function(name, value) {
 
 
 /**
- * Sets the value of a uniform 4D vector.
+ * Sets the value of a uniform 3D vector.
  *
  * @param {string}       name  Name of the vector.
  * @param {Float32Array} value Value of the vector.
@@ -102,4 +102,18 @@ shapy.editor.Shader.prototype.uniform3f = function(name, value) {
     return;
   }
   this.gl_.uniform3fv(this.unifs_[name], value);
+};
+
+
+/**
+ * Sets the value of a uniform 4D vector.
+ *
+ * @param {string}       name  Name of the vector.
+ * @param {Float32Array} value Value of the vector.
+ */
+shapy.editor.Shader.prototype.uniform4f = function(name, value) {
+  if (!goog.object.containsKey(this.unifs_, name)) {
+    return;
+  }
+  this.gl_.uniform4fv(this.unifs_[name], value);
 };
