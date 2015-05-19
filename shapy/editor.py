@@ -11,12 +11,12 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
   def open(self):
     """Handles an incoming connection."""
-    print("X")
+    print self.get_secure_cookie('session_id')
 
   def on_message(self, message):
     """Handles an incoming message."""
     print("Y")
 
-  def on_close(self, message):
+  def on_close(self):
     """Handles connection termination."""
     print("Z")

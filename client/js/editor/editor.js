@@ -6,6 +6,7 @@ goog.provide('shapy.editor.module');
 goog.require('goog.dom');
 goog.require('goog.math.Size');
 goog.require('goog.object');
+goog.require('goog.string.format');
 goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
 goog.require('shapy.editor.Layout');
@@ -31,7 +32,8 @@ shapy.editor.EditorController = function($location) {
    * WebSocket connection.
    * @private {WebSocket} @const
    */
-  this.sock_ = new WebSocket('ws://' + $location.host() + ':' + $location.port() + '/sock');
+  this.sock_ = new WebSocket(goog.string.format(
+      'ws://%s:%s/api/sock', $location.host(), $location.port()));
 };
 
 
