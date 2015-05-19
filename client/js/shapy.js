@@ -5,6 +5,7 @@ goog.require('shapy.AuthService');
 goog.require('shapy.editor.module');
 goog.require('shapy.highlight');
 goog.require('shapy.notification.module');
+goog.require('shapy.RegisterController');
 
 goog.provide('shapy.module');
 
@@ -99,7 +100,9 @@ shapy.configStates_ = function(
       url: 'register',
       views: {
         'body@': {
-          template: 'register'
+          templateUrl: '/html/register.html',
+          controllerAs: 'registerCtrl',
+          controller: shapy.RegisterController
         }
       }
     });

@@ -11,12 +11,12 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
   def open(self):
     """Handles an incoming connection."""
-    pass
+    print("X")
 
   def on_message(self, message):
     """Handles an incoming message."""
-    pass
+    print("Y")
 
   def on_close(self, message):
     """Handles connection termination."""
-    pass
+    print("Z")

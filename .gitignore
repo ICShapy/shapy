@@ -9,6 +9,7 @@ logs
 # Editor stuff.
 .c9
 target
+*sublime*
 
 # Secret stuff.
 config.sh

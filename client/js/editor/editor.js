@@ -19,9 +19,19 @@ goog.require('shapy.editor.Viewport');
 
 
 /**
+ * Class handling the editor interface.
+ *
  * @constructor
+ * @ngInject
+ *
+ * @param {!angular.$location} $location Angular location service.
  */
-shapy.editor.EditorController = function() {
+shapy.editor.EditorController = function($location) {
+  /**
+   * WebSocket connection.
+   * @private {WebSocket} @const
+   */
+  this.sock_ = new WebSocket('ws://' + $location.host() + ':' + $location.port() + '/sock');
 };
 
 
