@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
+goog.require('shapy.browser.module');
 goog.require('shapy.editor.module');
 goog.require('shapy.highlight');
 goog.require('shapy.notification.module');
@@ -72,8 +73,15 @@ shapy.configStates_ = function(
         }
       }
     })
-    .state('main.projects', {
-      url: 'projects'
+    .state('main.browser', {
+      url: 'browser',
+      views: {
+        'body@': {
+          templateUrl: '/html/browser.html',
+          controllerAs: 'browserCtrl',
+          controller: 'BrowserController'
+        }
+      }
     })
     .state('main.editor', {
       url: 'editor',
@@ -86,13 +94,10 @@ shapy.configStates_ = function(
       }
     })
     .state('main.help', {
-      url: 'help'
-    })
-    .state('main.warehouse', {
-      url: 'warehouse',
+      url: 'help',
       views: {
         'body@': {
-          templateUrl: '/html/warehouse.html'
+          template: 'Help'
         }
       }
     })
@@ -166,6 +171,7 @@ shapy.configHttp_ = function($httpProvider) {
  */
 shapy.module = angular
   .module('shShapy', [
+      'shBrowser',
       'shEditor',
       'shNotify',
       'ngSanitize',
