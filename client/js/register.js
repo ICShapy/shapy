@@ -10,21 +10,26 @@ goog.provide('shapy.email');
  *
  * @constructor
  * @ngInject
+ *
+ * @param {!angular.$http} $http The angular $http service.
  */
-shapy.RegisterController = function($scope) {
-  /** 
+shapy.RegisterController = function($http) {
+  /** @private {!angular.$http} @const */
+  this.http_ = $http;
+
+  /**
    * Name of the user.
    * @public {string}
    * @export
    */
   this.firstName = '';
 
-  /** 
+  /**
    * lastName of the user.
    * @public {string}
    * @export
    */
-  this.lastName = '';  
+  this.lastName = '';
 
   /**
    * Email of the user.
@@ -47,6 +52,22 @@ shapy.RegisterController = function($scope) {
    */
   this.confirm = '';
 };
+
+
+/**
+ * Submits the form.
+ */
+shapy.RegisterController.prototype.register = function() {
+  this.http_.post('/api/user/register', {
+    firstName: this.firstName,
+    lastName: this.lastName,
+    email: this.email,
+    password: this.password
+  }).success(goog.bind(function() {
+    console.log('success');
+  }, this));
+};
+
 
 
 /**
