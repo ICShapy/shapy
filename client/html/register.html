@@ -1,3 +1,17 @@
 <form method="POST">
-  Hello, {{ registerCtrl.hello }}
+  <h2> Register </h2>
+  First name: {{ registerCtrl.firstName }}
+  Last name: {{ registerCtrl.lastName }}
+  Email: {{ registerCtrl.email }}
+  Password: {{ registerCtrl.password }}
+  <div>
+    First name:
+    <input type="text" ng-model="registerCtrl.firstName" required/>
+    Last name:
+    <input type="text" ng-model="registerCtrl.lastName" required/>   
+    Email:
+    <input type="email" ng-model="registerCtrl.email" required sh-email/>
+    Password:
+    <input type="password" ng-model="registerCtrl.password" required/>
+  </div>
 </form>

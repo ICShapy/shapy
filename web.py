@@ -66,7 +66,7 @@ def main(args):
     (r'/css/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/css' }),
     (r'/js/(.*)',   tornado.web.StaticFileHandler, { 'path': 'client/js' }),
     (r'/html/(.*)', tornado.web.StaticFileHandler, { 'path': 'client/html' }),
-    (r'(.*)',       IndexHandler, { 'path': 'client/index.html' }),
+    (r'/(.*)',      IndexHandler, { 'path': 'client/index.html' }),
   ], debug=True, cookie_secret=COOKIE_SECRET)
 
   # Connect to the database.

@@ -96,15 +96,11 @@ class RegisterHandler(APIHandler):
 
 
 
-class CheckHandler(APIHanler):
+class CheckHandler(APIHandler):
   """Handles requests to the REST API."""
 
   @coroutine
-  def get(self):
-    # Retrieve the email
-    req = json.loads(self.request.body)
-    email = req['email'] if 'email' in req else None
-
+  def get(self, email):
     # Notify if request invalid
     if not email:
       raise HTTPError(400, 'Missing username (email).')
@@ -114,7 +110,7 @@ class CheckHandler(APIHanler):
         '''SELECT 1 FROM users WHERE email=%s''',
         (email,))
 
-    return json.dumps({
+    self.write(json.dumps({
         'unique' : not cursor.fetchone()
-    })
+    }))
 
