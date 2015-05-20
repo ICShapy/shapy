@@ -4,17 +4,17 @@
     <div>
       <strong> Name: </strong>
       <div>
-        <input 
-            type="text" 
+        <input
+            type="text"
             name="firstName"
-            placeholder="First" 
-            ng-model="registerCtrl.firstName" 
+            placeholder="First"
+            ng-model="registerCtrl.firstName"
             required/>
-        <input 
-            type="text" 
+        <input
+            type="text"
             name="lastName"
-            placeholder="Last" 
-            ng-model="registerCtrl.lastName" 
+            placeholder="Last"
+            ng-model="registerCtrl.lastName"
             required/>
       </div>
       <div class="error" ng-show="register.firstName.$dirty">
@@ -26,16 +26,16 @@
         <span ng-show="register.lastName.$error.required">
             You must input your last name
         </span>
-      </div>                 
+      </div>
     </div>
     <div>
       <strong> Email: </strong>
       <div>
-        <input 
-            type="email" 
+        <input
+            type="email"
             name="email"
-            ng-model="registerCtrl.email" 
-            required 
+            ng-model="registerCtrl.email"
+            required
             sh-email/>
       </div>
       <div class="error" ng-show="register.email.$dirty">
@@ -52,30 +52,30 @@
     </div>
     <div>
       <strong> Create a password: </strong>
-      <input 
-          type="password" 
+      <input
+          type="password"
           name="password"
-          ng-model="registerCtrl.password" 
+          ng-model="registerCtrl.password"
           required/>
     </div>
     <div class="error" ng-show="register.password.$dirty">
       <span ng-show="register.password.$error.required">
           You must input a password
       </span>
-    </div>    
+    </div>
     <div>
       <strong> Confirm your password: </strong>
-      <input 
-          type="password" 
+      <input
+          type="password"
           name="confirm"
-          ng-model="registerCtrl.confirm" 
-          required/>    
+          ng-model="registerCtrl.confirm"
+          required/>
     </div>
     <div class="error" ng-show="register.confirm.$dirty">
       <span ng-show="register.confirm.$error.required">
           You must confirm your password
       </span>
-    </div>    
-    <input type="submit" ng-click="update(user)" value="Save" />
+    </div>
+    <input type="submit" ng-click="registerCtrl.register()" value="Register" />
   </div>
 </form>

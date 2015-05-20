@@ -98,7 +98,7 @@ class RegisterHandler(APIHandler):
     lastName = req['lastName'] if 'lastName' in req else None
     email = req['email'] if 'email' in req else None
     password = req['password'] if 'password' in req else None
-    if not firstName or not lastName or not email or not passw:
+    if not firstName or not lastName or not email or not password:
       raise HTTPError(400, 'Missing field, cannot register.')
 
     # Generate salt
@@ -106,7 +106,7 @@ class RegisterHandler(APIHandler):
     # Generate password hash
     password_hash = hashlib.sha512(password + salt).hexdigest()
     # Concatenate
-    pass_with_salt = password_hash + salt 
+    pass_with_salt = password_hash + salt
 
     # Create new account - store in database
     cursor = yield momoko.Op(self.db.execute,
