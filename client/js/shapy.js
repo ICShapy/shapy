@@ -2,76 +2,18 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
+goog.require('shapy.highlight');
+goog.require('shapy.LoginController');
+goog.require('shapy.HeaderController');
+goog.require('shapy.RegisterController');
 goog.require('shapy.browser.BrowserController');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.EditorToolbarController');
 goog.require('shapy.editor.CanvasDirective');
-goog.require('shapy.highlight');
 goog.require('shapy.notification.notifyBar');
 goog.require('shapy.notification.Service');
-goog.require('shapy.RegisterController');
 
 goog.provide('shapy.module');
-
-
-
-/**
- * Controller for the header.
- *
- * @constructor
- * @ngInject
- * @private
- */
-shapy.HeaderController_ = function($state, shAuth, user) {
-  /** @export */
-  this.user = user;
-  /** @private {!shapy.AuthService} @const */
-  this.shAuth_ = shAuth;
-  /** @private {!angular.$state} @const */
-  this.state_ = $state;
-};
-
-
-/**
- * Logout action.
- *
- * @export
- */
-shapy.HeaderController_.prototype.logout = function() {
-  this.shAuth_.logout().then(goog.bind(function() {
-    this.state_.go('main', null, { reload: true });
-  }, this));
-};
-
-
-
-/**
- * Login controller.
- *
- * @constructor
- * @ngInject
- * @private
- */
-shapy.LoginController_ = function($state, shAuth) {
-  /** @public {string} */
-  this.passw = '';
-  /** @public {string} */
-  this.email = '';
-  /** @private {!shapy.AuthService} @const */
-  this.shAuth_ = shAuth;
-  /** @private {!angular.$state} @const */
-  this.state_ = $state;
-};
-
-
-/**
- * Login action.
- */
-shapy.LoginController_.prototype = function() {
-  this.shAuth_.login(this.email, this.passw).then(goog.bind(function() {
-    this.state_.go('main', null, { reload: true });
-  }, this));
-};
 
 
 
@@ -113,7 +55,7 @@ shapy.configStates_ = function(
         'body@': {
           templateUrl: '/html/login.html',
           controllerAs: 'loginCtrl',
-          controller: shapy.LoginController_
+          controller: shapy.LoginController
         }
       }
     })

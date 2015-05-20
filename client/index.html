@@ -54,6 +54,12 @@
           'shapy.AuthService',
           'shapy.AuthService.User'
       ], []);
+      goog.addDependency('../header.js', [
+          'shapy.HeaderController'
+      ], []);
+      goog.addDependency('../login.js', [
+          'shapy.LoginController'
+      ], []);
       goog.addDependency('../notification.js', [
           'shapy.notification.notifyBar',
           'shapy.notification.Service'
@@ -63,6 +69,8 @@
       ], [
           'shapy.highlight',
           'shapy.AuthService',
+          'shapy.LoginController',
+          'shapy.HeaderController',
           'shapy.browser.BrowserController',
           'shapy.editor.EditorController',
           'shapy.editor.EditorToolbarController',
