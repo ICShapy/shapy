@@ -5,6 +5,7 @@ goog.require('shapy.AuthService');
 goog.require('shapy.SceneService');
 goog.require('shapy.highlight');
 goog.require('shapy.email');
+goog.require('shapy.equals');
 goog.require('shapy.LoginController');
 goog.require('shapy.HeaderController');
 goog.require('shapy.RegisterController');
@@ -187,6 +188,7 @@ shapy.module = angular
   .service('shNotify', shapy.notification.Service)
 
   .directive('shCanvas', shapy.editor.CanvasDirective)
+  .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)
   .directive('shNotifyBar', shapy.notification.notifyBar)
   .directive('shEmail', shapy.email)

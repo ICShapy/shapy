@@ -3,6 +3,7 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.RegisterController');
 goog.provide('shapy.email');
+goog.provide('shapy.equals');
 
 
 /**
@@ -77,14 +78,46 @@ shapy.email = function($http, $q) {
   return {
     require: 'ngModel',
     link: function($scope, elem, attrs, ngModel) {
-      ngModel.$asyncValidators.email = function(modelValue, viewValue) {
-        return $http.get('/api/user/check/' + viewValue)
+      ngModel.$asyncValidators.unique = function(username) {
+        var def = $q.defer();
+
+        $http.get('/api/user/check/' + username)
             .success(function(data) {
-              ngModel.$setValidity('unique', data['unique']);
-            }).error(function(data) {
-              ngModel.$setValidity('unique', false);
+              if (!data['unique']) {
+                def.reject();
+              } else {
+                def.resolve();
+              }
+            })
+            .error(function() {
+              def.reject();
             });
+
+        return def.promise;
       };
     }
+  };
+};
+
+
+
+/**
+ * @return {!angular.Directive}
+ */
+shapy.equals = function() {
+  return {
+    require: 'ngModel',
+    scope: {
+      reference: "=shEquals"
+    },
+    link: function($scope, elem, attrs, ngModel) {
+      ngModel.$validators.equals = function(modelValue) {
+        return modelValue == $scope['reference'];
+      };
+
+      $scope.$watch("reference", function() {
+        ngModel.$validate();
+      });
+    } 
   };
 };

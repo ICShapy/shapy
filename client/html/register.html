@@ -38,15 +38,20 @@
             required
             sh-email/>
       </div>
-      <div class="error" ng-show="register.email.$touched">
-        <span ng-show="register.email.$pending.email">
+      <div 
+          class="error" 
+          ng-show="register.email.$touched || register.email.$pending.unique">
+        <span ng-show="register.email.$error.email">
+            Invalid email address
+        </span>
+        <span ng-show="register.email.$pending.unique">
             Checking if this name is available...
         </span>
         <span ng-show="register.email.$error.required">
             You must input an email
         </span>
         <span ng-show="register.email.$error.unique">
-            This username is already taken!
+            This email is already used!
         </span>
       </div>
     </div>
@@ -56,11 +61,15 @@
           type="password"
           name="password"
           ng-model="registerCtrl.password"
+          ng-minlength="8"
           required/>
     </div>
     <div class="error" ng-show="register.password.$touched">
       <span ng-show="register.password.$error.required">
           You must input a password
+      </span>
+      <span ng-show="register.password.$error.minlength">
+          Password must be at least 8 characters long
       </span>
     </div>
     <div>
@@ -69,11 +78,15 @@
           type="password"
           name="confirm"
           ng-model="registerCtrl.confirm"
-          required/>
+          required
+          sh-equals="registerCtrl.password"/>
     </div>
     <div class="error" ng-show="register.confirm.$touched">
       <span ng-show="register.confirm.$error.required">
           You must confirm your password
+      </span>
+      <span ng-show="register.confirm.$error.equals">
+          Passwords do not match
       </span>
     </div>
     <input

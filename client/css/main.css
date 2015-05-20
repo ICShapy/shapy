@@ -169,6 +169,10 @@ sh-notify-bar {
   margin-bottom: 10px;
 }
 
+#register .error > span {
+  display: block;
+}
+
 #register input[type=password],
 #register input[type=email],
 #register input[type=text] {

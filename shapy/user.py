@@ -135,7 +135,7 @@ class CheckHandler(APIHandler):
     # Notify if request invalid
     if not email:
       raise HTTPError(400, 'Missing username (email).')
-
+      
     # Check if username already present in database
     cursor = yield momoko.Op(self.db.execute,
         '''SELECT 1 FROM users WHERE email=%s''',

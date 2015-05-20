@@ -67,12 +67,13 @@
       goog.addDependency('../shapy.js', [
           'shapy.module'
       ], [
-          'shapy.highlight',
           'shapy.AuthService',
+          'shapy.browser.BrowserController',
+          'shapy.equals',
+          'shapy.highlight',
           'shapy.SceneService',
           'shapy.LoginController',
           'shapy.HeaderController',
-          'shapy.browser.BrowserController',
           'shapy.editor.EditorController',
           'shapy.editor.EditorToolbarController',
           'shapy.editor.CanvasDirective',
@@ -81,6 +82,7 @@
           'shapy.notification.Service'
       ]);
       goog.addDependency('../register.js', [
+          'shapy.equals',
           'shapy.email',        
           'shapy.RegisterController'
       ], []);
