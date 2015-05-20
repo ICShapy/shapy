@@ -134,3 +134,24 @@ sh-notify-bar {
 #toolbar {
   float: left;
 }
+
+/**
+ * Register
+ */
+#register {
+  width: 400px;
+  padding: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 200px;
+  border-radius: 15px;
+  border: 1px solid black;
+}
+
+#register strong {
+  display: block;
+}
+
+#register .error {
+  color: red;
+}

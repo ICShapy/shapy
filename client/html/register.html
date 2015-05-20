@@ -1,17 +1,81 @@
-<form method="POST">
-  <h2> Register </h2>
-  First name: {{ registerCtrl.firstName }}
-  Last name: {{ registerCtrl.lastName }}
-  Email: {{ registerCtrl.email }}
-  Password: {{ registerCtrl.password }}
-  <div>
-    First name:
-    <input type="text" ng-model="registerCtrl.firstName" required/>
-    Last name:
-    <input type="text" ng-model="registerCtrl.lastName" required/>   
-    Email:
-    <input type="email" ng-model="registerCtrl.email" required sh-email/>
-    Password:
-    <input type="password" ng-model="registerCtrl.password" required/>
+<form name="register" method="POST">
+  <div id="register">
+    <h2> Create your account </h2>
+    <div>
+      <strong> Name: </strong>
+      <div>
+        <input 
+            type="text" 
+            name="firstName"
+            placeholder="First" 
+            ng-model="registerCtrl.firstName" 
+            required/>
+        <input 
+            type="text" 
+            name="lastName"
+            placeholder="Last" 
+            ng-model="registerCtrl.lastName" 
+            required/>
+      </div>
+      <div class="error" ng-show="register.firstName.$dirty">
+        <span ng-show="register.firstName.$error.required">
+            You must input your first name
+        </span>
+      </div>
+      <div class="error" ng-show="register.lastName.$dirty">
+        <span ng-show="register.lastName.$error.required">
+            You must input your last name
+        </span>
+      </div>                 
+    </div>
+    <div>
+      <strong> Email: </strong>
+      <div>
+        <input 
+            type="email" 
+            name="email"
+            ng-model="registerCtrl.email" 
+            required 
+            sh-email/>
+      </div>
+      <div class="error" ng-show="register.email.$dirty">
+        <span ng-show="register.email.$pending.email">
+            Checking if this name is available...
+        </span>
+        <span ng-show="register.email.$error.required">
+            You must input an email
+        </span>
+        <span ng-show="register.email.$error.unique">
+            This username is already taken!
+        </span>
+      </div>
+    </div>
+    <div>
+      <strong> Create a password: </strong>
+      <input 
+          type="password" 
+          name="password"
+          ng-model="registerCtrl.password" 
+          required/>
+    </div>
+    <div class="error" ng-show="register.password.$dirty">
+      <span ng-show="register.password.$error.required">
+          You must input a password
+      </span>
+    </div>    
+    <div>
+      <strong> Confirm your password: </strong>
+      <input 
+          type="password" 
+          name="confirm"
+          ng-model="registerCtrl.confirm" 
+          required/>    
+    </div>
+    <div class="error" ng-show="register.confirm.$dirty">
+      <span ng-show="register.confirm.$error.required">
+          You must confirm your password
+      </span>
+    </div>    
+    <input type="submit" ng-click="update(user)" value="Save" />
   </div>
 </form>

@@ -40,14 +40,12 @@ shapy.RegisterController = function($scope) {
    */
   this.password = '';
 
-  $scope.$watchGroup([
-      'registerCtrl.firstName',
-      'registerCtrl.lastName',
-      'registerCtrl.email',
-      'registerCtrl.password'
-    ], goog.bind(function() {
-      console.log(this.email);
-    }, this));
+  /**
+   * Password confirmation.
+   * @public {string}
+   * @export
+   */
+  this.confirm = '';
 };
 
 
@@ -59,9 +57,9 @@ shapy.email = function($http, $q) {
     require: 'ngModel',
     link: function($scope, elem, attrs, ngModel) {
       ngModel.$asyncValidators.email = function(modelValue, viewValue) {
-        return $http.get('/api/user/check', { email: viewValue })
+        return $http.get('/api/user/check/' + viewValue)
             .success(function(data) {
-              ngModel.$setValidity('unique', data.isUnique);
+              ngModel.$setValidity('unique', data['unique']);
             }).error(function(data) {
               ngModel.$setValidity('unique', false);
             });
