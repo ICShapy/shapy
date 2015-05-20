@@ -2,6 +2,8 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
+import os
+
 import hashlib
 import json
 
@@ -102,7 +104,7 @@ class RegisterHandler(APIHandler):
       raise HTTPError(400, 'Missing field, cannot register.')
 
     # Generate salt
-    salt = os.urandom(32)
+    salt = os.urandom(16).encode('hex')
     # Generate password hash
     password_hash = hashlib.sha512(password + salt).hexdigest()
     # Concatenate
