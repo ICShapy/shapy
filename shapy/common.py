@@ -6,15 +6,30 @@ import functools
 import json
 
 from tornado.web import RequestHandler, HTTPError
+import tornadoredis
 
 
 
 class APIHandler(RequestHandler):
   """Handles requests to the REST API."""
 
+  def __init__(self):
+    """Creates a new API handler object."""
+    self.redis_client = None
+
   @property
   def db(self):
+    """Returns a reference to the database pool."""
     return self.application.db
+
+  @property
+  def redis(self):
+    """Creates a redis connection from the pool."""
+    if not self.redis_client:
+      self.redis_client = tornadoredis.Client(
+          connection_pool=self.application.redis_pool)
+    return self.redis_client
+
 
   def get_current_user(self):
     """Returns the currently authenticated user."""
