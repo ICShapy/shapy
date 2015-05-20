@@ -13,3 +13,6 @@ target
 
 # Secret stuff.
 config.sh
+
+# Closure library.
+goog
