@@ -10,6 +10,10 @@ goog.provide('shapy.HeaderController');
  *
  * @constructor
  * @ngInject
+ *
+ * @param {!angular.$state}         $state Angular state object.
+ * @param {!shapy.AuthService}      shAuth Authentication service.
+ * @param {!shapy.AuthService.User} user   User object.
  */
 shapy.HeaderController = function($state, shAuth, user) {
   /** @export */

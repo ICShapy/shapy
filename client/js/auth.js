@@ -29,6 +29,8 @@ shapy.AuthService = function($q, $http) {
 
 /**
  * Returns data of an authenticated user.
+ *
+ * @return {!angular.$q} Promise wrapping the user.
  */
 shapy.AuthService.prototype.auth = function() {
   var defer = this.q_.defer();
@@ -72,6 +74,8 @@ shapy.AuthService.prototype.login = function(email, passw) {
 
 /**
  * Logs a user out.
+ *
+ * @return {!angular.$q} Promise resolved when request succeeds.
  */
 shapy.AuthService.prototype.logout = function() {
   this.fetched_ = false;
@@ -85,14 +89,14 @@ shapy.AuthService.prototype.logout = function() {
  *
  * @constructor
  *
- * @param {shapy.AuthService} auth Authenticator service.
- * @param {Object}            data Server-side data.
+ * @param {shapy.AuthService} shAuth Authenticator service.
+ * @param {Object}            data   Server-side data.
  */
 shapy.AuthService.User = function(shAuth, data) {
   /** @private {!shapy.AuthService} @const */
   this.shAuth_ = shAuth;
-  /** @private {string} */
+  /** @public {string} @const */
   this.name = data['first_name'] + ' ' + data['last_name'];
-  /** @private {number} */
+  /** @public {number} @const */
   this.id = data['id'];
 };
