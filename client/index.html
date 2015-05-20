@@ -69,6 +69,7 @@
       ], [
           'shapy.highlight',
           'shapy.AuthService',
+          'shapy.SceneService',
           'shapy.LoginController',
           'shapy.HeaderController',
           'shapy.browser.BrowserController',
@@ -80,6 +81,10 @@
       ]);
       goog.addDependency('../register.js', [
           'shapy.RegisterController'
+      ], []);
+      goog.addDependency('../scene.js', [
+          'shapy.Scene',
+          'shapy.SceneService'
       ], []);
       goog.addDependency('../util.js', [
           'shapy.highlight'

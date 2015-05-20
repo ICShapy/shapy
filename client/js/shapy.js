@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
+goog.require('shapy.SceneService');
 goog.require('shapy.highlight');
 goog.require('shapy.LoginController');
 goog.require('shapy.HeaderController');
@@ -70,7 +71,12 @@ shapy.configStates_ = function(
       }
     })
     .state('main.editor', {
-      url: 'editor/:id',
+      url: 'editor/:sceneID',
+      resolve: {
+        scene: function(shScene, $stateParams) {
+          return shScene.get($stateParams['sceneID']);
+        }
+      },
       views: {
         'body@': {
           templateUrl: '/html/editor.html',
@@ -171,6 +177,7 @@ shapy.module = angular
   .controller('EditorToolbarController', shapy.editor.EditorToolbarController)
 
   .service('shAuth', shapy.AuthService)
+  .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
 
   .directive('shCanvas', shapy.editor.CanvasDirective)
