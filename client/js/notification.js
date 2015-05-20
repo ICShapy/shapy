@@ -1,7 +1,8 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.notification.module');
+goog.provide('shapy.notification.notifyBar');
+goog.provide('shapy.notification.Service');
 
 
 
@@ -229,12 +230,3 @@ shapy.notification.notifyBar = function() {
     controller: shapy.notification.Controller_
   };
 };
-
-
-/**
- * @type {!angular.Module}
- */
-shapy.notification.module = angular
-    .module('shNotify', [])
-    .service('shNotify', shapy.notification.Service)
-    .directive('shNotifyBar', shapy.notification.notifyBar);

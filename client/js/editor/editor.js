@@ -1,7 +1,9 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.module');
+goog.provide('shapy.editor.EditorController');
+goog.provide('shapy.editor.EditorToolbarController');
+goog.provide('shapy.editor.CanvasDirective');
 
 goog.require('goog.dom');
 goog.require('goog.math.Size');
@@ -25,15 +27,111 @@ goog.require('shapy.editor.Viewport');
  * @constructor
  * @ngInject
  *
+ * @param {!shay.auth.User} user User information.
+ * @param {!angular.$scope} $scope Angular scope.
  * @param {!angular.$location} $location Angular location service.
+ * @param {!Object<string, Object} $stateParams Angular paremeters.
  */
-shapy.editor.EditorController = function($location) {
+shapy.editor.EditorController = function(
+    user,
+    $scope,
+    $location,
+    $stateParams)
+{
+  /**
+   * ID of the session.
+   * @private {string} @const
+   */
+  this.id = $scope.id = $stateParams['id'] ||
+      ((user ? user.id : 0 + '@') + (new Date()).getTime());
+
   /**
    * WebSocket connection.
    * @private {WebSocket} @const
    */
   this.sock_ = new WebSocket(goog.string.format(
-      'ws://%s:%s/api/sock', $location.host(), $location.port()));
+      'ws://%s:%s/api/edit/%s', $location.host(), $location.port(), this.id));
+
+  /**
+   * Name of the model.
+   * @private {string} @const
+   */
+  this.name = 'Unknown';
+
+  /**
+   * List of people editing the model.
+   * @private {!Array<string>}
+   */
+  this.users = [];
+
+  // Set up some event handlers.
+  this.sock_.onmessage = goog.bind(this.onMessage_, this);
+  this.sock_.onclose = goog.bind(this.onClose_, this);
+  $scope.$on('$destroy', goog.bind(this.onDestroy_, this));
+};
+
+
+/**
+ * Called on the receipt of a message from the server.
+ *
+ * @private
+ *
+ * @param {MessageEvent} evt
+ */
+shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
+  var data;
+
+  // Try to make sense of the data.
+  try {
+    data = JSON.parse(evt.data);
+  } catch (e) {
+    console.error('Invalid message: ' + evt.data);
+  }
+
+  switch (data['type']) {
+    case 'meta': {
+      this.name = data['name'];
+      this.users = data['users'];
+      break;
+    }
+    default: {
+      console.error('Invalid message type "' + data['type'] + '"');
+      break;
+    }
+  }
+};
+
+
+/**
+ * Called when the server suspends the connection.
+ *
+ * @private
+ *
+ * @param {CloseEvent} evt
+ */
+shapy.editor.EditorController.prototype.onClose_ = function(evt) {
+  //console.log(evt);
+};
+
+
+/**
+ * Called when everything should be closed.
+ *
+ * @private
+ */
+shapy.editor.EditorController.prototype.onDestroy_ = function(evt) {
+  this.sock_.close();
+};
+
+
+
+/**
+ * Controller for the editor toolbar.
+ *
+ * @constructor
+ */
+shapy.editor.EditorToolbarController = function() {
+
 };
 
 
@@ -166,13 +264,3 @@ shapy.editor.CanvasDirective = function() {
   };
 };
 
-
-
-/**
- * @public {!angular.Module}
- * @const
- */
-shapy.editor.module = angular
-  .module('shEditor', [])
-  .controller('EditorController', shapy.editor.EditorController)
-  .directive('shCanvas', shapy.editor.CanvasDirective);

@@ -3,6 +3,10 @@ html {
   font-family: sans-serif;
 }
 
+
+/**
+ * Page header
+ */
 #header {
   position: fixed;
   top: 0;
@@ -122,4 +126,11 @@ sh-notify-bar {
 
 .notification span.content {
   cursor: pointer;
+}
+
+/**
+ * Toolbar
+ */
+#toolbar {
+  float: left;
 }

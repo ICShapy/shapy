@@ -2,6 +2,8 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
+import json
+
 import tornado.websocket
 
 
@@ -9,14 +11,32 @@ import tornado.websocket
 class WSHandler(tornado.websocket.WebSocketHandler):
   """Handles websocket connections."""
 
-  def open(self):
+  def open(self, edit_id):
     """Handles an incoming connection."""
-    print self.get_secure_cookie('session_id')
+    if self.get_secure_cookie('session_id') is not None:
+      user_id = int(self.get_secure_cookie('session_id'))
+    else:
+      user_id = 0
+
+    self.write_message(json.dumps({
+        'type': 'meta',
+        'name': 'Hardcoded name',
+        'users': [
+            {
+              'id': 3,
+              'name': 'A'
+            },
+            {
+              'id': 4,
+              'name': 'B'
+            }
+        ]
+    }))
 
   def on_message(self, message):
     """Handles an incoming message."""
-    print("Y")
+    pass
 
   def on_close(self):
     """Handles connection termination."""
-    print("Z")
+    pass

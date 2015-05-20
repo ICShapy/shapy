@@ -2,13 +2,76 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
-goog.require('shapy.browser.module');
-goog.require('shapy.editor.module');
+goog.require('shapy.browser.BrowserController');
+goog.require('shapy.editor.EditorController');
+goog.require('shapy.editor.EditorToolbarController');
+goog.require('shapy.editor.CanvasDirective');
 goog.require('shapy.highlight');
-goog.require('shapy.notification.module');
+goog.require('shapy.notification.notifyBar');
+goog.require('shapy.notification.Service');
 goog.require('shapy.RegisterController');
 
 goog.provide('shapy.module');
+
+
+
+/**
+ * Controller for the header.
+ *
+ * @constructor
+ * @ngInject
+ * @private
+ */
+shapy.HeaderController_ = function($state, shAuth, user) {
+  /** @export */
+  this.user = user;
+  /** @private {!shapy.AuthService} @const */
+  this.shAuth_ = shAuth;
+  /** @private {!angular.$state} @const */
+  this.state_ = $state;
+};
+
+
+/**
+ * Logout action.
+ *
+ * @export
+ */
+shapy.HeaderController_.prototype.logout = function() {
+  this.shAuth_.logout().then(goog.bind(function() {
+    this.state_.go('main', null, { reload: true });
+  }, this));
+};
+
+
+
+/**
+ * Login controller.
+ *
+ * @constructor
+ * @ngInject
+ * @private
+ */
+shapy.LoginController_ = function($state, shAuth) {
+  /** @public {string} */
+  this.passw = '';
+  /** @public {string} */
+  this.email = '';
+  /** @private {!shapy.AuthService} @const */
+  this.shAuth_ = shAuth;
+  /** @private {!angular.$state} @const */
+  this.state_ = $state;
+};
+
+
+/**
+ * Login action.
+ */
+shapy.LoginController_.prototype = function() {
+  this.shAuth_.login(this.email, this.passw).then(goog.bind(function() {
+    this.state_.go('main', null, { reload: true });
+  }, this));
+};
 
 
 
@@ -37,15 +100,7 @@ shapy.configStates_ = function(
         'header@': {
           templateUrl: '/html/header.html',
           controllerAs: 'headerCtrl',
-          controller: function($state, shAuth, user) {
-            this.user = user;
-            /** @export */
-            this.logout = function() {
-              shAuth.logout().then(function() {
-                $state.go('main', null, { reload: true });
-              });
-            };
-          }
+          controller: shapy.HeaderController
         },
         'body@': {
           templateUrl: '/html/main.html'
@@ -58,18 +113,7 @@ shapy.configStates_ = function(
         'body@': {
           templateUrl: '/html/login.html',
           controllerAs: 'loginCtrl',
-          controller: function($state, shAuth) {
-            /** @public {string} */
-            this.passw = '';
-            /** @public {string} */
-            this.email = '';
-            /** @export */
-            this.login = function() {
-              shAuth.login(this.email, this.passw).then(function() {
-                $state.go('main', null, { reload: true });
-              });
-            };
-          }
+          controller: shapy.LoginController_
         }
       }
     })
@@ -84,12 +128,17 @@ shapy.configStates_ = function(
       }
     })
     .state('main.editor', {
-      url: 'editor',
+      url: 'editor/:id',
       views: {
         'body@': {
           templateUrl: '/html/editor.html',
-          controllerAs: 'editorCtrl',
-          controller: 'EditorController'
+          controller: 'EditorController',
+          controllerAs: 'editorCtrl'
+        },
+        'toolbar': {
+          templateUrl: '/html/editor-toolbar.html',
+          controller: 'EditorToolbarController',
+          controllerAs: 'edtorCtrl'
         }
       }
     })
@@ -163,7 +212,6 @@ shapy.configHttp_ = function($httpProvider) {
 };
 
 
-
 /**
  * Main application module.
  * @public {!angular.Module}
@@ -171,15 +219,23 @@ shapy.configHttp_ = function($httpProvider) {
  */
 shapy.module = angular
   .module('shShapy', [
-      'shBrowser',
-      'shEditor',
-      'shNotify',
       'ngSanitize',
       'ngRoute',
       'ui.router'
   ])
+
+  .controller('BrowserController', shapy.browser.BrowserController)
+  .controller('EditorController', shapy.editor.EditorController)
+  .controller('EditorToolbarController', shapy.editor.EditorToolbarController)
+
   .service('shAuth', shapy.AuthService)
+  .service('shNotify', shapy.notification.Service)
+
+  .directive('shCanvas', shapy.editor.CanvasDirective)
   .directive('shHighlight', shapy.highlight)
+  .directive('shNotifyBar', shapy.notification.notifyBar)
+
   .factory('shHttp', shapy.HttpInterceptor)
+
   .config(shapy.configStates_)
   .config(shapy.configHttp_);

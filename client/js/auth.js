@@ -92,5 +92,7 @@ shapy.AuthService.User = function(shAuth, data) {
   /** @private {!shapy.AuthService} @const */
   this.shAuth_ = shAuth;
   /** @private {string} */
-  this.name = data['first_name'] + ' ' + data['last_name']
+  this.name = data['first_name'] + ' ' + data['last_name'];
+  /** @private {number} */
+  this.id = data['id'];
 };

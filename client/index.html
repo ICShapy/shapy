@@ -22,11 +22,13 @@
           'shapy.editor.Camera'
       ], []);
       goog.addDependency('../browser/browser.js', [
-          'shapy.browser.module'
+          'shapy.browser.BrowserController'
       ], [
       ]);
       goog.addDependency('../editor/editor.js', [
-          'shapy.editor.module'
+          'shapy.editor.EditorController',
+          'shapy.editor.EditorToolbarController',
+          'shapy.editor.CanvasDirective'
       ], [
           'shapy.editor.Object',
           'shapy.editor.Mesh',
@@ -53,15 +55,20 @@
           'shapy.AuthService.User'
       ], []);
       goog.addDependency('../notification.js', [
-          'shapy.notification.module'
+          'shapy.notification.notifyBar',
+          'shapy.notification.Service'
       ], []);
       goog.addDependency('../shapy.js', [
           'shapy.module'
       ], [
           'shapy.highlight',
           'shapy.AuthService',
-          'shapy.editor.module',
-          'shapy.notification.module'
+          'shapy.browser.BrowserController',
+          'shapy.editor.EditorController',
+          'shapy.editor.EditorToolbarController',
+          'shapy.editor.CanvasDirective',
+          'shapy.notification.notifyBar',
+          'shapy.notification.Service'
       ]);
       goog.addDependency('../register.js', [
           'shapy.RegisterController'

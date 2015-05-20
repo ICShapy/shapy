@@ -3,6 +3,7 @@
   <a ui-sref="main.browser">Assets</a>
   <a ui-sref="main.editor">Editor</a>
   <a ui-sref="main.help">Help</a>
+  <div id="toolbar" ui-view="toolbar"></div>
   <div ng-show="headerCtrl.user" class="profile">
     <a ng-click="headerCtrl.logout()">Logout</a>
     <span>
