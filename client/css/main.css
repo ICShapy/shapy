@@ -4,6 +4,10 @@ html {
 }
 
 
+#body {
+  overflow: auto;
+}
+
 /**
  * Page header
  */
@@ -148,10 +152,41 @@ sh-notify-bar {
   border: 1px solid black;
 }
 
+#register div {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 #register strong {
   display: block;
 }
 
 #register .error {
+  display: block;
   color: red;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#register input[type=password],
+#register input[type=email],
+#register input[type=text] {
+  height: 24px;
+  font-size: 20px;
+}
+
+
+#register input[type=text] {
+  width: 192px;
+}
+
+#register input[type=password],
+#register input[type=email]
+{
+  width: 394px;
+}
+
+input.ng-invalid.ng-touched {
+  border:1px solid #f00;
 }
