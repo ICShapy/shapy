@@ -6,6 +6,7 @@ import sys
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+import tornadoredis
 
 import psycopg2
 import momoko
@@ -19,11 +20,16 @@ import shapy.user
 PORT = int(os.environ.get('PORT', 8000))
 
 # PostgreSQL connection.
-DB_HOST = os.environ.get('DB_HOST')
-DB_NAME = os.environ.get('DB_NAME')
-DB_USER = os.environ.get('DB_USER')
-DB_PORT = int(os.environ.get('DB_PORT'))
-DB_PASS = os.environ.get('DB_PASS')
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_NAME = os.environ.get('DB_NAME', 'shapy')
+DB_USER = os.environ.get('DB_USER', 'postgres')
+DB_PORT = int(os.environ.get('DB_PORT', 5432))
+DB_PASS = os.environ.get('DB_PASS', '')
+
+# Redis connection.
+RD_HOST = os.environ.get('RD_HOST', 'localhost')
+RD_PORT = int(os.environ.get('RD_PORT', 7759))
+RD_PASS = os.environ.get('RD_PASS', '')
 
 # Facebook API.
 FB_API_KEY = os.environ.get('FB_API_KEY')
@@ -73,6 +79,14 @@ def main(args):
       dsn='dbname=%s user=%s password=%s host=%s port=%d' %
           (DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT),
       size=1)
+
+  # Connect to redis.
+  app.redis_pool = tornadoredis.ConnectionPool(
+      host=RD_HOST,
+      port=RD_PORT,
+      password=RD_PASS,
+      max_connections=10,
+      wait_for_available=True)
 
   # Start the server.
   tornado.httpserver.HTTPServer(app).listen(PORT)
