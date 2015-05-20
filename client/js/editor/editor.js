@@ -98,7 +98,6 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
  * @param {CloseEvent} evt
  */
 shapy.editor.EditorController.prototype.onClose_ = function(evt) {
-  //console.log(evt);
 };
 
 
@@ -107,7 +106,7 @@ shapy.editor.EditorController.prototype.onClose_ = function(evt) {
  *
  * @private
  */
-shapy.editor.EditorController.prototype.onDestroy_ = function(evt) {
+shapy.editor.EditorController.prototype.onDestroy_ = function() {
   this.sock_.close();
 };
 
@@ -159,12 +158,6 @@ shapy.editor.CanvasController = function() {
   this.renderer_ = null;
 
   /**
-   * Root layout.
-   * @private {!shapy.editor.Layout} @const
-   */
-  this.layout_ = new shapy.editor.Layout.Double();
-
-  /**
    * Map of all objects in the scene.
    * @private {!Object<string, shapy.Object>} @const
    */
@@ -175,6 +168,12 @@ shapy.editor.CanvasController = function() {
    * @private {!goog.math.Size} @const
    */
   this.vp_ = new goog.math.Size(0, 0);
+
+  /**
+   * Root layout.
+   * @public {!shapy.editor.Layout} @const
+   */
+  this.layout = new shapy.editor.Layout.Double();
 };
 
 
@@ -191,7 +190,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.canvas_ = canvas;
   this.parent_ = goog.dom.getParentElement(this.canvas_);
   this.gl_ = this.canvas_.getContext('webgl');
-  this.gl_.getExtension("OES_standard_derivatives");
+  this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
   // Set up resources.
@@ -209,12 +208,12 @@ shapy.editor.CanvasController.prototype.render = function() {
   if (this.vp_.width != width || this.vp_.height != height) {
     this.vp_.width = this.canvas_.width = this.parent_.offsetWidth;
     this.vp_.height = this.canvas_.height = this.parent_.offsetHeight;
-    this.layout_.resize(width, height);
+    this.layout.resize(width, height);
   }
 
   // Clear the screen.
   this.renderer_.start();
-  goog.object.forEach(this.layout_.viewports, function(vp, name) {
+  goog.object.forEach(this.layout.viewports, function(vp, name) {
     this.renderer_.render(vp);
   }, this);
 };
@@ -252,6 +251,14 @@ shapy.editor.CanvasDirective = function() {
       $scope.$on('$destroy', function() {
         running = false;
       });
+
+      // Mouse events.
+      $($elem[0])
+        .mousedown(goog.bind(canvasCtrl.layout.mouseDown, canvasCtrl.layout))
+        .mouseup(goog.bind(canvasCtrl.layout.mouseUp, canvasCtrl.layout))
+        .mouseenter(goog.bind(canvasCtrl.layout.mouseEnter, canvasCtrl.layout))
+        .mouseleave(goog.bind(canvasCtrl.layout.mouseLeave, canvasCtrl.layout))
+        .mousemove(goog.bind(canvasCtrl.layout.mouseMove, canvasCtrl.layout));
     }
   };
 };
