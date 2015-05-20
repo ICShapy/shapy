@@ -73,8 +73,13 @@ shapy.configStates_ = function(
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {
-        scene: function(shScene, $stateParams) {
-          return shScene.get($stateParams['sceneID']);
+        scene: function(user, shScene, $stateParams) {
+          // Generate a user-specific unique ID.
+          var time = (new Date()).getTime();
+          var name = user ? user.id : 0;
+
+          // Retrieve the scene.
+          return shScene.get($stateParams['id'] || (name + '@' + time));
         }
       },
       views: {
@@ -86,7 +91,7 @@ shapy.configStates_ = function(
         'toolbar': {
           templateUrl: '/html/editor-toolbar.html',
           controller: 'EditorToolbarController',
-          controllerAs: 'edtorCtrl'
+          controllerAs: 'editorCtrl'
         }
       }
     })

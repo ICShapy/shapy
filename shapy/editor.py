@@ -3,8 +3,13 @@
 # (C) 2015 The Shapy Team. All rights reserved.
 
 import json
+import momoko
 
+from tornado.gen import coroutine
+from tornado.web import HTTPError
 import tornado.websocket
+
+from common import APIHandler
 
 
 
@@ -40,3 +45,13 @@ class WSHandler(tornado.websocket.WebSocketHandler):
   def on_close(self):
     """Handles connection termination."""
     pass
+
+
+class SceneHandler(APIHandler):
+  """Retrieves information a specific scene."""
+
+  def get(self, id):
+    self.write(json.dumps({
+        'name': 'Hardcoded name',
+        'users': []
+    }))

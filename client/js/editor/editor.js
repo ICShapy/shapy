@@ -27,42 +27,30 @@ goog.require('shapy.editor.Viewport');
  * @constructor
  * @ngInject
  *
- * @param {!shay.auth.User} user User information.
+ * @param {!shapy.auth.User} user User information.
+ * @param {!shapy.Scene} scene Current scene.
  * @param {!angular.$scope} $scope Angular scope.
  * @param {!angular.$location} $location Angular location service.
- * @param {!Object<string, Object} $stateParams Angular paremeters.
+ * @param {!Object<string, Object>} $stateParams Angular paremeters.
  */
 shapy.editor.EditorController = function(
     user,
+    scene,
     $scope,
-    $location,
-    $stateParams)
+    $location)
 {
   /**
-   * ID of the session.
-   * @private {string} @const
+   * Current scene.
+   * @public {!shapy.Scene}
    */
-  this.id = $scope.id = $stateParams['id'] ||
-      ((user ? user.id : 0 + '@') + (new Date()).getTime());
+  this.scene = scene;
 
   /**
    * WebSocket connection.
    * @private {WebSocket} @const
    */
   this.sock_ = new WebSocket(goog.string.format(
-      'ws://%s:%s/api/edit/%s', $location.host(), $location.port(), this.id));
-
-  /**
-   * Name of the model.
-   * @private {string} @const
-   */
-  this.name = 'Unknown';
-
-  /**
-   * List of people editing the model.
-   * @private {!Array<string>}
-   */
-  this.users = [];
+      'ws://%s:%s/api/edit/%s', $location.host(), $location.port(), scene.id));
 
   // Set up some event handlers.
   this.sock_.onmessage = goog.bind(this.onMessage_, this);
@@ -129,8 +117,12 @@ shapy.editor.EditorController.prototype.onDestroy_ = function(evt) {
  * Controller for the editor toolbar.
  *
  * @constructor
+ *
+ * @param {!shapy.Scene} scene Scene being edited.
  */
-shapy.editor.EditorToolbarController = function() {
+shapy.editor.EditorToolbarController = function(scene) {
+  /** @public {!shapy.Scene} @const */
+  this.scene = scene;
 
 };
 
