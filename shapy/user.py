@@ -94,3 +94,27 @@ class RegisterHandler(APIHandler):
   def post(self):
     pass
 
+
+
+class CheckHandler(APIHanler):
+  """Handles requests to the REST API."""
+
+  @coroutine
+  def get(self):
+    # Retrieve the email
+    req = json.loads(self.request.body)
+    email = req['email'] if 'email' in req else None
+
+    # Notify if request invalid
+    if not email:
+      raise HTTPError(400, 'Missing username (email).')
+
+    # Check if username already present in database
+    cursor = yield momoko.Op(self.db.execute,
+        '''SELECT 1 FROM users WHERE email=%s''',
+        (email,))
+
+    return json.dumps({
+        'unique' : not cursor.fetchone()
+    })
+
