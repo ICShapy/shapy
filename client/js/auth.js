@@ -78,9 +78,14 @@ shapy.AuthService.prototype.login = function(email, passw) {
  * @return {!angular.$q} Promise resolved when request succeeds.
  */
 shapy.AuthService.prototype.logout = function() {
-  this.fetched_ = false;
-  this.user_ = null;
-  return this.http_.post('/api/user/logout');
+  if (this.fetched_) {
+    this.fetched_ = false;
+    if (this.user_) {
+      this.user_ = null;
+      return this.http_.post('/api/user/logout');
+    }
+  }
+  return this.q_.when();
 };
 
 

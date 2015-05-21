@@ -13,10 +13,16 @@ goog.provide('shapy.equals');
  * @ngInject
  *
  * @param {!angular.$http} $http The angular $http service.
+ * @param {!angular.$state} $state The angular $state service.
+ * @param {!shapy.AuthService} shAuth The authentication service.
  */
-shapy.RegisterController = function($http) {
+shapy.RegisterController = function($http, $state, shAuth) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
+  /** @private {!angular.$state} @const */
+  this.state_ = $state;
+  /** @private {!angular.shAuth} @const */
+  this.shAuth_ = shAuth;
 
   /**
    * Name of the user.
@@ -59,13 +65,15 @@ shapy.RegisterController = function($http) {
  * Submits the form.
  */
 shapy.RegisterController.prototype.register = function() {
-  this.http_.post('/api/user/register', {
-    firstName: this.firstName,
-    lastName: this.lastName,
-    email: this.email,
-    password: this.password
-  }).success(goog.bind(function() {
-    console.log('success');
+  this.shAuth_.logout().then(goog.bind(function() {
+    this.http_.post('/api/user/register', {
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      password: this.password
+    }).success(goog.bind(function() {
+      this.state_.go('main', null, { reload: true });
+    }, this));
   }, this));
 };
 
@@ -118,6 +126,6 @@ shapy.equals = function() {
       $scope.$watch("reference", function() {
         ngModel.$validate();
       });
-    } 
+    }
   };
 };
