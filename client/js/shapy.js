@@ -3,7 +3,10 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
 goog.require('shapy.SceneService');
+goog.require('shapy.UserService');
 goog.require('shapy.highlight');
+goog.require('shapy.email');
+goog.require('shapy.equals');
 goog.require('shapy.LoginController');
 goog.require('shapy.HeaderController');
 goog.require('shapy.RegisterController');
@@ -11,6 +14,7 @@ goog.require('shapy.browser.BrowserController');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.EditorToolbarController');
 goog.require('shapy.editor.CanvasDirective');
+goog.require('shapy.menu');
 goog.require('shapy.notification.notifyBar');
 goog.require('shapy.notification.Service');
 
@@ -79,7 +83,9 @@ shapy.configStates_ = function(
           var name = user ? user.id : 0;
 
           // Retrieve the scene.
-          return shScene.get($stateParams['id'] || (name + '@' + time));
+          //return shScene.get($stateParams['sceneID'] || (name + '@' + time));
+          // Hardcoded for testing:
+          return shScene.get('1@1');
         }
       },
       views: {
@@ -184,10 +190,14 @@ shapy.module = angular
   .service('shAuth', shapy.AuthService)
   .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
+  .service('shUser', shapy.UserService)
 
   .directive('shCanvas', shapy.editor.CanvasDirective)
+  .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)
   .directive('shNotifyBar', shapy.notification.notifyBar)
+  .directive('shEmail', shapy.email)
+  .directive('shMenu', shapy.menu)
 
   .factory('shHttp', shapy.HttpInterceptor)
 

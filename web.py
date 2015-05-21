@@ -6,31 +6,13 @@ import sys
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+import tornadoredis
 
 import psycopg2
 import momoko
 
 import shapy.editor
 import shapy.user
-
-
-
-# HTTP port.
-PORT = int(os.environ.get('PORT', 8000))
-
-# PostgreSQL connection.
-DB_HOST = os.environ.get('DB_HOST')
-DB_NAME = os.environ.get('DB_NAME')
-DB_USER = os.environ.get('DB_USER')
-DB_PORT = int(os.environ.get('DB_PORT'))
-DB_PASS = os.environ.get('DB_PASS')
-
-# Facebook API.
-FB_API_KEY = os.environ.get('FB_API_KEY')
-FB_SECRET = os.environ.get('FB_SECRET')
-
-# Very secret cookie secret.
-COOKIE_SECRET = os.environ.get('COOKIE_SECRET')
 
 
 
@@ -55,9 +37,11 @@ def main(args):
   app = tornado.web.Application([
     # API handlers.
     (r'/api/user/auth',             shapy.user.AuthHandler),
+    (r'/api/user/check/([^/]+)',    shapy.user.CheckHandler),
     (r'/api/user/login',            shapy.user.LoginHandler),
     (r'/api/user/logout',           shapy.user.LogoutHandler),
     (r'/api/user/register',         shapy.user.RegisterHandler),
+    (r'/api/user/([0-9]+)',         shapy.user.InfoHandler),
     (r'/api/edit/([0-9]+@[0-9]+)',  shapy.editor.WSHandler),
     (r'/api/scene/([0-9]+@[0-9]+)', shapy.editor.SceneHandler),
 
@@ -66,16 +50,30 @@ def main(args):
     (r'/js/(.*)',   tornado.web.StaticFileHandler, { 'path': 'client/js' }),
     (r'/html/(.*)', tornado.web.StaticFileHandler, { 'path': 'client/html' }),
     (r'(.*)',       IndexHandler, { 'path': 'client/index.html' }),
-  ], debug=True, cookie_secret=COOKIE_SECRET)
+  ], debug=True, cookie_secret=os.environ.get('COOKIE_SECRET'))
 
-  # Connect to the database.
+  # Read configuration.
+  app.DB_HOST = os.environ.get('DB_HOST', 'localhost')
+  app.DB_NAME = os.environ.get('DB_NAME', 'shapy')
+  app.DB_USER = os.environ.get('DB_USER', 'postgres')
+  app.DB_PORT = int(os.environ.get('DB_PORT', 5432))
+  app.DB_PASS = os.environ.get('DB_PASS', '')
+
+  app.RD_HOST = os.environ.get('RD_HOST', 'localhost')
+  app.RD_PORT = int(os.environ.get('RD_PORT', 7759))
+  app.RD_PASS = os.environ.get('RD_PASS', '')
+
+  app.FB_API_KEY = os.environ.get('FB_API_KEY')
+  app.FB_SECRET = os.environ.get('FB_SECRET')
+
+  # Connect to the postgresql database.
   app.db = momoko.Pool(
       dsn='dbname=%s user=%s password=%s host=%s port=%d' %
-          (DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT),
+          (app.DB_NAME, app.DB_USER, app.DB_PASS, app.DB_HOST, app.DB_PORT),
       size=1)
 
   # Start the server.
-  tornado.httpserver.HTTPServer(app).listen(PORT)
+  tornado.httpserver.HTTPServer(app).listen(int(os.environ.get('PORT', 8000)))
   tornado.ioloop.IOLoop.instance().start()
 
 

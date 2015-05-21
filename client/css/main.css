@@ -4,6 +4,15 @@ html {
 }
 
 
+#body {
+  position: fixed;
+  top: 31px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+}
+
 /**
  * Page header
  */
@@ -15,6 +24,7 @@ html {
   height: 30px;
   background-color: #222222;
   border-bottom: 1px solid #111111;
+  z-index: 1000;
 }
 
 #header a, #header span {
@@ -133,4 +143,112 @@ sh-notify-bar {
  */
 #toolbar {
   float: left;
+  z-index: 10000;
+}
+
+sh-menu {
+  display: block;
+  float: left;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+sh-menu > div {
+  position: relative;
+  display: block;
+  float: left;
+  cursor: pointer;
+  color: white;
+  padding: 7px;
+  height: 16px;
+}
+
+sh-menu > div > span {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+sh-menu > div:hover {
+  background-color: #555555;
+}
+
+sh-menu ul {
+  background-color: #222222;
+  display: block;
+  position: absolute;
+  list-style-type: none;
+  border: 1px solid black;
+  top: 30px;
+  left: 0px;
+  min-width: 200px;
+  padding: 0;
+  margin: 0;
+}
+
+sh-menu ul > li {
+  display: block;
+  padding: 2px;
+  margin: 0;
+  text-align: left;
+}
+
+sh-menu ul > li:hover {
+  background-color: #555555;
+}
+
+/**
+ * Register
+ */
+#register {
+  width: 400px;
+  padding: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 200px;
+  border-radius: 15px;
+  border: 1px solid black;
+}
+
+#register div {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#register strong {
+  display: block;
+}
+
+#register .error {
+  display: block;
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#register .error > span {
+  display: block;
+}
+
+#register input[type=password],
+#register input[type=email],
+#register input[type=text] {
+  height: 24px;
+  font-size: 20px;
+}
+
+
+#register input[type=text] {
+  width: 192px;
+}
+
+#register input[type=password],
+#register input[type=email]
+{
+  width: 394px;
+}
+
+input.ng-invalid.ng-touched {
+  border:1px solid #f00;
 }

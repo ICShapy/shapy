@@ -5,16 +5,50 @@
 import functools
 import json
 
+import momoko
 from tornado.web import RequestHandler, HTTPError
+from tornado.gen import Return, coroutine
+import tornadoredis
 
 
 
-class APIHandler(RequestHandler):
-  """Handles requests to the REST API."""
+class BaseHandler(RequestHandler):
+  """Base handler that lazily manages sessions and database connections."""
 
   @property
   def db(self):
+    """Returns a reference to the database pool."""
     return self.application.db
+
+  @property
+  def redis(self):
+    """Returns a reference to the redis connection."""
+    if not hasattr(self, 'redis_conn'):
+      self.redis_conn = tornadoredis.Client(
+          host=self.application.RD_HOST,
+          port=self.application.RD_PORT,
+          password=self.application.RD_PASS)
+      self.redis_conn.connect()
+    return self.redis_conn
+
+  @coroutine
+  def get_user_data(self, user_id):
+    """Returns information about the current user."""
+    cursor = yield momoko.Op(self.db.execute,
+        '''SELECT first_name, last_name, email FROM users WHERE id=%s''',
+        (user_id,))
+    user = cursor.fetchone()
+    if not user:
+      raise HTTPError(401, 'Invalid user id.')
+
+    # Pack it & send it to the server.
+    first_name, last_name, email = user
+    raise Return({
+        'id': self.current_user,
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email
+    })
 
   def get_current_user(self):
     """Returns the currently authenticated user."""
@@ -22,6 +56,11 @@ class APIHandler(RequestHandler):
       return int(self.get_secure_cookie('session_id'))
     except:
       return None
+
+
+
+class APIHandler(BaseHandler):
+  """Handles requests to the REST API."""
 
   def write_error(self, status_code, **kwargs):
     """Handles error messages, outputting a properly formatted JSON message."""

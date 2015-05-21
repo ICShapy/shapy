@@ -32,7 +32,7 @@ shapy.editor.Layout = function(viewports) {
    * @protected {!goog.math.Size}
    * @const
    */
-  this.size = new goog.math.Size();
+  this.size = new goog.math.Size(0, 0);
 
   /**
    * Pointer to the active viewport.
@@ -48,7 +48,10 @@ shapy.editor.Layout = function(viewports) {
  * @param {number} w Width of the screen.
  * @param {number} h Height of the screen.
  */
-shapy.editor.Layout.prototype.resize = goog.abstractMethod;
+shapy.editor.Layout.prototype.resize = function(w, h) {
+  this.size.width = w;
+  this.size.height = h;
+};
 
 
 /**
@@ -62,6 +65,7 @@ shapy.editor.Layout.prototype.resize = goog.abstractMethod;
  * @return {?{ vp: shapy.editor.Viewport, x: number, y: number }}
  */
 shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
+  y = this.size.height - y;
   for (var name in this.viewports) {
     if (!this.viewports.hasOwnProperty(name)) {
       continue;
@@ -207,6 +211,8 @@ goog.inherits(shapy.editor.Layout.Single, shapy.editor.Layout);
  * @param {number} h Height of the window.
  */
 shapy.editor.Layout.Single.prototype.resize = function(w, h) {
+  goog.base(this, 'resize', w, h);
+
   this.viewport.resize(0, 0, w, h);
 };
 
@@ -239,6 +245,8 @@ goog.inherits(shapy.editor.Layout.Double, shapy.editor.Layout);
  * @param {number} h Height of the window.
  */
 shapy.editor.Layout.Double.prototype.resize = function(w, h) {
+  goog.base(this, 'resize', w, h);
+
   this.left.resize(0, 0, w / 2, h);
   this.right.resize(w / 2, 0, w / 2, h);
 };
@@ -278,6 +286,8 @@ goog.inherits(shapy.editor.Layout.Quad, shapy.editor.Layout);
  * @param {number} h Height of the window.
  */
 shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
+  goog.base(this, 'resize', w, h);
+
   this.topLeft.resize(0, 0, w / 2, h / 2);
   this.topRight.resize(w / 2, 0, w / 2, h / 2);
   this.bottomLeft.resize(0, h / 2, w / 2, h / 2);
@@ -357,7 +367,7 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
-  console.log('enter', x, y);
+  //console.log('enter', x, y);
 };
 
 
@@ -365,7 +375,7 @@ shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
  * Handles a mouse leave event.
  */
 shapy.editor.Viewport.prototype.mouseLeave = function() {
-  console.log('leave');
+  //console.log('leave');
 };
 
 
@@ -376,7 +386,7 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
-  console.log('down', x, y);
+  //console.log('down', x, y);
 };
 
 
@@ -387,7 +397,7 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
-  console.log('up', x, y);
+  //console.log('up', x, y);
 };
 
 
