@@ -64,11 +64,18 @@ def main(args):
   app.FB_API_KEY = os.environ.get('FB_API_KEY')
   app.FB_SECRET = os.environ.get('FB_SECRET')
 
-  # Connect to the database.
+  # Connect to the postgresql database.
   app.db = momoko.Pool(
       dsn='dbname=%s user=%s password=%s host=%s port=%d' %
           (app.DB_NAME, app.DB_USER, app.DB_PASS, app.DB_HOST, app.DB_PORT),
       size=1)
+
+  # Connect to the redis server.
+  app.redis = tornadoredis.Client(
+      host=app.RD_HOST,
+      port=app.RD_PORT,
+      password=app.RD_PASS)
+  app.redis.connect()
 
   # Start the server.
   tornado.httpserver.HTTPServer(app).listen(int(os.environ.get('PORT', 8000)))

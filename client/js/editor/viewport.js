@@ -323,7 +323,7 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
-  console.log('enter', x, y);
+  //console.log('enter', x, y);
 };
 
 
@@ -331,7 +331,7 @@ shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
  * Handles a mouse leave event.
  */
 shapy.editor.Viewport.prototype.mouseLeave = function() {
-  console.log('leave');
+  //console.log('leave');
 };
 
 
@@ -342,7 +342,7 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
-  console.log('down', x, y);
+  //console.log('down', x, y);
 };
 
 
@@ -353,7 +353,7 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
-  console.log('up', x, y);
+  //console.log('up', x, y);
 };
 
 

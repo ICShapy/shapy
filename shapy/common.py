@@ -20,14 +20,8 @@ class BaseHandler(RequestHandler):
 
   @property
   def redis(self):
-    """Creates a redis connection from the pool."""
-    if not hasattr(self, 'redis_client') or not self.redis_client:
-      self.redis_client = tornadoredis.Client(
-          host=self.application.RD_HOST,
-          port=self.application.RD_PORT,
-          password=self.application.RD_PASS)
-      self.redis_client.connect()
-    return self.redis_client
+    """Returns a reference to the redis connection."""
+    return self.application.redis
 
   def get_current_user(self):
     """Returns the currently authenticated user."""
