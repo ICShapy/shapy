@@ -16,6 +16,8 @@ shapy.menu = function() {
     link: function($scope, $elem) {
       $('>div', $elem[0]).each(function() {
         var child = $('>ul', this);
+        child.hide();
+
         $(this)
           .mouseenter(function() {
             child.show();

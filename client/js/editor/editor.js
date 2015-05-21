@@ -32,7 +32,6 @@ goog.require('shapy.editor.Viewport');
  * @param {!angular.$rootScope} $rootScope Angular rootScope.
  * @param {!angular.$scope} $scope Angular scope.
  * @param {!angular.$location} $location Angular location service.
- * @param {!Object<string, Object>} $stateParams Angular paremeters.
  */
 shapy.editor.EditorController = function(
     user,
@@ -135,12 +134,22 @@ shapy.editor.EditorController.prototype.onDestroy_ = function() {
  *
  * @constructor
  *
- * @param {!shapy.Scene}       scene  Scene being edited.
- * @param {!angular.$scope}    $scope The angular root scope.
- * @param {!angular.$q}        $q     The angular promise service.
+ * @param {!angular.$scope}    $rootScope The angular root scope.
+ * @param {!angular.$scope}    $scope     The angular root scope.
+ * @param {!angular.$q}        $q         The angular promise service.
+ * @param {!shapy.Scene}       scene      Scene being edited.
  * @param {!shapy.UserService} shUser User service which can cache user info.
  */
-shapy.editor.EditorToolbarController = function(scene, $scope, $q, shUser) {
+shapy.editor.EditorToolbarController = function(
+    $rootScope,
+    $scope,
+    $q,
+    scene,
+    shUser)
+{
+  /** @private {!angular.$scope} @const */
+  this.rootScope_ = $rootScope;
+
   /** @public {!shapy.Scene} @const */
   this.scene = scene;
   /** @public {!Array<!shapy.User>} */
@@ -155,13 +164,29 @@ shapy.editor.EditorToolbarController = function(scene, $scope, $q, shUser) {
 };
 
 
+/**
+ * Called when the layout has to be changed.
+ *
+ * @param {string} name Name of the new layout.
+ */
+shapy.editor.EditorToolbarController.prototype.layout = function(name) {
+  this.rootScope_.$emit('editor', {
+    type: 'layout',
+    layout: name
+  });
+};
+
+
 
 /**
  * Canvas controller class.
  *
  * @constructor
+ * @ngInject
+ *
+ * @param {!angular.$scope} $rootScope The angular root scope.
  */
-shapy.editor.CanvasController = function() {
+shapy.editor.CanvasController = function($rootScope) {
   /**
    * Canvas element where stuff is rendered.
    * @private {HTMLCanvasElement}
@@ -203,6 +228,8 @@ shapy.editor.CanvasController = function() {
    * @public {!shapy.editor.Layout} @const
    */
   this.layout = new shapy.editor.Layout.Double();
+
+  $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
 
 
@@ -245,6 +272,31 @@ shapy.editor.CanvasController.prototype.render = function() {
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     this.renderer_.render(vp);
   }, this);
+};
+
+
+/**
+ * Called when an Angular event is received.
+ *
+ * @private
+ *
+ * @param {string} name Name of the event.
+ * @param {Object} evt Event data.
+ */
+shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
+  switch (evt.type) {
+    case 'layout': {
+      // Trigger a resize.
+      this.vp_.width = this.vp_.height = 0;
+      // Change the layout.
+      switch (evt.layout) {
+        case 'single': this.layout = new shapy.editor.Layout.Single(); break;
+        case 'double': this.layout = new shapy.editor.Layout.Double(); break;
+        case 'quad': this.layout = new shapy.editor.Layout.Quad(); break;
+      }
+      break;
+    }
+  }
 };
 
 
