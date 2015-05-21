@@ -90,6 +90,10 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
  */
 shapy.editor.Layout.prototype.mouseMove = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
+  if (!result) {
+    return;
+  }
+
   if (result.vp != this.active) {
     this.active.mouseLeave();
     this.active = result.vp;
@@ -107,6 +111,9 @@ shapy.editor.Layout.prototype.mouseMove = function(e) {
  */
 shapy.editor.Layout.prototype.mouseDown = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
+  if (!result) {
+    return;
+  }
   result.vp.mouseDown(result.x, result.y);
 };
 
@@ -118,6 +125,9 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
  */
 shapy.editor.Layout.prototype.mouseUp = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
+  if (!result) {
+    return;
+  }
   result.vp.mouseUp(result.x, result.y);
 };
 
@@ -129,6 +139,9 @@ shapy.editor.Layout.prototype.mouseUp = function(e) {
  */
 shapy.editor.Layout.prototype.mouseEnter = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
+  if (!result) {
+    return;
+  }
 
   this.active = result.vp;
   this.active.mouseEnter(result.x, result.y);
