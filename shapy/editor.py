@@ -69,6 +69,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     # If the user is not valid, quit the room.
     if not user:
+      self.user = None
       self.close()
       return
 
