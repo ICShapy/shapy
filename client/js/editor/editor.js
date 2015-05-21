@@ -76,14 +76,15 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
     console.error('Invalid message: ' + evt.data);
   }
 
+  console.log(data);
   switch (data['type']) {
     case 'join': {
-      console.log('join', data['user']);
       break;
     }
     case 'meta': {
-      this.name = data['name'];
-      this.users = data['users'];
+      break;
+    }
+    case 'leave': {
       break;
     }
     default: {
