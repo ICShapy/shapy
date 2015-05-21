@@ -11,12 +11,30 @@ from tornado.web import HTTPError
 from tornado.websocket import WebSocketHandler
 import tornadoredis
 
-from shapy.common import APIHandler, BaseHandler, authenticated
+from shapy.common import APIHandler, BaseHandler, session
 
 
 
 class Scene(object):
   """Wraps common information about a scene."""
+
+  @classmethod
+  @coroutine
+  def get(cls, redis, scene_id):
+    """Returns an object by reading data from postgres and redis."""
+    data = yield Task(redis.get, 'scene_%s' % scene_id)
+    raise Return(Scene(scene_id, json.loads(data) if data else {}))
+
+
+  @classmethod
+  @coroutine
+  def put(cls, redis, scene):
+    yield Task(redis.set, scene.key, json.dumps({
+        'name': scene.name,
+        'users': scene.users
+    }))
+    raise Return(None)
+
 
   def __init__(self, scene_id, data):
     """Creates a new scene object."""
@@ -44,18 +62,18 @@ class Scene(object):
 class WSHandler(WebSocketHandler, BaseHandler):
   """Handles websocket connections."""
 
+  @session
   @coroutine
-  def open(self, scene_id):
+  def open(self, scene_id, user):
     """Handles an incoming connection."""
 
     # If the user is not valid, quit the room.
-    if not self.current_user:
-      self.open = False
+    if not user:
       self.close()
       return
 
     # Read the scene ID & create a unique channel ID.
-    self.open = True
+    self.user = user
     self.scene_id = scene_id
     self.chan_id = 'chan_%s' % scene_id
 
@@ -69,7 +87,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.chan.listen(self.on_channel)
 
     # Get the scene object & add the client.
-    scene = yield self.get_scene(scene_id)
+    scene = yield Scene.get(self.redis, scene_id)
 
     # Transfer initial metadata.
     self.write_message(json.dumps({
@@ -79,17 +97,17 @@ class WSHandler(WebSocketHandler, BaseHandler):
     }))
 
     # Broadcast the initial join message.
-    scene.add_user(self.current_user)
-    yield self.put_scene(scene)
+    scene.add_user(self.user.id)
+    yield Scene.put(self.redis, scene)
     self.redis.publish(self.chan_id, json.dumps({
         'type': 'join',
-        'user': self.current_user
+        'user': self.user.id
     }))
 
   @coroutine
   def on_message(self, message):
     """Handles an incoming message."""
-    if not self.open:
+    if not self.user:
       return
 
     self.redis.publish(self.chan_id, message)
@@ -99,7 +117,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not self.open or message.kind != 'message':
+    if not self.user or message.kind != 'message':
       return
 
     self.write_message(message.body)
@@ -108,39 +126,24 @@ class WSHandler(WebSocketHandler, BaseHandler):
   @coroutine
   def on_close(self):
     """Handles connection termination."""
-    if not self.open:
+    if not self.user:
       return
 
     # Remove the user from the scene.
-    scene = yield self.get_scene(self.scene_id)
-    scene.remove_user(self.current_user)
-    yield self.put_scene(scene)
+    scene = yield Scene.get(self.redis, self.scene_id)
+    scene.remove_user(self.user.id)
+    yield Scene.put(self.redis, scene)
 
     # Leave the scene (of the crime).
     self.redis.publish(self.chan_id, json.dumps({
         'type': 'leave',
-        'user': self.current_user
+        'user': self.user.id
     }))
 
     # Terminate the redis connection.
     self.chan.unsubscribe(self.chan_id)
     self.chan.disconnect()
 
-
-  @coroutine
-  def get_scene(self, scene_id):
-    """Returns an object by reading data from postgres and redis."""
-    data = yield Task(self.redis.get, 'scene_%s' % scene_id)
-    raise Return(Scene(scene_id, json.loads(data) if data else {}))
-
-
-  @coroutine
-  def put_scene(self, scene):
-    yield Task(self.redis.set, scene.key, json.dumps({
-        'name': scene.name,
-        'users': scene.users
-    }))
-    raise Return(None)
 
 
 class SceneHandler(APIHandler):
@@ -149,6 +152,6 @@ class SceneHandler(APIHandler):
   @coroutine
   def get(self, id):
     self.write(json.dumps({
-        'name': 'Untitle Scene',
+        'name': 'Untitled Scene',
         'users': []
     }))

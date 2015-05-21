@@ -73,13 +73,3 @@ class APIHandler(BaseHandler):
 
     self.write(json.dumps({ 'error': msg }))
 
-
-
-def authenticated(method):
-  """Decorate methods with this to require that the user be logged in."""
-  @functools.wraps(method)
-  def wrapper(self, *args, **kwargs):
-    if not self.current_user:
-      raise HTTPError(403)
-    return method(self, *args, **kwargs)
-  return wrapper
