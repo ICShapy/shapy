@@ -20,6 +20,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   @engine
   def open(self, edit_id):
     """Handles an incoming connection."""
+
     self.edit_id = edit_id
     self.chan_id = 'chan_%s' % edit_id
 
@@ -34,13 +35,14 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     # Broadcast the initial join message.
     self.redis.publish(self.chan_id, json.dumps({
-      'type': 'join',
-      'user': self.current_user
+        'type': 'join',
+        'user': self.current_user
     }))
 
   @coroutine
   def on_message(self, message):
     """Handles an incoming message."""
+
     self.redis.publish(self.chan_id, message)
 
   @coroutine
@@ -55,8 +57,11 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_close(self):
     """Handles connection termination."""
 
-    if self.chan.subscribed:
-      self.chan.unsubscribe(self.chan_id)
+    self.redis.publish(self.chan_id, json.dumps({
+        'type': 'leave',
+        'user': self.current_user
+    }))
+    self.chan.unsubscribe(self.chan_id)
     self.chan.disconnect()
 
 
