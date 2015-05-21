@@ -5,6 +5,7 @@
 import json
 import momoko
 
+from tornado.web import asynchronous
 from tornado.gen import engine, coroutine, Task, Return
 from tornado.web import HTTPError
 from tornado.websocket import WebSocketHandler
@@ -49,9 +50,12 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     # If the user is not valid, quit the room.
     if not self.current_user:
+      self.open = False
       self.close()
+      return
 
     # Read the scene ID & create a unique channel ID.
+    self.open = True
     self.scene_id = scene_id
     self.chan_id = 'chan_%s' % scene_id
 
@@ -86,6 +90,8 @@ class WSHandler(WebSocketHandler, BaseHandler):
   @coroutine
   def on_message(self, message):
     """Handles an incoming message."""
+    if not self.open:
+      return
 
     self.redis.publish(self.chan_id, message)
 
@@ -94,14 +100,17 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if message.kind != 'message':
+    if not self.open or message.kind != 'message':
       return
+
     self.write_message(message.body)
 
 
   @coroutine
   def on_close(self):
     """Handles connection termination."""
+    if not self.open:
+      return
 
     # Remove the user from the scene.
     scene = yield self.get_scene(self.scene_id)
@@ -132,6 +141,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'name': scene.name,
         'users': scene.users
     }))
+    raise Return(None)
 
 
 class SceneHandler(APIHandler):
