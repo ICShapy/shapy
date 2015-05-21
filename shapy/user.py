@@ -10,6 +10,7 @@ import json
 import momoko
 from tornado.gen import coroutine, Task
 from tornado.web import HTTPError
+import tornadoredis
 
 from shapy.common import APIHandler, authenticated
 
@@ -59,8 +60,13 @@ class LoginHandler(APIHandler):
     if passw_hash != user_hash:
       raise HTTPError(401, 'Invalid username or password.')
 
-    # Set the session cookie.
-    self.set_secure_cookie('session_id', str(user_id))
+    # Generate temp_id
+    temp_id = os.urandom(16).encode('hex')
+     # Set the session cookie.
+    self.set_secure_cookie('session_id', str(temp_id))
+    # Set mapping in redis temp_id->user_id
+    yield Task(self.redis.hset, 'session:'+ str(temp_id), 'user_id' ,user_id)
+    raise Return(None)
 
 
 
@@ -70,6 +76,7 @@ class LogoutHandler(APIHandler):
   @coroutine
   @authenticated
   def post(self):
+
     self.clear_all_cookies()
 
 

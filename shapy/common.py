@@ -11,6 +11,16 @@ from tornado.gen import Return, coroutine
 import tornadoredis
 
 
+def retrieve_user_id(method):
+  """Decorate methods with this to retrieve user id from redis"""
+  @functools.wraps(method)
+  def wrapper(self, *args, **kwargs):
+    if self.current_user:
+      user_id = yield Task(self.redis.hget, 'session:%s' % temp_id, 'user_id', callback=method)
+      raise Return(user_id)
+    yield method(self, *args, **kwargs)
+  return wrapper
+
 
 class BaseHandler(RequestHandler):
   """Base handler that lazily manages sessions and database connections."""
@@ -50,12 +60,25 @@ class BaseHandler(RequestHandler):
         'email': email
     })
 
+  @coroutine
   def get_current_user(self):
     """Returns the currently authenticated user."""
     try:
-      return int(self.get_secure_cookie('session_id'))
+      temp_id = self.get_secure_cookie('session_id')
     except:
       return None
+    
+    self.get(temp_id)
+
+    callback()
+
+  @retrieve_user_id
+  def get(self, temp_id):
+    pass
+
+
+
+
 
 
 
