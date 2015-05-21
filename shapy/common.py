@@ -10,12 +10,8 @@ import tornadoredis
 
 
 
-class APIHandler(RequestHandler):
-  """Handles requests to the REST API."""
-
-  def __init__(self):
-    """Creates a new API handler object."""
-    self.redis_client = None
+class BaseHandler(RequestHandler):
+  """Base handler that lazily manages sessions and database connections."""
 
   @property
   def db(self):
@@ -25,11 +21,13 @@ class APIHandler(RequestHandler):
   @property
   def redis(self):
     """Creates a redis connection from the pool."""
-    if not self.redis_client:
+    if not hasattr(self, 'redis_client') or not self.redis_client:
       self.redis_client = tornadoredis.Client(
-          connection_pool=self.application.redis_pool)
+          host=self.application.RD_HOST,
+          port=self.application.RD_PORT,
+          password=self.application.RD_PASS)
+      self.redis_client.connect()
     return self.redis_client
-
 
   def get_current_user(self):
     """Returns the currently authenticated user."""
@@ -37,6 +35,11 @@ class APIHandler(RequestHandler):
       return int(self.get_secure_cookie('session_id'))
     except:
       return None
+
+
+
+class APIHandler(BaseHandler):
+  """Handles requests to the REST API."""
 
   def write_error(self, status_code, **kwargs):
     """Handles error messages, outputting a properly formatted JSON message."""

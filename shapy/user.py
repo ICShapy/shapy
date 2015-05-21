@@ -6,7 +6,7 @@ import hashlib
 import json
 
 import momoko
-from tornado.gen import coroutine
+from tornado.gen import coroutine, Task
 from tornado.web import HTTPError
 
 from common import APIHandler, authenticated

@@ -16,30 +16,6 @@ import shapy.user
 
 
 
-# HTTP port.
-PORT = int(os.environ.get('PORT', 8000))
-
-# PostgreSQL connection.
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_NAME = os.environ.get('DB_NAME', 'shapy')
-DB_USER = os.environ.get('DB_USER', 'postgres')
-DB_PORT = int(os.environ.get('DB_PORT', 5432))
-DB_PASS = os.environ.get('DB_PASS', '')
-
-# Redis connection.
-RD_HOST = os.environ.get('RD_HOST', 'localhost')
-RD_PORT = int(os.environ.get('RD_PORT', 7759))
-RD_PASS = os.environ.get('RD_PASS', '')
-
-# Facebook API.
-FB_API_KEY = os.environ.get('FB_API_KEY')
-FB_SECRET = os.environ.get('FB_SECRET')
-
-# Very secret cookie secret.
-COOKIE_SECRET = os.environ.get('COOKIE_SECRET')
-
-
-
 class IndexHandler(tornado.web.StaticFileHandler):
   def initialize(self, path):
     self.dirname, self.filename = os.path.split(path)
@@ -72,24 +48,30 @@ def main(args):
     (r'/js/(.*)',   tornado.web.StaticFileHandler, { 'path': 'client/js' }),
     (r'/html/(.*)', tornado.web.StaticFileHandler, { 'path': 'client/html' }),
     (r'(.*)',       IndexHandler, { 'path': 'client/index.html' }),
-  ], debug=True, cookie_secret=COOKIE_SECRET)
+  ], debug=True, cookie_secret=os.environ.get('COOKIE_SECRET'))
+
+  # Read configuration.
+  app.DB_HOST = os.environ.get('DB_HOST', 'localhost')
+  app.DB_NAME = os.environ.get('DB_NAME', 'shapy')
+  app.DB_USER = os.environ.get('DB_USER', 'postgres')
+  app.DB_PORT = int(os.environ.get('DB_PORT', 5432))
+  app.DB_PASS = os.environ.get('DB_PASS', '')
+
+  app.RD_HOST = os.environ.get('RD_HOST', 'localhost')
+  app.RD_PORT = int(os.environ.get('RD_PORT', 7759))
+  app.RD_PASS = os.environ.get('RD_PASS', '')
+
+  app.FB_API_KEY = os.environ.get('FB_API_KEY')
+  app.FB_SECRET = os.environ.get('FB_SECRET')
 
   # Connect to the database.
   app.db = momoko.Pool(
       dsn='dbname=%s user=%s password=%s host=%s port=%d' %
-          (DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT),
+          (app.DB_NAME, app.DB_USER, app.DB_PASS, app.DB_HOST, app.DB_PORT),
       size=1)
 
-  # Connect to redis.
-  app.redis_pool = tornadoredis.ConnectionPool(
-      host=RD_HOST,
-      port=RD_PORT,
-      password=RD_PASS,
-      max_connections=10,
-      wait_for_available=True)
-
   # Start the server.
-  tornado.httpserver.HTTPServer(app).listen(PORT)
+  tornado.httpserver.HTTPServer(app).listen(int(os.environ.get('PORT', 8000)))
   tornado.ioloop.IOLoop.instance().start()
 
 

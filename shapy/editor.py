@@ -5,19 +5,21 @@
 import json
 import momoko
 
-from tornado.gen import coroutine
+from tornado.gen import engine, coroutine, Task
 from tornado.web import HTTPError
-import tornado.websocket
+from tornado.websocket import WebSocketHandler
 
-from common import APIHandler
+from common import APIHandler, BaseHandler
 
 
 
-class WSHandler(tornado.websocket.WebSocketHandler):
+class WSHandler(WebSocketHandler, BaseHandler):
   """Handles websocket connections."""
 
+  @engine
   def open(self, edit_id):
     """Handles an incoming connection."""
+
     if self.get_secure_cookie('session_id') is not None:
       user_id = int(self.get_secure_cookie('session_id'))
     else:
@@ -38,10 +40,12 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         ]
     }))
 
+  @coroutine
   def on_message(self, message):
     """Handles an incoming message."""
     pass
 
+  @coroutine
   def on_close(self):
     """Handles connection termination."""
     pass
@@ -50,6 +54,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 class SceneHandler(APIHandler):
   """Retrieves information a specific scene."""
 
+  @coroutine
   def get(self, id):
     self.write(json.dumps({
         'name': 'Hardcoded name',
