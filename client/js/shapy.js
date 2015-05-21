@@ -12,6 +12,7 @@ goog.require('shapy.browser.BrowserController');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.EditorToolbarController');
 goog.require('shapy.editor.CanvasDirective');
+goog.require('shapy.menu');
 goog.require('shapy.notification.notifyBar');
 goog.require('shapy.notification.Service');
 
@@ -192,6 +193,7 @@ shapy.module = angular
   .directive('shCanvas', shapy.editor.CanvasDirective)
   .directive('shHighlight', shapy.highlight)
   .directive('shNotifyBar', shapy.notification.notifyBar)
+  .directive('shMenu', shapy.menu)
 
   .factory('shHttp', shapy.HttpInterceptor)
 

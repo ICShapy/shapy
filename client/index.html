@@ -60,6 +60,9 @@
       goog.addDependency('../login.js', [
           'shapy.LoginController'
       ], []);
+      goog.addDependency('../menu.js', [
+          'shapy.menu'
+      ], []);
       goog.addDependency('../notification.js', [
           'shapy.notification.notifyBar',
           'shapy.notification.Service'
@@ -78,7 +81,8 @@
           'shapy.editor.EditorToolbarController',
           'shapy.editor.CanvasDirective',
           'shapy.notification.notifyBar',
-          'shapy.notification.Service'
+          'shapy.notification.Service',
+          'shapy.menu'
       ]);
       goog.addDependency('../register.js', [
           'shapy.RegisterController'

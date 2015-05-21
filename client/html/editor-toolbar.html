@@ -1,19 +1,26 @@
-<ul class="editor menu">
-  <li
-      id="editor-user-counter"
-      ng-mouseenter="show = true"
-      ng-init="show = false">
-    {{ editorCtrl.users.length }}
-    <ul
-        class="submenu"
-        ng-show="show"
-        ng-mouseleave="show = false">
+<sh-menu>
+  <!-- Displays the number of users & shows a list. -->
+  <div id="editor-user-counter">
+    <span>{{ editorCtrl.users.length }}</span>
+    <ul>
       <li ng-repeat="user in editorCtrl.users">
         {{ user.name }}
       </li>
     </ul>
-  </li>
-  <li>
-    {{ editorCtrl.scene.name }}
-  </li>
-</ul>
+  </div>
+
+  <!-- Toggles between layouts -->
+  <div>
+    <span>View</span>
+    <ul>
+      <li>Single</li>
+      <li>Double</li>
+      <li>Quad</li>
+    </ul>
+  </div>
+
+  <!-- Static display of scene name -->
+  <div>
+    <span>{{ editorCtrl.scene.name }}</span>
+  </div>
+</sh-menu>
