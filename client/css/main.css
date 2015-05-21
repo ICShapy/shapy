@@ -4,6 +4,10 @@ html {
 }
 
 
+#body {
+  overflow: auto;
+}
+
 /**
  * Page header
  */
@@ -182,4 +186,60 @@ sh-notify-bar {
 
 #toolbar ul.submenu > li:hover {
   background-color: #555555;
+}
+
+/**
+ * Register
+ */
+#register {
+  width: 400px;
+  padding: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 200px;
+  border-radius: 15px;
+  border: 1px solid black;
+}
+
+#register div {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#register strong {
+  display: block;
+}
+
+#register .error {
+  display: block;
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#register .error > span {
+  display: block;
+}
+
+#register input[type=password],
+#register input[type=email],
+#register input[type=text] {
+  height: 24px;
+  font-size: 20px;
+}
+
+
+#register input[type=text] {
+  width: 192px;
+}
+
+#register input[type=password],
+#register input[type=email]
+{
+  width: 394px;
+}
+
+input.ng-invalid.ng-touched {
+  border:1px solid #f00;
 }

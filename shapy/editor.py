@@ -86,7 +86,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'user': self.current_user
     }))
 
-
   @coroutine
   def on_message(self, message):
     """Handles an incoming message."""
