@@ -83,27 +83,27 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
     console.error('Invalid message: ' + evt.data);
   }
 
-  switch (data['type']) {
-    case 'join': {
-      this.scene.addUser(data['user']);
-      break;
+  this.rootScope_.$apply(goog.bind(function() {
+    switch (data['type']) {
+      case 'join': {
+        this.scene.addUser(data['user']);
+        break;
+      }
+      case 'meta': {
+        this.scene.setName(data['name']);
+        this.scene.setUsers(data['users']);
+        break;
+      }
+      case 'leave': {
+        this.scene.removeUser(data['user']);
+        break;
+      }
+      default: {
+        console.error('Invalid message type "' + data['type'] + '"');
+        break;
+      }
     }
-    case 'meta': {
-      this.scene.setName(data['name']);
-      this.scene.setUsers(data['users']);
-      break;
-    }
-    case 'leave': {
-      this.scene.removeUser(data['user']);
-      break;
-    }
-    default: {
-      console.error('Invalid message type "' + data['type'] + '"');
-      break;
-    }
-  }
-
-  this.rootScope_.$apply();
+  }, this));
 };
 
 
@@ -135,11 +135,23 @@ shapy.editor.EditorController.prototype.onDestroy_ = function() {
  *
  * @constructor
  *
- * @param {!shapy.Scene} scene Scene being edited.
+ * @param {!shapy.Scene}       scene  Scene being edited.
+ * @param {!angular.$scope}    $scope The angular root scope.
+ * @param {!angular.$q}        $q     The angular promise service.
+ * @param {!shapy.UserService} shUser User service which can cache user info.
  */
-shapy.editor.EditorToolbarController = function(scene) {
+shapy.editor.EditorToolbarController = function(scene, $scope, $q, shUser) {
   /** @public {!shapy.Scene} @const */
   this.scene = scene;
+  /** @public {!Array<!shapy.User>} */
+  this.users = [];
+
+  $scope.$watch('editorCtrl.scene.users', goog.bind(function(users) {
+    $q.all(goog.array.map(this.scene.users, goog.bind(shUser.get, shUser)))
+        .then(goog.bind(function(users) {
+          this.users = users;
+        }, this));
+  }, this), true);
 };
 
 

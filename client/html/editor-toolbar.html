@@ -3,13 +3,13 @@
       id="editor-user-counter"
       ng-mouseenter="show = true"
       ng-init="show = false">
-    {{ editorCtrl.scene.users.length }}
+    {{ editorCtrl.users.length }}
     <ul
         class="submenu"
         ng-show="show"
         ng-mouseleave="show = false">
-      <li ng-repeat="user in editorCtrl.scene.users">
-        {{ user }}
+      <li ng-repeat="user in editorCtrl.users">
+        {{ user.name }}
       </li>
     </ul>
   </li>

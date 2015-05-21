@@ -22,23 +22,8 @@ class AuthHandler(APIHandler):
     if not self.current_user:
       self.write(json.dumps({ 'id': 0 }))
       return
-
-    # Fetch user data.
-    cursor = yield momoko.Op(self.db.execute,
-        '''SELECT first_name, last_name, email FROM users WHERE id=%s''',
-        (self.current_user,))
-    user = cursor.fetchone()
-    if not user:
-      raise HTTPError(401, 'Invalid user id.')
-
-    # Pack it & send it to the server.
-    first_name, last_name, email = user
-    self.write(json.dumps({
-        'id': self.current_user,
-        'first_name': first_name,
-        'last_name': last_name,
-        'email': email
-    }))
+    data = yield self.get_user_data(self.current_user)
+    self.write(json.dumps(data))
 
 
 
@@ -94,3 +79,12 @@ class RegisterHandler(APIHandler):
   def post(self):
     pass
 
+
+
+class InfoHandler(APIHandler):
+  """Handles a request to retrieve lightweight user information."""
+
+  @coroutine
+  def get(self, user_id):
+    data = yield self.get_user_data(user_id)
+    self.write(json.dumps(data))

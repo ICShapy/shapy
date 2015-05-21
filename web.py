@@ -40,6 +40,7 @@ def main(args):
     (r'/api/user/login',            shapy.user.LoginHandler),
     (r'/api/user/logout',           shapy.user.LogoutHandler),
     (r'/api/user/register',         shapy.user.RegisterHandler),
+    (r'/api/user/([0-9]+)',         shapy.user.InfoHandler),
     (r'/api/edit/([0-9]+@[0-9]+)',  shapy.editor.WSHandler),
     (r'/api/scene/([0-9]+@[0-9]+)', shapy.editor.SceneHandler),
 

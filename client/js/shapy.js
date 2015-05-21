@@ -3,6 +3,7 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
 goog.require('shapy.SceneService');
+goog.require('shapy.UserService');
 goog.require('shapy.highlight');
 goog.require('shapy.LoginController');
 goog.require('shapy.HeaderController');
@@ -186,6 +187,7 @@ shapy.module = angular
   .service('shAuth', shapy.AuthService)
   .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
+  .service('shUser', shapy.UserService)
 
   .directive('shCanvas', shapy.editor.CanvasDirective)
   .directive('shHighlight', shapy.highlight)
