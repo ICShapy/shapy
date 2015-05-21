@@ -15,6 +15,7 @@ html {
   height: 30px;
   background-color: #222222;
   border-bottom: 1px solid #111111;
+  z-index: 1000;
 }
 
 #header a, #header span {
@@ -133,4 +134,51 @@ sh-notify-bar {
  */
 #toolbar {
   float: left;
+  z-index: 10000;
+}
+
+#toolbar ul.menu {
+  display: block;
+  float: left;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#toolbar ul.menu > li {
+  position: relative;
+  display: block;
+  float: left;
+  cursor: pointer;
+  color: white;
+  padding: 4px;
+  font-size: 16px;
+  height: 22px;
+}
+
+#toolbar ul.menu > li:hover {
+  background-color: #555555;
+}
+
+#toolbar ul.submenu {
+  background-color: #222222;
+  display: block;
+  position: absolute;
+  list-style-type: none;
+  border: 1px solid black;
+  top: 26px;
+  left: 0px;
+  padding: 0;
+  margin: 0;
+}
+
+#toolbar ul.submenu > li {
+  display: block;
+  padding: 2px;
+  margin: 0;
+  min-width: 100px;
+}
+
+#toolbar ul.submenu > li:hover {
+  background-color: #555555;
 }

@@ -1,2 +1,19 @@
-{{ editorCtrl.scene.name }},
-{{ editorCtrl.scene.users.length }} other people editing
+<ul class="editor menu">
+  <li
+      id="editor-user-counter"
+      ng-mouseenter="show = true"
+      ng-init="show = false">
+    {{ editorCtrl.scene.users.length }}
+    <ul
+        class="submenu"
+        ng-show="show"
+        ng-mouseleave="show = false">
+      <li ng-repeat="user in editorCtrl.scene.users">
+        {{ user }}
+      </li>
+    </ul>
+  </li>
+  <li>
+    {{ editorCtrl.scene.name }}
+  </li>
+</ul>

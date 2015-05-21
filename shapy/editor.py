@@ -150,6 +150,6 @@ class SceneHandler(APIHandler):
   @coroutine
   def get(self, id):
     self.write(json.dumps({
-        'name': 'Hardcoded name',
+        'name': 'Untitle Scene',
         'users': []
     }))

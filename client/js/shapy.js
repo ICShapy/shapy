@@ -79,7 +79,9 @@ shapy.configStates_ = function(
           var name = user ? user.id : 0;
 
           // Retrieve the scene.
-          return shScene.get($stateParams['sceneID'] || (name + '@' + time));
+          //return shScene.get($stateParams['sceneID'] || (name + '@' + time));
+          // Hardcoded for testing:
+          return shScene.get('1@1');
         }
       },
       views: {

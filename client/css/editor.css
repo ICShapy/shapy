@@ -1,4 +1,26 @@
+#editor-user-counter {
+  color: white;
+  background-color: #0066FF !important;
+  border: 1px solid #0033CC;
+  height: 18px !important;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 2px !important;
+  margin: 3px !important;
+  min-width: 20px;
+  text-align: center;
+  border-radius: 3px;
+}
+
+#editor-user-counter:hover {
+  background-color: #0099FF !important;
+}
+
 #editor {
   width: 100%;
   height: 100%;
+}
+
+#toolbar .editor {
+
 }

@@ -29,6 +29,7 @@ goog.require('shapy.editor.Viewport');
  *
  * @param {!shapy.auth.User} user User information.
  * @param {!shapy.Scene} scene Current scene.
+ * @param {!angular.$rootScope} $rootScope Angular rootScope.
  * @param {!angular.$scope} $scope Angular scope.
  * @param {!angular.$location} $location Angular location service.
  * @param {!Object<string, Object>} $stateParams Angular paremeters.
@@ -36,9 +37,15 @@ goog.require('shapy.editor.Viewport');
 shapy.editor.EditorController = function(
     user,
     scene,
+    $rootScope,
     $scope,
     $location)
 {
+  /** @private {!angular.$scope} @const */
+  this.rootScope_ = $rootScope;
+  /** @private {!angular.$scope} @const */
+  this.scope_ = $scope;
+
   /**
    * Current scene.
    * @public {!shapy.Scene}
@@ -55,7 +62,7 @@ shapy.editor.EditorController = function(
   // Set up some event handlers.
   this.sock_.onmessage = goog.bind(this.onMessage_, this);
   this.sock_.onclose = goog.bind(this.onClose_, this);
-  $scope.$on('$destroy', goog.bind(this.onDestroy_, this));
+  this.scope_.$on('$destroy', goog.bind(this.onDestroy_, this));
 };
 
 
@@ -76,15 +83,18 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
     console.error('Invalid message: ' + evt.data);
   }
 
-  console.log(data);
   switch (data['type']) {
     case 'join': {
+      this.scene.addUser(data['user']);
       break;
     }
     case 'meta': {
+      this.scene.setName(data['name']);
+      this.scene.setUsers(data['users']);
       break;
     }
     case 'leave': {
+      this.scene.removeUser(data['user']);
       break;
     }
     default: {
@@ -92,6 +102,8 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
       break;
     }
   }
+
+  this.rootScope_.$apply();
 };
 
 
@@ -112,6 +124,7 @@ shapy.editor.EditorController.prototype.onClose_ = function(evt) {
  * @private
  */
 shapy.editor.EditorController.prototype.onDestroy_ = function() {
+  console.log('destroy');
   this.sock_.close();
 };
 
@@ -127,7 +140,6 @@ shapy.editor.EditorController.prototype.onDestroy_ = function() {
 shapy.editor.EditorToolbarController = function(scene) {
   /** @public {!shapy.Scene} @const */
   this.scene = scene;
-
 };
 
 

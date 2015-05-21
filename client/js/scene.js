@@ -35,6 +35,37 @@ shapy.Scene = function(id, data) {
 };
 
 
+/**
+ * Adds a new user to the list of people editing.
+ */
+shapy.Scene.prototype.addUser = function(user) {
+  goog.array.insert(this.users, user);
+};
+
+
+/**
+ * Removes a user from the list of people editing.
+ */
+shapy.Scene.prototype.removeUser = function(user) {
+  goog.array.remove(this.users, user);
+};
+
+
+/**
+ * Sets the list of users.
+ */
+shapy.Scene.prototype.setUsers = function(users) {
+  this.users = users;
+};
+
+
+/**
+ * Changes the name of the scene.
+ */
+shapy.Scene.prototype.setName = function(name) {
+  this.name = name;
+};
+
 
 /**
  * Retrieves a scene object from cache or server.
