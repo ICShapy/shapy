@@ -71,13 +71,9 @@ shapy.editor.Mesh.prototype.render = function(sh) {
 
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 64, 0);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.vertexAttribPointer(1, 3, goog.webgl.FLOAT, false, 64, 12);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.vertexAttribPointer(2, 2, goog.webgl.FLOAT, false, 64, 24);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 64, 32);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.vertexAttribPointer(4, 3, goog.webgl.FLOAT, false, 64, 48);
 
   sh.uniform4f('u_border', this.border_);

@@ -90,16 +90,19 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
  */
 shapy.editor.Layout.prototype.mouseMove = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
-  if (!result) {
+  if (!result || !result.vp) {
     return;
   }
 
-  if (result.vp != this.active) {
-    this.active.mouseLeave();
+  if (this.active && result.vp == this.active) {
+    this.active.mouseMove(result.x, result.y);
+  } else {
+    if (this.active) {
+      this.active.mouseLeave();
+    }
+
     this.active = result.vp;
     this.active.mouseEnter(result.x, result.y);
-  } else {
-    this.active.mouseMove(result.x, result.y);
   }
 };
 
@@ -111,9 +114,10 @@ shapy.editor.Layout.prototype.mouseMove = function(e) {
  */
 shapy.editor.Layout.prototype.mouseDown = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
-  if (!result) {
+  if (!result || !result.vp) {
     return;
   }
+
   result.vp.mouseDown(result.x, result.y);
 };
 
@@ -125,9 +129,10 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
  */
 shapy.editor.Layout.prototype.mouseUp = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
-  if (!result) {
+  if (!result || !result.vp) {
     return;
   }
+
   result.vp.mouseUp(result.x, result.y);
 };
 
@@ -139,7 +144,7 @@ shapy.editor.Layout.prototype.mouseUp = function(e) {
  */
 shapy.editor.Layout.prototype.mouseEnter = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
-  if (!result) {
+  if (!result || result.vp) {
     return;
   }
 
@@ -154,10 +159,26 @@ shapy.editor.Layout.prototype.mouseEnter = function(e) {
  * @param {MouseEvent} e
  */
 shapy.editor.Layout.prototype.mouseLeave = function(e) {
-  if (this.active) {
-    this.active.mouseLeave();
-    this.active = null;
+  if (!this.active) {
+    return;
   }
+
+  this.active.mouseLeave();
+  this.active = null;
+};
+
+
+/**
+ * Handles a mouse wheel event.
+ *
+ * @param {MouseEvent} e
+ */
+shapy.editor.Layout.prototype.mouseWheel = function(e) {
+  if (!this.active) {
+    return;
+  }
+
+  this.active.mouseWheel(e.wheelDelta);
 };
 
 
@@ -367,6 +388,40 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
   //console.log('up', x, y);
+};
+
+
+/**
+ * Handles a mouse wheel event.
+ *
+ * @param {number} delta Mouse wheel delta value.
+ */
+shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
+  var diff = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(this.camera.eye, this.camera.center, diff);
+  var zoomLevel = goog.vec.Vec3.magnitude(diff);
+
+  // Determine if zooming in or out and update accordingly.
+  if (delta < 0) {
+    zoomLevel /= shapy.editor.Camera.ZOOM_SPEED;
+  } else {
+    zoomLevel *= shapy.editor.Camera.ZOOM_SPEED;
+  }
+
+  // Clip to MIN_ZOOM.
+  if (zoomLevel < shapy.editor.Camera.MIN_ZOOM) {
+    zoomLevel = shapy.editor.Camera.MIN_ZOOM;
+  }
+
+  // Clip to MAX_ZOOM.
+  if (zoomLevel > shapy.editor.Camera.MAX_ZOOM) {
+    zoomLevel = shapy.editor.Camera.MAX_ZOOM;
+  }
+
+  // Update the position of the camera.
+  goog.vec.Vec3.normalize(diff, diff); 
+  goog.vec.Vec3.scale(diff, zoomLevel, diff);
+  goog.vec.Vec3.add(this.camera.center, diff, this.camera.eye);
 };
 
 
