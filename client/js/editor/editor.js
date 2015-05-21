@@ -77,6 +77,10 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
   }
 
   switch (data['type']) {
+    case 'join': {
+      console.log('join', data['user']);
+      break;
+    }
     case 'meta': {
       this.name = data['name'];
       this.users = data['users'];
