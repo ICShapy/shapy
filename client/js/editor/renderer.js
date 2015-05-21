@@ -117,6 +117,7 @@ shapy.editor.Renderer.prototype.render = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
+  vp.camera.compute();
   this.shColour_.use();
   this.shColour_.uniform4fv('u_view', vp.camera.view);
   this.shColour_.uniform4fv('u_proj', vp.camera.proj);

@@ -173,7 +173,7 @@ shapy.editor.CanvasController = function() {
    * Root layout.
    * @public {!shapy.editor.Layout} @const
    */
-  this.layout = new shapy.editor.Layout.Double();
+  this.layout = new shapy.editor.Layout.Single();
 };
 
 
@@ -254,11 +254,14 @@ shapy.editor.CanvasDirective = function() {
 
       // Mouse events.
       $($elem[0])
-        .mousedown(goog.bind(canvasCtrl.layout.mouseDown, canvasCtrl.layout))
-        .mouseup(goog.bind(canvasCtrl.layout.mouseUp, canvasCtrl.layout))
-        .mouseenter(goog.bind(canvasCtrl.layout.mouseEnter, canvasCtrl.layout))
-        .mouseleave(goog.bind(canvasCtrl.layout.mouseLeave, canvasCtrl.layout))
-        .mousemove(goog.bind(canvasCtrl.layout.mouseMove, canvasCtrl.layout));
+        .mousedown(function(e) { canvasCtrl.layout.mouseDown(e); })
+        .mouseup(function(e) { canvasCtrl.layout.mouseUp(e); })
+        .mouseenter(function(e) { canvasCtrl.layout.mouseEnter(e); })
+        .mouseleave(function(e) { canvasCtrl.layout.mouseLeave(e); })
+        .mousemove(function(e) { canvasCtrl.layout.mouseMove(e); })
+        .bind('mousewheel', function(e) {
+          canvasCtrl.layout.mouseWheel(e.originalEvent);
+        });
     }
   };
 };

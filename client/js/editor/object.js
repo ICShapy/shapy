@@ -16,7 +16,7 @@ goog.require('goog.vec.Vec3');
  *  - translate
  *  - scale
  * These properties can be edited using markers placed over the object. They
- * apply to every single single vertex in the object by defining the model
+ * apply to every single vertex in the object by defining the model
  * matrix of the object.
  *
  * @constructor

@@ -48,6 +48,28 @@ shapy.editor.Camera.prototype.resize = goog.abstractMethod;
 
 
 /**
+ * Maximum zoom level.
+ * @param {number} @const
+ */
+shapy.editor.Camera.MAX_ZOOM = 20.0;
+
+
+/**
+ * Maximum zoom level.
+ * @param {number} @const
+ */
+shapy.editor.Camera.MIN_ZOOM = 0.5;
+
+
+/**
+ * Zoom speed.
+ * @param {number} @const
+ */
+shapy.editor.Camera.ZOOM_SPEED = 0.85;
+
+
+
+/**
  * Perspective camera.
  *
  * @constructor
