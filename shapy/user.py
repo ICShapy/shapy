@@ -12,7 +12,8 @@ from tornado.gen import coroutine, Task
 from tornado.web import HTTPError
 import tornadoredis
 
-from shapy.common import APIHandler, session, authenticated
+from shapy.account import Account
+from shapy.common import APIHandler, session
 
 
 
@@ -143,5 +144,5 @@ class InfoHandler(APIHandler):
 
   @coroutine
   def get(self, user_id):
-    data = yield self.get_user_data(user_id)
-    self.write(json.dumps(data))
+    user = yield Account.get(self.db, user_id)
+    self.write(json.dumps(user.__dict__))
