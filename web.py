@@ -37,6 +37,7 @@ def main(args):
   app = tornado.web.Application([
     # API handlers.
     (r'/api/user/auth',             shapy.user.AuthHandler),
+    (r'/api/user/check/([^/]+)',    shapy.user.CheckHandler),
     (r'/api/user/login',            shapy.user.LoginHandler),
     (r'/api/user/logout',           shapy.user.LogoutHandler),
     (r'/api/user/register',         shapy.user.RegisterHandler),
