@@ -5,21 +5,37 @@
 import functools
 import json
 
-import momoko
 from tornado.web import RequestHandler, HTTPError
-from tornado.gen import Return, coroutine
+from tornado.gen import Return, Task, coroutine
 import tornadoredis
 
+from shapy.account import Account
 
-def retrieve_user_id(method):
-  """Decorate methods with this to retrieve user id from redis"""
+
+def session(method):
+  """Decorates methods to inject user info based on session token."""
+
+  @coroutine
   @functools.wraps(method)
   def wrapper(self, *args, **kwargs):
-    if self.current_user:
-      user_id = yield Task(self.redis.hget, 'session:%s' % temp_id, 'user_id', callback=method)
-      raise Return(user_id)
-    yield method(self, *args, **kwargs)
+    # If the session token is not set, omit the user id.
+    token = self.get_secure_cookie('session')
+    if not token:
+      method(self, *args, user=None, **kwargs)
+      raise Return()
+
+    # Map the session ID to a user.
+    user_id = yield Task(self.redis.hget, 'session:%s' % token, 'user_id')
+    if not user_id:
+      method(self, *args, user=None, **kwargs)
+      raise Return()
+
+    # Fetch the user info from the database & pass it to the method.
+    user = yield Account.get(self.db, user_id)
+    method(self, *args, user=user, **kwargs)
+
   return wrapper
+
 
 
 class BaseHandler(RequestHandler):
@@ -40,45 +56,6 @@ class BaseHandler(RequestHandler):
           password=self.application.RD_PASS)
       self.redis_conn.connect()
     return self.redis_conn
-
-  @coroutine
-  def get_user_data(self, user_id):
-    """Returns information about the current user."""
-    cursor = yield momoko.Op(self.db.execute,
-        '''SELECT first_name, last_name, email FROM users WHERE id=%s''',
-        (user_id,))
-    user = cursor.fetchone()
-    if not user:
-      raise HTTPError(401, 'Invalid user id.')
-
-    # Pack it & send it to the server.
-    first_name, last_name, email = user
-    raise Return({
-        'id': self.current_user,
-        'first_name': first_name,
-        'last_name': last_name,
-        'email': email
-    })
-
-  @coroutine
-  def get_current_user(self):
-    """Returns the currently authenticated user."""
-    try:
-      temp_id = self.get_secure_cookie('session_id')
-    except:
-      return None
-    
-    self.get(temp_id)
-
-    callback()
-
-  @retrieve_user_id
-  def get(self, temp_id):
-    pass
-
-
-
-
 
 
 

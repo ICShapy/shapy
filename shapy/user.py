@@ -12,22 +12,19 @@ from tornado.gen import coroutine, Task
 from tornado.web import HTTPError
 import tornadoredis
 
-from shapy.common import APIHandler, authenticated
+from shapy.common import APIHandler, session, authenticated
 
 
 
 class AuthHandler(APIHandler):
   """Handles requests to the REST API."""
 
+  @session
   @coroutine
-  def get(self):
-    # If user not logged in, return an error.
-    if not self.current_user:
-      self.write(json.dumps({ 'id': 0 }))
-      return
-    data = yield self.get_user_data(self.current_user)
-    self.write(json.dumps(data))
+  def get(self, user):
+    """Returns the serialized user or a null id."""
 
+    self.write(json.dumps(user.__dict__ if user else { 'id': 0 }))
 
 
 class LoginHandler(APIHandler):
@@ -44,8 +41,7 @@ class LoginHandler(APIHandler):
 
     # Fetch data from the database.
     cursor = yield momoko.Op(self.db.execute,
-        '''SELECT id, password FROM users WHERE email=%s''',
-        (email,))
+        '''SELECT id, password FROM users WHERE email=%s''', (email,))
     user = cursor.fetchone()
     if not user:
       raise HTTPError(401, 'Invalid username or password.')
@@ -60,23 +56,23 @@ class LoginHandler(APIHandler):
     if passw_hash != user_hash:
       raise HTTPError(401, 'Invalid username or password.')
 
-    # Generate temp_id
-    temp_id = os.urandom(16).encode('hex')
-     # Set the session cookie.
-    self.set_secure_cookie('session_id', str(temp_id))
-    # Set mapping in redis temp_id->user_id
-    yield Task(self.redis.hset, 'session:'+ str(temp_id), 'user_id' ,user_id)
-    raise Return(None)
+    # Generate a session token & map the user to it.
+    token = os.urandom(16).encode('hex')
+    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user_id)
+    self.set_secure_cookie('session', token)
 
 
 
 class LogoutHandler(APIHandler):
   """Handles requests to the REST API."""
 
+  @session
   @coroutine
-  @authenticated
-  def post(self):
+  def post(self, user):
+    """Logs a user out by invalidating the session token."""
 
+    token = self.get_secure_cookie('session')
+    yield Task(self.redis.hdel, 'session:%s' % token, 'user_id')
     self.clear_all_cookies()
 
 
@@ -110,14 +106,15 @@ class RegisterHandler(APIHandler):
            ''',
         (firstName, lastName, email, pass_with_salt))
 
-    # Get user id
-    user_id = cursor.fetchone()
-
-    if not user_id:
+    # Check if the user was created successfully.
+    user = cursor.fetchone()
+    if not user:
       raise HTTPError(400, 'Registering failed.')
 
-    # Login - set the session cookie.
-    self.set_secure_cookie('session_id', str(user_id))
+    # Log the user in after registering.
+    token = os.urandom(16).encode('hex')
+    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user[0])
+    self.set_secure_cookie('session', token)
 
 
 
@@ -129,7 +126,7 @@ class CheckHandler(APIHandler):
     # Notify if request invalid
     if not email:
       raise HTTPError(400, 'Missing username (email).')
-      
+
     # Check if username already present in database
     cursor = yield momoko.Op(self.db.execute,
         '''SELECT 1 FROM users WHERE email=%s''',
