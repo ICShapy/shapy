@@ -9,7 +9,7 @@ import momoko
 from tornado.gen import coroutine, Task
 from tornado.web import HTTPError
 
-from common import APIHandler, authenticated
+from shapy.common import APIHandler, authenticated
 
 
 
