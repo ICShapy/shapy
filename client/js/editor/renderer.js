@@ -186,7 +186,9 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
   this.gl_.disable(goog.webgl.DEPTH_TEST);
 
   // The viewport of the cube is always rectangular in the top corner.
-  var cubeVPSize = (vp.rect.w < vp.rect.h ? vp.rect.w : vp.rect.h) / 4;
+  var min = function(x, y) { return x < y ? x : y; };
+  var cubeVPBaseSize = 120;
+  var cubeVPSize = min(min(vp.rect.w / 3, vp.rect.h), cubeVPBaseSize);
   this.gl_.viewport(
       vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
   this.gl_.scissor(
