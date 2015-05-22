@@ -41,7 +41,7 @@ shapy.editor.Mesh = function(gl, buffer, data) {
   this.border_ = data.border ?
       goog.vec.Vec4.createFloat32FromValues(
           data.border[0], data.border[1], data.border[2], data.border[3]) :
-      goog.vec.Vec3.createFloat32FromValues(
+      goog.vec.Vec4.createFloat32FromValues(
           0, 0, 0, 0);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, buffer, goog.webgl.STATIC_DRAW);
