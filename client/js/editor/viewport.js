@@ -461,7 +461,7 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
   }
 
   // Update the position of the camera.
-  goog.vec.Vec3.normalize(diff, diff); 
+  goog.vec.Vec3.normalize(diff, diff);
   goog.vec.Vec3.scale(diff, zoomLevel, diff);
   goog.vec.Vec3.add(this.camera.center, diff, this.camera.eye);
 };
@@ -511,13 +511,19 @@ shapy.editor.Viewport.prototype.rotate = function() {
   // Compute the angle.
   var angle = Math.acos(Math.min(1.0, goog.vec.Vec3.dot(va, vb)));
 
+  // Comute the inverse view matrix.
+  this.camera.compute();
+  var inv = goog.vec.Mat4.createFloat32();
+  goog.vec.Mat4.invert(this.camera.view, inv);
+
   // Compute the axis.
   var axis = goog.vec.Vec3.createFloat32();
   goog.vec.Vec3.cross(va, vb, axis);
+  goog.vec.Mat4.multVec3NoTranslate(inv, axis, axis);
 
   // Compute the rotation quaternion from the angle and the axis.
   var rotationQuater = goog.vec.Quaternion.createFloat32();
-  goog.vec.Quaternion.fromAngleAxis(angle, axis, rotationQuater);
+  goog.vec.Quaternion.fromAngleAxis(-angle, axis, rotationQuater);
   goog.vec.Quaternion.normalize(rotationQuater, rotationQuater);
 
   // Calculate the view vector.
@@ -539,7 +545,7 @@ shapy.editor.Viewport.prototype.rotate = function() {
       viewVector, viewQuater[0], viewQuater[1], viewQuater[2]);
 
   // Update the eye.
-  goog.vec.Vec3.add(viewVector, this.camera.center, this.camera.eye);
+  goog.vec.Vec3.add(this.camera.center, viewVector, this.camera.eye);
 };
 
 
