@@ -30,7 +30,6 @@ shapy.LoginController = function($state, shAuth) {
  * Login action.
  */
 shapy.LoginController.prototype.login = function() {
-  console.log(this);
   this.shAuth_.login(this.username, this.password).then(goog.bind(function() {
     this.state_.go('main', null, { reload: true });
   }, this));
