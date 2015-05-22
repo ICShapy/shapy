@@ -10,6 +10,7 @@ goog.provide('shapy.editor.Viewport');
 goog.require('goog.math.Rect');
 goog.require('goog.math.Size');
 goog.require('goog.math.Vec2');
+goog.require('goog.vec.Quaternion');
 
 
 
@@ -379,6 +380,7 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   if (this.isDown_) {
     this.currMousePos_.x = x;
     this.currMousePos_.y = y;
+    this.rotate();
     // TODO: call rotate
   }
 };
@@ -474,18 +476,18 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
  */
 shapy.editor.Viewport.prototype.getArcballVector = function(pos) {
   // Convert pos to camera coordinates [-1, 1].
-  var p = goog.vec.Vec3.createFloat32FromValues(2 * pos.x / this.rect.w - 1.0,
-                                                2 * pos.y / this.rect.h - 1.0,
-                                                0);
+  var p = goog.vec.Vec3.createFloat32FromValues(
+      2 * pos.x / this.rect.w - 1.0,
+      2 * pos.y / this.rect.h - 1.0,
+      0);
+
   // Compute the square of the l2 norm of p.
   var l2Squared = p[0] * p[0] + p[1] * p[1];
 
   // Compute the z coordinate.
   if (l2Squared < 1.0) {
-    // Use Pythagoras to get z.
     p[2] = Math.sqrt(1 - l2Squared);
   } else {
-    // Get the nearest point on the surface of the ball.
     goog.vec.Vec3.normalize(p, p);
   }
 
@@ -496,15 +498,48 @@ shapy.editor.Viewport.prototype.getArcballVector = function(pos) {
  * Computes the angle and axis of the camera rotation.
  */
 shapy.editor.Viewport.prototype.rotate = function() {
+  if (this.currMousePos_.equals(this.lastMousePos_)) {
+    return;
+  }
+
   // Compute the points at the ball surface that match the click.
   var va = this.getArcballVector(this.lastMousePos_);
   var vb = this.getArcballVector(this.currMousePos_);
+  this.lastMousePos_.x = this.currMousePos_.x;
+  this.lastMousePos_.y = this.currMousePos_.y;
 
   // Compute the angle.
   var angle = Math.acos(Math.min(1.0, goog.vec.Vec3.dot(va, vb)));
 
   // Compute the axis.
-  // TODO: finish
+  var axis = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.cross(va, vb, axis);
+
+  // Compute the rotation quaternion from the angle and the axis.
+  var rotationQuater = goog.vec.Quaternion.createFloat32();
+  goog.vec.Quaternion.fromAngleAxis(angle, axis, rotationQuater);
+  goog.vec.Quaternion.normalize(rotationQuater, rotationQuater);
+
+  // Calculate the view vector.
+  var viewVector = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(this.camera.eye, this.camera.center, viewVector);
+
+  // Compute the quternion from the view vector.
+  var viewQuater = goog.vec.Quaternion.createFloat32FromValues(
+      viewVector[0], viewVector[1], viewVector[2], 0);
+
+  // Compute the new quaternion representing the rotation.
+  var temp = goog.vec.Quaternion.createFloat32();
+  goog.vec.Quaternion.conjugate(rotationQuater, temp);
+  goog.vec.Quaternion.concat(rotationQuater, viewQuater, viewQuater);
+  goog.vec.Quaternion.concat(viewQuater, temp, viewQuater);
+
+  // Compute the updated view vector.
+  goog.vec.Vec3.setFromValues(
+      viewVector, viewQuater[0], viewQuater[1], viewQuater[2]);
+
+  // Update the eye.
+  goog.vec.Vec3.add(viewVector, this.camera.center, this.camera.eye);
 };
 
 
