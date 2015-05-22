@@ -4,13 +4,13 @@
 goog.provide('shapy.editor.Renderer');
 
 goog.require('goog.webgl');
+goog.require('shapy.editor.Mesh');
 goog.require('shapy.editor.Object');
 goog.require('shapy.editor.Shader');
-goog.require('shapy.editor.Mesh');
 
 
 
-/** @private {string} @const */
+/** @type {string} @const */
 shapy.editor.OBJECT_VS =
   'attribute vec3 a_vertex;                         \n' +
   'attribute vec4 a_colour;                         \n' +
@@ -30,7 +30,7 @@ shapy.editor.OBJECT_VS =
   '}                                                \n';
 
 
-/** @private {string} @const */
+/** @type {string} @const */
 shapy.editor.OBJECT_FS =
   '#extension GL_OES_standard_derivatives : enable                    \n' +
 
@@ -57,22 +57,28 @@ shapy.editor.OBJECT_FS =
   '}                                                                  \n';
 
 
-/** @private {string} @const */
-shapy.editor.GROUND_VS =
-  '';
+/** @type {string} @const */
+shapy.editor.OVERLAY_VS =
+  'attribute vec2 a_vertex;                                           \n' +
+
+  'void main() {                                                      \n' +
+  '  gl_Position = vec4(a_vertex, 0.0, 1.0);                          \n' +
+  '}                                                                  \n';
 
 
-/** @private {string} @const */
-shapy.editor.GROUND_FS =
-  '';
+/** @type {string} @const */
+shapy.editor.OVERLAY_FS =
+  'void main() {                                                      \n' +
+  '  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);                         \n' +
+  '}                                                                  \n';
 
 
 /**
  * Creates a new renderer.
  *
- * @private {!WebGLContext} gl WebGL context.
- *
  * @constructor
+ *
+ * @param {!WebGLContext} gl WebGL context.
  */
 shapy.editor.Renderer = function(gl) {
   /** @private {!WebGLContext} @const */
@@ -84,6 +90,12 @@ shapy.editor.Renderer = function(gl) {
   this.shColour_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_FS);
   this.shColour_.link();
 
+  /** @private {!shapy.editor.Shader} @const */
+  this.shOverlay_ = new shapy.editor.Shader(this.gl_);
+  this.shOverlay_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OVERLAY_VS);
+  this.shOverlay_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OVERLAY_FS);
+  this.shOverlay_.link();
+
   /** @private {!shapy.editor.Mesh} @const */
   this.msGround_ = shapy.editor.Mesh.createGroundPlane(gl, 20, 20);
 
@@ -93,7 +105,6 @@ shapy.editor.Renderer = function(gl) {
       -0.5, 0.0, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0,
        0.5, 0.0, -0.5, 0.0, 1.0, 0.0, 1.0, 0.0,
       -0.5, 0.0,  0.5, 0.0, 1.0, 0.0, 0.0, 1.0,
-
       -0.5, 0.0,  0.5, 0.0, 1.0, 0.0, 0.0, 1.0,
        0.5, 0.0, -0.5, 0.0, 1.0, 0.0, 1.0, 0.0,
        0.5, 0.0,  0.5, 0.0, 1.0, 0.0, 1.0, 1.0,
@@ -112,6 +123,8 @@ shapy.editor.Renderer.prototype.start = function() {
 
 /**
  * Renders the scene.
+ *
+ * @param {!shapy.editor.Viewport} vp Current viewport.
  */
 shapy.editor.Renderer.prototype.render = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
