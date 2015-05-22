@@ -130,7 +130,7 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
     return;
   }
 
-  result.vp.mouseDown(result.x, result.y);
+  result.vp.mouseDown(result.x, result.y, e.which);
 
   this.active.active = false;
   this.active = result.vp;
@@ -541,10 +541,16 @@ shapy.editor.Viewport = function(name) {
   this.lastMousePos_ = new goog.math.Vec2(0, 0);
 
   /**
-   * Flag indicating if the mouse is down.
+   * Flag indicating if the camera is rotating.
    * @private {boolean}
    */
-   this.isDown_ = false;
+   this.isRotating_ = false;
+
+  /**
+   * Flag indicating if the camera is panning.
+   * @private {boolean}
+   */
+   this.isPanning_ = false;
 
   /**
    * Flag indicating if the viewport is active, i.e. it is highlighted.
@@ -578,11 +584,14 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
-  if (this.isDown_) {
-    this.currMousePos_.x = x;
-    this.currMousePos_.y = y;
+  this.currMousePos_.x = x;
+  this.currMousePos_.y = y;
+
+  if (this.isRotating_) {
     this.rotate();
-    // TODO: call rotate
+  }
+  if (this.isPanning_) {
+    this.pan();
   }
 };
 
@@ -602,24 +611,38 @@ shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
  * Handles a mouse leave event.
  */
 shapy.editor.Viewport.prototype.mouseLeave = function() {
-  if (this.isDown_) {
-    this.isDown_ = false;
-  }
+  this.isRotating_ = false;
+  this.isPanning_ = false;
 };
 
 
 /**
  * Handles a mouse press event.
  *
- * @param {number} x Mouse X coordinate.
- * @param {number} y Mouse Y coordinate.
+ * @param {number} x      Mouse X coordinate.
+ * @param {number} y      Mouse Y coordinate.
+ * @param {number} button Mouse button that was clicked.
  */
-shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
+shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
   this.currMousePos_.x = x;
   this.currMousePos_.y = y;
   this.lastMousePos_.x = x;
   this.lastMousePos_.y = y;
-  this.isDown_ = true;
+
+  switch (button) {
+    case 1: {
+      // TODO: selecting
+      break;
+    }
+    case 2: {
+      this.isPanning_ = true;
+      break;
+    }
+    case 3: {
+      this.isRotating_ = true;
+      break;
+    }
+  }
 };
 
 
@@ -630,7 +653,8 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
-  this.isDown_ = false;
+  this.isRotating_ = false;
+  this.isPanning_ = false;
 };
 
 
@@ -733,7 +757,10 @@ shapy.editor.Viewport.prototype.rotate = function() {
 
   // Compute the quternion from the view vector.
   var viewQuater = goog.vec.Quaternion.createFloat32FromValues(
-      viewVector[0], viewVector[1], viewVector[2], 0);
+      viewVector[0],
+      viewVector[1],
+      viewVector[2],
+      0);
 
   // Compute the new quaternion representing the rotation.
   var temp = goog.vec.Quaternion.createFloat32();
@@ -743,10 +770,50 @@ shapy.editor.Viewport.prototype.rotate = function() {
 
   // Compute the updated view vector.
   goog.vec.Vec3.setFromValues(
-      viewVector, viewQuater[0], viewQuater[1], viewQuater[2]);
+      viewVector,
+      viewQuater[0],
+      viewQuater[1],
+      viewQuater[2]);
 
   // Update the eye.
   goog.vec.Vec3.add(this.camera.center, viewVector, this.camera.eye);
+};
+
+
+/**
+ * Performs the paning.
+ */
+shapy.editor.Viewport.prototype.pan = function() {
+  var left = goog.vec.Vec3.createFloat32();
+  var up = goog.vec.Vec3.createFloat32();
+  var v = goog.vec.Vec3.createFloat32();
+
+  // Get the normal to the plane along which to rotate.
+  goog.vec.Vec3.subtract(this.camera.eye, this.camera.center, v);
+  goog.vec.Vec3.cross(v, this.camera.up, left);
+  goog.vec.Vec3.normalize(left, left);
+  goog.vec.Vec3.cross(left, v, up);
+  goog.vec.Vec3.normalize(up, up);
+
+  // Get movement.
+  var dx = (this.currMousePos_.x - this.lastMousePos_.x) / this.rect.w
+         * shapy.editor.Camera.PAN_SPEED;
+  var dy = (this.currMousePos_.y - this.lastMousePos_.y) / this.rect.h
+         * shapy.editor.Camera.PAN_SPEED;
+
+  // Move along x.
+  goog.vec.Vec3.scale(left, dx, left);
+  goog.vec.Vec3.add(this.camera.center, left, this.camera.center);
+  goog.vec.Vec3.add(this.camera.eye, left, this.camera.eye);
+
+  // Move along y.
+  goog.vec.Vec3.scale(up, dy, v);
+  goog.vec.Vec3.negate(v, v);
+  goog.vec.Vec3.add(this.camera.center, v, this.camera.center);
+  goog.vec.Vec3.add(this.camera.eye, v, this.camera.eye);
+
+  this.lastMousePos_.x = this.currMousePos_.x;
+  this.lastMousePos_.y = this.currMousePos_.y;
 };
 
 

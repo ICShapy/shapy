@@ -355,6 +355,9 @@ shapy.editor.CanvasDirective = function() {
         .mousemove(wrap(function(e) { canvasCtrl.layout.mouseMove(e); }))
         .bind('mousewheel', wrap(function(e) {
             canvasCtrl.layout.mouseWheel(e);
+        }))
+        .bind('contextmenu', wrap(function(e) {
+            return false;
         }));
     }
   };

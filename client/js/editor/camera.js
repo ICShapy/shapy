@@ -68,6 +68,12 @@ shapy.editor.Camera.MIN_ZOOM = 0.5;
 shapy.editor.Camera.ZOOM_SPEED = 0.85;
 
 
+/**
+ * Panning speed.
+ * @param {number} @const
+ */
+shapy.editor.Camera.PAN_SPEED = 15;
+
 
 /**
  * Perspective camera.
