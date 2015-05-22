@@ -39,7 +39,14 @@ shapy.editor.Layout = function(viewports) {
    * Pointer to the active viewport.
    * @public {!shapy.editor.Viewport}
    */
-  this.active = viewports[0];
+  this.lastHover = goog.object.getAnyValue(this.viewports);
+
+  /**
+   * Active viewport receiving keyboard events.
+   * @public {!shapy.editor.Viewport}
+   */
+  this.active = this.lastHover;
+  this.active.active = true;
 };
 
 
@@ -98,15 +105,15 @@ shapy.editor.Layout.prototype.mouseMove = function(e) {
     return;
   }
 
-  if (this.active && result.vp == this.active) {
-    this.active.mouseMove(result.x, result.y);
+  if (this.lastHover && result.vp == this.lastHover) {
+    this.lastHover.mouseMove(result.x, result.y);
   } else {
-    if (this.active) {
-      this.active.mouseLeave();
+    if (this.lastHover) {
+      this.lastHover.mouseLeave();
     }
 
-    this.active = result.vp;
-    this.active.mouseEnter(result.x, result.y);
+    this.lastHover = result.vp;
+    this.lastHover.mouseEnter(result.x, result.y);
   }
 };
 
@@ -123,6 +130,10 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
   }
 
   result.vp.mouseDown(result.x, result.y);
+
+  this.active.active = false;
+  this.active = result.vp;
+  this.active.active = true;
 };
 
 
@@ -152,8 +163,8 @@ shapy.editor.Layout.prototype.mouseEnter = function(e) {
     return;
   }
 
-  this.active = result.vp;
-  this.active.mouseEnter(result.x, result.y);
+  this.lastHover = result.vp;
+  this.lastHover.mouseEnter(result.x, result.y);
 };
 
 
@@ -163,12 +174,12 @@ shapy.editor.Layout.prototype.mouseEnter = function(e) {
  * @param {MouseEvent} e
  */
 shapy.editor.Layout.prototype.mouseLeave = function(e) {
-  if (!this.active) {
+  if (!this.lastHover) {
     return;
   }
 
-  this.active.mouseLeave();
-  this.active = null;
+  this.lastHover.mouseLeave();
+  this.lastHover = null;
 };
 
 
@@ -178,11 +189,11 @@ shapy.editor.Layout.prototype.mouseLeave = function(e) {
  * @param {MouseEvent} e
  */
 shapy.editor.Layout.prototype.mouseWheel = function(e) {
-  if (!this.active) {
+  if (!this.lastHover) {
     return;
   }
 
-  this.active.mouseWheel(e.originalEvent.wheelDelta);
+  this.lastHover.mouseWheel(e.originalEvent.wheelDelta);
 };
 
 
@@ -533,6 +544,12 @@ shapy.editor.Viewport = function(name) {
    * @private {boolean}
    */
    this.isDown_ = false;
+
+  /**
+   * Flag indicating if the viewport is active, i.e. it is highlighted.
+   * @public {boolean}
+   */
+  this.active = false;
 };
 
 

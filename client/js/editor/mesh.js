@@ -37,8 +37,8 @@ shapy.editor.Mesh = function(gl, buffer, data) {
   this.buffer_ = gl.createBuffer();
   /** @private {number} @const */
   this.indices_ = buffer.length >> 4;
-  /** @private {!goog.vec.Vec4} @const */
-  this.border_ = data.border ?
+  /** @public {!goog.vec.Vec4} @const */
+  this.border = data.border ?
       goog.vec.Vec4.createFloat32FromValues(
           data.border[0], data.border[1], data.border[2], data.border[3]) :
       goog.vec.Vec4.createFloat32FromValues(
@@ -76,7 +76,7 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 64, 32);
   this.gl_.vertexAttribPointer(4, 3, goog.webgl.FLOAT, false, 64, 48);
 
-  sh.uniform4f('u_border', this.border_);
+  sh.uniform4f('u_border', this.border);
   this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.indices_);
 
   this.gl_.disableVertexAttribArray(4);
