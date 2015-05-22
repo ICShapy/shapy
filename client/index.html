@@ -22,7 +22,8 @@
           'shapy.editor.Camera'
       ], []);
       goog.addDependency('../browser/browser.js', [
-          'shapy.browser.BrowserController'
+          'shapy.browser.BrowserController',
+          'shapy.browser.BrowserToolbarController'
       ], [
       ]);
       goog.addDependency('../editor/editor.js', [
@@ -72,6 +73,7 @@
       ], [
           'shapy.AuthService',
           'shapy.browser.BrowserController',
+          'shapy.browser.BrowserToolbarController',
           'shapy.equals',
           'shapy.highlight',
           'shapy.SceneService',
