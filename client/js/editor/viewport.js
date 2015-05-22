@@ -336,19 +336,19 @@ shapy.editor.Viewport = function(name) {
    * Current position of the mouse.
    * @private {!goog.vec.Vec2.Float32}
    */
-  this.currMousePos = goog.vec.Vec2.createFloat32();
+  this.currMousePos_ = goog.vec.Vec2.createFloat32();
 
   /**
    * Last position of the mouse.
    * @private {!goog.vec.Vec2.Float32}
    */
-  this.lastMousePos = goog.vec.Vec2.createFloat32();
+  this.lastMousePos_ = goog.vec.Vec2.createFloat32();
 
   /**
    * Flag indicating if the mouse is down.
    * @private {boolean}
    */
-   this.isDown = false;
+   this.isDown_ = false;
 };
 
 
@@ -376,8 +376,8 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
-  if (this.isDown) {
-    goog.vec.Vec2.setFromValues(this.currMousePos, x, y);
+  if (this.isDown_) {
+    goog.vec.Vec2.setFromValues(this.currMousePos_, x, y);
     // TODO: call rotate
   }
 };
@@ -398,8 +398,8 @@ shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
  * Handles a mouse leave event.
  */
 shapy.editor.Viewport.prototype.mouseLeave = function() {
-  if (this.isDown) {
-    this.isDown = false;
+  if (this.isDown_) {
+    this.isDown_ = false;
   }
 };
 
@@ -411,9 +411,9 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
-  goog.vec.Vec2.setFromValues(this.currMousePos, x, y);
-  goog.vec.Vec2.setFromValues(this.lastMousePos, x, y);
-  this.isDown = true;
+  goog.vec.Vec2.setFromValues(this.currMousePos_, x, y);
+  goog.vec.Vec2.setFromValues(this.lastMousePos_, x, y);
+  this.isDown_ = true;
 };
 
 
@@ -424,7 +424,7 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
-  this.isDown = false;
+  this.isDown_ = false;
 };
 
 
@@ -494,8 +494,8 @@ shapy.editor.Viewport.prototype.getArcballVector = function(pos) {
  */
 shapy.editor.Viewport.prototype.rotate = function() {
   // Compute the points at the ball surface that match the click.
-  var va = this.getArcballVector(this.lastMousePos);
-  var vb = this.getArcballVector(this.currMousePos);
+  var va = this.getArcballVector(this.lastMousePos_);
+  var vb = this.getArcballVector(this.currMousePos_);
 
   // Compute the angle.
   var angle = Math.acos(Math.min(1.0, goog.vec.Vec3.dot(va, vb)));
