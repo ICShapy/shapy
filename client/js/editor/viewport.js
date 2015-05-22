@@ -181,7 +181,7 @@ shapy.editor.Layout.prototype.mouseWheel = function(e) {
     return;
   }
 
-  this.active.mouseWheel(e.wheelDelta);
+  this.active.mouseWheel(e.originalEvent.wheelDelta);
 };
 
 
