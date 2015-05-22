@@ -106,6 +106,12 @@ shapy.editor.Renderer = function(gl) {
   this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
   this.msQuad_ = shapy.editor.Mesh.createQuad(gl, 1, 1);
 
+  this.cubeCameraEye_ = goog.vec.Vec3.createFloat32();
+  this.cubeView_ = goog.vec.Mat4.createFloat32();
+  this.cubeProj_ = goog.vec.Mat4.createFloat32();
+  this.cubeVP_ = goog.vec.Mat4.createFloat32();
+
+
   this.buffer_ = this.gl_.createBuffer();
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, new Float32Array([
@@ -134,7 +140,7 @@ shapy.editor.Renderer.prototype.start = function() {
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
-shapy.editor.Renderer.prototype.render = function(vp) {
+shapy.editor.Renderer.prototype.renderScene = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
@@ -145,15 +151,47 @@ shapy.editor.Renderer.prototype.render = function(vp) {
   this.shColour_.uniform4fv('u_vp', vp.camera.vp);
 
   this.msGround_.render(this.shColour_);
+}
+
+/**
+ * Renders the overlay
+ */
+shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
+  // Disable depth
+  this.gl_.disable(goog.webgl.DEPTH_TEST);
 
   // The viewport of the cube is always rectangular in the top corner
   var cubeVPSize = (vp.rect.w < vp.rect.h ? vp.rect.w : vp.rect.h) / 4;
-  this.gl_.viewport(vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
-  this.gl_.scissor(vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
+  this.gl_.viewport(
+      vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
+  this.gl_.scissor(
+      vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
 
-  vp.cubeCamera.compute();
-  this.shColour_.uniform4fv('u_view', vp.cubeCamera.view);
-  this.shColour_.uniform4fv('u_proj', vp.cubeCamera.proj);
-  this.shColour_.uniform4fv('u_vp', vp.cubeCamera.vp);
+  // Set the eye vec of the cube view matrix to be the offset of the camera from
+  // it's center, multipled by the distance
+  var distance = 5;
+  goog.vec.Vec3.direction(vp.camera.eye, vp.camera.center, this.cubeCameraEye_);
+  goog.vec.Vec3.scale(this.cubeCameraEye_, -distance, this.cubeCameraEye_);
+
+  // Compute cube projection matrix based on the cameras mode
+  if (vp.type == shapy.editor.Viewport.Type.PERSPECTIVE) {
+    goog.vec.Mat4.makePerspective(this.cubeProj_, 45.0, 1.0, 0.1, 100);
+  } else {
+    var size = distance * 0.5;
+    goog.vec.Mat4.makeOrtho(this.cubeProj_, -size, size, -size, size, 0.1, 100);
+  }
+
+  // Compute view and vp matrices
+  goog.vec.Mat4.makeLookAt(
+      this.cubeView_, this.cubeCameraEye_, vp.camera.center, vp.camera.up);
+  goog.vec.Mat4.multMat(this.cubeProj_, this.cubeView_, this.cubeVP_);
+
+  // Render cube
+  this.shColour_.uniform4fv('u_view', this.cubeView_);
+  this.shColour_.uniform4fv('u_proj', this.cubeProj_);
+  this.shColour_.uniform4fv('u_vp', this.cubeVP_);
   this.msCube_.render(this.shColour_);
+
+  // Enable depth
+  this.gl_.enable(goog.webgl.DEPTH_TEST);
 };
