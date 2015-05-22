@@ -338,19 +338,21 @@ shapy.editor.CanvasDirective = function() {
           e.offsetY = canvasCtrl.layout.size.height - e.offsetY;
           e.preventDefault();
           e.stopPropagation();
-          method.call(canvasCtrl.layout, e);
+          method(e);
           return false;
         };
       };
 
       // Mouse events.
       $($elem[0])
-        .mousedown(wrap(canvasCtrl.layout.mouseDown))
-        .mouseup(wrap(canvasCtrl.layout.mouseUp))
-        .mouseenter(wrap(canvasCtrl.layout.mouseEnter))
-        .mouseleave(wrap(canvasCtrl.layout.mouseLeave))
-        .mousemove(wrap(canvasCtrl.layout.mouseMove))
-        .bind('mousewheel', wrap(canvasCtrl.layout.mouseWheel));
+        .mousedown(wrap(function(e) { canvasCtrl.layout.mouseDown(e); }))
+        .mouseup(wrap(function(e) { canvasCtrl.layout.mouseUp(e); }))
+        .mouseenter(wrap(function(e) { canvasCtrl.layout.mouseEnter(e); }))
+        .mouseleave(wrap(function(e) { canvasCtrl.layout.mouseLeave(e); }))
+        .mousemove(wrap(function(e) { canvasCtrl.layout.mouseMove(e); }))
+        .bind('mousewheel', wrap(function(e) {
+            canvasCtrl.layout.mouseWheel(e);
+        }));
     }
   };
 };

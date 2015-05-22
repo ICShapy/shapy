@@ -460,7 +460,7 @@ shapy.editor.Layout.Quad.prototype.mouseDown = function(e) {
  */
 shapy.editor.Layout.Quad.prototype.mouseUp = function(e) {
   if (!this.resizeX_ && !this.resizeY_) {
-    goog.base(this, 'mouseLeave', e);
+    goog.base(this, 'mouseUp', e);
   }
   this.hoverX_ = this.hoverY_ = this.resizeX_ = this.resizeY_ = false;
 };
