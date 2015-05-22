@@ -1,0 +1,27 @@
+sh-sidebar {
+  position: fixed;
+  top: 31px;
+  left: 0;
+  width: 200px;
+  bottom: 0;
+  background-color: #e7efff
+}
+
+sh-files {
+  position: fixed;
+  top: 31px;
+  left: 200px;
+  right: 0;
+  bottom: 0;
+}
+
+sh-file {
+  border: 1px solid black;
+  width: 100px;
+  height: 200px;
+}
+
+#browse-search {
+  height: 25px;
+  float: left;
+}

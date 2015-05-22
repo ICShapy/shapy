@@ -10,8 +10,21 @@ goog.provide('shapy.browser.BrowserToolbarController');
  * Controller for the asset browser.
  *
  * @constructor
+ *
+ * @param {!angular.$scope} $rootScope The Angular root scope.
  */
-shapy.browser.BrowserController = function() {
+shapy.browser.BrowserController = function($rootScope) {
+  this.files =['file1', 'file2', 'file3', 'file4', 'file5', 'file6']
+  this.query = 'file'
+
+  $rootScope.$on('browser', goog.bind(function(name, data) {
+    switch (data['type']) {
+      case 'query': {
+        this.query = data['query'];
+        break;
+      }
+    }
+  }, this));
 };
 
 
@@ -20,6 +33,18 @@ shapy.browser.BrowserController = function() {
  * Controller for the asset browser toolbar.
  *
  * @constructor
+ *
+ * @param {!angular.$scope} $rootScope The Angular root scope.
+ * @param {!angular.$scope} $scope The current scope.
  */
-shapy.browser.BrowserToolbarController = function() {
+shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
+  /** @public {string} @const @export */
+  this.query = '';
+
+  $scope.$watch('browserCtrl.query', goog.bind(function() {
+    $rootScope.$emit('browser', {
+      type: 'query',
+      query: this.query
+    })
+  }, this));
 };

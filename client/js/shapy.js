@@ -12,6 +12,9 @@ goog.require('shapy.HeaderController');
 goog.require('shapy.RegisterController');
 goog.require('shapy.browser.BrowserController');
 goog.require('shapy.browser.BrowserToolbarController');
+goog.require('shapy.browser.sidebar');
+goog.require('shapy.browser.files');
+goog.require('shapy.browser.file');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.EditorToolbarController');
 goog.require('shapy.editor.CanvasDirective');
@@ -199,6 +202,9 @@ shapy.module = angular
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
 
+  .directive('shSidebar', shapy.browser.sidebar)
+  .directive('shFiles', shapy.browser.files)
+  .directive('shFile', shapy.browser.files)
   .directive('shCanvas', shapy.editor.CanvasDirective)
   .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)
