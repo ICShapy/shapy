@@ -320,13 +320,6 @@ shapy.editor.Viewport = function(name) {
   this.camera = new shapy.editor.Camera.Persp();
 
   /**
-   * The cube camera attached to the viewport.
-   * @public {!shapy.editor.Camera}
-   * @const
-   */
-  this.cubeCamera = new shapy.editor.Camera.Cube(this.camera);
-
-  /**
    * The size and position of the viewport.
    * @public {!goog.math.Size}
    * @const
