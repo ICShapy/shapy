@@ -204,7 +204,7 @@ shapy.module = angular
 
   .directive('shSidebar', shapy.browser.sidebar)
   .directive('shFiles', shapy.browser.files)
-  .directive('shFile', shapy.browser.files)
+  .directive('shFile', shapy.browser.file)
   .directive('shCanvas', shapy.editor.CanvasDirective)
   .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)

@@ -3,6 +3,9 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.browser.BrowserController');
 goog.provide('shapy.browser.BrowserToolbarController');
+goog.provide('shapy.browser.sidebar');
+goog.provide('shapy.browser.files');
+goog.provide('shapy.browser.file');
 
 
 
@@ -48,3 +51,43 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
     })
   }, this));
 };
+
+
+
+/**
+ * Sidebar directive.
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.sidebar = function() {
+  return {
+    restrict: 'E'
+  };
+};
+
+
+
+/**
+ * Files directive.
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.files = function() {
+  return {
+    restrict: 'E'
+  };
+};
+
+
+
+/**
+ * File directive.
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.file = function() {
+  return {
+    restrict: 'E'
+  };
+};
+
