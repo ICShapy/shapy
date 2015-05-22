@@ -9,6 +9,7 @@ goog.provide('shapy.editor.Viewport');
 
 goog.require('goog.math.Rect');
 goog.require('goog.math.Size');
+goog.require('goog.vec.Vec2');
 
 
 
@@ -503,6 +504,13 @@ shapy.editor.Viewport = function(name) {
   this.camera = new shapy.editor.Camera.Persp();
 
   /**
+   * The cube camera attached to the viewport.
+   * @public {!shapy.editor.Camera}
+   * @const
+   */
+  this.cubeCamera = new shapy.editor.Camera.Cube(this.camera);
+
+  /**
    * The size and position of the viewport.
    * @public {!goog.math.Size}
    * @const
@@ -514,6 +522,24 @@ shapy.editor.Viewport = function(name) {
    * @public {!shapy.editor.Viewport.Type}
    */
   this.type = shapy.editor.Viewport.Type.PERSPECTIVE;
+
+  /**
+   * Current position of the mouse.
+   * @private {!goog.vec.Vec2.Float32}
+   */
+  this.currMousePos = goog.vec.Vec2.createFloat32();
+
+  /**
+   * Last position of the mouse.
+   * @private {!goog.vec.Vec2.Float32}
+   */
+  this.lastMousePos = goog.vec.Vec2.createFloat32();
+
+  /**
+   * Flag indicating if the mouse is down.
+   * @private {boolean}
+   */
+   this.isDown = false;
 };
 
 
@@ -541,6 +567,10 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
+  if (this.isDown) {
+    goog.vec.Vec2.setFromValues(this.currMousePos, x, y);
+    // TODO: call rotate
+  }
 };
 
 
@@ -559,7 +589,9 @@ shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
  * Handles a mouse leave event.
  */
 shapy.editor.Viewport.prototype.mouseLeave = function() {
-  //console.log('leave');
+  if (this.isDown) {
+    this.isDown = false;
+  }
 };
 
 
@@ -570,7 +602,9 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
-  //console.log('down', x, y);
+  goog.vec.Vec2.setFromValues(this.currMousePos, x, y);
+  goog.vec.Vec2.setFromValues(this.lastMousePos, x, y);
+  this.isDown = true;
 };
 
 
@@ -581,7 +615,7 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
-  //console.log('up', x, y);
+  this.isDown = false;
 };
 
 
@@ -616,6 +650,49 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
   goog.vec.Vec3.normalize(diff, diff);
   goog.vec.Vec3.scale(diff, zoomLevel, diff);
   goog.vec.Vec3.add(this.camera.center, diff, this.camera.eye);
+};
+
+
+/**
+ * Computes a normalised vector from the center of the virtual ball to
+ * the point on the virtual ball surface that is aligned with the point (x, y)
+ * on the screen.
+ *
+ * @param {!goog.vec.Vec2.Float32} pos Position of the mouse.
+ */
+shapy.editor.Viewport.prototype.getArcballVector = function(pos) {
+  // Convert pos to camera coordinates [-1, 1].
+  var p = goog.vec.Vec3.createFloat32FromValues(2 * pos[0] / this.rect.w - 1.0,
+                                                2 * pos[1] / this.rect.h - 1.0,
+                                                0);
+  // Compute the square of the l2 norm of p.
+  var l2Squared = p[0] * p[0] + p[1] * p[1];
+
+  // Compute the z coordinate.
+  if (l2Squared < 1.0) {
+    // Use Pythagoras to get z.
+    p[2] = Math.sqrt(1 - l2Squared);
+  } else {
+    // Get the nearest point on the surface of the ball.
+    goog.vec.Vec3.normalize(p, p);
+  }
+
+  return p;
+};
+
+/**
+ * Computes the angle and axis of the camera rotation.
+ */
+shapy.editor.Viewport.prototype.rotate = function() {
+  // Compute the points at the ball surface that match the click.
+  var va = this.getArcballVector(this.lastMousePos);
+  var vb = this.getArcballVector(this.currMousePos);
+
+  // Compute the angle.
+  var angle = Math.acos(Math.min(1.0, goog.vec.Vec3.dot(va, vb)));
+
+  // Compute the axis.
+  // TODO: finish
 };
 
 
