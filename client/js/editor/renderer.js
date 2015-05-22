@@ -92,7 +92,6 @@ shapy.editor.Renderer = function(gl) {
   this.cubeView_ = goog.vec.Mat4.createFloat32();
   this.cubeProj_ = goog.vec.Mat4.createFloat32();
   this.cubeVP_ = goog.vec.Mat4.createFloat32();
-  goog.vec.Mat4.makePerspective(this.cubeProj_, 45.0, 1.0, 0.1, 100);
 
   this.buffer_ = this.gl_.createBuffer();
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
@@ -148,10 +147,18 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
       vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
 
   // Set the eye vec of the cube view matrix to be the offset of the camera from
-  // it's center, multipled by a scalar distance
-  goog.vec.Vec3.subtract(vp.camera.eye, vp.camera.center, this.cubeCameraEye_);
-  goog.vec.Vec3.normalize(this.cubeCameraEye_, this.cubeCameraEye_);
-  goog.vec.Vec3.scale(this.cubeCameraEye_, 5, this.cubeCameraEye_);
+  // it's center, multipled by the distance
+  var distance = 5;
+  goog.vec.Vec3.direction(vp.camera.eye, vp.camera.center, this.cubeCameraEye_);
+  goog.vec.Vec3.scale(this.cubeCameraEye_, -distance, this.cubeCameraEye_);
+
+  // Compute cube projection matrix based on the cameras mode
+  if (vp.type == shapy.editor.Viewport.Type.PERSPECTIVE) {
+    goog.vec.Mat4.makePerspective(this.cubeProj_, 45.0, 1.0, 0.1, 100);
+  } else {
+    var size = distance * 0.5;
+    goog.vec.Mat4.makeOrtho(this.cubeProj_, -size, size, -size, size, 0.1, 100);
+  }
 
   // Compute view and vp matrices
   goog.vec.Mat4.makeLookAt(
