@@ -2,9 +2,9 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.editor.Layout');
-goog.provide('shapy.editor.Layout.Single');
 goog.provide('shapy.editor.Layout.Double');
 goog.provide('shapy.editor.Layout.Quad');
+goog.provide('shapy.editor.Layout.Single');
 goog.provide('shapy.editor.Viewport');
 
 goog.require('goog.math.Rect');
