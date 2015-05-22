@@ -10,13 +10,15 @@ goog.provide('shapy.LoginController');
  *
  * @constructor
  * @ngInject
- * @private
+ *
+ * @param {!angular.$state} $state Angular state.
+ * @param {!shapy.AuthService} shAuth Authentication service.
  */
 shapy.LoginController = function($state, shAuth) {
   /** @public {string} */
-  this.passw = '';
+  this.password = '';
   /** @public {string} */
-  this.email = '';
+  this.username = '';
   /** @private {!shapy.AuthService} @const */
   this.shAuth_ = shAuth;
   /** @private {!angular.$state} @const */
@@ -28,7 +30,8 @@ shapy.LoginController = function($state, shAuth) {
  * Login action.
  */
 shapy.LoginController.prototype.login = function() {
-  this.shAuth_.login(this.email, this.passw).then(goog.bind(function() {
+  console.log(this);
+  this.shAuth_.login(this.username, this.password).then(goog.bind(function() {
     this.state_.go('main', null, { reload: true });
   }, this));
 };
