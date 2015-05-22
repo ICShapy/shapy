@@ -226,7 +226,7 @@ shapy.editor.CanvasController = function($rootScope) {
    * Root layout.
    * @public {!shapy.editor.Layout} @const
    */
-  this.layout = new shapy.editor.Layout.Double();
+  this.layout = new shapy.editor.Layout.Quad();
 
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };

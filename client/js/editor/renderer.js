@@ -61,16 +61,18 @@ shapy.editor.OBJECT_FS =
 /** @type {string} @const */
 shapy.editor.OVERLAY_VS =
   'precision highp float;                                             \n' +
-  'attribute vec2 a_vertex;                                           \n' +
 
+  'attribute vec2 a_vertex;                                           \n' +
+  'uniform vec2 u_size;                                               \n' +
   'void main() {                                                      \n' +
-  '  gl_Position = vec4(a_vertex, 0.0, 1.0);                          \n' +
+  '  gl_Position = vec4(a_vertex * (1.0 - 0.5 / u_size), 0.0, 1.0);   \n' +
   '}                                                                  \n';
 
 
 /** @type {string} @const */
 shapy.editor.OVERLAY_FS =
   'precision highp float;                                             \n' +
+
   'uniform vec4 u_colour;                                             \n' +
 
   'void main() {                                                      \n' +
@@ -151,6 +153,7 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
   }
 
   // Render the border.
+  this.gl_.lineWidth(1.0);
   this.gl_.disable(goog.webgl.DEPTH_TEST);
   {
     this.shOverlay_.use();
@@ -159,6 +162,8 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
     } else {
       this.shOverlay_.uniform4f('u_colour', new Float32Array([.1, .1, .1, 1]));
     }
+    this.shOverlay_.uniform2f(
+        'u_size', new Float32Array([vp.rect.w, vp.rect.h]));
     this.shOverlay_.uniform4fv('u_view', this.identity);
     this.shOverlay_.uniform4fv('u_proj', this.identity);
     this.shOverlay_.uniform4fv('u_vp', this.identity);

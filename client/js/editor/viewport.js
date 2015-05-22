@@ -390,29 +390,29 @@ goog.inherits(shapy.editor.Layout.Quad, shapy.editor.Layout);
 shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
   goog.base(this, 'resize', w, h);
 
-  this.barX_ = w * this.splitX_;
-  this.barY_ = h * this.splitY_;
+  this.barX_ = Math.floor(w * this.splitX_);
+  this.barY_ = Math.floor(h * this.splitY_);
 
   this.topLeft.resize(
       0,
       0,
-      w * this.splitX_,
-      h * this.splitY_);
+      this.barX_,
+      this.barY_);
   this.topRight.resize(
-      w * this.splitX_,
+      this.barX_,
       0,
-      w * (1 - this.splitX_),
-      h * this.splitY_);
+      w - this.barX_,
+      this.barY_);
   this.bottomLeft.resize(
       0,
-      h * this.splitY_,
-      w * this.splitX_,
-      h * (1 - this.splitY_));
+      this.barY_,
+      this.barX_,
+      h - this.barY_);
   this.bottomRight.resize(
-      w * this.splitX_,
-      h * this.splitY_,
-      w * (1 - this.splitX_),
-      h * (1 - this.splitY_));
+      this.barX_,
+      this.barY_,
+      w - this.barX_,
+      h - this.barY_);
 };
 
 
