@@ -115,7 +115,7 @@ shapy.editor.Renderer.prototype.start = function() {
 /**
  * Renders the scene.
  */
-shapy.editor.Renderer.prototype.render = function(vp) {
+shapy.editor.Renderer.prototype.renderScene = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
@@ -126,15 +126,29 @@ shapy.editor.Renderer.prototype.render = function(vp) {
   this.shColour_.uniform4fv('u_vp', vp.camera.vp);
 
   this.msGround_.render(this.shColour_);
- 
+}
+
+/**
+ * Renders the overlay
+ */
+shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
+  // Disable depth
+  this.gl_.disable(goog.webgl.DEPTH_TEST);
+
   // The viewport of the cube is always rectangular in the top corner
   var cubeVPSize = (vp.rect.w < vp.rect.h ? vp.rect.w : vp.rect.h) / 4;
-  this.gl_.viewport(vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
-  this.gl_.scissor(vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
+  this.gl_.viewport(
+      vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
+  this.gl_.scissor(
+      vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
 
+  // Compute the cube camera matrices
   vp.cubeCamera.compute();
   this.shColour_.uniform4fv('u_view', vp.cubeCamera.view);
   this.shColour_.uniform4fv('u_proj', vp.cubeCamera.proj);
   this.shColour_.uniform4fv('u_vp', vp.cubeCamera.vp);
   this.msCube_.render(this.shColour_);
+
+  // Enable depth
+  this.gl_.enable(goog.webgl.DEPTH_TEST);
 };
