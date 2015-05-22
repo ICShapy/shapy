@@ -113,9 +113,73 @@ shapy.editor.Mesh.createArrow = function(gl, dir) {
 
 /**
  * Creates a cube.
+ *
+ * @param {!WebGLContext} gl Context
+ * @param {number}        w  Width of the cube
+ * @param {number}        h  Height of the cube
+ * @param {number}        d  Depth of the cube
  */
 shapy.editor.Mesh.createCube = function(gl, w, h, d) {
+  // Corner layout:
+  //   4-----5
+  //  /     /|
+  // 0-----1 |
+  // | 6   | 7
+  // |     |/
+  // 2-----3
 
+  // Corner vertices
+  var corners = [
+    -w, h, d,
+    w, h, d,
+    -w, -h, d,
+    w, -h, d,
+    -w, h, -d,
+    w, h, -d,
+    -w, -h, -d,
+    w, -h, -d
+  ];
+
+  // Texture coordinates
+  var tcs = [
+    0, 0,
+    0, 1,
+    1, 0,
+    1, 0,
+    0, 1,
+    1, 1
+  ];
+
+  // Build vertices from corners
+  var indices = [
+    0, 1, 2, 2, 1, 3,
+    1, 5, 3, 3, 5, 7,
+    5, 4, 7, 7, 4, 6,
+    4, 0, 6, 6, 0, 2,
+    4, 5, 0, 0, 5, 1,
+    2, 3, 6, 6, 3, 7
+  ];
+  var d = new Float32Array(indices.length << 4); // 16 floats per vertex
+  var k = 0;
+  for (var i = 0; i < indices.length; i++) {
+    var c = indices[i];
+    d[k++] = corners[c * 3]; d[k++] = corners[c * 3 + 1]; d[k++] = corners[c * 3 + 2];
+    d[k++] = 0; d[k++] = 1; d[k++] = 0; // Normals don't matter
+
+    // Every 6 vertices should follow the same texture coordinate pattern specified in 'tcs'
+    d[k++] = tcs[(i % 6) * 2]; d[k++] = tcs[(i % 6) * 2 + 1];
+
+    // Make it a grey colour
+    d[k++] = 0.75; d[k++] = 0.75; d[k++] = 0.75; d[k++] = 1;
+
+    // Barycentric coord is irrelevant
+    d[k++] = 0; d[k++] = 0; d[k++] = 1;
+
+    // Padding is irrelevant
+    d[k++] = 0;
+  }
+
+  return new shapy.editor.Mesh(gl, d, {});
 };
 
 

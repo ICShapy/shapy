@@ -128,5 +128,54 @@ goog.inherits(shapy.editor.Camera.Ortho, shapy.editor.Camera);
  *
  */
 shapy.editor.Camera.Ortho.prototype.resize = function(w, h) {
+};
+
+
+
+/**
+ * Cube camera.
+ *
+ * @constructor
+ * @extends {shapy.editor.Camera}
+ */
+shapy.editor.Camera.Cube = function(tracked) {
+  shapy.editor.Camera.call(this);
+
+  this.tracked = tracked;
+
+  /** @public {number} */
+  this.aspect = 1.0;
+  /** @public {number} */
+  this.nearp = 0.1;
+  /** @public {number} */
+  this.farp = 100.0;
+  /** @public {number} */
+  this.fov = 45.0;
 
 };
+goog.inherits(shapy.editor.Camera.Cube, shapy.editor.Camera);
+
+
+/**
+ * Camera matrices.
+ */
+shapy.editor.Camera.Cube.prototype.compute = function() {
+  // Set the eye vec of the cube view matrix to be the offset of the camera from
+  // it's center, multipled by a scalar distance
+  goog.vec.Vec3.subtract(this.tracked.eye, this.tracked.center, this.eye);
+  goog.vec.Vec3.normalize(this.eye, this.eye);
+  goog.vec.Vec3.scale(this.eye, 5, this.eye);
+
+  goog.vec.Mat4.makeLookAt(
+    this.view, this.eye, this.tracked.center, this.tracked.up);
+  goog.vec.Mat4.makePerspective(
+    this.proj, this.fov, this.aspect, this.nearp, this.farp);
+  goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
+};
+
+
+/**
+ *
+ */
+shapy.editor.Camera.Cube.prototype.resize = function(w, h) {
+}

@@ -87,6 +87,8 @@ shapy.editor.Renderer = function(gl) {
   /** @private {!shapy.editor.Mesh} @const */
   this.msGround_ = shapy.editor.Mesh.createGroundPlane(gl, 20, 20);
 
+  this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
+
   this.buffer_ = this.gl_.createBuffer();
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, new Float32Array([
@@ -124,4 +126,15 @@ shapy.editor.Renderer.prototype.render = function(vp) {
   this.shColour_.uniform4fv('u_vp', vp.camera.vp);
 
   this.msGround_.render(this.shColour_);
+ 
+  // The viewport of the cube is always rectangular in the top corner
+  var cubeVPSize = (vp.rect.w < vp.rect.h ? vp.rect.w : vp.rect.h) / 4;
+  this.gl_.viewport(vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
+  this.gl_.scissor(vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
+
+  vp.cubeCamera.compute();
+  this.shColour_.uniform4fv('u_view', vp.cubeCamera.view);
+  this.shColour_.uniform4fv('u_proj', vp.cubeCamera.proj);
+  this.shColour_.uniform4fv('u_vp', vp.cubeCamera.vp);
+  this.msCube_.render(this.shColour_);
 };
