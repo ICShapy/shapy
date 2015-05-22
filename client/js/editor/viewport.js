@@ -9,7 +9,7 @@ goog.provide('shapy.editor.Viewport');
 
 goog.require('goog.math.Rect');
 goog.require('goog.math.Size');
-goog.require('goog.vec.Vec2');
+goog.require('goog.math.Vec2');
 
 
 
@@ -334,15 +334,15 @@ shapy.editor.Viewport = function(name) {
 
   /**
    * Current position of the mouse.
-   * @private {!goog.vec.Vec2.Float32}
+   * @private {!goog.math.Vec2}
    */
-  this.currMousePos_ = goog.vec.Vec2.createFloat32();
+  this.currMousePos_ = new goog.math.Vec2(0, 0);
 
   /**
    * Last position of the mouse.
-   * @private {!goog.vec.Vec2.Float32}
+   * @private {!goog.math.Vec2}
    */
-  this.lastMousePos_ = goog.vec.Vec2.createFloat32();
+  this.lastMousePos_ = new goog.math.Vec2(0, 0);
 
   /**
    * Flag indicating if the mouse is down.
@@ -377,7 +377,8 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   if (this.isDown_) {
-    goog.vec.Vec2.setFromValues(this.currMousePos_, x, y);
+    this.currMousePos_.x = x;
+    this.currMousePos_.y = y;
     // TODO: call rotate
   }
 };
@@ -411,8 +412,10 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y) {
-  goog.vec.Vec2.setFromValues(this.currMousePos_, x, y);
-  goog.vec.Vec2.setFromValues(this.lastMousePos_, x, y);
+  this.currMousePos_.x = x;
+  this.currMousePos_.y = y;
+  this.lastMousePos_.x = x;
+  this.lastMousePos_.y = y;
   this.isDown_ = true;
 };
 
@@ -467,12 +470,12 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
  * the point on the virtual ball surface that is aligned with the point (x, y)
  * on the screen.
  *
- * @param {!goog.vec.Vec2.Float32} pos Position of the mouse.
+ * @param {!goog.math.Vec2} pos Position of the mouse.
  */
 shapy.editor.Viewport.prototype.getArcballVector = function(pos) {
   // Convert pos to camera coordinates [-1, 1].
-  var p = goog.vec.Vec3.createFloat32FromValues(2 * pos[0] / this.rect.w - 1.0,
-                                                2 * pos[1] / this.rect.h - 1.0,
+  var p = goog.vec.Vec3.createFloat32FromValues(2 * pos.x / this.rect.w - 1.0,
+                                                2 * pos.y / this.rect.h - 1.0,
                                                 0);
   // Compute the square of the l2 norm of p.
   var l2Squared = p[0] * p[0] + p[1] * p[1];
