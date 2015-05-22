@@ -353,7 +353,7 @@ shapy.editor.Viewport = function(name) {
 
   /**
    * Flag indicating if the mouse is down.
-   * @privaet {boolean}
+   * @private {boolean}
    */
    this.isDown = false;
 };
@@ -478,8 +478,8 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
  */
 shapy.editor.Viewport.prototype.getArcballVector = function(pos) {
   // Convert pos to camera coordinates [-1, 1].
-  var p = goog.vec.Vec3.createFloat32FromValues(pos[0] / this.rect.w * 2 - 1.0,
-                                                pos[1] / this.rect.h * 2 - 1.0,
+  var p = goog.vec.Vec3.createFloat32FromValues(2 * pos[0] / this.rect.w - 1.0,
+                                                2 * pos[1] / this.rect.h - 1.0,
                                                 0);
   // Compute the square of the l2 norm of p.
   var l2Squared = p[0] * p[0] + p[1] * p[1];
