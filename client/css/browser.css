@@ -2,7 +2,7 @@ sh-sidebar {
   position: fixed;
   top: 31px;
   left: 0;
-  width: 200px;
+  width: 222px;
   bottom: 0;
   background-color: #e7efff
 }
@@ -10,9 +10,10 @@ sh-sidebar {
 sh-files {
   position: fixed;
   top: 31px;
-  left: 200px;
+  left: 222px;
   right: 0;
   bottom: 0;
+  padding: 20px 0 0 20px
 }
 
 sh-file {
