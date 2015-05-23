@@ -14,6 +14,14 @@ goog.provide('shapy.editor.Rig.Translate');
  * The user can move the rig around with the mouse, altering the translation,
  * position, scaling or rotation of an object.
  *
+ * List of vertices used by the renderer is given in the following format:
+ *
+ * +----+----+----------------+--------------------+
+ * | of | ln | Fields         | Description        |
+ * +----+----+----------------+--------------------+
+ * | 0  | 12 | vx, vy, vz     | Vertex position    |
+ * +----+----+----------------+--------------------+
+ *
  * @constructor
  *
  * @param {shapy.editor.Rig.Type} type Type of the rig.
@@ -69,13 +77,81 @@ goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
 
 
 /**
+ * Number of points used for the base of the arrowhead.
+ * @type {number} @const
+ */
+shapy.editor.Rig.Translate.CIRCLE = 17;
+
+/**
+ * Angle between the points on the circle;
+ *
+ */
+
+/**
+ * Number of points used for the arrow.
+ * @type {number} @const
+ */
+shapy.editor.Rig.Translate.ARROW = shapy.editor.Rig.Translate.CIRCLE + 3;
+
+
+/**
+ * Creates the mesh for the rig.
+ *
+ * @private
+ *
+ * @param {!WebGLContext}        gl WebGL context.
+ */
+shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
+  var d = new Float32Array(shapy.editor.Rig.Translate.ARROW * 3);
+  var angle = 0;
+  var da = 2 * Math.PI / (shapy.editor.Rig.Translate.CIRCLE - 1);
+  var k = 0;
+
+  d[k++] = 0.0; d[k++] = 0.0; d[k++] = 0.0;
+  d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;
+
+  for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
+    d[k++] = 1;
+    d[k++] = 0.25 * Math.sin(angle);
+    d[k++] = 0.25 * Math.cos(angle);
+    angle += da;
+  }
+
+  d[k++] = 1.5; d[k++] = 0.0; d[k++] = 0.0;
+
+  this.mesh_ = gl.createBuffer();
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
+};
+
+
+/**
  * Renders the rig.
  *
  * @param {!WebGLContext}        gl WebGL context.
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
+  if (!this.mesh_) {
+    this.build_(gl);
+  }
 
+  sh.uniformMat4x4('u_model', this.model_);
+
+  gl.enableVertexAttribArray(0);
+
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
+
+  // Arrow on X.
+  sh.uniformMat4x4('u_model', this.model_);
+  (this.hover_.x || this.select_.x) ?
+      sh.uniform4f('u_colour', 1, 1, 0, 1) :
+      sh.uniform4f('u_colour', 1, 0, 0, 1);
+  gl.drawArrays(gl.LINE_STRIP, 0, 2);
+  gl.drawArrays(goog.webgl.TRIANGLES, 1, 18);
+
+  gl.disableVertexAttribArray(0);
 };
 
 
@@ -118,7 +194,7 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
 
   var dp = 2 * Math.PI / shapy.editor.Rig.Rotate.RADIAL;
   var dt = 2 * Math.PI / shapy.editor.Rig.Rotate.TUBULAR;
-  var k = 0, r, g, b;
+  var k = 0;
 
 
   var emit = function(p, t) {
