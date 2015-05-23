@@ -82,12 +82,11 @@ shapy.editor.GROUND_VS =
   'uniform mat4 u_vp;\n' +
   'uniform vec2 u_size;\n' +
   'varying vec3 v_vertex;\n' +
-  'varying vec4 v_proj;\n' +
+
   'void main() {                                                      \n' +
   '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);\n' +
   '  v_vertex = vertex;\n' +
-  '  v_proj = u_vp * vec4(vertex, 1.0);\n' +
-  '  gl_Position = v_proj;\n' +
+  '  gl_Position = u_vp * vec4(vertex, 1.0);\n' +
   '}                                                                  \n';
 
 
@@ -98,8 +97,6 @@ shapy.editor.GROUND_FS =
   'precision mediump float;                                             \n' +
 
   'varying vec3 v_vertex;\n' +
-  'varying vec4 v_proj;\n' +
-  'uniform vec3 u_eye;\n' +
 
   'float alpha(float d, float w) {\n' +
   '  return max(smoothstep(w - fwidth(d), w + fwidth(d), d), 0.0);\n' +
@@ -213,7 +210,6 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
   this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
   {
     this.shGround_.use();
-    this.shGround_.uniform3f('u_eye', vp.camera.eye);
     this.shGround_.uniform4fv('u_vp', vp.camera.vp);
     this.shGround_.uniform2f('u_size', 35, 35);
 
