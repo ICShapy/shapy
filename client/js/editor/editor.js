@@ -231,6 +231,7 @@ shapy.editor.CanvasController = function($rootScope) {
    * @public {!shapy.editor.Rig}
    */
   this.rig = new shapy.editor.Rig.Rotate();
+  //this.rig = new shapy.editor.Rig.Translate();
 
   /**
    * Root layout.
