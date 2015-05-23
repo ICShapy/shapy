@@ -25,6 +25,12 @@ shapy.editor.Object = function() {
   /** @public {number} */
   this.id = 1;
 
+  /**
+   * True if the mesh is dirty, needing to be rebuilt.
+   * @public {boolean}
+   */
+  this.dirtyMesh = true;
+
   /** @private {goog.vec.Vec3} @const */
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
   /** @private {goog.vec.Vec3} @const */
@@ -45,10 +51,16 @@ shapy.editor.Object = function() {
   this.dirtyData_ = true;
 
   /**
-   * True if the mesh is dirty, needing to be rebuilt.
-   * @private {boolean}
+   * Version number.
+   * @private {number}
    */
-  this.dirtyMesh = true;
+  this.versionNumber_ = 1;
+
+  /**
+   * Colour.
+   * @private {number}
+   */
+  this.colour_ = 0xffffff;
 };
 
 
@@ -75,3 +87,30 @@ shapy.editor.Object.prototype.computeModel_ = function() {
       this.translate_[0], this.translate_[1], this.translate_[2]);
 };
 
+
+/**
+ * Retrieves the object data.
+ */
+shapy.editor.Object.prototype.getData = function() {
+  return {
+    id: this.id,
+    dirtyMesh: this.dirtyMesh,
+
+    sx: this.scale_[0],
+    sy: this.scale_[1],
+    sz: this.scale_[2],
+
+    rx: this.rotate_[0],
+    ry: this.rotate_[1],
+    rz: this.rotate_[2],
+
+    tx: this.translate_[0],
+    ty: this.translate_[1],
+    tz: this.translate_[2],
+
+    dirtyData: this.dirtyData_,
+    versionNumber: this.versionNumber_,
+
+    colour: this.colour_
+  };
+};
