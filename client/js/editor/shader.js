@@ -108,14 +108,15 @@ shapy.editor.Shader.prototype.uniform3f = function(name, value) {
 /**
  * Sets the value of a uniform 2D vector.
  *
- * @param {string}       name  Name of the vector.
- * @param {Float32Array} value Value of the vector.
+ * @param {string} name  Name of the vector.
+ * @param {number} x     First vector component.
+ * @param {number} y     Second vector component.
  */
-shapy.editor.Shader.prototype.uniform2f = function(name, value) {
+shapy.editor.Shader.prototype.uniform2f = function(name, x, y) {
   if (!goog.object.containsKey(this.unifs_, name)) {
     return;
   }
-  this.gl_.uniform2fv(this.unifs_[name], value);
+  this.gl_.uniform2f(this.unifs_[name], x, y);
 };
 
 

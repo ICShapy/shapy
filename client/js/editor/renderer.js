@@ -60,8 +60,6 @@ shapy.editor.OBJECT_FS =
 
 /** @type {string} @const */
 shapy.editor.OVERLAY_VS =
-  'precision highp float;                                             \n' +
-
   'attribute vec2 a_vertex;                                           \n' +
   'uniform vec2 u_size;                                               \n' +
   'void main() {                                                      \n' +
@@ -71,13 +69,65 @@ shapy.editor.OVERLAY_VS =
 
 /** @type {string} @const */
 shapy.editor.OVERLAY_FS =
-  'precision highp float;                                             \n' +
-
+  'precision mediump float;                                           \n' +
   'uniform vec4 u_colour;                                             \n' +
-
   'void main() {                                                      \n' +
   '  gl_FragColor = u_colour;                                         \n' +
   '}                                                                  \n';
+
+
+/** @type {string} @const */
+shapy.editor.GROUND_VS =
+  'attribute vec3 a_vertex;                                           \n' +
+  'uniform mat4 u_vp;\n' +
+  'uniform vec2 u_size;\n' +
+  'varying vec3 v_vertex;\n' +
+  'varying vec4 v_proj;\n' +
+  'void main() {                                                      \n' +
+  '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);\n' +
+  '  v_vertex = vertex;\n' +
+  '  v_proj = u_vp * vec4(vertex, 1.0);\n' +
+  '  gl_Position = v_proj;\n' +
+  '}                                                                  \n';
+
+
+/** @type {string} @const */
+shapy.editor.GROUND_FS =
+  '#extension GL_OES_standard_derivatives : enable                         \n' +
+
+  'precision mediump float;                                             \n' +
+
+  'varying vec3 v_vertex;\n' +
+  'varying vec4 v_proj;\n' +
+  'uniform vec3 u_eye;\n' +
+
+  'float alpha(float d, float w) {\n' +
+  '  return max(smoothstep(w - fwidth(d), w + fwidth(d), d), 0.0);\n' +
+  '}\n' +
+
+  'void main() {                                                      \n' +
+  '  float ax = alpha(distance(v_vertex.x, 0.0), 0.05);\n' +
+  '  float az = alpha(distance(v_vertex.z, 0.0), 0.05);\n' +
+
+  '  vec2 a1 = fract(v_vertex.xz);\n' +
+  '  a1 = min(a1, 1.0 - a1);\n' +
+  '  float a1x = alpha(a1.x, 0.01);\n' +
+  '  float a1z = alpha(a1.y, 0.01);\n' +
+
+  '  vec2 a5 = fract(v_vertex.xz / 5.0);\n' +
+  '  a5 = min(a5, 1.0 - a5) * 5.0;\n' +
+  '  float a5x = alpha(a5.x, 0.02);\n' +
+  '  float a5z = alpha(a5.y, 0.02);\n' +
+
+  '  vec4 colour = vec4(0, 0, 0, 0);\n' +
+  '  colour = mix(vec4(0.2, 0.5, 1.0, 1.0), colour, a1x);\n' +
+  '  colour = mix(vec4(0.2, 0.5, 1.0, 1.0), colour, a1z);\n' +
+  '  colour = mix(vec4(0.5, 0.5, 1.0, 1.0), colour, a5x);\n' +
+  '  colour = mix(vec4(0.5, 0.5, 1.0, 1.0), colour, a5z);\n' +
+  '  colour = mix(vec4(1.0, 0.0, 0.0, 1.0), colour, ax);\n' +
+  '  colour = mix(vec4(0.0, 1.0, 0.0, 1.0), colour, az);\n' +
+  '  gl_FragColor = colour;\n' +
+  '}\n';
 
 
 
@@ -92,6 +142,7 @@ shapy.editor.Renderer = function(gl) {
   /** @private {!WebGLContext} @const */
   this.gl_ = gl;
 
+
   /** @private {!shapy.editor.Shader} @const */
   this.shColour_ = new shapy.editor.Shader(this.gl_);
   this.shColour_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_VS);
@@ -104,8 +155,14 @@ shapy.editor.Renderer = function(gl) {
   this.shOverlay_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OVERLAY_FS);
   this.shOverlay_.link();
 
+  /** @private {!shapy.editor.Shader} @const */
+  this.shGround_ = new shapy.editor.Shader(this.gl_);
+  this.shGround_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.GROUND_VS);
+  this.shGround_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.GROUND_FS);
+  this.shGround_.link();
+
+
   /** @private {!shapy.editor.Mesh} @const */
-  this.msGround_ = shapy.editor.Mesh.createGroundPlane(gl, 20, 20);
   this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
 
   this.identity = goog.vec.Mat4.createFloat32Identity();
@@ -115,12 +172,19 @@ shapy.editor.Renderer = function(gl) {
   this.cubeVP_ = goog.vec.Mat4.createFloat32();
 
   /** @private {!WebGLBuffer} @const */
-  this.overlay_ = this.gl_.createBuffer();
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.overlay_);
+  this.bfRect_ = this.gl_.createBuffer();
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, new Float32Array([
       -1, -1, 1, -1, 1, 1, -1, 1
   ]), goog.webgl.STATIC_DRAW);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, null);
+
+  /** @private {!WebGLBuffer} @const */
+  this.bfGround_ = this.gl_.createBuffer();
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfGround_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, new Float32Array([
+      -1, 0, -1, 1, 0, 1, -1, 0, 1,
+      -1, 0, -1, 1, 0, 1, 1, 0, -1
+  ]), goog.webgl.STATIC_DRAW);
 };
 
 
@@ -128,7 +192,7 @@ shapy.editor.Renderer = function(gl) {
  * Start rendering a scene.
  */
 shapy.editor.Renderer.prototype.start = function() {
-  this.gl_.clearColor(0.2, 0.2, 0.2, 1);
+  this.gl_.clearColor(0.95, 1, 1, 1);
   this.gl_.clear(goog.webgl.COLOR_BUFFER_BIT | goog.webgl.DEPTH_BUFFER_BIT);
 };
 
@@ -139,21 +203,29 @@ shapy.editor.Renderer.prototype.start = function() {
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
 shapy.editor.Renderer.prototype.renderScene = function(vp) {
+  vp.camera.compute();
+
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  // Renders the scene.
+  // Renders the ground plane.
+  this.gl_.enable(goog.webgl.BLEND);
+  this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
   {
-    vp.camera.compute();
-    this.shColour_.use();
-    this.shColour_.uniform4fv('u_view', vp.camera.view);
-    this.shColour_.uniform4fv('u_proj', vp.camera.proj);
-    this.shColour_.uniform4fv('u_vp', vp.camera.vp);
-    this.msGround_.render(this.shColour_);
+    this.shGround_.use();
+    this.shGround_.uniform3f('u_eye', vp.camera.eye);
+    this.shGround_.uniform4fv('u_vp', vp.camera.vp);
+    this.shGround_.uniform2f('u_size', 35, 35);
+
+    this.gl_.enableVertexAttribArray(0);
+    this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfGround_);
+    this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
+    this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, 6);
+    this.gl_.disableVertexAttribArray(0);
   }
+  this.gl_.disable(goog.webgl.BLEND);
 
   // Render the border.
-  this.gl_.lineWidth(1.0);
   this.gl_.disable(goog.webgl.DEPTH_TEST);
   {
     this.shOverlay_.use();
@@ -162,14 +234,13 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
     } else {
       this.shOverlay_.uniform4f('u_colour', new Float32Array([.1, .1, .1, 1]));
     }
-    this.shOverlay_.uniform2f(
-        'u_size', new Float32Array([vp.rect.w, vp.rect.h]));
+    this.shOverlay_.uniform2f('u_size', vp.rect.w, vp.rect.h);
     this.shOverlay_.uniform4fv('u_view', this.identity);
     this.shOverlay_.uniform4fv('u_proj', this.identity);
     this.shOverlay_.uniform4fv('u_vp', this.identity);
 
     this.gl_.enableVertexAttribArray(0);
-    this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.overlay_);
+    this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
     this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 8, 0);
     this.gl_.drawArrays(goog.webgl.LINE_LOOP, 0, 4);
     this.gl_.disableVertexAttribArray(0);
