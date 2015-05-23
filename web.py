@@ -13,6 +13,7 @@ import momoko
 
 import shapy.editor
 import shapy.user
+import shapy.assets
 
 
 
