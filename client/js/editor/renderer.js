@@ -98,6 +98,9 @@ shapy.editor.Renderer = function(gl) {
   this.shColour_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_FS);
   this.shColour_.link();
 
+  // Cached meshes of objects
+  this.objectMeshes_ = {};
+
   /** @private {!shapy.editor.Shader} @const */
   this.shOverlay_ = new shapy.editor.Shader(this.gl_);
   this.shOverlay_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OVERLAY_VS);
@@ -122,6 +125,17 @@ shapy.editor.Renderer = function(gl) {
   ]), goog.webgl.STATIC_DRAW);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, null);
 };
+
+
+/**
+ * Update a mesh - this is called by an object if it becomes dirty (version
+ * number changes).
+ */
+shapy.editor.Renderer.prototype.updateObject = function(object) {
+  // Re-build mesh
+  // TODO: Keep version history
+  this.objectMeshes_[object.id] = shapy.editor.Mesh.createCube(this.gl_, 3, 3, 3);
+}
 
 
 /**
@@ -150,6 +164,11 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
     this.shColour_.uniform4fv('u_proj', vp.camera.proj);
     this.shColour_.uniform4fv('u_vp', vp.camera.vp);
     this.msGround_.render(this.shColour_);
+
+    // Render each object
+    goog.object.forEach(this.objectMeshes_, function(mesh, id, meshes) {
+      mesh.render(this.shColour_);
+    }, this);
   }
 
   // Render the border.

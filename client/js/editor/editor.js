@@ -248,6 +248,8 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
+  this.objects_['test'] = new shapy.editor.Object();
+
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
 };
@@ -265,6 +267,14 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.vp_.height = this.canvas_.height = this.parent_.offsetHeight;
     this.layout.resize(width, height);
   }
+
+  // Synchronise meshes
+  goog.object.forEach(this.objects_, function(object, name, objects) {
+    if (object.dirtyMesh) {
+      this.renderer_.updateObject(object);
+      object.dirtyMesh = false;
+    }
+  }, this);
 
   // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();

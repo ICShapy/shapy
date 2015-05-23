@@ -22,6 +22,9 @@ goog.require('goog.vec.Vec3');
  * @constructor
  */
 shapy.editor.Object = function() {
+  /** @public {number} */
+  this.id = 1;
+
   /** @private {goog.vec.Vec3} @const */
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
   /** @private {goog.vec.Vec3} @const */
@@ -45,7 +48,7 @@ shapy.editor.Object = function() {
    * True if the mesh is dirty, needing to be rebuilt.
    * @private {boolean}
    */
-  this.dirtyMesh_ = true;
+  this.dirtyMesh = true;
 };
 
 
