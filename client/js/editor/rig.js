@@ -23,6 +23,18 @@ shapy.editor.Rig = function(type) {
   this.type = type;
   /** @private {!goog.vec.Mat4.Type} @const */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
+  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+  this.hover_ = {
+    x: false,
+    y: false,
+    z: false
+  };
+  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+  this.select_ = {
+    x: false,
+    y: false,
+    z: false
+  };
 };
 
 
@@ -82,6 +94,18 @@ shapy.editor.Rig.Rotate = function() {
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
 
 
+/** @type {number} @const */
+shapy.editor.Rig.Rotate.RADIAL = 40;
+/** @type {number} @const */
+shapy.editor.Rig.Rotate.TUBULAR = 8;
+/** @type {number} @const */
+shapy.editor.Rig.Rotate.TORUS =
+    shapy.editor.Rig.Rotate.RADIAL *
+    shapy.editor.Rig.Rotate.TUBULAR *
+    18;
+
+
+
 /**
  * Creates the mesh for the rig.
  *
@@ -90,16 +114,36 @@ goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
  * @param {!WebGLContext}        gl WebGL context.
  */
 shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
-  var data = new Float32Array([
-      -1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-      -1.0,  1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-       1.0,  1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-       1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0
-  ]);
+  var d = new Float32Array(shapy.editor.Rig.Rotate.TORUS * 3);
+
+  var dp = 2 * Math.PI / shapy.editor.Rig.Rotate.RADIAL;
+  var dt = 2 * Math.PI / shapy.editor.Rig.Rotate.TUBULAR;
+  var k = 0, r, g, b;
+
+
+  var emit = function(p, t) {
+    d[k++] = Math.cos(p) * (1 + 0.025 * Math.cos(t));
+    d[k++] = 0.025 * Math.sin(t);
+    d[k++] = Math.sin(p) * (1 + 0.025 * Math.cos(t));
+  };
+
+  for (var i = 0; i < shapy.editor.Rig.Rotate.RADIAL; ++i) {
+    var p0 = (i + 0) * dp, p1 = (i + 1) * dp;
+    for (var j = 0; j < shapy.editor.Rig.Rotate.TUBULAR; ++j) {
+      var t0 = (j + 0) * dt, t1 = (j + 1) * dt;
+
+      emit(p0, t0);
+      emit(p0, t1);
+      emit(p1, t1);
+      emit(p0, t0);
+      emit(p1, t1);
+      emit(p1, t0);
+    }
+  }
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
-  gl.bufferData(goog.webgl.ARRAY_BUFFER, data, goog.webgl.STATIC_DRAW);
+  gl.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
 };
 
 
@@ -110,6 +154,8 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
+  var i = shapy.editor.Rig.Rotate.TORUS / 3;
+
   if (!this.mesh_) {
     this.build_(gl);
   }
@@ -117,14 +163,36 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
 
   gl.enableVertexAttribArray(0);
-  gl.enableVertexAttribArray(3);
 
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
-  gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 28, 0);
-  gl.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 28, 12);
-  gl.drawArrays(gl.LINE_LOOP, 0, 4);
+  gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
 
-  gl.disableVertexAttribArray(3);
+  // Y ring.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  sh.uniformMat4x4('u_model', this.model_);
+  (this.hover_.y || this.select_.y) ?
+      sh.uniform4f('u_colour', 1, 1, 0, 1) :
+      sh.uniform4f('u_colour', 0, 0, 1, 1);
+  gl.drawArrays(goog.webgl.TRIANGLES, i * 0, i);
+
+  // X ring.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  (this.hover_.x || this.select_.x) ?
+      sh.uniform4f('u_colour', 1, 1, 0, 1) :
+      sh.uniform4f('u_colour', 1, 0, 0, 1);
+  gl.drawArrays(goog.webgl.TRIANGLES, i * 0, i);
+
+  // Z ring.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.rotateX(this.model_, Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  (this.hover_.z || this.select_.z) ?
+      sh.uniform4f('u_colour', 1, 1, 0, 1) :
+      sh.uniform4f('u_colour', 0, 1, 0, 1);
+  gl.drawArrays(goog.webgl.TRIANGLES, i * 0, i);
+
   gl.disableVertexAttribArray(0);
 };
 

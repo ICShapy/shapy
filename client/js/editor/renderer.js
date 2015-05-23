@@ -116,13 +116,13 @@ shapy.editor.GROUND_FS =
   '  float a5x = alpha(a5.x, 0.02);\n' +
   '  float a5z = alpha(a5.y, 0.02);\n' +
 
-  '  vec4 colour = vec4(0, 0, 0, 0);\n' +
-  '  colour = mix(vec4(0.2, 0.5, 1.0, 1.0), colour, a1x);\n' +
-  '  colour = mix(vec4(0.2, 0.5, 1.0, 1.0), colour, a1z);\n' +
-  '  colour = mix(vec4(0.5, 0.5, 1.0, 1.0), colour, a5x);\n' +
-  '  colour = mix(vec4(0.5, 0.5, 1.0, 1.0), colour, a5z);\n' +
-  '  colour = mix(vec4(1.0, 0.0, 0.0, 1.0), colour, ax);\n' +
-  '  colour = mix(vec4(0.0, 1.0, 0.0, 1.0), colour, az);\n' +
+  '  vec4 colour = vec4(0.2, 0.2, 0.2, 0.4);\n' +
+  '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
+  '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
+  '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
+  '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5z);\n' +
+  '  colour = mix(vec4(1.0, 0.0, 0.0, 0.95), colour, ax);\n' +
+  '  colour = mix(vec4(0.0, 1.0, 0.0, 0.95), colour, az);\n' +
   '  gl_FragColor = colour;\n' +
   '}\n';
 
@@ -130,7 +130,6 @@ shapy.editor.GROUND_FS =
 /** @type {string} @const */
 shapy.editor.RIG_VS =
   'attribute vec3 a_vertex;\n' +
-  'attribute vec4 a_colour;\n' +
   'uniform mat4 u_vp;\n' +
   'uniform mat4 u_model;\n' +
   'void main(void) {\n' +
@@ -140,8 +139,10 @@ shapy.editor.RIG_VS =
 
 /** @type {string} @const */
 shapy.editor.RIG_FS =
+  'precision mediump float;\n' +
+  'uniform vec4 u_colour;\n' +
   'void main(void) {\n' +
-  '  gl_FragColor = vec4(1, 0, 0, 1);\n' +
+  '  gl_FragColor = u_colour;\n' +
   '}\n';
 
 
@@ -340,9 +341,15 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  this.shRig_.use();
-  this.shRig_.uniformMat4x4('u_view', vp.camera.view);
-  this.shRig_.uniformMat4x4('u_proj', vp.camera.proj);
-  this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
-  rig.render(this.gl_, this.shRig_);
+  this.gl_.enable(goog.webgl.CULL_FACE);
+  this.gl_.cullFace(goog.webgl.FRONT);
+  this.gl_.frontFace(goog.webgl.CCW);
+  {
+    this.shRig_.use();
+    this.shRig_.uniformMat4x4('u_view', vp.camera.view);
+    this.shRig_.uniformMat4x4('u_proj', vp.camera.proj);
+    this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
+    rig.render(this.gl_, this.shRig_);
+  }
+  this.gl_.disable(goog.webgl.CULL_FACE);
 };
