@@ -247,11 +247,10 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
   this.gl_.disable(goog.webgl.DEPTH_TEST);
   {
     this.shOverlay_.use();
-    if (vp.active) {
-      this.shOverlay_.uniform4f('u_colour', new Float32Array([1, 1, 0, 1]));
-    } else {
-      this.shOverlay_.uniform4f('u_colour', new Float32Array([.1, .1, .1, 1]));
-    }
+    vp.active ?
+      this.shOverlay_.uniform4f('u_colour', 1, 1, 0, 1) :
+      this.shOverlay_.uniform4f('u_colour', .1, .1, .1, .1);
+
     this.shOverlay_.uniform2f('u_size', vp.rect.w, vp.rect.h);
     this.shOverlay_.uniformMat4x4('u_view', this.identity);
     this.shOverlay_.uniformMat4x4('u_proj', this.identity);

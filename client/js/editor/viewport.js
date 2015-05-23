@@ -697,9 +697,13 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
  * the point on the virtual ball surface that is aligned with the point (x, y)
  * on the screen.
  *
+ * @private
+ *
  * @param {!goog.math.Vec2} pos Position of the mouse.
+ *
+ * @return {!goog.vec.Vec3.Type} Arcball vector.
  */
-shapy.editor.Viewport.prototype.getArcballVector = function(pos) {
+shapy.editor.Viewport.prototype.getArcballVector_ = function(pos) {
   // Convert pos to camera coordinates [-1, 1].
   var p = goog.vec.Vec3.createFloat32FromValues(
       2 * pos.x / this.rect.w - 1.0,
@@ -728,8 +732,8 @@ shapy.editor.Viewport.prototype.rotate = function() {
   }
 
   // Compute the points at the ball surface that match the click.
-  var va = this.getArcballVector(this.lastMousePos_);
-  var vb = this.getArcballVector(this.currMousePos_);
+  var va = this.getArcballVector_(this.lastMousePos_);
+  var vb = this.getArcballVector_(this.currMousePos_);
   this.lastMousePos_.x = this.currMousePos_.x;
   this.lastMousePos_.y = this.currMousePos_.y;
 
@@ -775,6 +779,11 @@ shapy.editor.Viewport.prototype.rotate = function() {
       viewQuater[1],
       viewQuater[2]);
 
+  // Compute the new up vector.
+  goog.vec.Vec3.cross(viewVector, this.camera.up, this.camera.up);
+  goog.vec.Vec3.cross(this.camera.up, viewVector, this.camera.up);
+  goog.vec.Vec3.normalize(this.camera.up, this.camera.up);
+
   // Update the eye.
   goog.vec.Vec3.add(this.camera.center, viewVector, this.camera.eye);
 };
@@ -796,10 +805,12 @@ shapy.editor.Viewport.prototype.pan = function() {
   goog.vec.Vec3.normalize(up, up);
 
   // Get movement.
-  var dx = (this.currMousePos_.x - this.lastMousePos_.x) / this.rect.w
-         * shapy.editor.Camera.PAN_SPEED;
-  var dy = (this.currMousePos_.y - this.lastMousePos_.y) / this.rect.h
-         * shapy.editor.Camera.PAN_SPEED;
+  var dx =
+      (this.currMousePos_.x - this.lastMousePos_.x) / this.rect.w *
+      shapy.editor.Camera.PAN_SPEED;
+  var dy =
+      (this.currMousePos_.y - this.lastMousePos_.y) / this.rect.h *
+      shapy.editor.Camera.PAN_SPEED;
 
   // Move along x.
   goog.vec.Vec3.scale(left, dx, left);
