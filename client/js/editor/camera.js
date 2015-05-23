@@ -30,7 +30,7 @@ shapy.editor.Camera = function() {
   /** @public {!goog.vec.Vec3} @const */
   this.up = goog.vec.Vec3.createFloat32FromValues(0, 1, 0);
   /** @public {!goog.vec.Vec3} @const */
-  this.eye = goog.vec.Vec3.createFloat32FromValues(0, 8, 8);
+  this.eye = goog.vec.Vec3.createFloat32FromValues(4, 4, 4);
   /** @public {!goog.vec.Vec3} @const */
   this.center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
 };

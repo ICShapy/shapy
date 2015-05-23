@@ -136,7 +136,6 @@ shapy.editor.Rig.Rotate.TUBULAR = 8;
 /** @type {number} @const */
 shapy.editor.Rig.Rotate.TORUS =
     shapy.editor.Rig.Rotate.RADIAL *
-    shapy.editor.Rig.Rotate.TUBULAR *
     18;
 /** @type {number} @const */
 shapy.editor.Rig.Rotate.RADIUS = 0.03;
@@ -157,25 +156,20 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
   var dt = 2 * Math.PI / shapy.editor.Rig.Rotate.TUBULAR;
   var k = 0, r, g, b;
 
-
   var emit = function(p, t) {
-    d[k++] = Math.cos(p) * (1 + shapy.editor.Rig.Rotate.RADIUS * Math.cos(t));
-    d[k++] = 0.025 * Math.sin(t);
-    d[k++] = Math.sin(p) * (1 + shapy.editor.Rig.Rotate.RADIUS * Math.cos(t));
+    d[k++] = Math.cos(p) * (1 + shapy.editor.Rig.Rotate.RADIUS * t);
+    d[k++] = 0;
+    d[k++] = Math.sin(p) * (1 + shapy.editor.Rig.Rotate.RADIUS * t);
   };
 
   for (var i = 0; i < shapy.editor.Rig.Rotate.RADIAL; ++i) {
     var p0 = (i + 0) * dp, p1 = (i + 1) * dp;
-    for (var j = 0; j < shapy.editor.Rig.Rotate.TUBULAR; ++j) {
-      var t0 = (j + 0) * dt, t1 = (j + 1) * dt;
-
-      emit(p0, t0);
-      emit(p0, t1);
-      emit(p1, t1);
-      emit(p0, t0);
-      emit(p1, t1);
-      emit(p1, t0);
-    }
+    emit(p0, -1);
+    emit(p0, 1);
+    emit(p1, 1);
+    emit(p0, -1);
+    emit(p1, 1);
+    emit(p1, -1);
   }
 
   this.mesh_ = gl.createBuffer();
