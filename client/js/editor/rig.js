@@ -35,6 +35,10 @@ shapy.editor.Rig = function(type) {
     y: false,
     z: false
   };
+  // TODO: have rig retrieve this from control object.
+  this.getPosition_ = function() {
+    return [0, 0, 0];
+  };
 };
 
 
@@ -42,6 +46,37 @@ shapy.editor.Rig = function(type) {
  * Renders the rig.
  */
 shapy.editor.Rig.prototype.render = goog.abstractMethod;
+
+
+/**
+ * Renders the rig.
+ */
+shapy.editor.Rig.prototype.mouseMove = goog.abstractMethod;
+
+
+/**
+ * Renders the rig.
+ */
+shapy.editor.Rig.prototype.mouseDown = goog.abstractMethod;
+
+
+/**
+ * Renders the rig.
+ */
+shapy.editor.Rig.prototype.mouseUp = goog.abstractMethod;
+
+
+/**
+ * Renders the rig.
+ */
+shapy.editor.Rig.prototype.mouseEnter = goog.abstractMethod;
+
+
+/**
+ * Renders the rig.
+ */
+shapy.editor.Rig.prototype.mouseLeave = goog.abstractMethod;
+
 
 
 /**
@@ -103,6 +138,8 @@ shapy.editor.Rig.Rotate.TORUS =
     shapy.editor.Rig.Rotate.RADIAL *
     shapy.editor.Rig.Rotate.TUBULAR *
     18;
+/** @type {number} @const */
+shapy.editor.Rig.Rotate.RADIUS = 0.03;
 
 
 
@@ -122,9 +159,9 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
 
 
   var emit = function(p, t) {
-    d[k++] = Math.cos(p) * (1 + 0.025 * Math.cos(t));
+    d[k++] = Math.cos(p) * (1 + shapy.editor.Rig.Rotate.RADIUS * Math.cos(t));
     d[k++] = 0.025 * Math.sin(t);
-    d[k++] = Math.sin(p) * (1 + 0.025 * Math.cos(t));
+    d[k++] = Math.sin(p) * (1 + shapy.editor.Rig.Rotate.RADIUS * Math.cos(t));
   };
 
   for (var i = 0; i < shapy.editor.Rig.Rotate.RADIAL; ++i) {
@@ -194,6 +231,132 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   gl.drawArrays(goog.webgl.TRIANGLES, i * 0, i);
 
   gl.disableVertexAttribArray(0);
+};
+
+
+/**
+ * Computes the intersection point between a ray and a plane.
+ *
+ * @param {!goog.vec.Ray}       ray
+ * @param {!goog.vec.Vec3.Type} n
+ * @param {!goog.vec.Vec3.Type} o
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.intersectPlane = function(ray, n, o) {
+  var d = -goog.vec.Vec3.dot(n, o);
+  var v = goog.vec.Vec3.cloneFloat32(ray.dir);
+  goog.vec.Vec3.scale(
+      v,
+     -(goog.vec.Vec3.dot(ray.origin, n) + d) / goog.vec.Vec3.dot(ray.dir, n),
+      v);
+  goog.vec.Vec3.add(v, ray.origin, v);
+  return v;
+};
+
+
+/**
+ * Returns the normal vector of the control ring that was hit by a plane.
+ *
+ * @private
+ *
+ * @param {!goog.vec.Ray} ray
+ *
+ * @return {goog.vec.Vec3.Type}
+ */
+shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
+  var position = this.getPosition_();
+
+  // Find intersection point with planes.
+  var ix = shapy.editor.intersectPlane(ray, [1, 0, 0], position);
+  var iy = shapy.editor.intersectPlane(ray, [0, 1, 0], position);
+  var iz = shapy.editor.intersectPlane(ray, [0, 0, 1], position);
+
+  // Find distance between center and intersection point.
+  var cx = goog.vec.Vec3.distance(ix, position);
+  var cy = goog.vec.Vec3.distance(iy, position);
+  var cz = goog.vec.Vec3.distance(iz, position);
+
+  // Find distance to intersection points.
+  var ex = goog.vec.Vec3.distance(ix, ray.origin);
+  var ey = goog.vec.Vec3.distance(iy, ray.origin);
+  var ez = goog.vec.Vec3.distance(iz, ray.origin);
+
+  // Choose the best match - closest to origin.
+  var hits = [[[1, 0, 0], cx, ex], [[0, 1, 0], cy, ey], [[0, 0, 1], cz, ez]];
+  hits = goog.array.filter(hits, function(e) {
+      return Math.abs(e[1] - 1.0) < shapy.editor.Rig.Rotate.RADIUS;
+  }, this);
+  goog.array.sort(hits, function(e) { return -e[2]; }, this);
+  console.log(hits);
+
+  // If no hits, return
+  if (goog.array.isEmpty(hits)) {
+    return null;
+  }
+  return hits[0][0];
+};
+
+
+/**
+ * Renders the rig.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
+  if (this.select_.x) {
+    return;
+  }
+  if (this.select_.y) {
+    return;
+  }
+  if (this.select_.z) {
+    return;
+  }
+
+  var hit = this.getHit_(ray);
+  if (!hit) {
+    this.hover_.x = this.hover_.y = this.hover_.z = false;
+    return;
+  }
+
+  this.hover_.x = hit[0] != 0;
+  this.hover_.y = hit[1] != 0;
+  this.hover_.z = hit[2] != 0;
+};
+
+
+/**
+ * Renders the rig.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
+};
+
+
+/**
+ * Renders the rig.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
+};
+
+
+/**
+ * Renders the rig.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Rotate.prototype.mouseEnter = function(ray) {
+};
+
+
+/**
+ * Renders the rig.
+ */
+shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
 };
 
 
