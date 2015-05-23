@@ -231,7 +231,7 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
   this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
   {
     this.shGround_.use();
-    this.shGround_.uniform4fv('u_vp', vp.camera.vp);
+    this.shGround_.uniformMat4x4('u_vp', vp.camera.vp);
     this.shGround_.uniform2f('u_size', 35, 35);
 
     this.gl_.enableVertexAttribArray(0);
@@ -252,9 +252,9 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
       this.shOverlay_.uniform4f('u_colour', new Float32Array([.1, .1, .1, 1]));
     }
     this.shOverlay_.uniform2f('u_size', vp.rect.w, vp.rect.h);
-    this.shOverlay_.uniform4fv('u_view', this.identity);
-    this.shOverlay_.uniform4fv('u_proj', this.identity);
-    this.shOverlay_.uniform4fv('u_vp', this.identity);
+    this.shOverlay_.uniformMat4x4('u_view', this.identity);
+    this.shOverlay_.uniformMat4x4('u_proj', this.identity);
+    this.shOverlay_.uniformMat4x4('u_vp', this.identity);
 
     this.gl_.enableVertexAttribArray(0);
     this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
@@ -319,9 +319,9 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
 
   // Render cube.
   this.shColour_.use();
-  this.shColour_.uniform4fv('u_view', this.cubeView_);
-  this.shColour_.uniform4fv('u_proj', this.cubeProj_);
-  this.shColour_.uniform4fv('u_vp', this.cubeVP_);
+  this.shColour_.uniformMat4x4('u_view', this.cubeView_);
+  this.shColour_.uniformMat4x4('u_proj', this.cubeProj_);
+  this.shColour_.uniformMat4x4('u_vp', this.cubeVP_);
   this.msCube_.render(this.shColour_);
 
   this.gl_.enable(goog.webgl.DEPTH_TEST);
@@ -341,8 +341,8 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
   this.shRig_.use();
-  this.shRig_.uniform4fv('u_view', vp.camera.view);
-  this.shRig_.uniform4fv('u_proj', vp.camera.proj);
-  this.shRig_.uniform4fv('u_vp', vp.camera.vp);
+  this.shRig_.uniformMat4x4('u_view', vp.camera.view);
+  this.shRig_.uniformMat4x4('u_proj', vp.camera.proj);
+  this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
   rig.render(this.gl_, this.shRig_);
 };

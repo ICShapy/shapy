@@ -83,7 +83,7 @@ shapy.editor.Shader.prototype.use = function() {
  * @param {string}       name  Name of the uniform matrix.
  * @param {Float32Array} value Value of the matrix.
  */
-shapy.editor.Shader.prototype.uniform4fv = function(name, value) {
+shapy.editor.Shader.prototype.uniformMat4x4 = function(name, value) {
   if (!goog.object.containsKey(this.unifs_, name)) {
     return;
   }
@@ -125,13 +125,15 @@ shapy.editor.Shader.prototype.uniform2f = function(name, x, y) {
  * Sets the value of a uniform 3D vector.
  *
  * @param {string}       name  Name of the vector.
- * @param {Float32Array} value Value of the vector.
+ * @param {number} x     First vector component.
+ * @param {number} y     Second vector component.
+ * @param {number} z     Third vector component.
  */
-shapy.editor.Shader.prototype.uniform3f = function(name, value) {
+shapy.editor.Shader.prototype.uniform3f = function(name, x, y, z) {
   if (!goog.object.containsKey(this.unifs_, name)) {
     return;
   }
-  this.gl_.uniform3fv(this.unifs_[name], value);
+  this.gl_.uniform3f(this.unifs_[name], x, y, z);
 };
 
 
@@ -139,9 +141,25 @@ shapy.editor.Shader.prototype.uniform3f = function(name, value) {
  * Sets the value of a uniform 4D vector.
  *
  * @param {string}       name  Name of the vector.
+ * @param {number} x     First vector component.
+ * @param {number} y     Second vector component.
+ * @param {number} z     Third vector component
+ * @param {number} w     Fourth vector component
+ */
+shapy.editor.Shader.prototype.uniform4f = function(name, x, y, z, w) {
+  if (!goog.object.containsKey(this.unifs_, name)) {
+    return;
+  }
+  this.gl_.uniform4f(this.unifs_[name], x, y, z, w);
+};
+
+/**
+ * Sets the value of a uniform 4D vector.
+ *
+ * @param {string}       name  Name of the vector.
  * @param {Float32Array} value Value of the vector.
  */
-shapy.editor.Shader.prototype.uniform4f = function(name, value) {
+shapy.editor.Shader.prototype.uniform4fv = function(name, value) {
   if (!goog.object.containsKey(this.unifs_, name)) {
     return;
   }

@@ -114,7 +114,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
     this.build_(gl);
   }
 
-  sh.uniform4fv('u_model', this.model_);
+  sh.uniformMat4x4('u_model', this.model_);
 
   gl.enableVertexAttribArray(0);
   gl.enableVertexAttribArray(3);
