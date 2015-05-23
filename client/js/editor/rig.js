@@ -21,6 +21,8 @@ goog.provide('shapy.editor.Rig.Translate');
 shapy.editor.Rig = function(type) {
   /** @public {shapy.editor.Rig.Type} @const */
   this.type = type;
+  /** @private {!goog.vec.Mat4.Type} @const */
+  this.model_ = goog.vec.Mat4.createFloat32Identity();
 };
 
 
@@ -74,8 +76,31 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
  */
 shapy.editor.Rig.Rotate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.ROTATE);
+  /** @private {WebGLBuffer} */
+  this.mesh_ = null;
 };
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
+
+
+/**
+ * Creates the mesh for the rig.
+ *
+ * @private
+ *
+ * @param {!WebGLContext}        gl WebGL context.
+ */
+shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
+  var data = new Float32Array([
+      -1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+      -1.0,  1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+       1.0,  1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+       1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0
+  ]);
+
+  this.mesh_ = gl.createBuffer();
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.bufferData(goog.webgl.ARRAY_BUFFER, data, goog.webgl.STATIC_DRAW);
+};
 
 
 /**
@@ -85,7 +110,22 @@ goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
+  if (!this.mesh_) {
+    this.build_(gl);
+  }
 
+  sh.uniform4fv('u_model', this.model_);
+
+  gl.enableVertexAttribArray(0);
+  gl.enableVertexAttribArray(3);
+
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 28, 0);
+  gl.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 28, 12);
+  gl.drawArrays(gl.LINE_LOOP, 0, 4);
+
+  gl.disableVertexAttribArray(3);
+  gl.disableVertexAttribArray(0);
 };
 
 

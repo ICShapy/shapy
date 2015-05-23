@@ -129,14 +129,19 @@ shapy.editor.GROUND_FS =
 
 /** @type {string} @const */
 shapy.editor.RIG_VS =
+  'attribute vec3 a_vertex;\n' +
+  'attribute vec4 a_colour;\n' +
+  'uniform mat4 u_vp;\n' +
+  'uniform mat4 u_model;\n' +
   'void main(void) {\n' +
-  '  gl_Position = vec4(0, 0, 0, 1);\n' +
+  '  gl_Position = u_vp * u_model * vec4(a_vertex, 1.0);\n' +
   '}\n';
 
 
 /** @type {string} @const */
 shapy.editor.RIG_FS =
   'void main(void) {\n' +
+  '  gl_FragColor = vec4(1, 0, 0, 1);\n' +
   '}\n';
 
 

@@ -279,6 +279,7 @@ shapy.editor.CanvasController.prototype.render = function() {
   // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();
   goog.object.forEach(this.layout.viewports, function(vp, name) {
+    vp.camera.compute();
     this.renderer_.renderScene(vp);
     if (vp == this.layout.active) {
       this.renderer_.renderRig(this.rig);
