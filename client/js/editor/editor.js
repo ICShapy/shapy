@@ -1,9 +1,9 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
+goog.provide('shapy.editor.CanvasDirective');
 goog.provide('shapy.editor.EditorController');
 goog.provide('shapy.editor.EditorToolbarController');
-goog.provide('shapy.editor.CanvasDirective');
 
 goog.require('goog.dom');
 goog.require('goog.math.Size');
@@ -12,11 +12,15 @@ goog.require('goog.string.format');
 goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
 goog.require('shapy.editor.Layout');
-goog.require('shapy.editor.Layout.Single');
 goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
+goog.require('shapy.editor.Layout.Single');
 goog.require('shapy.editor.Object');
 goog.require('shapy.editor.Renderer');
+goog.require('shapy.editor.Rig');
+goog.require('shapy.editor.Rig.Rotate');
+goog.require('shapy.editor.Rig.Scale');
+goog.require('shapy.editor.Rig.Translate');
 goog.require('shapy.editor.Viewport');
 
 
@@ -223,6 +227,12 @@ shapy.editor.CanvasController = function($rootScope) {
   this.vp_ = new goog.math.Size(0, 0);
 
   /**
+   * Active rig.
+   * @public {!shapy.editor.Rig}
+   */
+  this.rig = new shapy.editor.Rig.Rotate();
+
+  /**
    * Root layout.
    * @public {!shapy.editor.Layout} @const
    */
@@ -270,6 +280,9 @@ shapy.editor.CanvasController.prototype.render = function() {
   this.renderer_.start();
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     this.renderer_.renderScene(vp);
+    if (vp == this.layout.active) {
+      this.renderer_.renderRig(this.rig);
+    }
   }, this);
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     this.renderer_.renderOverlay(vp);

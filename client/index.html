@@ -33,7 +33,11 @@
           'shapy.editor.Object',
           'shapy.editor.Mesh',
           'shapy.editor.Renderer',
-          'shapy.editor.Viewport'
+          'shapy.editor.Viewport',
+          'shapy.editor.Rig',
+          'shapy.editor.Rig.Translate',
+          'shapy.editor.Rig.Rotate',
+          'shapy.editor.Rig.Scale'
       ]);
       goog.addDependency('../editor/mesh.js', [
           'shapy.editor.Mesh'
@@ -43,6 +47,12 @@
       ], []);
       goog.addDependency('../editor/renderer.js', [
           'shapy.editor.Renderer'
+      ], []);
+      goog.addDependency('../editor/rig.js', [
+          'shapy.editor.Rig',
+          'shapy.editor.Rig.Translate',
+          'shapy.editor.Rig.Rotate',
+          'shapy.editor.Rig.Scale'
       ], []);
       goog.addDependency('../editor/shader.js', [
           'shapy.editor.Shader'
@@ -88,7 +98,7 @@
       ]);
       goog.addDependency('../register.js', [
           'shapy.equals',
-          'shapy.email',        
+          'shapy.email',
           'shapy.RegisterController'
       ], []);
       goog.addDependency('../scene.js', [

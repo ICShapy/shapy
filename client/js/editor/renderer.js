@@ -127,6 +127,19 @@ shapy.editor.GROUND_FS =
   '}\n';
 
 
+/** @type {string} @const */
+shapy.editor.RIG_VS =
+  'void main(void) {\n' +
+  '  gl_Position = vec4(0, 0, 0, 1);\n' +
+  '}\n';
+
+
+/** @type {string} @const */
+shapy.editor.RIG_FS =
+  'void main(void) {\n' +
+  '}\n';
+
+
 
 /**
  * Creates a new renderer.
@@ -158,6 +171,11 @@ shapy.editor.Renderer = function(gl) {
   this.shGround_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.GROUND_FS);
   this.shGround_.link();
 
+  /** @private {!shapy.editor.Shader} @const */
+  this.shRig_ = new shapy.editor.Shader(this.gl_);
+  this.shRig_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.RIG_VS);
+  this.shRig_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.RIG_FS);
+  this.shRig_.link();
 
   /** @private {!shapy.editor.Mesh} @const */
   this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
@@ -304,4 +322,18 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
   this.msCube_.render(this.shColour_);
 
   this.gl_.enable(goog.webgl.DEPTH_TEST);
+};
+
+
+/**
+ * Renders a rig used by the editor.
+ *
+ * @param {!shapy.editor.Rig} rig Rig to be displayed.
+ */
+shapy.editor.Renderer.prototype.renderRig = function(rig) {
+  this.shRig_.use();
+  this.shRig_.uniform4fv('u_view', this.cubeView_);
+  this.shRig_.uniform4fv('u_proj', this.cubeProj_);
+  this.shRig_.uniform4fv('u_vp', this.cubeVP_);
+  rig.render(this.gl_, this.shRig_);
 };
