@@ -177,6 +177,18 @@ shapy.editor.Renderer.prototype.renderScene = function(vp) {
   this.gl_.enable(goog.webgl.DEPTH_TEST);
 }
 
+
+/**
+ * @type {number} @const
+ */
+shapy.editor.Renderer.CUBE_SIZE = 120;
+
+/**
+ * @type {number} @const
+ */
+shapy.editor.Renderer.CUBE_DISTANCE = 5;
+
+
 /**
  * Renders the overlay
  *
@@ -186,9 +198,8 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
   this.gl_.disable(goog.webgl.DEPTH_TEST);
 
   // The viewport of the cube is always rectangular in the top corner.
-  var min = function(x, y) { return x < y ? x : y; };
-  var cubeVPBaseSize = 120;
-  var cubeVPSize = min(min(vp.rect.w / 3, vp.rect.h), cubeVPBaseSize);
+  var cubeVPSize = Math.min(
+      Math.min(vp.rect.w / 3, vp.rect.h), shapy.editor.Renderer.CUBE_SIZE);
   this.gl_.viewport(
       vp.rect.x, vp.rect.y + vp.rect.h - cubeVPSize, cubeVPSize, cubeVPSize);
   this.gl_.scissor(
@@ -196,21 +207,26 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
 
   // Set the eye vec of the cube view matrix to be the offset of the camera from
   // it's center, multipled by the distance.
-  var distance = 5;
   goog.vec.Vec3.direction(vp.camera.eye, vp.camera.center, this.cubeCameraEye_);
-  goog.vec.Vec3.scale(this.cubeCameraEye_, -distance, this.cubeCameraEye_);
+  goog.vec.Vec3.scale(
+      this.cubeCameraEye_,
+      -shapy.editor.Renderer.CUBE_DISTANCE,
+      this.cubeCameraEye_);
 
   // Compute cube projection matrix based on the cameras mode.
   if (vp.type == shapy.editor.Viewport.Type.PERSPECTIVE) {
     goog.vec.Mat4.makePerspective(this.cubeProj_, 45.0, 1.0, 0.1, 100);
   } else {
-    var size = distance * 0.5;
+    var size = shapy.editor.Renderer.CUBE_DISTANCE * 0.5;
     goog.vec.Mat4.makeOrtho(this.cubeProj_, -size, size, -size, size, 0.1, 100);
   }
 
   // Compute view and vp matrices.
   goog.vec.Mat4.makeLookAt(
-      this.cubeView_, this.cubeCameraEye_, vp.camera.center, vp.camera.up);
+      this.cubeView_,
+      this.cubeCameraEye_,
+      goog.vec.Vec3.createFloat32FromValues(0, 0, 0),
+      vp.camera.up);
   goog.vec.Mat4.multMat(this.cubeProj_, this.cubeView_, this.cubeVP_);
 
   // Render cube.
