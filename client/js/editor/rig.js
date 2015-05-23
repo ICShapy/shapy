@@ -358,7 +358,6 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
       return Math.abs(e[1] - 1.0) < shapy.editor.Rig.Rotate.RADIUS;
   }, this);
   goog.array.sort(hits, function(e) { return -e[2]; }, this);
-  console.log(hits);
 
   // If no hits, return
   if (goog.array.isEmpty(hits)) {
