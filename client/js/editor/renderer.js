@@ -335,6 +335,8 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
  * @param {!shapy.editor.Rig} rig Rig to be displayed.
  */
 shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
+  this.gl_.clear(goog.webgl.DEPTH_BUFFER_BIT);
+
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
