@@ -4,9 +4,9 @@
     <h1>Folders</h1>
   </sh-sidebar>
   <sh-files>
-    <div ng-repeat="file in browserCtrl.files | filter:browserCtrl.query">
+    <div ng-repeat="asset in browserCtrl.assets | filter:browserCtrl.query">
       <sh-file>
-      {{file}}
+      {{asset}}
       </sh-file>
     </div>
   </sh-files>

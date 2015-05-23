@@ -15,10 +15,29 @@ goog.provide('shapy.browser.file');
  * @constructor
  *
  * @param {!angular.$scope} $rootScope The Angular root scope.
+ * @param {!angular.$http} $http The angular $http service.
+ * @param {!shapy.AssetsService} shAssets The assets management service.
  */
-shapy.browser.BrowserController = function($rootScope) {
-  this.files =['file1', 'file2', 'file3', 'file4', 'file5', 'file6']
-  this.query = 'file'
+shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
+  /** @private {!angular.$http} @const */
+  this.http_ = $http;
+  /** @private {!angular.shAssets} @const */
+  this.shAssets_ = shAssets;
+
+  /**
+   * Assets in current directory.
+   * @type Array
+   * @public
+   * @export
+   */
+  this.assets =['file1', 'file2', 'file3', 'file4', 'file5', 'file6'];
+ 
+  /**
+   * Query from user filtering results.
+   * @public {string}
+   * @export
+   */
+  this.query = 'file';
 
   $rootScope.$on('browser', goog.bind(function(name, data) {
     switch (data['type']) {
