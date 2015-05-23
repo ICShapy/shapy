@@ -281,10 +281,10 @@ shapy.editor.CanvasController.prototype.render = function() {
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     vp.camera.compute();
     this.renderer_.renderScene(vp);
-    if (vp == this.layout.active) {
-      this.renderer_.renderRig(this.rig);
-    }
   }, this);
+  if (this.layout.active && this.rig) {
+    this.renderer_.renderRig(this.layout.active, this.rig);
+  }
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     this.renderer_.renderOverlay(vp);
   }, this);

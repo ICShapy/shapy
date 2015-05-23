@@ -223,8 +223,6 @@ shapy.editor.Renderer.prototype.start = function() {
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
 shapy.editor.Renderer.prototype.renderScene = function(vp) {
-  vp.camera.compute();
-
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
@@ -333,12 +331,16 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
 /**
  * Renders a rig used by the editor.
  *
+ * @param {!shapy.editor.Viewport} vp Active viewport.
  * @param {!shapy.editor.Rig} rig Rig to be displayed.
  */
-shapy.editor.Renderer.prototype.renderRig = function(rig) {
+shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
+  this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+  this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+
   this.shRig_.use();
-  this.shRig_.uniform4fv('u_view', this.cubeView_);
-  this.shRig_.uniform4fv('u_proj', this.cubeProj_);
-  this.shRig_.uniform4fv('u_vp', this.cubeVP_);
+  this.shRig_.uniform4fv('u_view', vp.camera.view);
+  this.shRig_.uniform4fv('u_proj', vp.camera.proj);
+  this.shRig_.uniform4fv('u_vp', vp.camera.vp);
   rig.render(this.gl_, this.shRig_);
 };
