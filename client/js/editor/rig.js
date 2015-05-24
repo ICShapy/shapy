@@ -147,9 +147,9 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
         d[k++] = x + 1;     d[k++] = cy;  d[k++] = cz;
         d[k++] = x + 1;     d[k++] = py;  d[k++] = pz;
       } else {
-        d[k++] = x; d[k++] = py;  d[k++] = pz;
-        d[k++] = x; d[k++] = 0.0; d[k++] = 0.0;
-        d[k++] = x; d[k++] = cy;  d[k++] = cz;
+        d[k++] = x;         d[k++] = py;  d[k++] = pz;
+        d[k++] = x;         d[k++] = 0.0; d[k++] = 0.0;
+        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
 
         d[k++] = x + 0.125; d[k++] = 0.0; d[k++] = 0.0;
         d[k++] = x;         d[k++] = py;  d[k++] = pz;
@@ -206,6 +206,8 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
+  var pos = this.getPosition_();
+
   if (!this.mesh_) {
     this.build_(gl);
   }
@@ -219,6 +221,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
   // Arrow on X.
   goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
   (this.hover_.x || this.select_.x) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
@@ -228,6 +231,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
   // Arrow on Y.
   goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   (this.hover_.y || this.select_.y) ?
@@ -238,6 +242,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
   // Arrow on Z.
   goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateY(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   (this.hover_.z || this.select_.z) ?
@@ -248,6 +253,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
   // Box on the origin.
   goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
   sh.uniform4f('u_colour', 1, 0, 0, 1);
   gl.drawArrays(
