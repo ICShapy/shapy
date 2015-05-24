@@ -14,7 +14,7 @@ sh-sidebar {
 
 sh-files {
   position: fixed;
-  top: 61px;
+  top: 31px;
   left: 222px;
   right: 0;
   bottom: 0;
@@ -74,6 +74,7 @@ img {
 #browse-search {
   height: 25px;
   float: left;
+  width: 150px;
 }
 
 /**
@@ -82,10 +83,10 @@ img {
 
 sh-path {
   position: fixed;
-  top: 31px;
-  left: 222px;
+  top: 0;
+  left: 380px;
   right: 0;
-  bottom: 60px;
+  bottom: 30px;
   display: grid;
   overflow: auto;
 }
@@ -101,7 +102,7 @@ sh-path-asset {
 
 sh-path-asset > div {
   position: absolute;
-  top: 2px; left: 0; right: 0; bottom: 0;
+  top: 5px; left: 0; right: 0; bottom: 0;
   width: 30px;
 }
 
@@ -112,4 +113,5 @@ sh-path-asset > h1 {
   text-align: left;
   font-weight: normal;
   font-size: 14px;
+  color: #ffffff;
 }

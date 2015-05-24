@@ -25,6 +25,8 @@ goog.require('shapy.browser.Asset.Texture');
  * @param {!shapy.AssetsService} shAssets The assets management service.
  */
 shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
+  /** @private {!angular.$scope} @const */
+  this.rootscope_ = $rootScope;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!angular.shAssets} @const */
@@ -38,15 +40,8 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    */
   this.assets = [];
 
-  /**
-   * Path to current folder
-   */
-  this.path = [new shapy.browser.Asset.Dir(0, 'home')];
-
   for (var i = 1; i < 200; ++i) {
     this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
-
-
   }
 
   /**
@@ -62,6 +57,10 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
         this.query = data['query'];
         break;
       }
+      case 'pathAsset': {
+        this.displayDir(data['asset']);
+        break;
+      }
     }
   }, this));
 };
@@ -72,10 +71,31 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
  * @param {!shapy.browser.Asset} asset Asset that is to be entered.
  */
 shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
-  this.path.push(asset);
+  // Message BrowserToolbarController that path needs to be updated with asset.
+  this.rootscope_.$emit('browser', {
+      type: 'asset',
+      asset: asset
+  });
+  // TODO:
+  //use service to perform entering - not only dir!!!
+  this.displayDir(asset);
+};
+
+/**
+ * Displays content of given dir.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir to display.
+ */
+shapy.browser.BrowserController.prototype.displayDir = function(dir) {
+  // TODO:
   //use service to perform entering
   //temporary - update this.assets with return of service method
   this.assets = []
+  if (dir.id == 0) {
+    for (var i = 1; i < 200; ++i) {
+      this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
+    }
+  }
 };
 
 
@@ -89,15 +109,54 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
  * @param {!angular.$scope} $scope The current scope.
  */
 shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
+  /** @private {!angular.$scope} @const */
+  this.rootscope_ = $rootScope;
   /** @public {string} @const @export */
   this.query = '';
 
+  // If query changed, message BrowserController that new filtering is needed.
   $scope.$watch('browserCtrl.query', goog.bind(function() {
     $rootScope.$emit('browser', {
       type: 'query',
       query: this.query
     })
   }, this));
+
+  /**
+   * Path to current folder
+   * @public {string}
+   * @export
+   */
+  this.path = [new shapy.browser.Asset.Dir(0, 'home')];
+
+  // Add new asset tu current path when user requests entering further dirs.
+  $rootScope.$on('browser', goog.bind(function(name, data) {
+    switch (data['type']) {
+      case 'asset': {
+        this.path.push(data['asset']);
+        break;
+      }
+    }
+  }, this));
+};
+
+/**
+ * Returns to given asset(dir).
+ *
+ * @param {!shapy.browser.Asset.Dir} asset Asset (dir) from path to which are returning.
+ */
+shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset) {
+  // Message BrowserController that user requested returning to given asset from path.
+  this.rootscope_.$emit('browser', {
+      type: 'pathAsset',
+      asset: asset
+  });
+  // Drop redundant tail of path
+  var poppedAsset;
+  do {
+    poppedAsset = this.path.pop()
+  } while (poppedAsset.id != asset.id);
+  this.path.push(asset);
 };
 
 
@@ -156,6 +215,7 @@ shapy.browser.file = function() {
 };
 
 
+
 /**
  * Checks if asset name contains search query.
  *
@@ -167,4 +227,4 @@ shapy.browser.fileMatch = function() {
       return goog.string.contains(file.name, pattern);
     });
   };
-}
+};
