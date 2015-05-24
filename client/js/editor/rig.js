@@ -33,8 +33,6 @@ shapy.editor.Rig = function(type) {
   this.mesh_ = null;
   /** @private {!goog.vec.Mat4.Type} @const */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
-  /** @private {goog.vec.Vec3.Type} */
-  this.cursor_ = goog.vec.Vec3.createFloat32();
   /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
   this.hover_ = {
     x: false,
@@ -47,9 +45,12 @@ shapy.editor.Rig = function(type) {
     y: false,
     z: false
   };
+  // TODO: have the control object hold position.
+  /** @private {!goog.vec.Vec3.Type} */
+  this.position_ = goog.vec.Vec3.createFloat32FromValues(-0.5, 0.2, -0.5);
   // TODO: have rig retrieve this from control object.
   this.getPosition_ = function() {
-    return [-0.5, 0.2, -0.5];
+    return this.position_;
   };
 };
 
@@ -120,8 +121,8 @@ shapy.editor.Rig.Type = {
  */
 shapy.editor.Rig.Translate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.TRANSLATE);
-
-
+  /** @private {goog.vec.Vec3.Type} */
+  this.lastPos_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
 
@@ -209,8 +210,8 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
   }
 
   // Line through the arrow.
-  d[k++] = -1000.0; d[k++] =     0.0; d[k++] =     0.0;
-  d[k++] =  1000.0; d[k++] =     0.0; d[k++] =     0.0;
+  d[k++] = -1000.0; d[k++] = 0.0; d[k++] = 0.0;
+  d[k++] =  1000.0; d[k++] = 0.0; d[k++] = 0.0;
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
@@ -325,6 +326,18 @@ shapy.editor.intersectSphere = function(ray, c, r) {
  */
 shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
   var pos = this.getPosition_();
+
+  if (this.select_.x || this.select_.y || this.select_.z) {
+    // Calculate the translation.
+    var t = goog.vec.Vec3.createFloat32();
+    var currPos = this.getClosest_(ray);
+    goog.vec.Vec3.subtract(currPos, this.lastPos_, t);
+    this.lastPos_ = currPos;
+    // Update the rig position.
+    goog.vec.Vec3.add(pos, t, pos);
+    return;
+  }
+
   var c = goog.vec.Vec3.createFloat32();
 
   // Find intersection with X arrow.
@@ -350,6 +363,44 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
   this.select_.x = this.hover_.x;
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
+  this.lastPos_ = this.getClosest_(ray);
+};
+
+
+/**
+ * Computes the closest point on the active translation rig from the ray.
+ *
+ * @param {!goog.vec.Ray}  ray
+ */
+shapy.editor.Rig.Translate.prototype.getClosest_ = function(ray) {
+  var closest = goog.vec.Vec3.createFloat32();
+  var pos = this.getPosition_();
+  var u = goog.vec.Vec3.createFloat32();
+
+  // Get the direction vector of the rig arrow.
+  if (this.select_.x) {
+    goog.vec.Vec3.setFromValues(u, 1, 0, 0);
+  } else if (this.select_.y) {
+    goog.vec.Vec3.setFromValues(u, 0, 1, 0);
+  } else {
+    goog.vec.Vec3.setFromValues(u, 0, 0, 1);
+  }
+
+  // Compute the closest point.
+  var w = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(pos, ray.origin, w);
+
+  var a = goog.vec.Vec3.dot(u, u);
+  var b = goog.vec.Vec3.dot(u, ray.dir);
+  var c = goog.vec.Vec3.dot(ray.dir, ray.dir);
+  var d = goog.vec.Vec3.dot(u, w);
+  var e = goog.vec.Vec3.dot(ray.dir, w);
+
+  var s = (b * e - c * d) / (a * c - b * b);
+  goog.vec.Vec3.scale(u, s, u);
+  goog.vec.Vec3.add(pos, u, closest);
+
+  return closest;
 };
 
 
@@ -364,6 +415,8 @@ shapy.editor.Rig.Rotate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.ROTATE);
   /** @private {!goog.vec.Vec3.Type} */
   this.normal_ = goog.vec.Vec3.createFloat32();
+  /** @private {goog.vec.Vec3.Type} */
+  this.cursor_ = goog.vec.Vec3.createFloat32();
   /** @private {number} */
   this.startAngle_ = 0.0;
   /** @private {number} */
