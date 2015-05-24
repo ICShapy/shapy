@@ -115,18 +115,7 @@ goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
  * Number of points used for the base of the arrowhead.
  * @type {number} @const
  */
-shapy.editor.Rig.Translate.CIRCLE = 17;
-
-/**
- * Angle between the points on the circle;
- *
- */
-
-/**
- * Number of points used for the arrow.
- * @type {number} @const
- */
-shapy.editor.Rig.Translate.ARROW = shapy.editor.Rig.Translate.CIRCLE + 3;
+shapy.editor.Rig.Translate.CIRCLE = 16;
 
 
 /**
@@ -137,22 +126,27 @@ shapy.editor.Rig.Translate.ARROW = shapy.editor.Rig.Translate.CIRCLE + 3;
  * @param {!WebGLContext}        gl WebGL context.
  */
 shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
-  var d = new Float32Array(shapy.editor.Rig.Translate.ARROW * 3);
-  var angle = 0;
-  var da = 2 * Math.PI / (shapy.editor.Rig.Translate.CIRCLE - 1);
+  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 18 + 6);
+  var angle = 2 * Math.PI / shapy.editor.Rig.Translate.CIRCLE;
   var k = 0;
 
   d[k++] = 0.0; d[k++] = 0.0; d[k++] = 0.0;
   d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;
 
   for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
-    d[k++] = 1;
-    d[k++] = 0.25 * Math.sin(angle);
-    d[k++] = 0.25 * Math.cos(angle);
-    angle += da;
-  }
+    var py = 0.05 * Math.sin(i * angle);
+    var pz = 0.05 * Math.cos(i * angle);
+    var cy = 0.05 * Math.sin((i + 1) * angle);
+    var cz = 0.05 * Math.cos((i + 1) * angle);
 
-  d[k++] = 1.5; d[k++] = 0.0; d[k++] = 0.0;
+    d[k++] = 1.0; d[k++] = py;  d[k++] = pz;
+    d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;    
+    d[k++] = 1.0; d[k++] = cy;  d[k++] = cz;
+ 
+    d[k++] = 1.125; d[k++] = 0.0; d[k++] = 0.0; 
+    d[k++] = 1.0;   d[k++] = py;  d[k++] = pz;
+    d[k++] = 1.0;   d[k++] = cy;  d[k++] = cz;
+  }
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
@@ -179,12 +173,33 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
 
   // Arrow on X.
+  goog.vec.Mat4.makeIdentity(this.model_);
   sh.uniformMat4x4('u_model', this.model_);
   (this.hover_.x || this.select_.x) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
       sh.uniform4f('u_colour', 1, 0, 0, 1);
   gl.drawArrays(gl.LINE_STRIP, 0, 2);
-  gl.drawArrays(goog.webgl.TRIANGLES, 1, 18);
+  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+
+  // Arrow on Y.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  (this.hover_.y || this.select_.y) ?
+      sh.uniform4f('u_colour', 1, 1, 0, 1) :
+      sh.uniform4f('u_colour', 0, 0, 1, 1);
+  gl.drawArrays(gl.LINE_STRIP, 0, 2);
+  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+
+  // Arrow on Z.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.rotateY(this.model_, Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  (this.hover_.z || this.select_.z) ?
+      sh.uniform4f('u_colour', 1, 1, 0, 1) :
+      sh.uniform4f('u_colour', 0, 1, 0, 1);
+  gl.drawArrays(gl.LINE_STRIP, 0, 2);
+  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
 
   gl.disableVertexAttribArray(0);
 };
