@@ -223,10 +223,18 @@ shapy.editor.CanvasController = function($rootScope) {
   this.vp_ = new goog.math.Size(0, 0);
 
   /**
+   * Active rig.
+   * @public {!shapy.editor.Rig}
+   */
+  this.rig = new shapy.editor.Rig.Rotate();
+  //this.rig = new shapy.editor.Rig.Translate();
+
+  /**
    * Root layout.
    * @public {!shapy.editor.Layout} @const
    */
   this.layout = new shapy.editor.Layout.Single();
+  this.layout.active.rig = this.rig;
 
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
@@ -266,10 +274,12 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.layout.resize(width, height);
   }
 
-  // Clear the screen, start fresh frame.
+  // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();
-
-  // Render all objects in all viewports.
+  if (this.layout.active && this.layout.active.rig) {
+    this.layout.active.camera.compute();
+    this.renderer_.renderRig(this.layout.active, this.layout.active.rig);
+  }
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     // Update viewport, camera, cube, etc.
     vp.camera.compute();
@@ -302,6 +312,7 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
         case 'double': this.layout = new shapy.editor.Layout.Double(); break;
         case 'quad': this.layout = new shapy.editor.Layout.Quad(); break;
       }
+      this.layout.active.rig = this.rig;
       break;
     }
   }

@@ -6,6 +6,7 @@ goog.provide('shapy.editor.Camera.Ortho');
 goog.provide('shapy.editor.Camera.Persp');
 
 goog.require('goog.vec.Mat4');
+goog.require('goog.vec.Ray');
 goog.require('goog.vec.Vec3');
 
 
@@ -19,13 +20,17 @@ shapy.editor.Camera = function() {
   /** @public {!goog.vec.Mat4} @const */
   this.proj = goog.vec.Mat4.createFloat32();
   /** @public {!goog.vec.Mat4} @const */
+  this.invProj = goog.vec.Mat4.createFloat32();
+  /** @public {!goog.vec.Mat4} @const */
   this.view = goog.vec.Mat4.createFloat32();
+  /** @public {!goog.vec.Mat4} @const */
+  this.invView = goog.vec.Mat4.createFloat32();
   /** @public {!goog.vec.Mat4} @const */
   this.vp = goog.vec.Mat4.createFloat32();
   /** @public {!goog.vec.Vec3} @const */
   this.up = goog.vec.Vec3.createFloat32FromValues(0, 1, 0);
   /** @public {!goog.vec.Vec3} @const */
-  this.eye = goog.vec.Vec3.createFloat32FromValues(8, 8, 8);
+  this.eye = goog.vec.Vec3.createFloat32FromValues(2, 2, 2);
   /** @public {!goog.vec.Vec3} @const */
   this.center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
 };
@@ -48,29 +53,36 @@ shapy.editor.Camera.prototype.resize = goog.abstractMethod;
 
 
 /**
+ * Returns the ray that corresponds to a screen coordinate.
+ *
+ * @public
+ */
+shapy.editor.Camera.prototype.raycast = goog.abstractMethod;
+
+/**
  * Maximum zoom level.
- * @param {number} @const
+ * @type {number} @const
  */
 shapy.editor.Camera.MAX_ZOOM = 20.0;
 
 
 /**
  * Maximum zoom level.
- * @param {number} @const
+ * @type {number} @const
  */
 shapy.editor.Camera.MIN_ZOOM = 0.5;
 
 
 /**
  * Zoom speed.
- * @param {number} @const
+ * @type {number} @const
  */
 shapy.editor.Camera.ZOOM_SPEED = 0.85;
 
 
 /**
  * Panning speed.
- * @param {number} @const
+ * @type {number} @const
  */
 shapy.editor.Camera.PAN_SPEED = 15;
 
@@ -102,18 +114,44 @@ goog.inherits(shapy.editor.Camera.Persp, shapy.editor.Camera);
 shapy.editor.Camera.Persp.prototype.compute = function() {
   goog.vec.Mat4.makeLookAt(
       this.view, this.eye, this.center, this.up);
+
   goog.vec.Mat4.makePerspective(
-      this.proj, this.fov, this.aspect, this.znear, this.zfar);
+      this.proj,
+      this.fov / 180 * Math.PI,
+      this.aspect,
+      this.znear,
+      this.zfar);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
+  goog.vec.Mat4.invert(this.view, this.invView);
+  goog.vec.Mat4.invert(this.proj, this.invProj);
 };
 
 
 /**
- * On resize
+ * On resize.
+ *
+ * @param {number} w
+ * @param {number} h
  */
 shapy.editor.Camera.Persp.prototype.resize = function(w, h) {
   this.aspect = w / h;
-  this.compute();
+};
+
+
+/**
+ * Creates a ray out of normalized device coordinates.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {goog.vec.Ray.Type}
+ */
+shapy.editor.Camera.Persp.prototype.raycast = function(x, y) {
+  var dir = goog.vec.Vec4.createFloat32FromValues(x, y, -1, 1);
+  goog.vec.Mat4.multVec3(this.invProj, dir, dir);
+  goog.vec.Mat4.multVec3NoTranslate(this.invView, dir, dir);
+  goog.vec.Vec3.normalize(dir, dir);
+  return new goog.vec.Ray(goog.vec.Vec3.cloneFloat32(this.eye), dir);
 };
 
 
@@ -148,11 +186,29 @@ shapy.editor.Camera.Ortho.prototype.compute = function() {
   goog.vec.Mat4.makeOrtho(
       this.proj, -fSize, fSize, -fSize, fSize, this.znear, this.zfar);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
+  goog.vec.Mat4.invert(this.view, this.invView);
+  goog.vec.Mat4.invert(this.proj, this.invProj);
 };
 
 
 /**
- * On resize
+ * On resize.
+ *
+ * @param {number} w
+ * @param {number} h
  */
 shapy.editor.Camera.Ortho.prototype.resize = function(w, h) {
+};
+
+
+/**
+ * Creates a ray out of normalized device coordinates.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {goog.vec.Ray.Type}
+ */
+shapy.editor.Camera.Ortho.prototype.raycast = function(x, y) {
+  return new goog.vec.Ray();
 };

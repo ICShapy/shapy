@@ -116,14 +116,33 @@ shapy.editor.GROUND_FS =
   '  float a5x = alpha(a5.x, 0.02);\n' +
   '  float a5z = alpha(a5.y, 0.02);\n' +
 
-  '  vec4 colour = vec4(0.2, 0.2, 0.2, 0.5);\n' +
-  '  colour = mix(vec4(0.2, 0.5, 1.0, 1.0), colour, a1x);\n' +
-  '  colour = mix(vec4(0.2, 0.5, 1.0, 1.0), colour, a1z);\n' +
-  '  colour = mix(vec4(0.5, 0.5, 1.0, 1.0), colour, a5x);\n' +
-  '  colour = mix(vec4(0.5, 0.5, 1.0, 1.0), colour, a5z);\n' +
-  '  colour = mix(vec4(1.0, 0.0, 0.0, 1.0), colour, ax);\n' +
-  '  colour = mix(vec4(0.0, 1.0, 0.0, 1.0), colour, az);\n' +
+  '  vec4 colour = vec4(0.2, 0.2, 0.2, 0.4);\n' +
+  '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
+  '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
+  '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
+  '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5z);\n' +
+  '  colour = mix(vec4(1.0, 0.0, 0.0, 0.95), colour, az);\n' +
+  '  colour = mix(vec4(0.0, 1.0, 0.0, 0.95), colour, ax);\n' +
   '  gl_FragColor = colour;\n' +
+  '}\n';
+
+
+/** @type {string} @const */
+shapy.editor.RIG_VS =
+  'attribute vec3 a_vertex;\n' +
+  'uniform mat4 u_vp;\n' +
+  'uniform mat4 u_model;\n' +
+  'void main(void) {\n' +
+  '  gl_Position = u_vp * u_model * vec4(a_vertex, 1.0);\n' +
+  '}\n';
+
+
+/** @type {string} @const */
+shapy.editor.RIG_FS =
+  'precision mediump float;\n' +
+  'uniform vec4 u_colour;\n' +
+  'void main(void) {\n' +
+  '  gl_FragColor = u_colour;\n' +
   '}\n';
 
 
@@ -180,6 +199,12 @@ shapy.editor.Renderer = function(gl) {
   this.shGround_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.GROUND_FS);
   this.shGround_.link();
 
+  /** @private {!shapy.editor.Shader} @const */
+  this.shRig_ = new shapy.editor.Shader(this.gl_);
+  this.shRig_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.RIG_VS);
+  this.shRig_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.RIG_FS);
+  this.shRig_.link();
+
   /** @private {!shapy.editor.Mesh} @const */
   this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
   this.txCube_ = this.loadTexture_(shapy.editor.CUBE_TEXTURE);
@@ -198,51 +223,6 @@ shapy.editor.Renderer = function(gl) {
       -1, 0, -1, 1, 0, 1, -1, 0, 1,
       -1, 0, -1, 1, 0, 1, 1, 0, -1
   ]), goog.webgl.STATIC_DRAW);
-};
-
-
-/**
- * Loads a hardcoded texture :).
- *
- * @private
- *
- * @param {string} data Base64 encoded image.
- *
- * @return {!WebGLTexture} Decoded texture.
- */
-shapy.editor.Renderer.prototype.loadTexture_ = function(data) {
-  var tex = this.gl_.createTexture();
-  var img = new Image();
-
-  img.onload = goog.bind(function() {
-    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, tex);
-    this.gl_.texImage2D(
-        goog.webgl.TEXTURE_2D,
-        0,
-        goog.webgl.RGBA,
-        goog.webgl.RGBA,
-        goog.webgl.UNSIGNED_BYTE, img);
-    this.gl_.texParameteri(
-        goog.webgl.TEXTURE_2D,
-        goog.webgl.TEXTURE_MAG_FILTER,
-        goog.webgl.LINEAR);
-    this.gl_.texParameteri(
-        goog.webgl.TEXTURE_2D,
-        goog.webgl.TEXTURE_MIN_FILTER,
-        goog.webgl.LINEAR);
-    this.gl_.texParameteri(
-        goog.webgl.TEXTURE_2D,
-        goog.webgl.TEXTURE_WRAP_S,
-        goog.webgl.CLAMP_TO_EDGE);
-    this.gl_.texParameteri(
-        goog.webgl.TEXTURE_2D,
-        goog.webgl.TEXTURE_WRAP_T,
-        goog.webgl.CLAMP_TO_EDGE);
-    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, null);
-  }, this);
-  img.src = data;
-
-  return tex;
 };
 
 
@@ -269,7 +249,7 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
   this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
   {
     this.shGround_.use();
-    this.shGround_.uniform4fv('u_vp', vp.camera.vp);
+    this.shGround_.uniformMat4x4('u_vp', vp.camera.vp);
     this.shGround_.uniform2f('u_size', 35, 35);
 
     this.gl_.enableVertexAttribArray(0);
@@ -292,27 +272,40 @@ shapy.editor.Renderer.prototype.renderBorder = function(vp) {
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
   this.gl_.disable(goog.webgl.DEPTH_TEST);
+  {
+    this.shOverlay_.use();
+    vp.active ?
+      this.shOverlay_.uniform4f('u_colour', 1, 1, 0, 1) :
+      this.shOverlay_.uniform4f('u_colour', .1, .1, .1, .1);
 
-  this.shBorder_.use();
-  if (vp.active) {
-    this.shBorder_.uniform4f('u_colour', new Float32Array([1, 1, 0, 1]));
-  } else {
-    this.shBorder_.uniform4f('u_colour', new Float32Array([.1, .1, .1, 1]));
+    this.shOverlay_.uniform2f('u_size', vp.rect.w, vp.rect.h);
+    this.shOverlay_.uniformMat4x4('u_view', this.identity);
+    this.shOverlay_.uniformMat4x4('u_proj', this.identity);
+    this.shOverlay_.uniformMat4x4('u_vp', this.identity);
+
+    this.gl_.enableVertexAttribArray(0);
+    this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
+    this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 8, 0);
+    this.gl_.drawArrays(goog.webgl.LINE_LOOP, 0, 4);
+    this.gl_.disableVertexAttribArray(0);
   }
-  this.shBorder_.uniform2f('u_size', vp.rect.w, vp.rect.h);
-
-  this.gl_.enableVertexAttribArray(0);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
-  this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 8, 0);
-  this.gl_.drawArrays(goog.webgl.LINE_LOOP, 0, 4);
-  this.gl_.disableVertexAttribArray(0);
-
   this.gl_.enable(goog.webgl.DEPTH_TEST);
-};
+}
 
 
 /**
- * Renders the BORDER
+ * @type {number} @const
+ */
+shapy.editor.Renderer.CUBE_SIZE = 120;
+
+/**
+ * @type {number} @const
+ */
+shapy.editor.Renderer.CUBE_DISTANCE = 5;
+
+
+/**
+ * Renders the overlay
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
@@ -327,10 +320,32 @@ shapy.editor.Renderer.prototype.renderCamCube = function(vp) {
 
   // Render cube.
   this.shColour_.use();
-  this.shColour_.uniform4fv('u_view', vp.camCube.view);
-  this.shColour_.uniform4fv('u_proj', vp.camCube.proj);
-  this.shColour_.uniform4fv('u_vp', vp.camCube.vp);
+  this.shColour_.uniformMat4x4('u_view', this.cubeView_);
+  this.shColour_.uniformMat4x4('u_proj', this.cubeProj_);
+  this.shColour_.uniformMat4x4('u_vp', this.cubeVP_);
   this.msCube_.render(this.shColour_);
 
   this.gl_.enable(goog.webgl.DEPTH_TEST);
+};
+
+
+/**
+ * Renders a rig used by the editor.
+ *
+ * @param {!shapy.editor.Viewport} vp Active viewport.
+ * @param {!shapy.editor.Rig} rig Rig to be displayed.
+ */
+shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
+  this.gl_.clear(goog.webgl.DEPTH_BUFFER_BIT);
+
+  this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+  this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+
+  {
+    this.shRig_.use();
+    this.shRig_.uniformMat4x4('u_view', vp.camera.view);
+    this.shRig_.uniformMat4x4('u_proj', vp.camera.proj);
+    this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
+    rig.render(this.gl_, this.shRig_);
+  }
 };
