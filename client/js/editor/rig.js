@@ -29,8 +29,14 @@ goog.provide('shapy.editor.Rig.Translate');
 shapy.editor.Rig = function(type) {
   /** @public {shapy.editor.Rig.Type} @const */
   this.type = type;
+  /** @private {WebGLBuffer} */
+  this.mesh_ = null;
   /** @private {!goog.vec.Mat4.Type} @const */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
+  /** @private {!goog.vec.Vec3.Type} */
+  this.normal_ = goog.vec.Vec3.createFloat32();
+  /** @private {goog.vec.Vec3.Type} */
+  this.cursor_ = goog.vec.Vec3.createFloat32();
   /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
   this.hover_ = {
     x: false,
@@ -57,31 +63,31 @@ shapy.editor.Rig.prototype.render = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse move event.
  */
 shapy.editor.Rig.prototype.mouseMove = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse down event.
  */
 shapy.editor.Rig.prototype.mouseDown = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse up event.
  */
 shapy.editor.Rig.prototype.mouseUp = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse enter event.
  */
 shapy.editor.Rig.prototype.mouseEnter = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse leave event.
  */
 shapy.editor.Rig.prototype.mouseLeave = goog.abstractMethod;
 
@@ -107,6 +113,8 @@ shapy.editor.Rig.Type = {
  */
 shapy.editor.Rig.Translate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.TRANSLATE);
+
+
 };
 goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
 
@@ -188,7 +196,7 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
   for (var i = 0; i < triangles.length; i++) {
     var vertex = triangles[i];
 
-    d[k++] = vertices[3 * vertex + 0];
+    d[k++] = vertices[3 * vertex    ];
     d[k++] = vertices[3 * vertex + 1];
     d[k++] = vertices[3 * vertex + 2];
   }
@@ -263,6 +271,55 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 };
 
 
+/**
+ * Handles mouse move event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.prototype.mouseMove = function(ray) {
+
+};
+
+
+/**
+ * Handles mouse down event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.prototype.mouseDown = function(ray) {
+
+
+};
+
+
+/**
+ * Handles mouse up event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.prototype.mouseUp = function(ray) {
+
+};
+
+
+/**
+ * Handles mouse enter event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.prototype.mouseEnter = function(ray) {
+
+};
+
+
+/**
+ * Handles mouse leave event.
+ */
+shapy.editor.Rig.prototype.mouseLeave = function() {
+
+};
+
+
 
 /**
  * Rig used to alter rotation.
@@ -272,16 +329,10 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
  */
 shapy.editor.Rig.Rotate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.ROTATE);
-  /** @private {WebGLBuffer} */
-  this.mesh_ = null;
-  /** @private {!goog.vec.Vec3.Type} */
-  this.normal_ = goog.vec.Vec3.createFloat32();
   /** @private {number} */
   this.startAngle_ = 0.0;
   /** @private {number} */
   this.currentAngle_ = 0.0;
-  /** @private {goog.vec.Vec3.Type} */
-  this.cursor_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
 
@@ -558,7 +609,7 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse move event.
  *
  * @param {!goog.vec.Ray} ray
  */
@@ -616,7 +667,7 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse down event.
  *
  * @param {!goog.vec.Ray} ray
  */
@@ -649,7 +700,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse up event.
  *
  * @param {!goog.vec.Ray} ray
  */
@@ -659,7 +710,7 @@ shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse enter event.
  *
  * @param {!goog.vec.Ray} ray
  */
@@ -668,7 +719,7 @@ shapy.editor.Rig.Rotate.prototype.mouseEnter = function(ray) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse leave event.
  */
 shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
   this.select_.x = this.select_.y = this.select_.z = false;
