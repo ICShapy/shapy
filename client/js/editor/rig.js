@@ -56,6 +56,56 @@ shapy.editor.Rig = function(type) {
 
 
 /**
+ * Creates the mesh for a cube.
+ *
+ * @private
+ *
+ * @param {!goog.vec.Float32Array} d Array where the indices should be stored.
+ * @param {number}                 k Index where to place the indices.
+ * @param {number}                 a Length of an edge.
+ * @param {!goog.vec.Float32Array} c Center of the cube.
+ */
+shapy.editor.Rig.prototype.buildCube_ = function(d, k, a, c) {
+  // Compute the vertices.
+  var vertices = new Float32Array(24);
+  var i = 0;
+
+  for (var x = -1; x <= 1; x++) {
+    for (var y = -1; y <= 1; y++) {
+      for (var z = -1; z <= 1; z++) {
+        if (x == 0 || y == 0 || z == 0) {
+          continue;
+        }
+
+        vertices[i++] = (a / 2) * x;
+        vertices[i++] = (a / 2) * y;
+        vertices[i++] = (a / 2) * z;
+      }
+    }
+  }
+
+  // Vertices forming the triangles.
+  var triangles = [
+                   0, 4, 6, 6, 2, 0,
+                   0, 4, 1, 4, 5, 1,
+                   4, 5, 7, 7, 6, 4,
+                   5, 7, 3, 3, 1, 5,
+                   0, 1, 3, 3, 0, 2,
+                   2, 6, 7, 7, 3, 2
+                  ];
+
+  // Construct the cube.
+  for (var i = 0; i < triangles.length; i++) {
+    var vertex = triangles[i];
+
+    d[k++] = c[0] + vertices[3 * vertex    ];
+    d[k++] = c[1] + vertices[3 * vertex + 1];
+    d[k++] = c[2] + vertices[3 * vertex + 2];
+  }
+};
+
+
+/**
  * Renders the rig.
  */
 shapy.editor.Rig.prototype.render = goog.abstractMethod;
@@ -178,39 +228,8 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
   }
 
   // Construct a cube on the origin.
-  var vertices = new Float32Array(24);
-  var i = 0;
-
-  for (var x = -1; x <= 1; x++) {
-    for (var y = -1; y <= 1; y++) {
-      for (var z = -1; z <= 1; z++) {
-        if (x == 0 || y == 0 || z == 0) {
-          continue;
-        }
-
-        vertices[i++] = 0.025 * x;
-        vertices[i++] = 0.025 * y;
-        vertices[i++] = 0.025 * z;
-      }
-    }
-  }
-
-  var triangles = [
-                   0, 4, 6, 6, 2, 0,
-                   0, 4, 1, 4, 5, 1,
-                   4, 5, 7, 7, 6, 4,
-                   5, 7, 3, 3, 1, 5,
-                   0, 1, 3, 3, 0, 2,
-                   2, 6, 7, 7, 3, 2
-                  ];
-
-  for (var i = 0; i < triangles.length; i++) {
-    var vertex = triangles[i];
-
-    d[k++] = vertices[3 * vertex    ];
-    d[k++] = vertices[3 * vertex + 1];
-    d[k++] = vertices[3 * vertex + 2];
-  }
+  this.buildCube_(d, k, 0.05, [0.0, 0.0, 0.0]);
+  k += 108;
 
   // Line through the arrow.
   d[k++] = -1000.0; d[k++] = 0.0; d[k++] = 0.0;
@@ -837,49 +856,11 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
     d[k++] = 1.0; d[k++] = py; d[k++] = pz;
   }
 
-  // Construct a cubes.
-  var vertices = new Float32Array(24);
-  var i = 0;
+  // Construct the cobe on the tube.
+  this.buildCube_(d, k, 0.07, [1.0, 0.0, 0.0]);
 
-  for (var x = -1; x <= 1; x++) {
-    for (var y = -1; y <= 1; y++) {
-      for (var z = -1; z <= 1; z++) {
-        if (x == 0 || y == 0 || z == 0) {
-          continue;
-        }
-        vertices[i++] = x; vertices[i++] = y; vertices[i++] = z;
-      }
-    }
-  }
-
-  var triangles = [
-                   0, 4, 6, 6, 2, 0,
-                   0, 4, 1, 4, 5, 1,
-                   4, 5, 7, 7, 6, 4,
-                   5, 7, 3, 3, 1, 5,
-                   0, 1, 3, 3, 0, 2,
-                   2, 6, 7, 7, 3, 2
-                  ];
-
-
-  // Construct the cube on the tube.
-  for (var i = 0; i < triangles.length; i++) {
-    var vertex = triangles[i];
-
-    d[k++] = 1.0 + 0.035 * vertices[3 * vertex    ];
-    d[k++] =       0.035 * vertices[3 * vertex + 1];
-    d[k++] =       0.035 * vertices[3 * vertex + 2];
-  }
-
-  // Construct the cube at the origin.
-  for (var i = 0; i < triangles.length; i++) {
-    var vertex = triangles[i];
-
-    d[k++] = 0.025 * vertices[3 * vertex    ];
-    d[k++] = 0.025 * vertices[3 * vertex + 1];
-    d[k++] = 0.025 * vertices[3 * vertex + 2];
-  }
-
+  // Construct the cube on the origin.
+  this.buildCube_(d, k + 108, 0.05, [0.0, 0.0, 0.0]);
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
