@@ -77,9 +77,9 @@ shapy.editor.Rig.prototype.buildCube_ = function(d, k, a, c) {
           continue;
         }
 
-        vertices[i++] = (a / 2) * x;
-        vertices[i++] = (a / 2) * y;
-        vertices[i++] = (a / 2) * z;
+        vertices[i++] = c[0] + (a / 2) * x;
+        vertices[i++] = c[1] + (a / 2) * y;
+        vertices[i++] = c[2] + (a / 2) * z;
       }
     }
   }
@@ -98,9 +98,9 @@ shapy.editor.Rig.prototype.buildCube_ = function(d, k, a, c) {
   for (var i = 0; i < triangles.length; i++) {
     var vertex = triangles[i];
 
-    d[k++] = c[0] + vertices[3 * vertex    ];
-    d[k++] = c[1] + vertices[3 * vertex + 1];
-    d[k++] = c[2] + vertices[3 * vertex + 2];
+    d[k++] = vertices[3 * vertex    ];
+    d[k++] = vertices[3 * vertex + 1];
+    d[k++] = vertices[3 * vertex + 2];
   }
 };
 
@@ -279,8 +279,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   if (!this.mesh_) {
     this.build_(gl);
   }
-
-  sh.uniformMat4x4('u_model', this.model_);
 
   gl.enableVertexAttribArray(0);
 
@@ -531,8 +529,6 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   if (!this.mesh_) {
     this.build_(gl);
   }
-
-  sh.uniformMat4x4('u_model', this.model_);
 
   gl.enableVertexAttribArray(0);
 
@@ -844,6 +840,11 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
  */
 shapy.editor.Rig.Scale = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.SCALE);
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.lastPos_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Scale, shapy.editor.Rig);
 
@@ -867,8 +868,9 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
   var k = 0;
 
   // Build the tube.
-  this.buildTube_(d, k, 16, 1.0, 0.02, [0.0, 0.0, 0.0]);
-  k += 16 * 18;
+  this.buildTube_(
+      d, k, shapy.editor.Rig.Scale.TUBE_BASE, 1.0, 0.02, [0.0, 0.0, 0.0]);
+  k += shapy.editor.Rig.Scale.TUBE_BASE * 18;
 
   // Construct the cobe on the tube.
   this.buildCube_(d, k, 0.07, [1.0, 0.0, 0.0]);
@@ -894,8 +896,6 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   if (!this.mesh_) {
     this.build_(gl);
   }
-
-  sh.uniformMat4x4('u_model', this.model_);
 
   gl.enableVertexAttribArray(0);
 
@@ -937,4 +937,86 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
       goog.webgl.TRIANGLES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36, 36);
 
   gl.disableVertexAttribArray(0);
+};
+
+
+/**
+ * Determines if the ray intersects the cube using a modified
+ * version of Smits' algorithm.
+ *
+ * @param {!goog.vec.Ray}  ray Ray
+ * @param {!goog.vec.Vec3} c   Center of the cube.
+ * @param {number}         a   Length of the edge.
+ */
+shapy.editor.intersectCube = function(ray, c, a) {
+  var tmin, tmax, tymin, tymax, tzmin, zmax;
+
+  var min = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.setFromValues(min, c[0] - a / 2, c[1] - a / 2, c[2] - a / 2);
+
+  var max = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.setFromValues(min, c[0] + a / 2, c[1] + a / 2, c[2] + a / 2);
+
+  if (ray.dir[0] >= 0) {
+    tmin = (min[0] - ray.origin[0]) / ray.dir[0];
+    tmax = (max[0] - ray.origin[0]) / ray.dir[0];
+  } else {
+    tmin = (max[0] - ray.origin[0]) / ray.dir[0];
+    tmax = (min[0] - ray.origin[0]) / ray.dir[0];
+  }
+
+  if (ray.dir[1] >= 0) {
+    tymin = (min[1] - ray.origin[1]) / ray.dir[1];
+    tymax = (max[1] - ray.origin[1]) / ray.dir[1];
+  } else {
+    tymin = (max[1] - ray.origin[1]) / ray.dir[1];
+    tymax = (min[1] - ray.origin[1]) / ray.dir[1];
+  }
+
+  if ((tmin > tymax) || (tymin > tmax)) {
+    return false;
+  }
+
+  if (tymin > tmin) {
+    tmin = tymin;
+  }
+
+  if (tymax < tmax) {
+    tmax = tymax;
+  }
+
+  if (ray.dir[2] >= 0) {
+    tzmin = (min[2] - ray.origin[2]) / ray.dir[2];
+    tzmax = (max[2] - ray.origin[2]) / ray.dir[2];
+  } else {
+    tzmin = (max[2] - ray.origin[2]) / ray.dir[2];
+    tzmax = (min[2] - ray.origin[2]) / ray.dir[2];
+  }
+
+  // Lab closes...
+  // TODO: finish & improve.
+
+  return false;
+};
+
+
+/**
+ * Handles mouse move event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
+
+};
+
+
+/**
+ * Handles mouse down event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
+  this.select_.x = this.hover_.x;
+  this.select_.y = this.hover_.y;
+  this.select_.z = this.hover_.z;
 };
