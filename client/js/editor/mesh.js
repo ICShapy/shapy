@@ -107,37 +107,75 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   // If a face has more than 3 edges, triangulate by treating the face as a
   // triangle fan primitive.
 
-  // First pass - calculate size of the vertex buffer
+  // Calculate size of the vertex buffer
   var size = 0;
   for (var i = 0; i < f.length; i++) {
     // Every new vertex after 3 requires another 3 vertices in the buffer
+    // Number of vertices in a face === number of edges in a face
     size += 3 + (f[i].length - 3) * 3;
   }
 
-  // Second pass - fill out the vertex buffer
-  var k = 0;
+  // Allocate vertex buffer
   var d = new Float32Array(size << 4);
-  for (var i = 0; i < f.length; i++) {
-    var face = f[i];
+  var k = 0;
 
-    // Given face [[a, b], [b, c], ...]
-    // triangulation is [a, b, c]
-    var a = e[face[0]][0];
-      console.log(a);
-    d[k++] = v[a * 3]; d[k++] = v[a * 3 + 1]; d[k++] = v[a * 3 + 2]; // position
+  var addVertex = function(x, y, z) {
+    d[k++] = x; d[k++] = y; d[k++] = z; // position
     d[k++] = 0; d[k++] = 0; d[k++] = 0; // normal
     d[k++] = 0; d[k++] = 0; // texcoord
     d[k++] = 1; d[k++] = 1; d[k++] = 1; d[k++] = 1; // diffuse
     d[k++] = 0; d[k++] = 0; d[k++] = 0; d[k++] = 0;
+  }
 
+  // Fill out the vertex buffer
+  // Just for reference:
+  // * face[i] is the i'th edge in the face
+  // * e[face[i]] gives the pair of vertices in the i'th edge of the face
+  // * e[face[i]][0] gives the first vertex in the i'th edge of the face
+  // 
+  for (var i = 0; i < f.length; i++) {
+    var face = f[i];
+
+    // Unfortunately, this algorithm is a bit more complicated than it should be
+    // because edge i's tail doesn't necessarily points to edge i+1's head
+    var a = e[face[0]][0];
     for (var j = 0; j < 2; j++) { // edge ID
       var b = e[face[j]][1];
-      console.log(b);
-      d[k++] = v[b * 3]; d[k++] = v[b * 3 + 1]; d[k++] = v[b * 3 + 2]; // position
-      d[k++] = 0; d[k++] = 0; d[k++] = 0; // normal
-      d[k++] = 0; d[k++] = 0; // texcoord
-      d[k++] = 1; d[k++] = 1; d[k++] = 1; d[k++] = 1; // diffuse
-      d[k++] = 0; d[k++] = 0; d[k++] = 0; d[k++] = 0;
+      var c = e[face[j + 1]][1];
+
+      // If in the first iteration, we discover that 'a' is incorrect
+      // (eg. [b, a], [b, c] or [b, a], [c, b] rather than [a, b], [b, c]) then
+      // ensure 'a' is correct before continuing.
+      if (j == 0) {
+        if (e[face[0]][0] == e[face[1]][0] || e[face[0]][0] == e[face[1]][1]) {
+          a = e[face[0]][1];
+        }
+      }
+
+      // So there are 4 possible permutations of
+      // [a, b], [b, c] where one are correct and three are incorrect, so
+      // ensure that the correct values of b and c are chosen when generating
+      // the triangle of [a, b, c].
+
+      // Deal with the case [b, a], [b, c]
+      if (e[face[j]][0] == e[face[j + 1]][0]) {
+        b = e[face[j]][0];
+      }
+
+      // Deal with the case [b, a], [c, b]
+      if (e[face[j]][0] == e[face[j + 1]][1]) {
+        b = e[face[j]][0];
+        c = e[face[j + 1]][0];
+      }
+
+      // Deal with the case [a, b], [c, b]
+      if (e[face[j]][1] == e[face[j + 1]][1]) {
+        c = e[face[j + 1]][0];
+      }
+
+      addVertex(v[a * 3], v[a * 3 + 1], v[a * 3 + 2]);
+      addVertex(v[b * 3], v[b * 3 + 1], v[b * 3 + 2]);
+      addVertex(v[c * 3], v[c * 3 + 1], v[c * 3 + 2]);
     }
   }
 
