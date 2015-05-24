@@ -340,9 +340,6 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  this.gl_.enable(goog.webgl.CULL_FACE);
-  this.gl_.cullFace(goog.webgl.FRONT);
-  this.gl_.frontFace(goog.webgl.CCW);
   {
     this.shRig_.use();
     this.shRig_.uniformMat4x4('u_view', vp.camera.view);
@@ -350,5 +347,4 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
     this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
     rig.render(this.gl_, this.shRig_);
   }
-  this.gl_.disable(goog.webgl.CULL_FACE);
 };
