@@ -516,6 +516,13 @@ shapy.editor.Viewport = function(name) {
   this.camera = new shapy.editor.Camera.Persp();
 
   /**
+   * Control cube attached to the viewport.
+   * @public {!shapy.editor.CamCube}
+   * @const
+   */
+  this.camCube = new shapy.editor.CamCube(this, this.camera);
+
+  /**
    * The size and position of the viewport.
    * @public {!goog.math.Size}
    * @const
@@ -574,6 +581,7 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
   this.rect.w = w;
   this.rect.h = h;
   this.camera.resize(w, h);
+  this.camCube.resize(w, h);
 };
 
 

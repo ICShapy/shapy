@@ -266,13 +266,19 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.layout.resize(width, height);
   }
 
-  // Clear the screen, render the scenes and then render overlays.
+  // Clear the screen, start fresh frame.
   this.renderer_.start();
+
+  // Render all objects in all viewports.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
-    this.renderer_.renderScene(vp);
-  }, this);
-  goog.object.forEach(this.layout.viewports, function(vp, name) {
-    this.renderer_.renderOverlay(vp);
+    // Update viewport, camera, cube, etc.
+    vp.camera.compute();
+    vp.camCube.compute();
+
+    // Render the entities & overlays.
+    this.renderer_.renderGround(vp);
+    this.renderer_.renderBorder(vp);
+    this.renderer_.renderCamCube(vp);
   }, this);
 };
 

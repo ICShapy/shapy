@@ -18,6 +18,9 @@
     <!-- Closure library dependency tree. -->
     <script src="/js/goog/base.js"></script>
     <script type="text/javascript">
+      goog.addDependency('../editor/camcube.js', [
+          'shapy.editor.CamCube'
+      ], []);
       goog.addDependency('../editor/camera.js', [
           'shapy.editor.Camera'
       ], []);
@@ -30,6 +33,7 @@
           'shapy.editor.EditorToolbarController',
           'shapy.editor.CanvasDirective'
       ], [
+          'shapy.editor.CamCube',
           'shapy.editor.Object',
           'shapy.editor.Mesh',
           'shapy.editor.Renderer',
@@ -88,7 +92,7 @@
       ]);
       goog.addDependency('../register.js', [
           'shapy.equals',
-          'shapy.email',        
+          'shapy.email',
           'shapy.RegisterController'
       ], []);
       goog.addDependency('../scene.js', [
