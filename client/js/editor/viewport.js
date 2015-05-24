@@ -133,7 +133,10 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
   result.vp.mouseDown(result.x, result.y, e.which);
 
   this.active.active = false;
+  var rig = this.active.rig;
+  this.active.rig = null;
   this.active = result.vp;
+  this.active.rig = rig;
   this.active.active = true;
 };
 
