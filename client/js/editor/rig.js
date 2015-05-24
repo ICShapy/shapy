@@ -142,7 +142,7 @@ shapy.editor.Rig.Translate.CIRCLE = 16;
  */
 shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
   // Construct the arrows.
-  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 36 + 108);
+  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 36 + 108 + 6);
   var angle = 2 * Math.PI / shapy.editor.Rig.Translate.CIRCLE;
   var k = 0;
 
@@ -208,6 +208,10 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
     d[k++] = vertices[3 * vertex + 2];
   }
 
+  // Line through the arrow.
+  d[k++] = -1000.0; d[k++] =     0.0; d[k++] =     0.0;
+  d[k++] =  1000.0; d[k++] =     0.0; d[k++] =     0.0;
+
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
   gl.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
@@ -240,6 +244,8 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+    gl.drawArrays(
+      goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
   } else if (this.hover_.x) {
     sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
   } else {
@@ -255,6 +261,8 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+    gl.drawArrays(
+      goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
   } else if (this.hover_.y) {
     sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
   } else {
@@ -270,6 +278,8 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.z) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
   } else if (this.hover_.z) {
     sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
   } else {
@@ -337,7 +347,9 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
-  //console.log(ray);
+  this.select_.x = this.hover_.x;
+  this.select_.y = this.hover_.y;
+  this.select_.z = this.hover_.z;
 };
 
 
