@@ -127,6 +127,28 @@ shapy.editor.GROUND_FS =
   '}\n';
 
 
+/** @type {string} @const */
+shapy.editor.CUBE_TEXTURE = 'data:image/png;base64,' +
+    'iVBORw0KGgoAAAANSUhEUgAAAYAAAABACAYAAAATWKC/AAAABmJLR0QA/wD/AP+gvaeTAAAA' +
+    'CXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUYEBUZPQkZ/gAAABl0RVh0Q29tbWVudABD' +
+    'cmVhdGVkIHdpdGggR0lNUFeBDhcAAAMdSURBVHja7d1dbuMgFAZQEmVXXj/ryjxF6lixAxgw' +
+    '2OdIfWkzcbj8fNiinUcI4R0AuJ1XCCHEGG/Z+GVZgvZrv/Zr/13b/5SBAPckAAAEAAACAAAB' +
+    'AIAAAEAAACAAABAAAAgAAAQAAAIAAAEAgAAAQAAAIAAAEAAACAAABAAAAgAAAQCAAABAAAAg' +
+    'AAAIIYTwUgKAfMuybP4sxpj879av3XvflPevGgC/Pszng7Qqxuc1v94jxli9cKVtSu3krfdI' +
+    '+VlqTXoO8q1rjtzHPcZByuf5do2cMVOzz0mXO4e/fX/9vdx+b34HkHrxFsXIKUKLwh1ZpEsX' +
+    'gpQFvueEL6lBjVr06uPW46B04c5pW+/FvySIUzcCvYK99XhZ98lWH6XO9xaePYuRMmC3dnmp' +
+    'u7/eHZw6EdevL2nPt53CmTX5df3cPp51B3ikLXsTP/W9z1g8Yoz/fW19b/0Z/35ttW39ul+v' +
+    'n+Vx0V4fndW+p2LUm/xXaVevPr67krvaGR/71NoIzDR/ZnkcN9UpoKsvoH8HTc7z7ruEykwT' +
+    'vaQvr7jIXH1TtCzL169ZNjivEQZBSQjYQZ5fk9rXHHkh2HtcMdLnof/cm/kO4FVz8I82Sa60' +
+    'cJ85oGr166+TLjmnxe480XNORN3hbsumrHEAlJ4CalWAK94FfGtPTjtb1qRWv5acd55xon/a' +
+    'lXrwoXScXPVu2EZysAAYcaH2KOi8mqh92aapRuAd2STM/ljlynPz0sdAt4ox+61e7rHMOy2a' +
+    'anG8Rle5S7qjvTv6kebC86xBXqMYZz4HzT3aVvpLILk7vF41SbnOiAO+9TjIPde/V8fcx382' +
+    'Auf0f84poE89Rjkx9Oo5CFISMbcYrQd/yfPIGu1qvTj3uK0doRZnjoMam6SafTHa44/ZF/9a' +
+    'v83e6jopHiGE911vxT+TTvu1X/vb3BHvhejRP3+h/4+3318DBbrshmu9hnr8fwAAAgAAAQCA' +
+    'AABAAAAgAAAQAAAIAAAEAAACAAABAIAAAEAAACAAABAAAAgAAAQAAAIAAAEAgAAAQAAAIAAA' +
+    'WHuEEN7KAHA//wCB7wmMcLEBOgAAAABJRU5ErkJggg==';
+
+
 
 /**
  * Creates a new renderer.
@@ -160,6 +182,7 @@ shapy.editor.Renderer = function(gl) {
 
   /** @private {!shapy.editor.Mesh} @const */
   this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
+  this.txCube_ = this.loadTexture_(shapy.editor.CUBE_TEXTURE);
 
   /** @private {!WebGLBuffer} @const */
   this.bfRect_ = this.gl_.createBuffer();
@@ -175,6 +198,51 @@ shapy.editor.Renderer = function(gl) {
       -1, 0, -1, 1, 0, 1, -1, 0, 1,
       -1, 0, -1, 1, 0, 1, 1, 0, -1
   ]), goog.webgl.STATIC_DRAW);
+};
+
+
+/**
+ * Loads a hardcoded texture :).
+ *
+ * @private
+ *
+ * @param {string} data Base64 encoded image.
+ *
+ * @return {!WebGLTexture} Decoded texture.
+ */
+shapy.editor.Renderer.prototype.loadTexture_ = function(data) {
+  var tex = this.gl_.createTexture();
+  var img = new Image();
+
+  img.onload = goog.bind(function() {
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, tex);
+    this.gl_.texImage2D(
+        goog.webgl.TEXTURE_2D,
+        0,
+        goog.webgl.RGBA,
+        goog.webgl.RGBA,
+        goog.webgl.UNSIGNED_BYTE, img);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_MAG_FILTER,
+        goog.webgl.LINEAR);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_MIN_FILTER,
+        goog.webgl.LINEAR);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_WRAP_S,
+        goog.webgl.CLAMP_TO_EDGE);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_WRAP_T,
+        goog.webgl.CLAMP_TO_EDGE);
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, null);
+  }, this);
+  img.src = data;
+
+  return tex;
 };
 
 
