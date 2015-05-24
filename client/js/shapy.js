@@ -2,7 +2,6 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
-goog.require('shapy.AssetsService');
 goog.require('shapy.SceneService');
 goog.require('shapy.UserService');
 goog.require('shapy.highlight');
@@ -16,6 +15,7 @@ goog.require('shapy.browser.BrowserToolbarController');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.browser.files');
 goog.require('shapy.browser.file');
+goog.require('shapy.browser.AssetsService');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.EditorToolbarController');
 goog.require('shapy.editor.CanvasDirective');
@@ -199,7 +199,7 @@ shapy.module = angular
   .controller('EditorToolbarController', shapy.editor.EditorToolbarController)
 
   .service('shAuth', shapy.AuthService)
-  .service('shAssets', shapy.AssetsService)
+  .service('shAssets', shapy.browser.AssetsService)
   .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
