@@ -91,55 +91,6 @@ shapy.editor.Object = function(vertices, edges, faces) {
 
 
 /**
- * Build an cube object
- */
-shapy.editor.Object.createCube = function(w, h, d) {
-  // Vertex layout:
-  //   4-----5
-  //  /     /|
-  // 0-----1 |
-  // | 6   | 7
-  // |     |/
-  // 2-----3
-  var vertices = [
-    -w, h, d,
-    w, h, d,
-    -w, -h, d,
-    w, -h, d,
-    -w, h, -d,
-    w, h, -d,
-    -w, -h, -d,
-    w, -h, -d
-  ];
-
-  // Edge layout:
-  //   +--4--+
-  //  /     /5
-  // +--0--+ |
-  // 3   6 1 +
-  // |     |/
-  // +--2--+
-  var edges = [
-    [0, 1], [1, 3], [3, 2], [2, 0], // Front
-    [4, 5], [5, 7], [7, 6], [6, 4], // Back
-    [0, 4], [1, 5], [3, 7], [2, 6]  // Middle
-  ];
-
-  // Faces
-  var faces = [
-    [0, 1, 2, 3],   // +Z
-    [1, 9, 5, 10],  // +X
-    [4, 7, 6, 5],   // -Z
-    [8, 3, 11, 7],  // -X
-    [0, 8, 4, 9],   // +Y
-    [2, 10, 6, 11]  // -Y
-  ];
-
-  return new shapy.editor.Object(vertices, edges, faces);
-};
-
-
-/**
  * Recomputes the model matrix.
  *
  * @private
@@ -207,4 +158,79 @@ shapy.editor.Object.prototype.getData = function() {
  */
 shapy.editor.Object.prototype.getPosition = function() {
   return this.position_;
+};
+
+
+/**
+ * Build a polygon object
+ *
+ * @param {number} n Number of sides
+ * @param {number} radius Radius of each vertex
+ */
+shapy.editor.Object.createPolygon = function(n, radius) {
+  // A polygon is a circle divided into 'n' vertices
+  var vertices = [];
+  var edges = [];
+  var face = [];
+  for (var i = 0; i < n; i++) {
+    // Let the polygon lie on the XY plane
+    // TODO: Put it on the XZ plane instead?
+    var angle = (2 * Math.PI / n) * i;
+    vertices.push(radius * Math.sin(angle));
+    vertices.push(radius * Math.cos(angle));
+    vertices.push(0);
+    edges.push([i, (i + 1) % n]);
+    face.push(i);
+  }
+
+  return new shapy.editor.Object(vertices, edges, [face]);
+}
+
+
+/**
+ * Build an cube object
+ */
+shapy.editor.Object.createCube = function(w, h, d) {
+  // Vertex layout:
+  //   4-----5
+  //  /     /|
+  // 0-----1 |
+  // | 6   | 7
+  // |     |/
+  // 2-----3
+  var vertices = [
+    -w, h, d,
+    w, h, d,
+    -w, -h, d,
+    w, -h, d,
+    -w, h, -d,
+    w, h, -d,
+    -w, -h, -d,
+    w, -h, -d
+  ];
+
+  // Edge layout:
+  //   +--4--+
+  //  /     /5
+  // +--0--+ |
+  // 3   6 1 +
+  // |     |/
+  // +--2--+
+  var edges = [
+    [0, 1], [1, 3], [3, 2], [2, 0], // Front
+    [4, 5], [5, 7], [7, 6], [6, 4], // Back
+    [0, 4], [1, 5], [3, 7], [2, 6]  // Middle
+  ];
+
+  // Faces
+  var faces = [
+    [0, 1, 2, 3],   // +Z
+    [1, 9, 5, 10],  // +X
+    [4, 7, 6, 5],   // -Z
+    [8, 3, 11, 7],  // -X
+    [0, 8, 4, 9],   // +Y
+    [2, 10, 6, 11]  // -Y
+  ];
+
+  return new shapy.editor.Object(vertices, edges, faces);
 };
