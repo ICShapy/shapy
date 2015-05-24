@@ -8,6 +8,8 @@ goog.provide('shapy.editor.CamCube');
 /**
  * Cube displayed in the corner of all viewports that controls the camera.
  *
+ * TODO(nandor): Have a single instance of this.
+ *
  * @constructor
  *
  * @param {!shapy.editor.Viewport} viewport
@@ -31,6 +33,9 @@ shapy.editor.CamCube = function(viewport, camera) {
 
   /** @private {!goog.vec.Vec3.Type} @const */
   this.pos_ = goog.vec.Vec3.createFloat32();
+
+  /** @private {!WebGLBuffer} */
+  this.mesh_ = null;
 };
 
 
@@ -77,4 +82,67 @@ shapy.editor.CamCube.prototype.compute = function() {
   // Compute view and vp matrices.
   goog.vec.Mat4.makeLookAt(this.view, this.pos_, [0, 0, 0], this.camera_.up);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
+};
+
+
+/**
+ * Builds the cube mesh.
+ *
+ * @private
+ *
+ * @param {WebGLShader} gl
+ */
+shapy.editor.CamCube.prototype.build_ = function(gl) {
+  var data = new Float32Array(6 * 8 * 6 * 5), k = 0, tw = 1.0 / 6.0;
+
+  this.mesh_ = gl.createBuffer();
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+
+  // Front Center
+  data[k++] = -0.8; data[k++] = -0.8; data[k++] = 1.0;
+  data[k++] = 0.2 * 1 * tw; data[k++] = 0.8;
+  data[k++] = +0.8; data[k++] = +0.8; data[k++] = 1.0;
+  data[k++] = 0.8 * 1 * tw; data[k++] = 0.2;
+  data[k++] = +0.8; data[k++] = -0.8; data[k++] = 1.0;
+  data[k++] = 0.8 * 1 * tw; data[k++] = 0.8;
+
+  data[k++] = -0.8; data[k++] = -0.8; data[k++] = 1.0;
+  data[k++] = 0.2 * 1 * tw; data[k++] = 0.8;
+  data[k++] = -0.8; data[k++] = +0.8; data[k++] = 1.0;
+  data[k++] = 0.2 * 1 * tw; data[k++] = 0.2;
+  data[k++] = +0.8; data[k++] = +0.8; data[k++] = 1.0;
+  data[k++] = 0.8 * 1 * tw; data[k++] = 0.2;
+
+  gl.bufferData(goog.webgl.ARRAY_BUFFER, data, goog.webgl.STATIC_DRAW);
+};
+
+
+/**
+ * Renders the camera cube.
+ *
+ * @param {WebGLShader}         gl
+ * @param {shapy.editor.Shader} sh
+ */
+shapy.editor.CamCube.prototype.render = function(gl, sh) {
+  // Cache the mesh.
+  if (!this.mesh_) {
+    this.build_(gl);
+  }
+
+  gl.enableVertexAttribArray(0);
+  gl.enableVertexAttribArray(2);
+
+  gl.cullFace(goog.webgl.FRONT);
+  gl.frontFace(goog.webgl.CCW);
+  gl.enable(goog.webgl.CULL_FACE);
+
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 20, 0);
+  gl.vertexAttribPointer(2, 2, goog.webgl.FLOAT, false, 20, 12);
+  gl.drawArrays(goog.webgl.TRIANGLES, 0, 6);
+
+  gl.disable(goog.webgl.CULL_FACE);
+
+  gl.disableVertexAttribArray(2);
+  gl.disableVertexAttribArray(0);
 };

@@ -604,8 +604,8 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
   this.rect.y = y;
   this.rect.w = w;
   this.rect.h = h;
-  this.camera.resize(w, h);
   this.camCube.resize(w, h);
+  this.camera.resize(w, h);
 };
 
 

@@ -77,6 +77,28 @@ shapy.editor.BORDER_FS =
 
 
 /** @type {string} @const */
+shapy.editor.CUBE_VS =
+  'attribute vec3 a_vertex;                                           \n' +
+  'attribute vec2 a_uv;                                               \n' +
+  'uniform mat4 u_vp;                                                 \n' +
+  'varying vec2 v_uv;                                                 \n' +
+  'void main() {                                                      \n' +
+  '  v_uv = a_uv;                                                     \n' +
+  '  gl_Position = u_vp * vec4(a_vertex, 1.0);                        \n' +
+  '}                                                                  \n';
+
+
+/** @type {string} @const */
+shapy.editor.CUBE_FS =
+  'precision mediump float;                                           \n' +
+  'uniform sampler2D u_texture;                                       \n' +
+  'varying vec2 v_uv;                                                 \n' +
+  'void main() {                                                      \n' +
+  '  gl_FragColor = texture2D(u_texture, v_uv);                       \n' +
+  '}                                                                  \n';
+
+
+/** @type {string} @const */
 shapy.editor.GROUND_VS =
   'attribute vec3 a_vertex;                                           \n' +
   'uniform mat4 u_vp;\n' +
@@ -116,7 +138,7 @@ shapy.editor.GROUND_FS =
   '  float a5x = alpha(a5.x, 0.02);\n' +
   '  float a5z = alpha(a5.y, 0.02);\n' +
 
-  '  vec4 colour = vec4(0.2, 0.2, 0.2, 0.4);\n' +
+  '  vec4 colour = vec4(0.2, 0.2, 0.2, 0.5);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
   '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
@@ -200,6 +222,12 @@ shapy.editor.Renderer = function(gl) {
   this.shGround_.link();
 
   /** @private {!shapy.editor.Shader} @const */
+  this.shCube_ = new shapy.editor.Shader(this.gl_);
+  this.shCube_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.CUBE_VS);
+  this.shCube_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.CUBE_FS);
+  this.shCube_.link();
+
+  /** @private {!shapy.editor.Shader} @const */
   this.shRig_ = new shapy.editor.Shader(this.gl_);
   this.shRig_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.RIG_VS);
   this.shRig_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.RIG_FS);
@@ -223,6 +251,52 @@ shapy.editor.Renderer = function(gl) {
       -1, 0, -1, 1, 0, 1, -1, 0, 1,
       -1, 0, -1, 1, 0, 1, 1, 0, -1
   ]), goog.webgl.STATIC_DRAW);
+};
+
+
+/**
+ * Loads a hardcoded texture :).
+ *
+ * @private
+ *
+ * @param {string} data Base64 encoded image.
+ *
+ * @return {!WebGLTexture} Decoded texture.
+ */
+shapy.editor.Renderer.prototype.loadTexture_ = function(data) {
+  var tex = this.gl_.createTexture();
+  var img = new Image();
+
+  img.onload = goog.bind(function() {
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, tex);
+    this.gl_.texImage2D(
+        goog.webgl.TEXTURE_2D,
+        0,
+        goog.webgl.RGBA,
+        goog.webgl.RGBA,
+        goog.webgl.UNSIGNED_BYTE, img);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_MAG_FILTER,
+        goog.webgl.LINEAR);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_MIN_FILTER,
+        goog.webgl.LINEAR);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_WRAP_S,
+        goog.webgl.CLAMP_TO_EDGE);
+    this.gl_.texParameteri(
+        goog.webgl.TEXTURE_2D,
+        goog.webgl.TEXTURE_WRAP_T,
+        goog.webgl.CLAMP_TO_EDGE);
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, null);
+    tex.loaded = true;
+  }, this);
+  img.src = data;
+
+  return tex;
 };
 
 
@@ -273,15 +347,15 @@ shapy.editor.Renderer.prototype.renderBorder = function(vp) {
 
   this.gl_.disable(goog.webgl.DEPTH_TEST);
   {
-    this.shOverlay_.use();
+    this.shBorder_.use();
     vp.active ?
-      this.shOverlay_.uniform4f('u_colour', 1, 1, 0, 1) :
-      this.shOverlay_.uniform4f('u_colour', .1, .1, .1, .1);
+      this.shBorder_.uniform4f('u_colour', 1, 1, 0, 1) :
+      this.shBorder_.uniform4f('u_colour', .1, .1, .1, .1);
 
-    this.shOverlay_.uniform2f('u_size', vp.rect.w, vp.rect.h);
-    this.shOverlay_.uniformMat4x4('u_view', this.identity);
-    this.shOverlay_.uniformMat4x4('u_proj', this.identity);
-    this.shOverlay_.uniformMat4x4('u_vp', this.identity);
+    this.shBorder_.uniform2f('u_size', vp.rect.w, vp.rect.h);
+    this.shBorder_.uniformMat4x4('u_view', this.identity);
+    this.shBorder_.uniformMat4x4('u_proj', this.identity);
+    this.shBorder_.uniformMat4x4('u_vp', this.identity);
 
     this.gl_.enableVertexAttribArray(0);
     this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
@@ -290,7 +364,7 @@ shapy.editor.Renderer.prototype.renderBorder = function(vp) {
     this.gl_.disableVertexAttribArray(0);
   }
   this.gl_.enable(goog.webgl.DEPTH_TEST);
-}
+};
 
 
 /**
@@ -305,7 +379,7 @@ shapy.editor.Renderer.CUBE_DISTANCE = 5;
 
 
 /**
- * Renders the overlay
+ * Renders the BORDER
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
@@ -318,12 +392,16 @@ shapy.editor.Renderer.prototype.renderCamCube = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y + vp.rect.h - size, size, size);
   this.gl_.scissor(vp.rect.x, vp.rect.y + vp.rect.h - size, size, size);
 
-  // Render cube.
-  this.shColour_.use();
-  this.shColour_.uniformMat4x4('u_view', this.cubeView_);
-  this.shColour_.uniformMat4x4('u_proj', this.cubeProj_);
-  this.shColour_.uniformMat4x4('u_vp', this.cubeVP_);
-  this.msCube_.render(this.shColour_);
+  if (this.txCube_.loaded) {
+    // Render cube.
+    this.shCube_.use();
+    this.shCube_.uniformMat4x4('u_view', vp.camCube.view);
+    this.shCube_.uniformMat4x4('u_proj', vp.camCube.proj);
+    this.shCube_.uniformMat4x4('u_vp', vp.camCube.vp);
+
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txCube_);
+    vp.camCube.render(this.gl_, this.shRig_);
+  }
 
   this.gl_.enable(goog.webgl.DEPTH_TEST);
 };
