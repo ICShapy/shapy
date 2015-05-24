@@ -121,7 +121,10 @@ shapy.editor.Rig.Type = {
  */
 shapy.editor.Rig.Translate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.TRANSLATE);
-  /** @private {goog.vec.Vec3.Type} */
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
   this.lastPos_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
@@ -333,7 +336,7 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     var currPos = this.getClosest_(ray);
     goog.vec.Vec3.subtract(currPos, this.lastPos_, t);
     this.lastPos_ = currPos;
-    // Update the rig position.
+    // Update the position.
     goog.vec.Vec3.add(pos, t, pos);
     return;
   }
@@ -801,11 +804,142 @@ goog.inherits(shapy.editor.Rig.Scale, shapy.editor.Rig);
 
 
 /**
+ * Number of points used for the base of the tube.
+ * @type {number} @const
+ */
+shapy.editor.Rig.Scale.TUBE_BASE = 16;
+
+
+/**
+ * Creates the mesh for the rig.
+ *
+ * @private
+ *
+ * @param {!WebGLContext}        gl WebGL context.
+ */
+shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
+  var d = new Float32Array(shapy.editor.Rig.Scale.TUBE_BASE * 18 + 18 * 36);
+  var angle = 2 * Math.PI / shapy.editor.Rig.Scale.TUBE_BASE;
+  var k = 0;
+
+  for (var i = 0; i < shapy.editor.Rig.Scale.TUBE_BASE; i++) {
+    var py = 0.02 * Math.sin(i * angle);
+    var pz = 0.02 * Math.cos(i * angle);
+    var cy = 0.02 * Math.sin((i + 1) * angle);
+    var cz = 0.02 * Math.cos((i + 1) * angle);
+
+    d[k++] = 1.0; d[k++] = py; d[k++] = pz;
+    d[k++] = 0.0; d[k++] = py; d[k++] = pz;
+    d[k++] = 0.0; d[k++] = cy; d[k++] = cz;
+
+    d[k++] = 0.0; d[k++] = cy; d[k++] = cz;
+    d[k++] = 1.0; d[k++] = cy; d[k++] = cz;
+    d[k++] = 1.0; d[k++] = py; d[k++] = pz;
+  }
+
+  // Construct a cubes.
+  var vertices = new Float32Array(24);
+  var i = 0;
+
+  for (var x = -1; x <= 1; x++) {
+    for (var y = -1; y <= 1; y++) {
+      for (var z = -1; z <= 1; z++) {
+        if (x == 0 || y == 0 || z == 0) {
+          continue;
+        }
+        vertices[i++] = x; vertices[i++] = y; vertices[i++] = z;
+      }
+    }
+  }
+
+  var triangles = [
+                   0, 4, 6, 6, 2, 0,
+                   0, 4, 1, 4, 5, 1,
+                   4, 5, 7, 7, 6, 4,
+                   5, 7, 3, 3, 1, 5,
+                   0, 1, 3, 3, 0, 2,
+                   2, 6, 7, 7, 3, 2
+                  ];
+
+
+  // Construct the cube on the tube.
+  for (var i = 0; i < triangles.length; i++) {
+    var vertex = triangles[i];
+
+    d[k++] = 1.0 + 0.035 * vertices[3 * vertex    ];
+    d[k++] =       0.035 * vertices[3 * vertex + 1];
+    d[k++] =       0.035 * vertices[3 * vertex + 2];
+  }
+
+  // Construct the cube at the origin.
+  for (var i = 0; i < triangles.length; i++) {
+    var vertex = triangles[i];
+
+    d[k++] = 0.025 * vertices[3 * vertex    ];
+    d[k++] = 0.025 * vertices[3 * vertex + 1];
+    d[k++] = 0.025 * vertices[3 * vertex + 2];
+  }
+
+
+  this.mesh_ = gl.createBuffer();
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
+};
+
+
+/**
  * Renders the rig.
  *
  * @param {!WebGLContext}        gl WebGL context.
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
+  var pos = this.getPosition_();
 
+  if (!this.mesh_) {
+    this.build_(gl);
+  }
+
+  sh.uniformMat4x4('u_model', this.model_);
+
+  gl.enableVertexAttribArray(0);
+
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
+
+  // X.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  sh.uniformMat4x4('u_model', this.model_);
+  sh.uniform4f('u_colour', 0.7, 0.0, 0.0, 1.0);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36);
+
+  // Y.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36);
+
+  // Z.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  sh.uniform4f('u_colour', 0.0, 0.7, 0.0, 1.0);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36);
+
+  // Box on the origin.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  sh.uniformMat4x4('u_model', this.model_);
+  sh.uniform4f('u_colour', 1, 1, 0, 1);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36, 36);
+
+  gl.disableVertexAttribArray(0);
 };

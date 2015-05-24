@@ -232,6 +232,7 @@ shapy.editor.CanvasController = function($rootScope) {
    */
   //this.rig = new shapy.editor.Rig.Rotate();
   this.rig = new shapy.editor.Rig.Translate();
+  //this.rig = new shapy.editor.Rig.Scale();
 
   /**
    * Root layout.
