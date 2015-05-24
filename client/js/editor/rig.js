@@ -126,26 +126,35 @@ shapy.editor.Rig.Translate.CIRCLE = 16;
  * @param {!WebGLContext}        gl WebGL context.
  */
 shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
-  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 18 + 6);
+  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 45 + 6);
   var angle = 2 * Math.PI / shapy.editor.Rig.Translate.CIRCLE;
   var k = 0;
 
-  d[k++] = 0.0; d[k++] = 0.0; d[k++] = 0.0;
-  d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;
+  for (var x = 0; x <= 1; x++){
+    for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
+      var py = (4 * x + 1) * 0.01 * Math.sin(i * angle);
+      var pz = (4 * x + 1) * 0.01 * Math.cos(i * angle);
+      var cy = (4 * x + 1) * 0.01 * Math.sin((i + 1) * angle);
+      var cz = (4 * x + 1) * 0.01 * Math.cos((i + 1) * angle);
 
-  for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
-    var py = 0.05 * Math.sin(i * angle);
-    var pz = 0.05 * Math.cos(i * angle);
-    var cy = 0.05 * Math.sin((i + 1) * angle);
-    var cz = 0.05 * Math.cos((i + 1) * angle);
+      d[k++] = x; d[k++] = py;  d[k++] = pz;
+      d[k++] = x; d[k++] = 0.0; d[k++] = 0.0;
+      d[k++] = x; d[k++] = cy;  d[k++] = cz;
 
-    d[k++] = 1.0; d[k++] = py;  d[k++] = pz;
-    d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;    
-    d[k++] = 1.0; d[k++] = cy;  d[k++] = cz;
- 
-    d[k++] = 1.125; d[k++] = 0.0; d[k++] = 0.0; 
-    d[k++] = 1.0;   d[k++] = py;  d[k++] = pz;
-    d[k++] = 1.0;   d[k++] = cy;  d[k++] = cz;
+      if (x == 0) {
+        d[k++] = x + 1;     d[k++] = py;  d[k++] = pz;
+        d[k++] = x;         d[k++] = py;  d[k++] = pz;
+        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
+
+        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
+        d[k++] = x + 1;     d[k++] = cy;  d[k++] = cz;
+        d[k++] = x + 1;     d[k++] = py;  d[k++] = pz;
+      } else {
+        d[k++] = x + 0.125; d[k++] = 0.0; d[k++] = 0.0;
+        d[k++] = x;         d[k++] = py;  d[k++] = pz;
+        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
+      }
+    }
   }
 
   this.mesh_ = gl.createBuffer();
@@ -178,8 +187,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   (this.hover_.x || this.select_.x) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
       sh.uniform4f('u_colour', 1, 0, 0, 1);
-  gl.drawArrays(gl.LINE_STRIP, 0, 2);
-  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+  gl.drawArrays(goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
 
   // Arrow on Y.
   goog.vec.Mat4.makeIdentity(this.model_);
@@ -188,8 +196,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   (this.hover_.y || this.select_.y) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
       sh.uniform4f('u_colour', 0, 0, 1, 1);
-  gl.drawArrays(gl.LINE_STRIP, 0, 2);
-  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+  gl.drawArrays(goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
 
   // Arrow on Z.
   goog.vec.Mat4.makeIdentity(this.model_);
@@ -198,8 +205,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   (this.hover_.z || this.select_.z) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
       sh.uniform4f('u_colour', 0, 1, 0, 1);
-  gl.drawArrays(gl.LINE_STRIP, 0, 2);
-  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+  gl.drawArrays(goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
 
   gl.disableVertexAttribArray(0);
 };
