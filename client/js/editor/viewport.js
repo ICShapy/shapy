@@ -631,6 +631,7 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
 
   switch (button) {
     case 1: {
+      this.isRotating_ = true;      
       // TODO: selecting
       break;
     }
