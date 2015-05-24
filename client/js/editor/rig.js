@@ -133,10 +133,10 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
 
   for (var x = 0; x <= 1; x++){
     for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
-      var py = (4 * x + 1) * 0.01 * Math.sin(i * angle);
-      var pz = (4 * x + 1) * 0.01 * Math.cos(i * angle);
-      var cy = (4 * x + 1) * 0.01 * Math.sin((i + 1) * angle);
-      var cz = (4 * x + 1) * 0.01 * Math.cos((i + 1) * angle);
+      var py = (3 * x + 2) * 0.01 * Math.sin(i * angle);
+      var pz = (3 * x + 2) * 0.01 * Math.cos(i * angle);
+      var cy = (3 * x + 2) * 0.01 * Math.sin((i + 1) * angle);
+      var cz = (3 * x + 2) * 0.01 * Math.cos((i + 1) * angle);
 
       if (x == 0) {
         d[k++] = x + 1;     d[k++] = py;  d[k++] = pz;
@@ -255,7 +255,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
-  sh.uniform4f('u_colour', 1, 0, 0, 1);
+  sh.uniform4f('u_colour', 1, 1, 0, 1);
   gl.drawArrays(
       goog.webgl.TRIANGLES, shapy.editor.Rig.Translate.CIRCLE * 12, 36);
 
