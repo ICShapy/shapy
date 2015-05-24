@@ -6,6 +6,7 @@ goog.provide('shapy.browser.BrowserToolbarController');
 goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.files');
 goog.provide('shapy.browser.file');
+goog.provide('shapy.browser.fileMatch');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Asset.Dir');
@@ -56,15 +57,6 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
     }
   }, this));
 };
-
-/**
- * Checks if asset name contains search query.
- *
- * @param {!shapy.browser.Asset} asset Asset to check.
- */
-shapy.browser.BrowserController.prototype.filter = function(asset) {
-  return true;//asset.name.includes(this.query);
-}
 
 /**
  * Performs action associated with clicking on given asset.
@@ -152,3 +144,16 @@ shapy.browser.file = function() {
   };
 };
 
+
+/**
+ * Checks if asset name contains search query.
+ *
+ * @param {!shapy.browser.Asset} asset Asset to check.
+ */
+shapy.browser.fileMatch = function() {
+  return function(files, pattern) {
+    return goog.array.filter(files, function(file) {
+      return goog.string.contains(file.name, pattern);
+    });
+  };
+}

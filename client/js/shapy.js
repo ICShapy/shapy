@@ -7,6 +7,7 @@ goog.require('shapy.UserService');
 goog.require('shapy.highlight');
 goog.require('shapy.email');
 goog.require('shapy.equals');
+goog.require('shapy.browser.fileMatch');
 goog.require('shapy.LoginController');
 goog.require('shapy.HeaderController');
 goog.require('shapy.RegisterController');
@@ -215,6 +216,8 @@ shapy.module = angular
   .directive('shMenu', shapy.menu)
 
   .factory('shHttp', shapy.HttpInterceptor)
+
+  .filter('shFileMatch', shapy.browser.fileMatch)
 
   .config(shapy.configStates_)
   .config(shapy.configHttp_);

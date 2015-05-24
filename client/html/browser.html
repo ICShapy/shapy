@@ -4,8 +4,8 @@
     <h1>Folders</h1>
   </sh-sidebar>
   <sh-files>
-    <div ng-repeat="asset in browserCtrl.assets | filter:browserCtrl.filter">
-      <sh-file ng-click="browserCtrl.asset(1)">
+    <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query">
+      <sh-file ng-click="browserCtrl.asset(asset.id)">
         <div> </div>
         <h1> {{asset.name}} </h1>
       </sh-file>
