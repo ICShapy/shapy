@@ -22,6 +22,10 @@ sh-file {
   height: 200px;
 }
 
+sh-file:hover {
+  background-color: #dddddd;
+}
+
 #browse-search {
   height: 25px;
   float: left;

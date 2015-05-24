@@ -7,6 +7,11 @@ goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.files');
 goog.provide('shapy.browser.file');
 
+goog.require('shapy.browser.Asset');
+goog.require('shapy.browser.Asset.Dir');
+goog.require('shapy.browser.Asset.Scene');
+goog.require('shapy.browser.Asset.Texture');
+
 
 
 /**
@@ -30,7 +35,9 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @public
    * @export
    */
-  this.assets =['file1', 'file2', 'file3', 'file4', 'file5', 'file6'];
+  this.assets =[new shapy.browser.Asset.Dir(1, 'dir1'), new shapy.browser.Asset.Dir(2, 'dir2'),
+                new shapy.browser.Asset.Dir(3, 'dir3'), new shapy.browser.Asset.Dir(4, 'dir4'),
+                new shapy.browser.Asset.Dir(5, 'dir5'), new shapy.browser.Asset.Dir(6, 'dir6')];
  
   /**
    * Query from user filtering results.
@@ -47,6 +54,24 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
       }
     }
   }, this));
+};
+
+/**
+ * Checks if asset name contains search query.
+ *
+ * @param {!shapy.browser.Asset} asset Asset to check.
+ */
+shapy.browser.BrowserController.prototype.filter = function(asset) {
+  return true;//asset.name.includes(this.query);
+}
+
+/**
+ * Performs action associated with clicking on given asset. 
+ *
+ * @param {number} Id of the asset
+ */
+shapy.browser.BrowserController.prototype.asset = function(id) {
+
 };
 
 

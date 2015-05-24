@@ -57,7 +57,7 @@ shapy.browser.Asset = function(id, name, image) {
    * @public {!Image}
    * @const
    */
-  this.owner = owner;
+  this.image = image;
 };
 
 
