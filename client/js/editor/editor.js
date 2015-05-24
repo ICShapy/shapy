@@ -248,7 +248,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
-  this.objects_['test'] = new shapy.editor.Object();
+  this.objects_['test'] = shapy.editor.Object.createCube(2, 2, 2);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);

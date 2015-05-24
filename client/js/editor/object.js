@@ -21,7 +21,7 @@ goog.require('goog.vec.Vec3');
  *
  * @constructor
  */
-shapy.editor.Object = function() {
+shapy.editor.Object = function(vertices, edges, faces) {
   /** @public {number} */
   this.id = 1;
 
@@ -67,6 +67,75 @@ shapy.editor.Object = function() {
    * @private {number}
    */
   this.colour_ = 0xffffff;
+
+  /**
+   * Object Vertex List
+   * @private {object}
+   */
+  this.vertices_ = vertices;
+
+  /**
+   * Edge List
+   * Expressed as pairs of vertex indices indexing this.vertices_
+   * @private {}
+   */
+  this.edges_ = edges;
+
+  /**
+   * Face List
+   * Expressed as triples of edge indices indexing this.edges_
+   * @private {}
+   */
+   this.faces_ = faces;
+};
+
+
+/**
+ * Build an cube object
+ */
+shapy.editor.Object.createCube = function(w, h, d) {
+  // Vertex layout:
+  //   4-----5
+  //  /     /|
+  // 0-----1 |
+  // | 6   | 7
+  // |     |/
+  // 2-----3
+  var vertices = [
+    -w, h, d,
+    w, h, d,
+    -w, -h, d,
+    w, -h, d,
+    -w, h, -d,
+    w, h, -d,
+    -w, -h, -d,
+    w, -h, -d
+  ];
+
+  // Edge layout:
+  //   +--4--+
+  //  /     /5
+  // +--0--+ |
+  // 3   6 1 +
+  // |     |/
+  // +--2--+
+  var edges = [
+    [0, 1], [1, 3], [3, 2], [2, 0], // Front
+    [4, 5], [5, 7], [7, 6], [6, 4], // Back
+    [0, 4], [1, 5], [2, 6], [3, 7]  // Middle
+  ];
+
+  // Faces
+  var faces = [
+    [0, 1, 2, 3],   // +Z
+    [1, 9, 5, 10],  // +X
+    [4, 7, 6, 5],   // -Z
+    [8, 3, 11, 7],  // -X
+    [0, 8, 4, 9],   // +Y
+    [2, 10, 6, 11]  // -Y
+  ];
+
+  return new shapy.editor.Object(vertices, edges, faces);
 };
 
 
@@ -91,6 +160,18 @@ shapy.editor.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.translate(
       this.model_,
       this.translate_[0], this.translate_[1], this.translate_[2]);
+};
+
+
+/**
+ * Retrieves the geometry data.
+ */
+shapy.editor.Object.prototype.getGeometryData = function() {
+  return {
+    vertices: this.vertices_,
+    edges: this.edges_,
+    faces: this.faces_
+  };
 };
 
 

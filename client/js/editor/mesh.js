@@ -96,6 +96,56 @@ shapy.editor.Mesh.prototype.intersects = function(ray) {
 
 
 /**
+ * Create from an object
+ *
+ * @param {!WebGLContext} gl Context
+ * @param {type}          v Vertices
+ * @param {type}          e Edges
+ * @param {type}          f Faces
+ */
+shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
+  // If a face has more than 3 edges, triangulate by treating the face as a
+  // triangle fan primitive.
+
+  // First pass - calculate size of the vertex buffer
+  var size = 0;
+  for (var i = 0; i < f.length; i++) {
+    // Every new vertex after 3 requires another 3 vertices in the buffer
+    size += 3 + (f[i].length - 3) * 3;
+  }
+
+  // Second pass - fill out the vertex buffer
+  var k = 0;
+  var d = new Float32Array(size << 4);
+  for (var i = 0; i < f.length; i++) {
+    var face = f[i];
+
+    // Given face [[a, b], [b, c], ...]
+    // triangulation is [a, b, c]
+    var a = e[face[0]][0];
+      console.log(a);
+    d[k++] = v[a * 3]; d[k++] = v[a * 3 + 1]; d[k++] = v[a * 3 + 2]; // position
+    d[k++] = 0; d[k++] = 0; d[k++] = 0; // normal
+    d[k++] = 0; d[k++] = 0; // texcoord
+    d[k++] = 1; d[k++] = 1; d[k++] = 1; d[k++] = 1; // diffuse
+    d[k++] = 0; d[k++] = 0; d[k++] = 0; d[k++] = 0;
+
+    for (var j = 0; j < 2; j++) { // edge ID
+      var b = e[face[j]][1];
+      console.log(b);
+      d[k++] = v[b * 3]; d[k++] = v[b * 3 + 1]; d[k++] = v[b * 3 + 2]; // position
+      d[k++] = 0; d[k++] = 0; d[k++] = 0; // normal
+      d[k++] = 0; d[k++] = 0; // texcoord
+      d[k++] = 1; d[k++] = 1; d[k++] = 1; d[k++] = 1; // diffuse
+      d[k++] = 0; d[k++] = 0; d[k++] = 0; d[k++] = 0;
+    }
+  }
+
+  return new shapy.editor.Mesh(gl, d, {});
+};
+
+
+/**
  * Creates a plane.
  */
 shapy.editor.Mesh.createPlane = function(gl, w, h, sx, sy) {

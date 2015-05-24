@@ -134,7 +134,9 @@ shapy.editor.Renderer = function(gl) {
 shapy.editor.Renderer.prototype.updateObject = function(object) {
   // Re-build mesh
   // TODO: Keep version history
-  this.objectMeshes_[object.id] = shapy.editor.Mesh.createCube(this.gl_, 3, 3, 3);
+  var data = object.getGeometryData();
+  this.objectMeshes_[object.id] = shapy.editor.Mesh.createFromObject(
+    this.gl_, data.vertices, data.edges, data.faces);
 };
 
 
