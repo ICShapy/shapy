@@ -135,7 +135,7 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
   // Re-build mesh
   // TODO: Keep version history
   this.objectMeshes_[object.id] = shapy.editor.Mesh.createCube(this.gl_, 3, 3, 3);
-}
+};
 
 
 /**

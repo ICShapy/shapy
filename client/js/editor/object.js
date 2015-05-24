@@ -45,6 +45,12 @@ shapy.editor.Object = function() {
   this.model_ = goog.vec.Mat4.createFloat32();
 
   /**
+   * Position of the object
+   * @private {goog.vec.Vec3}
+   */
+  this.position_ = goog.vec.Vec3.createFromValues(0, 0, 0);
+
+  /**
    * True if any data field is dirty.
    * @private {boolean}
    */
@@ -113,4 +119,11 @@ shapy.editor.Object.prototype.getData = function() {
 
     colour: this.colour_
   };
+};
+
+/**
+ * Retrieves the object position.
+ */
+shapy.editor.Object.prototype.getPosition = function() {
+  return this.position_;
 };
