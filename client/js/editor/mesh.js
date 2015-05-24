@@ -139,7 +139,7 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
     // Unfortunately, this algorithm is a bit more complicated than it should be
     // because edge i's tail doesn't necessarily points to edge i+1's head
     var a = e[face[0]][0];
-    for (var j = 0; j < 2; j++) { // edge ID
+    for (var j = 0; j < (f[i].length - 1); j++) { // edge ID
       var b = e[face[j]][1];
       var c = e[face[j + 1]][1];
 
