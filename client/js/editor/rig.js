@@ -278,8 +278,8 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   goog.vec.Mat4.makeIdentity(this.model_);
   sh.uniformMat4x4('u_model', this.model_);
   (this.hover_.y || this.select_.y) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 0, 0, 1, 1);
+      sh.uniform4f('u_colour', 0, 0, 1.0, 1) :
+      sh.uniform4f('u_colour', 0, 0, 0.7, 1);
   gl.drawArrays(goog.webgl.TRIANGLES, i * 0, i);
 
   // X ring.
@@ -287,8 +287,8 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   (this.hover_.x || this.select_.x) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 1, 0, 0, 1);
+      sh.uniform4f('u_colour', 1.0, 0, 0, 1) :
+      sh.uniform4f('u_colour', 0.7, 0, 0, 1);
   gl.drawArrays(goog.webgl.TRIANGLES, i * 0, i);
 
   // Z ring.
@@ -296,8 +296,8 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   goog.vec.Mat4.rotateX(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   (this.hover_.z || this.select_.z) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 0, 1, 0, 1);
+      sh.uniform4f('u_colour', 0, 1.0, 0, 1) :
+      sh.uniform4f('u_colour', 0, 0.7, 0, 1);
   gl.drawArrays(goog.webgl.TRIANGLES, i * 0, i);
 
   gl.disableVertexAttribArray(0);
@@ -357,7 +357,7 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
   hits = goog.array.filter(hits, function(e) {
       return Math.abs(e[1] - 1.0) < shapy.editor.Rig.Rotate.RADIUS;
   }, this);
-  goog.array.sort(hits, function(e) { return -e[2]; }, this);
+  goog.array.sort(hits, function(e1, e2) { return e1[2] - e2[2]; }, this);
 
   // If no hits, return
   if (goog.array.isEmpty(hits)) {
