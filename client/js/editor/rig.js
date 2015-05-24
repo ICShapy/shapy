@@ -126,7 +126,8 @@ shapy.editor.Rig.Translate.CIRCLE = 16;
  * @param {!WebGLContext}        gl WebGL context.
  */
 shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
-  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 45 + 6);
+  // Construct the arrows.
+  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 45 + 108);
   var angle = 2 * Math.PI / shapy.editor.Rig.Translate.CIRCLE;
   var k = 0;
 
@@ -155,6 +156,41 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
         d[k++] = x;         d[k++] = cy;  d[k++] = cz;
       }
     }
+  }
+
+  // Construct a cube on the origin.
+  var vertices = new Float32Array(24);
+  var i = 0;
+
+  for (var x = -1; x <= 1; x++) {
+    for (var y = -1; y <= 1; y++) {
+      for (var z = -1; z <= 1; z++) {
+        if (x == 0 || y == 0 || z == 0) {
+          continue;
+        }
+
+        vertices[i++] = 0.025 * x;
+        vertices[i++] = 0.025 * y;
+        vertices[i++] = 0.025 * z;
+      }
+    }
+  }
+
+  var triangles = [
+                   0, 4, 6, 6, 2, 0,
+                   0, 4, 1, 4, 5, 1,
+                   4, 5, 7, 7, 6, 4,
+                   5, 7, 3, 3, 1, 5,
+                   0, 1, 3, 3, 0, 2,
+                   2, 6, 7, 7, 3, 2
+                  ];
+
+  for (var i = 0; i < triangles.length; i++) {
+    var vertex = triangles[i];
+
+    d[k++] = vertices[3 * vertex + 0];
+    d[k++] = vertices[3 * vertex + 1];
+    d[k++] = vertices[3 * vertex + 2];
   }
 
   this.mesh_ = gl.createBuffer();
@@ -187,7 +223,8 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   (this.hover_.x || this.select_.x) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
       sh.uniform4f('u_colour', 1, 0, 0, 1);
-  gl.drawArrays(goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
 
   // Arrow on Y.
   goog.vec.Mat4.makeIdentity(this.model_);
@@ -196,7 +233,8 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   (this.hover_.y || this.select_.y) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
       sh.uniform4f('u_colour', 0, 0, 1, 1);
-  gl.drawArrays(goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
 
   // Arrow on Z.
   goog.vec.Mat4.makeIdentity(this.model_);
@@ -205,7 +243,15 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   (this.hover_.z || this.select_.z) ?
       sh.uniform4f('u_colour', 1, 1, 0, 1) :
       sh.uniform4f('u_colour', 0, 1, 0, 1);
-  gl.drawArrays(goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 15);
+
+  // Box on the origin.
+  goog.vec.Mat4.makeIdentity(this.model_);
+  sh.uniformMat4x4('u_model', this.model_);
+  sh.uniform4f('u_colour', 1, 0, 0, 1);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, shapy.editor.Rig.Translate.CIRCLE * 15, 36);
 
   gl.disableVertexAttribArray(0);
 };
