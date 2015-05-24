@@ -35,10 +35,11 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @public
    * @export
    */
-  this.assets =[new shapy.browser.Asset.Dir(1, 'dir1'), new shapy.browser.Asset.Dir(2, 'dir2'),
-                new shapy.browser.Asset.Dir(3, 'dir3'), new shapy.browser.Asset.Dir(4, 'dir4'),
-                new shapy.browser.Asset.Dir(5, 'dir5'), new shapy.browser.Asset.Dir(6, 'dir6')];
- 
+  this.assets = [];
+  for (var i = 0; i < 200; ++i) {
+    this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
+  }
+
   /**
    * Query from user filtering results.
    * @public {string}
@@ -66,7 +67,7 @@ shapy.browser.BrowserController.prototype.filter = function(asset) {
 }
 
 /**
- * Performs action associated with clicking on given asset. 
+ * Performs action associated with clicking on given asset.
  *
  * @param {number} Id of the asset
  */
@@ -118,7 +119,23 @@ shapy.browser.sidebar = function() {
  */
 shapy.browser.files = function() {
   return {
-    restrict: 'E'
+    restrict: 'E',
+    link: function($scope, $elem, $attrs) {
+      var adjustWidth = function() {
+        // Compute the number of elements to have on each row & adjust cells.
+        // Width = 20px padding + max 20px for scrollbar.
+        // Width of a cell is at most 160 pixels, but it can be scaled down.
+        var width = $elem.outerWidth();
+        var perRow = Math.floor((width - 40) / 160 + 0.5);
+        var cellWidth = Math.floor((width - 40) / perRow - 10);
+        $('sh-file', $elem).css('width', cellWidth);
+      };
+
+      $(window).resize(adjustWidth);
+      $scope.$watch('browserCtrl.files', function() {
+        adjustWidth();
+      }, true);
+    }
   };
 };
 

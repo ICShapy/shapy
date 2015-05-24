@@ -2,9 +2,10 @@ sh-sidebar {
   position: fixed;
   top: 31px;
   left: 0;
-  width: 222px;
+  width: 221px;
   bottom: 0;
-  background-color: #e7efff
+  background-color: #eeeeee;
+  border-right: 1px solid #cccccc;
 }
 
 sh-files {
@@ -13,17 +14,44 @@ sh-files {
   left: 222px;
   right: 0;
   bottom: 0;
-  padding: 20px 0 0 20px
+  padding: 20px 0 0 20px;
+  display: grid;
+  background-color: #eeeeee;
+  overflow: auto;
 }
 
 sh-file {
-  border: 1px solid black;
-  width: 100px;
-  height: 200px;
+  display: block;
+  position: relative;
+  float: left;
+  width: 150px;
+  height: 130px;
+  margin: 10px 10px 0px 0px;
+  cursor: pointer;
 }
 
-sh-file:hover {
-  background-color: #dddddd;
+sh-file > h1 {
+  display: block;
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 16px;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font-weight: normal;
+  font-size: 14px;
+  padding: 0 10px 0 10px;
+}
+
+sh-file > div {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 25px;
+  border: 1px solid #cccccc;
+  box-shadow: 1px 1px 1px #cccccc;
+  background-color: white;
+}
+
+sh-file > div:hover {
+  box-shadow: 2px 2px 2px #bbbbbb;
 }
 
 #browse-search {

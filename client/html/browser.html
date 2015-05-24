@@ -5,10 +5,9 @@
   </sh-sidebar>
   <sh-files>
     <div ng-repeat="asset in browserCtrl.assets | filter:browserCtrl.filter">
-      <sh-file ng-click="browserCtrl.asset(1)"> <!--({{asset.id}})"> -->
-        <span>
-          {{asset.name}}
-        </span>
+      <sh-file ng-click="browserCtrl.asset(1)">
+        <div> </div>
+        <h1> {{asset.name}} </h1>
       </sh-file>
     </div>
   </sh-files>
