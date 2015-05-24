@@ -25,7 +25,7 @@ shapy.editor.Camera = function() {
   /** @public {!goog.vec.Vec3} @const */
   this.up = goog.vec.Vec3.createFloat32FromValues(0, 1, 0);
   /** @public {!goog.vec.Vec3} @const */
-  this.eye = goog.vec.Vec3.createFloat32FromValues(6, 6, 6);
+  this.eye = goog.vec.Vec3.createFloat32FromValues(8, 8, 8);
   /** @public {!goog.vec.Vec3} @const */
   this.center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
 };
@@ -68,6 +68,12 @@ shapy.editor.Camera.MIN_ZOOM = 0.5;
 shapy.editor.Camera.ZOOM_SPEED = 0.85;
 
 
+/**
+ * Panning speed.
+ * @param {number} @const
+ */
+shapy.editor.Camera.PAN_SPEED = 15;
+
 
 /**
  * Perspective camera.
@@ -81,9 +87,9 @@ shapy.editor.Camera.Persp = function() {
   /** @public {number} */
   this.aspect = 16.0 / 9.0;
   /** @public {number} */
-  this.nearp = 0.1;
+  this.znear = 0.1;
   /** @public {number} */
-  this.farp = 100.0;
+  this.zfar = 100.0;
   /** @public {number} */
   this.fov = 45.0;
 };
@@ -97,13 +103,13 @@ shapy.editor.Camera.Persp.prototype.compute = function() {
   goog.vec.Mat4.makeLookAt(
       this.view, this.eye, this.center, this.up);
   goog.vec.Mat4.makePerspective(
-      this.proj, this.fov, this.aspect, this.nearp, this.farp);
+      this.proj, this.fov, this.aspect, this.znear, this.zfar);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
 };
 
 
 /**
- *
+ * On resize
  */
 shapy.editor.Camera.Persp.prototype.resize = function(w, h) {
   this.aspect = w / h;
@@ -120,13 +126,33 @@ shapy.editor.Camera.Persp.prototype.resize = function(w, h) {
  */
 shapy.editor.Camera.Ortho = function() {
   shapy.editor.Camera.call(this);
+
+  this.znear = 0.1;
+  this.zfar = 100;
+  this.offset_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Camera.Ortho, shapy.editor.Camera);
 
 
 /**
- *
+ * Camera matrices.
+ */
+shapy.editor.Camera.Ortho.prototype.compute = function() {
+  // The width and height of the frustum should be equal to the distance of the
+  // eye from it's center (or, the size should be the width/height over 2)
+  goog.vec.Vec3.subtract(this.eye, this.center, this.offset_);
+  var fSize = goog.vec.Vec3.magnitude(this.offset_) * 0.5;
+
+  goog.vec.Mat4.makeLookAt(
+      this.view, this.eye, this.center, this.up);
+  goog.vec.Mat4.makeOrtho(
+      this.proj, -fSize, fSize, -fSize, fSize, this.znear, this.zfar);
+  goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
+};
+
+
+/**
+ * On resize
  */
 shapy.editor.Camera.Ortho.prototype.resize = function(w, h) {
-
 };

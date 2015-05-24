@@ -1,17 +1,57 @@
+<form
+    name="login"
+    method="POST"
+    action="/login"
+    onsubmit="return false;"
+    ng-submit="loginCtrl.login()">
+  <h2> Login </h2>
+  <div>
+    <strong> Email: </strong>
+    <div>
+      <input
+          type="email"
+          name="username"
+          autocomplete="on"
+          ng-model="loginCtrl.username"
+          required />
+    </div>
+    <div
+        class="error"
+        ng-show="login.username.$touched || login.username.$pending.unique">
+      <span ng-show="login.username.$error.required">
+          You must input an email address
+      </span>
+      <span ng-show="login.username.$error.username">
+          Invalid email address
+      </span>
+    </div>
+  </div>
 
+  <div>
+    <strong> Password: </strong>
+    <div>
+      <input
+          type="password"
+          name="password"
+          autocomplete="on"
+          ng-minlength="8"
+          ng-model="loginCtrl.password"
+          required />
+    </div>
+    <div class="error" ng-show="login.password.$touched">
+      <span ng-show="login.password.$error.required">
+          You must input a password
+      </span>
+      <span ng-show="login.password.$error.minlength">
+          Password must be at least 8 characters long
+      </span>
+    </div>
+  </div>
 
-<div id="login">
-  <form method="POST">
-    <div>
-      Username
-      <input type="text" name="email" ng-model="loginCtrl.email" />
-    </div>
-    <div>
-      Password
-      <input type="password" name="passw" ng-model="loginCtrl.passw" />
-    </div>
-    <div>
-      <input type="button" value="Login" ng-click="loginCtrl.login()" />
-    </div>
-  </form>
-</div>
+  <div>
+    <input
+        type="submit"
+        value="Login"
+        ng-disabled="login.$invalid" />
+  </div>
+</form>

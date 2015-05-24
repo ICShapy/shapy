@@ -37,11 +37,11 @@ shapy.editor.Mesh = function(gl, buffer, data) {
   this.buffer_ = gl.createBuffer();
   /** @private {number} @const */
   this.indices_ = buffer.length >> 4;
-  /** @private {!goog.vec.Vec4} @const */
-  this.border_ = data.border ?
+  /** @public {!goog.vec.Vec4} @const */
+  this.border = data.border ?
       goog.vec.Vec4.createFloat32FromValues(
           data.border[0], data.border[1], data.border[2], data.border[3]) :
-      goog.vec.Vec3.createFloat32FromValues(
+      goog.vec.Vec4.createFloat32FromValues(
           0, 0, 0, 0);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, buffer, goog.webgl.STATIC_DRAW);
@@ -76,7 +76,7 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 64, 32);
   this.gl_.vertexAttribPointer(4, 3, goog.webgl.FLOAT, false, 64, 48);
 
-  sh.uniform4f('u_border', this.border_);
+  sh.uniform4f('u_border', this.border);
   this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.indices_);
 
   this.gl_.disableVertexAttribArray(4);
@@ -113,9 +113,127 @@ shapy.editor.Mesh.createArrow = function(gl, dir) {
 
 /**
  * Creates a cube.
+ *
+ * @param {!WebGLContext} gl Context
+ * @param {number}        w  Width of the cube
+ * @param {number}        h  Height of the cube
+ * @param {number}        d  Depth of the cube
  */
 shapy.editor.Mesh.createCube = function(gl, w, h, d) {
+  // Corner layout:
+  //   4-----5
+  //  /     /|
+  // 0-----1 |
+  // | 6   | 7
+  // |     |/
+  // 2-----3
 
+  // Corner vertices
+  var corners = [
+    -w, h, d,
+    w, h, d,
+    -w, -h, d,
+    w, -h, d,
+    -w, h, -d,
+    w, h, -d,
+    -w, -h, -d,
+    w, -h, -d
+  ];
+
+  // Texture coordinates
+  var tcs = [
+    0, 0,
+    0, 1,
+    1, 0,
+    1, 0,
+    0, 1,
+    1, 1
+  ];
+
+  // Build vertices from corners
+  var indices = [
+    0, 1, 2, 2, 1, 3,
+    1, 5, 3, 3, 5, 7,
+    5, 4, 7, 7, 4, 6,
+    4, 0, 6, 6, 0, 2,
+    4, 5, 0, 0, 5, 1,
+    2, 3, 6, 6, 3, 7
+  ];
+
+  var d = new Float32Array(indices.length << 4); // 16 floats per vertex
+  var k = 0;
+  for (var i = 0; i < indices.length; i++) {
+    var c = indices[i];
+
+    d[k++] = corners[c * 3 + 0];
+    d[k++] = corners[c * 3 + 1];
+    d[k++] = corners[c * 3 + 2];
+
+    d[k++] = 0; d[k++] = 1; d[k++] = 0;
+
+    d[k++] = tcs[(i % 6) * 2 + 0];
+    d[k++] = tcs[(i % 6) * 2 + 1];
+
+    d[k++] = 0.75; d[k++] = 0.75; d[k++] = 0.75; d[k++] = 1;
+
+    d[k++] = 0; d[k++] = 0; d[k++] = 1;
+
+    d[k++] = 0;
+  }
+
+  return new shapy.editor.Mesh(gl, d, {});
+};
+
+
+/**
+ * Creates a quad.
+ */
+shapy.editor.Mesh.createQuad = function(gl, w, h) {
+  var d = new Float32Array(6 << 4), k = 0;
+
+  d[k++] = -w; d[k++] = -h; d[k++] = 0.0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
+  d[k++] = 1;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;
+
+  d[k++] =  w; d[k++] =  h; d[k++] = 0.0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
+  d[k++] = 0;  d[k++] = 1;  d[k++] = 0;
+  d[k++] = 0;
+
+  d[k++] = -w; d[k++] =  h; d[k++] = 0.0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
+  d[k++] = 0;  d[k++] = 1;  d[k++] = 1;
+  d[k++] = 0;
+
+  d[k++] = -w; d[k++] = -h; d[k++] = 0.0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
+  d[k++] = 1;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;
+
+  d[k++] =  w; d[k++] = -h; d[k++] = 0.0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
+  d[k++] = 0;  d[k++] = 1;  d[k++] = 0;
+  d[k++] = 0;
+
+  d[k++] =  w; d[k++] =  h; d[k++] = 0.0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;
+  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
+  d[k++] = 0;  d[k++] = 1;  d[k++] = 1;
+  d[k++] = 0;
+
+  return new shapy.editor.Mesh(gl, d, {});
 };
 
 

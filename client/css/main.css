@@ -200,26 +200,26 @@ sh-menu ul > li:hover {
 /**
  * Register
  */
-#register {
+form {
   width: 400px;
   padding: 20px;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 200px;
+  margin-top: 100px;
   border-radius: 15px;
   border: 1px solid black;
 }
 
-#register div {
+form div {
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-#register strong {
+form strong {
   display: block;
 }
 
-#register .error {
+form .error {
   display: block;
   color: red;
   font-size: 14px;
@@ -227,24 +227,24 @@ sh-menu ul > li:hover {
   margin-bottom: 10px;
 }
 
-#register .error > span {
+form .error > span {
   display: block;
 }
 
-#register input[type=password],
-#register input[type=email],
-#register input[type=text] {
+form input[type=password],
+form input[type=email],
+form input[type=text] {
   height: 24px;
   font-size: 20px;
 }
 
 
-#register input[type=text] {
+form input[type=text] {
   width: 192px;
 }
 
-#register input[type=password],
-#register input[type=email]
+form input[type=password],
+form input[type=email]
 {
   width: 394px;
 }

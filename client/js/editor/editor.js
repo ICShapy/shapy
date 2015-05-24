@@ -123,7 +123,6 @@ shapy.editor.EditorController.prototype.onClose_ = function(evt) {
  * @private
  */
 shapy.editor.EditorController.prototype.onDestroy_ = function() {
-  console.log('destroy');
   this.sock_.close();
 };
 
@@ -227,8 +226,7 @@ shapy.editor.CanvasController = function($rootScope) {
    * Root layout.
    * @public {!shapy.editor.Layout} @const
    */
-
-  this.layout = new shapy.editor.Layout.Double();
+  this.layout = new shapy.editor.Layout.Single();
 
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
@@ -268,10 +266,13 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.layout.resize(width, height);
   }
 
-  // Clear the screen.
+  // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();
   goog.object.forEach(this.layout.viewports, function(vp, name) {
-    this.renderer_.render(vp);
+    this.renderer_.renderScene(vp);
+  }, this);
+  goog.object.forEach(this.layout.viewports, function(vp, name) {
+    this.renderer_.renderOverlay(vp);
   }, this);
 };
 
@@ -334,16 +335,30 @@ shapy.editor.CanvasDirective = function() {
         running = false;
       });
 
+      // Wrapper for event handlers that hijacks them completely.
+      var wrap = function(method) {
+        return function(e) {
+          e.offsetY = canvasCtrl.layout.size.height - e.offsetY;
+          e.preventDefault();
+          e.stopPropagation();
+          method(e);
+          return false;
+        };
+      };
+
       // Mouse events.
       $($elem[0])
-        .mousedown(function(e) { canvasCtrl.layout.mouseDown(e); })
-        .mouseup(function(e) { canvasCtrl.layout.mouseUp(e); })
-        .mouseenter(function(e) { canvasCtrl.layout.mouseEnter(e); })
-        .mouseleave(function(e) { canvasCtrl.layout.mouseLeave(e); })
-        .mousemove(function(e) { canvasCtrl.layout.mouseMove(e); })
-        .bind('mousewheel', function(e) {
-          canvasCtrl.layout.mouseWheel(e.originalEvent);
-        });
+        .mousedown(wrap(function(e) { canvasCtrl.layout.mouseDown(e); }))
+        .mouseup(wrap(function(e) { canvasCtrl.layout.mouseUp(e); }))
+        .mouseenter(wrap(function(e) { canvasCtrl.layout.mouseEnter(e); }))
+        .mouseleave(wrap(function(e) { canvasCtrl.layout.mouseLeave(e); }))
+        .mousemove(wrap(function(e) { canvasCtrl.layout.mouseMove(e); }))
+        .bind('mousewheel', wrap(function(e) {
+            canvasCtrl.layout.mouseWheel(e);
+        }))
+        .bind('contextmenu', wrap(function(e) {
+            return false;
+        }));
     }
   };
 };
