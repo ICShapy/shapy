@@ -37,8 +37,16 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @export
    */
   this.assets = [];
-  for (var i = 0; i < 200; ++i) {
+
+  /**
+   * Path to current folder
+   */
+  this.path = [new shapy.browser.Asset.Dir(0, 'home')];
+
+  for (var i = 1; i < 200; ++i) {
     this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
+
+
   }
 
   /**
@@ -61,10 +69,13 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
 /**
  * Performs action associated with clicking on given asset.
  *
- * @param {number} Id of the asset
+ * @param {!shapy.browser.Asset} asset Asset that is to be entered.
  */
-shapy.browser.BrowserController.prototype.asset = function(id) {
-
+shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
+  this.path.push(asset);
+  //use service to perform entering
+  //temporary - update this.assets with return of service method
+  this.assets = []
 };
 
 

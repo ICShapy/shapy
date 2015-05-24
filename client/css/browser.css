@@ -8,9 +8,13 @@ sh-sidebar {
   border-right: 1px solid #cccccc;
 }
 
+/**
+ * Assets
+ */
+
 sh-files {
   position: fixed;
-  top: 31px;
+  top: 61px;
   left: 222px;
   right: 0;
   bottom: 0;
@@ -54,7 +58,58 @@ sh-file > div:hover {
   box-shadow: 2px 2px 2px #bbbbbb;
 }
 
+/**
+ * All images
+ */
+
+img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/**
+ * Browser
+ */
+
 #browse-search {
   height: 25px;
   float: left;
+}
+
+/**
+ * Path to current folder.
+ */
+
+sh-path {
+  position: fixed;
+  top: 31px;
+  left: 222px;
+  right: 0;
+  bottom: 60px;
+  display: grid;
+  overflow: auto;
+}
+
+sh-path-asset {
+  display: block;
+  position: relative;
+  float: left;
+  width: 100px;
+  height: 30px;
+  cursor:pointer;
+}
+
+sh-path-asset > div {
+  position: absolute;
+  top: 2px; left: 0; right: 0; bottom: 0;
+  width: 30px;
+}
+
+sh-path-asset > h1 {
+  position: absolute;
+  top: 0;  left: 32px;
+  height: 30px;
+  text-align: left;
+  font-weight: normal;
+  font-size: 14px;
 }

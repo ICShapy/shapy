@@ -35,7 +35,7 @@ shapy.browser.AssetsService = function($http, $q) {
  *
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
- * @param {!Image} image Image to be displayed for asset in browser.
+ * @param {string} image Path to image to be displayed for asset in browser.
  */
 shapy.browser.Asset = function(id, name, image) {
   /**
@@ -53,8 +53,8 @@ shapy.browser.Asset = function(id, name, image) {
   this.name = name;
 
   /**
-   * Image to be displayed for asset in browser.
-   * @public {!Image}
+   * Path to image to be displayed for asset in browser.
+   * @public {string}
    * @const
    */
   this.image = image;
@@ -71,9 +71,7 @@ shapy.browser.Asset = function(id, name, image) {
  * @param {string} name  Name of the asset.
  */
 shapy.browser.Asset.Dir = function(id, name) {
-  var folder = new Image();
-  folder.src = "../../img/folder.png";
-  shapy.browser.Asset.call(this, id, name, folder);
+  shapy.browser.Asset.call(this, id, name, "/img/folder.png");
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
 
@@ -85,7 +83,7 @@ goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
  *
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
- * @param {!Image} image Image to be displayed for asset in browser.
+ * @param {string} image Path to image to be displayed for asset in browser.
  */
 shapy.browser.Asset.Scene = function(id, name, image) {
   shapy.browser.Asset.call(this, id, name, image);
@@ -100,7 +98,7 @@ goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
  *
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
- * @param {!Image} image Image to be displayed for asset in browser.
+ * @param {string} image Path to image to be displayed for asset in browser.
  */
 shapy.browser.Asset.Texture = function(id, name, image) {
   shapy.browser.Asset.call(this, id, name, image);
