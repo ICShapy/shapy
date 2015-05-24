@@ -33,8 +33,6 @@ shapy.editor.Rig = function(type) {
   this.mesh_ = null;
   /** @private {!goog.vec.Mat4.Type} @const */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
-  /** @private {!goog.vec.Vec3.Type} */
-  this.normal_ = goog.vec.Vec3.createFloat32();
   /** @private {goog.vec.Vec3.Type} */
   this.cursor_ = goog.vec.Vec3.createFloat32();
   /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
@@ -240,9 +238,13 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
-  (this.hover_.x || this.select_.x) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 1, 0, 0, 1);
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.7, 0.0, 0.0, 1.0);
+  }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
@@ -251,20 +253,28 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
-  (this.hover_.y || this.select_.y) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 0, 0, 1, 1);
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.y) {
+    sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
+  }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
   // Arrow on Z.
   goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
-  goog.vec.Mat4.rotateY(this.model_, Math.PI / 2);
+  goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
-  (this.hover_.z || this.select_.z) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 0, 1, 0, 1);
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.z) {
+    sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.7, 0.0, 1.0);
+  }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
@@ -281,12 +291,43 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
 
 /**
+ * Determines if the ray intersects the sphere.
+ *
+ * @param {!goog.vec.Ray}  ray Ray
+ * @param {!goog.vec.Vec3} c   Center of the sphere.
+ * @param {number}         r   Radius of the sphere.
+ */
+shapy.editor.intersectSphere = function(ray, c, r) {
+  var origC = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(c, ray.origin, origC);
+
+  var cross = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.cross(ray.dir, origC, cross);
+
+  return goog.vec.Vec3.magnitude(cross) <= r;
+};
+
+
+/**
  * Handles mouse move event.
  *
  * @param {!goog.vec.Ray} ray
  */
-shapy.editor.Rig.prototype.mouseMove = function(ray) {
+shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
+  var pos = this.getPosition_();
+  var c = goog.vec.Vec3.createFloat32();
 
+  // Find intersection with X arrow.
+  goog.vec.Vec3.setFromValues(c, pos[0] + 1.1, pos[1], pos[2]);
+  this.hover_.x = shapy.editor.intersectSphere(ray, c, 0.1);
+
+  // Find intersection with Y arrow.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + 1.1, pos[2]);
+  this.hover_.y = shapy.editor.intersectSphere(ray, c, 0.1);
+
+  // Find intersection with Z arrow.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + 1.1);
+  this.hover_.z = shapy.editor.intersectSphere(ray, c, 0.1);
 };
 
 
@@ -295,9 +336,8 @@ shapy.editor.Rig.prototype.mouseMove = function(ray) {
  *
  * @param {!goog.vec.Ray} ray
  */
-shapy.editor.Rig.prototype.mouseDown = function(ray) {
-
-
+shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
+  //console.log(ray);
 };
 
 
@@ -310,6 +350,8 @@ shapy.editor.Rig.prototype.mouseDown = function(ray) {
  */
 shapy.editor.Rig.Rotate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.ROTATE);
+  /** @private {!goog.vec.Vec3.Type} */
+  this.normal_ = goog.vec.Vec3.createFloat32();
   /** @private {number} */
   this.startAngle_ = 0.0;
   /** @private {number} */
@@ -390,7 +432,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
   } else if (this.hover_.y) {
-    sh.uniform4f('u_colour', 0.0, 0.0, 1.0, 1.0);
+    sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
   } else {
     sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
   }
