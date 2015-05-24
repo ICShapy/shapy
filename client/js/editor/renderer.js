@@ -121,8 +121,8 @@ shapy.editor.GROUND_FS =
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
   '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
   '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5z);\n' +
-  '  colour = mix(vec4(1.0, 0.0, 0.0, 0.95), colour, ax);\n' +
-  '  colour = mix(vec4(0.0, 1.0, 0.0, 0.95), colour, az);\n' +
+  '  colour = mix(vec4(1.0, 0.0, 0.0, 0.95), colour, az);\n' +
+  '  colour = mix(vec4(0.0, 1.0, 0.0, 0.95), colour, ax);\n' +
   '  gl_FragColor = colour;\n' +
   '}\n';
 
