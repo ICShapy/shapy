@@ -106,6 +106,38 @@ shapy.editor.Rig.prototype.buildCube_ = function(d, k, a, c) {
 
 
 /**
+ * Creates the mesh for a tube parrallel to the x axis.
+ *
+ * @private
+ *
+ * @param {!goog.vec.Float32Array} d Array where the indices should be stored.
+ * @param {number}                 k Index where to place the indices.
+ * @param {number}                 b Number of points in the base.
+ * @param {number}                 l Length of the tube.
+ * @param {number}                 r Radius of the base.
+ * @param {!goog.vec.Float32Array} c Center of the base.
+ */
+shapy.editor.Rig.prototype.buildTube_ = function(d, k, b, l, r, c) {
+  var angle = 2 * Math.PI / b;
+
+  for (var i = 0; i < b; i++) {
+    var py = r * Math.sin(i * angle);
+    var pz = r * Math.cos(i * angle);
+    var cy = r * Math.sin((i + 1) * angle);
+    var cz = r * Math.cos((i + 1) * angle);
+
+    d[k++] = c[0] + l; d[k++] = c[1] + py; d[k++] = c[2] + pz;
+    d[k++] = c[0];     d[k++] = c[1] + py; d[k++] = c[2] + pz;
+    d[k++] = c[0];     d[k++] = c[1] + cy; d[k++] = c[2] + cz;
+
+    d[k++] = c[0];     d[k++] = c[1] + cy; d[k++] = c[2] + cz;
+    d[k++] = c[0] + l; d[k++] = c[1] + cy; d[k++] = c[2] + cz;
+    d[k++] = c[0] + l; d[k++] = c[1] + py; d[k++] = c[2] + pz;
+  }
+};
+
+
+/**
  * Renders the rig.
  */
 shapy.editor.Rig.prototype.render = goog.abstractMethod;
@@ -200,31 +232,25 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
   var angle = 2 * Math.PI / shapy.editor.Rig.Translate.CIRCLE;
   var k = 0;
 
-  for (var x = 0; x <= 1; x++){
-    for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
-      var py = (3 * x + 2) * 0.01 * Math.sin(i * angle);
-      var pz = (3 * x + 2) * 0.01 * Math.cos(i * angle);
-      var cy = (3 * x + 2) * 0.01 * Math.sin((i + 1) * angle);
-      var cz = (3 * x + 2) * 0.01 * Math.cos((i + 1) * angle);
+  // Construct the tube.
+  this.buildTube_(
+      d, k, shapy.editor.Rig.Translate.CIRCLE, 1.0, 0.02, [0.0, 0.0, 0.0]);
+  k += shapy.editor.Rig.Translate.CIRCLE * 18;
 
-      if (x == 0) {
-        d[k++] = x + 1;     d[k++] = py;  d[k++] = pz;
-        d[k++] = x;         d[k++] = py;  d[k++] = pz;
-        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
+  // Construct the arrowhead.
+  for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
+    var py = 0.05 * Math.sin(i * angle);
+    var pz = 0.05 * Math.cos(i * angle);
+    var cy = 0.05 * Math.sin((i + 1) * angle);
+    var cz = 0.05 * Math.cos((i + 1) * angle);
 
-        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
-        d[k++] = x + 1;     d[k++] = cy;  d[k++] = cz;
-        d[k++] = x + 1;     d[k++] = py;  d[k++] = pz;
-      } else {
-        d[k++] = x;         d[k++] = py;  d[k++] = pz;
-        d[k++] = x;         d[k++] = 0.0; d[k++] = 0.0;
-        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
+    d[k++] = 1.0;   d[k++] = py;  d[k++] = pz;
+    d[k++] = 1.0;   d[k++] = 0.0; d[k++] = 0.0;
+    d[k++] = 1.0;   d[k++] = cy;  d[k++] = cz;
 
-        d[k++] = x + 0.125; d[k++] = 0.0; d[k++] = 0.0;
-        d[k++] = x;         d[k++] = py;  d[k++] = pz;
-        d[k++] = x;         d[k++] = cy;  d[k++] = cz;
-      }
-    }
+    d[k++] = 1.125; d[k++] = 0.0; d[k++] = 0.0;
+    d[k++] = 1.0;   d[k++] = py;  d[k++] = pz;
+    d[k++] = 1.0;   d[k++] = cy;  d[k++] = cz;
   }
 
   // Construct a cube on the origin.
@@ -838,23 +864,11 @@ shapy.editor.Rig.Scale.TUBE_BASE = 16;
  */
 shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
   var d = new Float32Array(shapy.editor.Rig.Scale.TUBE_BASE * 18 + 18 * 36);
-  var angle = 2 * Math.PI / shapy.editor.Rig.Scale.TUBE_BASE;
   var k = 0;
 
-  for (var i = 0; i < shapy.editor.Rig.Scale.TUBE_BASE; i++) {
-    var py = 0.02 * Math.sin(i * angle);
-    var pz = 0.02 * Math.cos(i * angle);
-    var cy = 0.02 * Math.sin((i + 1) * angle);
-    var cz = 0.02 * Math.cos((i + 1) * angle);
-
-    d[k++] = 1.0; d[k++] = py; d[k++] = pz;
-    d[k++] = 0.0; d[k++] = py; d[k++] = pz;
-    d[k++] = 0.0; d[k++] = cy; d[k++] = cz;
-
-    d[k++] = 0.0; d[k++] = cy; d[k++] = cz;
-    d[k++] = 1.0; d[k++] = cy; d[k++] = cz;
-    d[k++] = 1.0; d[k++] = py; d[k++] = pz;
-  }
+  // Build the tube.
+  this.buildTube_(d, k, 16, 1.0, 0.02, [0.0, 0.0, 0.0]);
+  k += 16 * 18;
 
   // Construct the cobe on the tube.
   this.buildCube_(d, k, 0.07, [1.0, 0.0, 0.0]);
