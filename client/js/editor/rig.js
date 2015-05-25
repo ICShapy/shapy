@@ -66,17 +66,25 @@ shapy.editor.Rig = function(type) {
     z: false
   };
 
-  // TODO: have rig retrieve this from control object.
+  /** @private {shapy.editor.Object} */
+  this.controlObject_ = null;
 
   /** @private {!goog.vec.Vec3.Type} */
   this.position_ = goog.vec.Vec3.createFloat32FromValues(-0.5, 0.2, -0.5);
 
+  // TODO: Is it possible for a rig to exist WITHOUT an object to control?
   this.getPosition_ = function() {
-    return this.position_;
+    if (this.controlObject_ != null)
+      return this.controlObject_.getPosition();
+    else
+      return this.position_;
   };
 
   this.setPosition_ = function(x, y, z) {
-    goog.vec.Vec3.setFromValues(this.position_, x, y, z);
+    if (this.controlObject_ != null)
+      this.controlObject_.setPosition(x, y, z);
+    else
+      goog.vec.Vec3.setFromValues(this.position_, x, y, z);
   };
 };
 

@@ -212,9 +212,15 @@ shapy.editor.CanvasController = function($rootScope) {
 
   /**
    * Map of all objects in the scene.
-   * @private {!Object<string, shapy.Object>} @const
+   * @private {!Object<string, shapy.editor.Object>}
    */
   this.objects_ = {};
+
+  /**
+   * Currently selected object
+   * @private {shapy.editor.Object}
+   */
+  this.selectedObject = null;
 
   /**
    * Size of the canvas.
@@ -258,8 +264,11 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
+  // TODO: Use the UI to create and select objects
   this.objects_['test']
       = shapy.editor.Editable.Object.createCube(0.5, 0.5, 0.5);
+  this.selectedObject = this.objects_['test'];
+  this.rig.controlObject_ = this.selectedObject;
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);

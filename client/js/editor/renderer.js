@@ -250,10 +250,16 @@ shapy.editor.Renderer = function(gl) {
       -1, 0, -1, 1, 0, 1, 1, 0, -1
   ]), goog.webgl.STATIC_DRAW);
 
-  // Cached mesh + model matrix pairs
+  /**
+   * Cached mesh and model matrix pairs
+   * @private {!Object<int, Array<shapy.editor.Mesh|goog.vec.Mat4>>} 
+   */
   this.objectCache_ = {};
 
-  // History - stored as a list of lists indexed by object ID
+  /**
+   * Object mesh history, stored as a map of arrays indexed by object id
+   * @private {!Object<int, Array<shapy.editor.Mesh>>}
+   */
   this.objectHistory_ = {};
 };
 
