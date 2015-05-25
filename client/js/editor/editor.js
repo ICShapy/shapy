@@ -230,11 +230,9 @@ shapy.editor.CanvasController = function($rootScope) {
 
   /**
    * Active rig.
-   * @public {!shapy.editor.Rig}
+   * @public {shapy.editor.Rig}
    */
-  //this.rig = new shapy.editor.Rig.Rotate();
-  //this.rig = new shapy.editor.Rig.Translate();
-  this.rig = new shapy.editor.Rig.Scale();
+  this.rig = null;
 
   /**
    * Root layout.
@@ -267,8 +265,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   // TODO: Use the UI to create and select objects
   this.objects_['test']
       = shapy.editor.Editable.Object.createCube(0.5, 0.5, 0.5);
-  this.selectedObject = this.objects_['test'];
-  this.rig.controlObject_ = this.selectedObject;
+  this.selectObject(this.objects_['test']);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -317,12 +314,58 @@ shapy.editor.CanvasController.prototype.render = function() {
     vp.camCube.compute();
 
     // Render the objects & overlays.
-    this.renderer_.renderObjects(vp);
     this.renderer_.renderGround(vp);
     this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);
   }, this);
 };
+
+
+/**
+ * Select an object
+ */
+shapy.editor.CanvasController.prototype.selectObject = function(o) {
+  this.selectedObject = o;
+  if (this.rig) {
+    this.rig.controlObject_ = o;
+  }
+}
+
+
+/**
+ * Change rig type
+ */
+shapy.editor.CanvasController.prototype.changeRig_ = function(r) {
+  this.rig = r;
+  this.layout.active.rig = this.rig;
+  this.rig.controlObject_ = this.selectedObject;
+}
+
+
+/**
+ * On a key press
+ *
+ * If this CanvasController doesn't want to handle it, pass it to the layout
+ */
+shapy.editor.CanvasController.prototype.keyDown = function(kc) {
+  switch (kc) {
+    // Change current rig type
+    case 84: // t
+      this.changeRig_(new shapy.editor.Rig.Translate());
+      break;
+
+    case 82: // r
+      this.changeRig_(new shapy.editor.Rig.Rotate());
+      break;
+
+    case 83: // s
+      this.changeRig_(new shapy.editor.Rig.Scale());
+      break;
+
+    default:
+      this.layout.keyDown(kc);
+  }
+}
 
 
 /**
@@ -394,6 +437,9 @@ shapy.editor.CanvasDirective = function() {
           return false;
         };
       };
+
+      // Key presses.
+      $(window).keydown(function(e) { canvasCtrl.keyDown(e.keyCode); });
 
       // Mouse events.
       $($elem[0])

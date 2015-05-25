@@ -201,6 +201,20 @@ shapy.editor.Layout.prototype.mouseWheel = function(e) {
 };
 
 
+/**
+ * Handles a key press event.
+ *
+ * @param {KeyEvent} e
+ */
+shapy.editor.Layout.prototype.keyDown = function(e) {
+  if (!this.lastHover) {
+    return;
+  }
+
+  this.lastHover.keyDown(e);
+};
+
+
 
 /**
  * Creates a layout with a single viewport.
@@ -741,6 +755,27 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
   goog.vec.Vec3.normalize(diff, diff);
   goog.vec.Vec3.scale(diff, zoomLevel, diff);
   goog.vec.Vec3.add(this.camera.center, diff, this.camera.eye);
+};
+
+
+/**
+ * Recomputes the positions & sizes of all viewports.
+ *
+ * @param {number} kc Keycode
+ */
+shapy.editor.Viewport.prototype.keyDown = function(kc) {
+  switch (kc) {
+    case 79: // o
+      console.log("Switch to orthogonal in this viewport");
+      break;
+
+    case 80: // p
+      console.log("Switch to perspective in this viewport");
+      break;
+
+    default:
+      break;
+  }
 };
 
 
