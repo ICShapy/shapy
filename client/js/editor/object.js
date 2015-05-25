@@ -43,12 +43,7 @@ shapy.editor.Object = function(vertices, edges, faces) {
    * @private {goog.vec.Mat4} @const
    */
   this.model_ = goog.vec.Mat4.createFloat32();
-
-  /**
-   * Position of the object
-   * @private {goog.vec.Vec3}
-   */
-  this.position_ = goog.vec.Vec3.createFromValues(0, 0, 0);
+  goog.vec.Mat4.makeIdentity(this.model_);
 
   /**
    * True if any data field is dirty.
@@ -96,6 +91,7 @@ shapy.editor.Object = function(vertices, edges, faces) {
  * @private
  */
 shapy.editor.Object.prototype.computeModel_ = function() {
+  goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
@@ -154,10 +150,22 @@ shapy.editor.Object.prototype.getData = function() {
 };
 
 /**
+ * Updates the object position.
+ *
+ * @param {goog.vec.Vec3} v New position
+ */
+shapy.editor.Object.prototype.setPosition = function(v) {
+  this.translate_[0] = v[0];
+  this.translate_[1] = v[1];
+  this.translate_[2] = v[2];
+  this.computeModel_();
+}
+
+/**
  * Retrieves the object position.
  */
 shapy.editor.Object.prototype.getPosition = function() {
-  return this.position_;
+  return this.translate_;
 };
 
 
@@ -210,12 +218,12 @@ shapy.editor.Object.createCube = function(w, h, d) {
   ];
 
   // Edge layout:
-  //   +--4--+
-  //  /     /5
-  // +--0--+ |
-  // 3   6 1 +
-  // |     |/
-  // +--2--+
+  //     +--4--+
+  //   8/|7   9/5
+  //   +--0--+ |
+  //   3 +-6-1-+
+  // 11|/    |/10
+  //   +--2--+
   var edges = [
     [0, 1], [1, 3], [3, 2], [2, 0], // Front
     [4, 5], [5, 7], [7, 6], [6, 4], // Back
@@ -228,7 +236,7 @@ shapy.editor.Object.createCube = function(w, h, d) {
     [1, 9, 5, 10],  // +X
     [4, 7, 6, 5],   // -Z
     [8, 3, 11, 7],  // -X
-    [0, 8, 4, 9],   // +Y
+    [4, 9, 0, 8],   // +Y
     [2, 10, 6, 11]  // -Y
   ];
 

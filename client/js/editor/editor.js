@@ -259,8 +259,8 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
-  //this.objects_['test'] = shapy.editor.Object.createCube(2, 2, 2);
-  this.objects_['test'] = shapy.editor.Object.createPolygon(6, 2);
+  this.objects_['test'] = shapy.editor.Object.createCube(2, 2, 2);
+  this.objects_['test'].setPosition(goog.vec.Vec3.createFloat32FromValues(1, 0, 0));
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -299,7 +299,8 @@ shapy.editor.CanvasController.prototype.render = function() {
     vp.camera.compute();
     vp.camCube.compute();
 
-    // Render the entities & overlays.
+    // Render the objects & overlays.
+    this.renderer_.renderObjects(vp);
     this.renderer_.renderGround(vp);
     this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);
