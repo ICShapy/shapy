@@ -391,6 +391,8 @@ shapy.editor.CamCube.prototype.mouseMove = function(x, y) {
     this.click_ = false;
     return false;
   }
+
+  var old = this.hover_;
   this.hover_ = this.getFace_(this.raycast_(x, y));
   if (!this.hover_) {
     this.hover_ = null;
@@ -398,7 +400,7 @@ shapy.editor.CamCube.prototype.mouseMove = function(x, y) {
     return false;
   }
 
-  if (this.hover_ != this.click_) {
+  if (old && !goog.vec.Vec3.equals(this.hover_, old)) {
     this.click_ = false;
   }
   return true;
