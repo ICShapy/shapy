@@ -766,11 +766,13 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
 shapy.editor.Viewport.prototype.keyDown = function(kc) {
   switch (kc) {
     case 79: // o
-      console.log("Switch to orthogonal in this viewport");
+      this.camera = new shapy.editor.Camera.Ortho();
+      this.type = shapy.editor.Viewport.Type.ORTHOGRAPHIC;
       break;
 
     case 80: // p
-      console.log("Switch to perspective in this viewport");
+      this.camera = new shapy.editor.Camera.Persp();
+      this.type = shapy.editor.Viewport.Type.PERSPECTIVE;
       break;
 
     default:
