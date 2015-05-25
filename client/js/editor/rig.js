@@ -6,6 +6,8 @@ goog.provide('shapy.editor.Rig.Rotate');
 goog.provide('shapy.editor.Rig.Scale');
 goog.provide('shapy.editor.Rig.Translate');
 
+goog.require('shapy.editor.geom');
+
 
 
 /**
@@ -140,10 +142,10 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
     var cz = 0.05 * Math.cos((i + 1) * angle);
 
     d[k++] = 1.0; d[k++] = py;  d[k++] = pz;
-    d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;    
+    d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;
     d[k++] = 1.0; d[k++] = cy;  d[k++] = cz;
- 
-    d[k++] = 1.125; d[k++] = 0.0; d[k++] = 0.0; 
+
+    d[k++] = 1.125; d[k++] = 0.0; d[k++] = 0.0;
     d[k++] = 1.0;   d[k++] = py;  d[k++] = pz;
     d[k++] = 1.0;   d[k++] = cy;  d[k++] = cz;
   }
@@ -412,27 +414,6 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
 
 /**
- * Computes the intersection point between a ray and a plane.
- *
- * @param {!goog.vec.Ray}       ray
- * @param {!goog.vec.Vec3.Type} n
- * @param {!goog.vec.Vec3.Type} o
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.intersectPlane = function(ray, n, o) {
-  var d = -goog.vec.Vec3.dot(n, o);
-  var v = goog.vec.Vec3.cloneFloat32(ray.dir);
-  goog.vec.Vec3.scale(
-      v,
-     -(goog.vec.Vec3.dot(ray.origin, n) + d) / goog.vec.Vec3.dot(ray.dir, n),
-      v);
-  goog.vec.Vec3.add(v, ray.origin, v);
-  return v;
-};
-
-
-/**
  * Adjusts the cursor if it is inside the ring to touch the inner edge.
  *
  * @private
@@ -466,9 +447,9 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
   var position = this.getPosition_();
 
   // Find intersection point with planes.
-  var ix = shapy.editor.intersectPlane(ray, [1, 0, 0], position);
-  var iy = shapy.editor.intersectPlane(ray, [0, 1, 0], position);
-  var iz = shapy.editor.intersectPlane(ray, [0, 0, 1], position);
+  var ix = shapy.editor.geom.intersectPlane(ray, [1, 0, 0], position);
+  var iy = shapy.editor.geom.intersectPlane(ray, [0, 1, 0], position);
+  var iz = shapy.editor.geom.intersectPlane(ray, [0, 0, 1], position);
 
   // Find distance between center and intersection point.
   var cx = goog.vec.Vec3.distance(ix, position);
@@ -507,7 +488,7 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
 shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
   var pos = this.getPosition_();
   if (this.select_.x || this.select_.y || this.select_.z) {
-    this.cursor_ = shapy.editor.intersectPlane(ray, this.normal_, pos);
+    this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
     this.adjustCursor_(this.cursor_);
     this.currentAngle_ = this.getAngle_(this.cursor_);
     return;
@@ -571,7 +552,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
     return;
   }
 
-  this.cursor_ = shapy.editor.intersectPlane(ray, this.normal_, pos);
+  this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
   this.adjustCursor_(this.cursor_);
   this.startAngle_ = this.currentAngle_ = this.getAngle_(this.cursor_);
 

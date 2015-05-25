@@ -619,6 +619,10 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   this.currMousePos_.x = x;
   this.currMousePos_.y = y;
 
+  if (this.camCube.mouseMove(x, y)) {
+    return;
+  }
+
   if (this.isRotating_) {
     this.rotate();
     return;
@@ -666,6 +670,9 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} button Mouse button that was clicked.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
+  if (this.camCube.mouseDown(x, y)) {
+    return;
+  }
   this.currMousePos_.x = x;
   this.currMousePos_.y = y;
   this.lastMousePos_.x = x;
@@ -691,6 +698,9 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
+  if (this.camCube.mouseUp(x, y)) {
+    return;
+  }
   if (!this.isRotating_ && !this.isPanning_ && this.rig) {
     this.rig.mouseUp(this.raycast_(x, y));
   }

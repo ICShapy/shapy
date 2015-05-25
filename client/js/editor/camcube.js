@@ -3,6 +3,9 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.editor.CamCube');
 
+goog.require('goog.vec.Vec3');
+goog.require('shapy.editor.geom');
+
 
 
 /**
@@ -27,15 +30,22 @@ shapy.editor.CamCube = function(viewport, camera) {
   /** @public {!goog.vec.Mat4.Type} @const */
   this.view = goog.vec.Mat4.createFloat32();
   /** @public {!goog.vec.Mat4.Type} @const */
+  this.invView = goog.vec.Mat4.createFloat32();
+  /** @public {!goog.vec.Mat4.Type} @const */
   this.proj = goog.vec.Mat4.createFloat32();
+  /** @public {!goog.vec.Mat4.Type} @const */
+  this.invProj = goog.vec.Mat4.createFloat32();
   /** @public {!goog.vec.Mat4.Type} @const */
   this.vp = goog.vec.Mat4.createFloat32();
 
   /** @private {!goog.vec.Vec3.Type} @const */
   this.pos_ = goog.vec.Vec3.createFloat32();
-
   /** @private {!WebGLBuffer} */
   this.mesh_ = null;
+  /** @private {!Object<string, boolean>} @const */
+  this.hover_ = null;
+  /** @private {!Object<string, boolean>} @const */
+  this.click_ = null;
 };
 
 
@@ -48,6 +58,34 @@ shapy.editor.CamCube.SIZE = 120;
  * @type {number} @const
  */
 shapy.editor.CamCube.DISTANCE = 5;
+
+
+/**
+ * List of faces and their normals.
+ */
+shapy.editor.CamCube.NORMALS = [
+    [0, 0, +1],
+    [0, 0, -1],
+    [+1, 0, 0],
+    [-1, 0, 0],
+    [0, +1, 0],
+    [0, -1, 0],
+];
+
+
+/**
+ * Information used to render faces.
+ * @type {!Array<string>}
+ */
+shapy.editor.CamCube.FACES = [
+  'front', 'back', 'right', 'left', 'top', 'bottom'
+];
+
+
+/**
+ * Size of the center region.
+ */
+shapy.editor.CamCube.CENTER = 0.6;
 
 
 /**
@@ -82,6 +120,8 @@ shapy.editor.CamCube.prototype.compute = function() {
   // Compute view and vp matrices.
   goog.vec.Mat4.makeLookAt(this.view, this.pos_, [0, 0, 0], this.camera_.up);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
+  goog.vec.Mat4.invert(this.proj, this.invProj);
+  goog.vec.Mat4.invert(this.view, this.invView);
 };
 
 
@@ -93,27 +133,76 @@ shapy.editor.CamCube.prototype.compute = function() {
  * @param {WebGLShader} gl
  */
 shapy.editor.CamCube.prototype.build_ = function(gl) {
-  var data = new Float32Array(6 * 8 * 6 * 5), k = 0, tw = 1.0 / 6.0;
+  var d = new Float32Array(5 * 6 * 9 * 6), k = 0, tw, to;
+  var s = shapy.editor.CamCube.CENTER, t = 1 - s;
+  var u =
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
 
-  // Front Center
-  data[k++] = -0.8; data[k++] = -0.8; data[k++] = 1.0;
-  data[k++] = 0.2 * 1 * tw; data[k++] = 0.8;
-  data[k++] = +0.8; data[k++] = +0.8; data[k++] = 1.0;
-  data[k++] = 0.8 * 1 * tw; data[k++] = 0.2;
-  data[k++] = +0.8; data[k++] = -0.8; data[k++] = 1.0;
-  data[k++] = 0.8 * 1 * tw; data[k++] = 0.8;
+  tw = 1.0 / 6.0;
+  to = 0.0;
 
-  data[k++] = -0.8; data[k++] = -0.8; data[k++] = 1.0;
-  data[k++] = 0.2 * 1 * tw; data[k++] = 0.8;
-  data[k++] = -0.8; data[k++] = +0.8; data[k++] = 1.0;
-  data[k++] = 0.2 * 1 * tw; data[k++] = 0.2;
-  data[k++] = +0.8; data[k++] = +0.8; data[k++] = 1.0;
-  data[k++] = 0.8 * 1 * tw; data[k++] = 0.2;
+  var emitQuad = function(x0, y0, x1, y1, emit, order) {
+    emit(x0, y0);
+    if (order) {
+      emit(x1, y1); emit(x1, y0);
+    } else {
+      emit(x1, y0); emit(x1, y1);
+    }
+    emit(x0, y0);
+    if (order) {
+      emit(x0, y1); emit(x1, y1);
+    } else {
+      emit(x1, y1); emit(x0, y1);
+    }
+  };
 
-  gl.bufferData(goog.webgl.ARRAY_BUFFER, data, goog.webgl.STATIC_DRAW);
+  var emitFace = function(emit, order) {
+    emitQuad(-1, -1, -s, -s, emit, order);
+    emitQuad(-1, -s, -s, +s, emit, order);
+    emitQuad(-1, +s, -s, +1, emit, order);
+    emitQuad(-s, -1, +s, -s, emit, order);
+    emitQuad(-s, -s, +s, +s, emit, order);
+    emitQuad(-s, +s, +s, +1, emit, order);
+    emitQuad(+s, -1, +1, -s, emit, order);
+    emitQuad(+s, -s, +1, +s, emit, order);
+    emitQuad(+s, +s, +1, +1, emit, order);
+  };
+
+  emitFace(function(x, y) {
+    d[k++] = x; d[k++] = y; d[k++] = +1;
+    d[k++] = (x + 1) / 12.0 + 0.0 / 6.0;
+    d[k++] = (1 - y) / 2.0;
+  }, true);
+  emitFace(function(x, y) {
+    d[k++] = x; d[k++] = y; d[k++] = -1;
+    d[k++] = (1 - x) / 12.0 + 1.0 / 6.0;
+    d[k++] = (1 - y) / 2.0;
+  }, false);
+  emitFace(function(x, y) {
+    d[k++] = +1; d[k++] = x; d[k++] = y;
+    d[k++] = (1 - y) / 12.0 + 2.0 / 6.0;
+    d[k++] = (1 - x) / 2.0;
+  }, true);
+  emitFace(function(x, y) {
+    d[k++] = -1; d[k++] = x; d[k++] = y;
+    d[k++] = (1 + y) / 12.0 + 3.0 / 6.0;
+    d[k++] = (1 - x) / 2.0;
+  }, false);
+  emitFace(function(x, y) {
+    d[k++] = x; d[k++] = +1; d[k++] = y;
+    d[k++] = (x + 1) / 12.0 + 4.0 / 6.0;
+    d[k++] = (y + 1) / 2.0;
+  }, false);
+  emitFace(function(x, y) {
+    d[k++] = x; d[k++] = -1; d[k++] = y;
+    d[k++] = (x + 1) / 12.0 + 5.0 / 6.0;
+    d[k++] = (1 - y) / 2.0;
+  }, true);
+
+
+  gl.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
 };
 
 
@@ -139,10 +228,187 @@ shapy.editor.CamCube.prototype.render = function(gl, sh) {
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
   gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 20, 0);
   gl.vertexAttribPointer(2, 2, goog.webgl.FLOAT, false, 20, 12);
-  gl.drawArrays(goog.webgl.TRIANGLES, 0, 6);
+
+  var idx = 0;
+  goog.array.forEach(shapy.editor.CamCube.FACES, function(name) {
+    for (var i = 0; i < 3; ++i) {
+      for (var j = 0; j < 3; ++j) {
+        faceName = name + i + j;
+
+        if (this.click_ == faceName) {
+          sh.uniform4f('u_colour', 1, 1, 0, 1);
+        } else if (this.hover_ == faceName) {
+          sh.uniform4f('u_colour', 1, 1, 1, 1);
+        } else {
+          sh.uniform4f('u_colour', 0.7, 0.7, 0.7, 1);
+        }
+
+        gl.drawArrays(goog.webgl.TRIANGLES, idx, 6);
+        idx += 6;
+      }
+    }
+  }, this);
 
   gl.disable(goog.webgl.CULL_FACE);
 
   gl.disableVertexAttribArray(2);
   gl.disableVertexAttribArray(0);
+};
+
+
+/**
+ * Finds the ray inside the cube viewports.
+ *
+ * @private
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {!goog.vec.Ray}
+ */
+shapy.editor.CamCube.prototype.raycast_ = function(x, y) {
+  x = 2.0 * x / this.size - 1.0;
+  y = 2.0 * y / this.size - 1.0;
+
+  var dir = goog.vec.Vec4.createFloat32FromValues(x, y, -1, 1);
+
+  goog.vec.Mat4.multVec3(this.invProj, dir, dir);
+  goog.vec.Mat4.multVec3NoTranslate(this.invView, dir, dir);
+  goog.vec.Vec3.normalize(dir, dir);
+  return new goog.vec.Ray(goog.vec.Vec3.cloneFloat32(this.pos_), dir);
+};
+
+
+/**
+ * Picks the faces which was clicked.
+ *
+ * @private
+ *
+ * @param {goog.vec.Ray} ray
+ *
+ * @return {string}
+ */
+shapy.editor.CamCube.prototype.getFace_ = function(ray) {
+  var hits, dx, dy, face;
+
+  // Find out which face was hit by the ray.
+  hits = goog.array.map(shapy.editor.CamCube.NORMALS, function(normal) {
+    return shapy.editor.geom.intersectPlane(ray, normal, normal);
+  });
+  hits = goog.array.filter(hits, function(h) {
+    return -1 <= h[0] && h[0] <= 1 &&
+        -1 <= h[1] && h[1] <= 1 &&
+        -1 <= h[2] && h[2] <= 1;
+  });
+  goog.array.sort(hits, goog.bind(function(h0, h1) {
+    return goog.vec.Vec3.distance(this.pos_, h0) -
+        goog.vec.Vec3.distance(this.pos_, h1);
+  }, this));
+
+  if (goog.array.isEmpty(hits)) {
+    return null;
+  }
+  var h = hits[0];
+
+  // Find out which part of the face was hit.
+  if (Math.abs(h[0] - 1) <= 0.01) {
+    face = 'right';
+    dx = h[1]; dy = h[2];
+  } else if (Math.abs(h[0] + 1) <= 0.01) {
+    face = 'left';
+    dx = h[1]; dy = h[2];
+  } else if (Math.abs(h[1] - 1) <= 0.01) {
+    face = 'top';
+    dx = h[0]; dy = h[2];
+  } else if (Math.abs(h[1] + 1) <= 0.01) {
+    face = 'bottom';
+    dx = h[0]; dy = h[2];
+  } else if (Math.abs(h[2] - 1) <= 0.01) {
+    face = 'front';
+    dx = h[0]; dy = h[1];
+  } else if (Math.abs(h[2] + 1) <= 0.01) {
+    face = 'back';
+    dx = h[0]; dy = h[1];
+  } else {
+    return null;
+  }
+
+  if (dx < -shapy.editor.CamCube.CENTER) {
+    face += '0';
+  } else if (dx < shapy.editor.CamCube.CENTER) {
+    face += '1';
+  } else {
+    face += '2';
+  }
+
+  if (dy < -shapy.editor.CamCube.CENTER) {
+    face += '0';
+  } else if (dy < shapy.editor.CamCube.CENTER) {
+    face += '1';
+  } else {
+    face += '2';
+  }
+  return face;
+};
+
+
+/**
+ * Handles a mouse movement event.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {boolean} True if the event was hijacked.
+ */
+shapy.editor.CamCube.prototype.mouseMove = function(x, y) {
+  y = this.size - (this.viewport_.rect.h - y);
+  if (x > this.size || y < 0) {
+    this.hover_ = this.click_ = null;
+    return false;
+  }
+  var face = this.getFace_(this.raycast_(x, y));
+  if (!face) {
+    return false;
+  }
+
+  this.hover_ = face;
+  if (this.hover_ != this.click) {
+    this.click_ = null;
+  }
+  return true;
+};
+
+
+/**
+ * Handles a mouse press event.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {boolean} True if the event was hijacked.
+ */
+shapy.editor.CamCube.prototype.mouseDown = function(x, y) {
+  y = this.size - (this.viewport_.rect.h - y);
+  if (x > this.size || y < 0) {
+    this.hover_ = this.click_ = null;
+    return false;
+  }
+
+  this.click_ = this.hover_;
+  return this.click_ != null;
+};
+
+
+
+/**
+ * Handles a mouse release event.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {boolean} True if the event was hijacked.
+ */
+shapy.editor.CamCube.prototype.mouseUp = function(x, y) {
+  this.click_ = null;
+  return false;
 };

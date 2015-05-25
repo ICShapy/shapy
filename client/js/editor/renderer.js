@@ -92,9 +92,10 @@ shapy.editor.CUBE_VS =
 shapy.editor.CUBE_FS =
   'precision mediump float;                                           \n' +
   'uniform sampler2D u_texture;                                       \n' +
+  'uniform vec4 u_colour;                                             \n' +
   'varying vec2 v_uv;                                                 \n' +
   'void main() {                                                      \n' +
-  '  gl_FragColor = texture2D(u_texture, v_uv);                       \n' +
+  '  gl_FragColor = u_colour * texture2D(u_texture, v_uv);            \n' +
   '}                                                                  \n';
 
 
@@ -171,23 +172,22 @@ shapy.editor.RIG_FS =
 /** @type {string} @const */
 shapy.editor.CUBE_TEXTURE = 'data:image/png;base64,' +
     'iVBORw0KGgoAAAANSUhEUgAAAYAAAABACAYAAAATWKC/AAAABmJLR0QA/wD/AP+gvaeTAAAA' +
-    'CXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUYEBUZPQkZ/gAAABl0RVh0Q29tbWVudABD' +
-    'cmVhdGVkIHdpdGggR0lNUFeBDhcAAAMdSURBVHja7d1dbuMgFAZQEmVXXj/ryjxF6lixAxgw' +
-    '2OdIfWkzcbj8fNiinUcI4R0AuJ1XCCHEGG/Z+GVZgvZrv/Zr/13b/5SBAPckAAAEAAACAAAB' +
-    'AIAAAEAAACAAABAAAAgAAAQAAAIAAAEAgAAAQAAAIAAAEAAACAAABAAAAgAAAQCAAABAAAAg' +
-    'AAAIIYTwUgKAfMuybP4sxpj879av3XvflPevGgC/Pszng7Qqxuc1v94jxli9cKVtSu3krfdI' +
-    '+VlqTXoO8q1rjtzHPcZByuf5do2cMVOzz0mXO4e/fX/9vdx+b34HkHrxFsXIKUKLwh1ZpEsX' +
-    'gpQFvueEL6lBjVr06uPW46B04c5pW+/FvySIUzcCvYK99XhZ98lWH6XO9xaePYuRMmC3dnmp' +
-    'u7/eHZw6EdevL2nPt53CmTX5df3cPp51B3ikLXsTP/W9z1g8Yoz/fW19b/0Z/35ttW39ul+v' +
-    'n+Vx0V4fndW+p2LUm/xXaVevPr67krvaGR/71NoIzDR/ZnkcN9UpoKsvoH8HTc7z7ruEykwT' +
-    'vaQvr7jIXH1TtCzL169ZNjivEQZBSQjYQZ5fk9rXHHkh2HtcMdLnof/cm/kO4FVz8I82Sa60' +
-    'cJ85oGr166+TLjmnxe480XNORN3hbsumrHEAlJ4CalWAK94FfGtPTjtb1qRWv5acd55xon/a' +
-    'lXrwoXScXPVu2EZysAAYcaH2KOi8mqh92aapRuAd2STM/ljlynPz0sdAt4ox+61e7rHMOy2a' +
-    'anG8Rle5S7qjvTv6kebC86xBXqMYZz4HzT3aVvpLILk7vF41SbnOiAO+9TjIPde/V8fcx382' +
-    'Auf0f84poE89Rjkx9Oo5CFISMbcYrQd/yfPIGu1qvTj3uK0doRZnjoMam6SafTHa44/ZF/9a' +
-    'v83e6jopHiGE911vxT+TTvu1X/vb3BHvhejRP3+h/4+3318DBbrshmu9hnr8fwAAAgAAAQCA' +
-    'AABAAAAgAAAQAAAIAAAEAAACAAABAIAAAEAAACAAABAAAAgAAAQAAAIAAAEAgAAAQAAAIAAA' +
-    'WHuEEN7KAHA//wCB7wmMcLEBOgAAAABJRU5ErkJggg==';
+    'CXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUZEAEmHX2E8wAAABl0RVh0Q29tbWVudABD' +
+    'cmVhdGVkIHdpdGggR0lNUFeBDhcAAALSSURBVHja7d1NkuogFAZQtNxV1p91dY+cWCb8CAHC' +
+    'OVU96jwNF8IHMfZ7hBD+AgDLeYUQwr7vSzZ+27ag/dqv/dq/avufMhBgTQIAQAAAIAAAEAAA' +
+    'CAAABAAAAgAAAQCAAABAAAAgAAAQAAAIAAAEAAACAAABAIAAAEAAACAAABAAAAgAAAQAAAIA' +
+    'gBBCCC8lAMi3bdvh7/Z9T/53n8eevW7K61cNgNjJvE+kVTHex8ReY9/3ZoUrbVvKuZ+9x7eB' +
+    'kVKHXoP86P1n6ONf6pMyBlLONXbcaG3nuN5n10Lsusm97pvvAFLfvEUxcorQsnC5bfuctEom' +
+    '7pzzbzlIStpe0scl59Ky3VfUMOe4kdpeEkapC4E7hNu36/6ov1LmiKlvAdUoRs8i5bat1goy' +
+    '9bV71SV2fiMOeNoEWski52x8jDTOr9gp9romniMX4+5KdjWzXBQpfcwaYguB3AXHXa7tEUz1' +
+    'IfCIK8eU2zetztsqGivf/u2beYHzGmEQzBACo3X0CCuh2v1w511fyof8OccxzqL09juA1Mlv' +
+    '9jScpaNznogZKfxik1vO02J3GT8m+3vueGfZ2TR9CqhVAUYq7tEH3N8mrRrnfMWtpVb9WvK8' +
+    'M2tO9MJxoAAYcaIePWFzH3Erfd0edfAUDyPslmZrU8kTc609exbjDlu9lnWYeZWsj1l9F3O0' +
+    'WBvpWnj2mghqFGOEx8JSv99wdL5nbUitRY86pLzniAMeC4Ha1/+3n9gckHLsFbp9EexsQqw9' +
+    'EdXq6Fbb1bOQrLXF7LGtrdXHM0wCsbGx8n3to3Ey++Rf69vsrd4nxSOE8Lfqaux9UWq/9mt/' +
+    '/VsesaD89c+f6P/f2++vgQKXrIZrHUM9/j8AAAEAgAAAQAAAIAAAEAAACAAABAAAAgAAAQCA' +
+    'AABAAAAgAAAQAAAIAAAEAAACAAABAIAAAEAAACAAABAAAHx6hBD+lAFgPf8Kj5IyS1S2IAAA' +
+    'AABJRU5ErkJggg==';
 
 
 
@@ -400,7 +400,7 @@ shapy.editor.Renderer.prototype.renderCamCube = function(vp) {
     this.shCube_.uniformMat4x4('u_vp', vp.camCube.vp);
 
     this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txCube_);
-    vp.camCube.render(this.gl_, this.shRig_);
+    vp.camCube.render(this.gl_, this.shCube_);
   }
 
   this.gl_.enable(goog.webgl.DEPTH_TEST);
