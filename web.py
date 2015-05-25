@@ -13,6 +13,7 @@ import momoko
 
 import shapy.editor
 import shapy.user
+import shapy.assets
 
 
 
@@ -37,6 +38,7 @@ def main(args):
   app = tornado.web.Application([
     # API handlers.
     (r'/api/user/auth',             shapy.user.AuthHandler),
+    (r'/api/assets/list/([0-9]+)',  shapy.assets.ListAssetsHandler),
     (r'/api/user/check/([^/]+)',    shapy.user.CheckHandler),
     (r'/api/user/login',            shapy.user.LoginHandler),
     (r'/api/user/logout',           shapy.user.LogoutHandler),
@@ -49,6 +51,7 @@ def main(args):
     (r'/css/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/css' }),
     (r'/js/(.*)',   tornado.web.StaticFileHandler, { 'path': 'client/js' }),
     (r'/html/(.*)', tornado.web.StaticFileHandler, { 'path': 'client/html' }),
+    (r'/img/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/img' }),
     (r'(.*)',       IndexHandler, { 'path': 'client/index.html' }),
   ], debug=True, cookie_secret=os.environ.get('COOKIE_SECRET'))
 

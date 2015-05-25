@@ -22,9 +22,10 @@ html {
   left: 0;
   right: 0;
   height: 30px;
-  background-color: #222222;
+  background-color: #0A1E38;
   border-bottom: 1px solid #111111;
   z-index: 1000;
+  overflow: hidden;
 }
 
 #header a, #header span {
