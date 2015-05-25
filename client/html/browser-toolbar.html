@@ -1,0 +1,11 @@
+<div>
+  <input id="browse-search" type="text" placeholder="Browse" ng-model="browserCtrl.query">
+  <sh-path>
+    <div ng-repeat="asset in browserCtrl.path">
+      <sh-path-asset ng-click="browserCtrl.assetReturnTo(asset)">
+        <div> <img src="/img/folder_dark.png"> </div>
+        <h1> {{asset.name}} </h1>
+      </sh-path-asset>
+    </div>
+  </sh-path>
+</div>

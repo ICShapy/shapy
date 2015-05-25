@@ -7,10 +7,16 @@ goog.require('shapy.UserService');
 goog.require('shapy.highlight');
 goog.require('shapy.email');
 goog.require('shapy.equals');
+goog.require('shapy.browser.fileMatch');
 goog.require('shapy.LoginController');
 goog.require('shapy.HeaderController');
 goog.require('shapy.RegisterController');
 goog.require('shapy.browser.BrowserController');
+goog.require('shapy.browser.BrowserToolbarController');
+goog.require('shapy.browser.sidebar');
+goog.require('shapy.browser.files');
+goog.require('shapy.browser.file');
+goog.require('shapy.browser.AssetsService');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.EditorToolbarController');
 goog.require('shapy.editor.CanvasDirective');
@@ -69,8 +75,13 @@ shapy.configStates_ = function(
       views: {
         'body@': {
           templateUrl: '/html/browser.html',
-          controllerAs: 'browserCtrl',
-          controller: 'BrowserController'
+          controller: 'BrowserController',
+          controllerAs: 'browserCtrl'
+        },
+        'toolbar': {
+          templateUrl: '/html/browser-toolbar.html',
+          controller: 'BrowserToolbarController',
+          controllerAs: 'browserCtrl'
         }
       }
     })
@@ -184,14 +195,19 @@ shapy.module = angular
   ])
 
   .controller('BrowserController', shapy.browser.BrowserController)
+  .controller('BrowserToolbarController', shapy.browser.BrowserToolbarController)
   .controller('EditorController', shapy.editor.EditorController)
   .controller('EditorToolbarController', shapy.editor.EditorToolbarController)
 
   .service('shAuth', shapy.AuthService)
+  .service('shAssets', shapy.browser.AssetsService)
   .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
 
+  .directive('shSidebar', shapy.browser.sidebar)
+  .directive('shFiles', shapy.browser.files)
+  .directive('shFile', shapy.browser.file)
   .directive('shCanvas', shapy.editor.CanvasDirective)
   .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)
@@ -200,6 +216,8 @@ shapy.module = angular
   .directive('shMenu', shapy.menu)
 
   .factory('shHttp', shapy.HttpInterceptor)
+
+  .filter('shFileMatch', shapy.browser.fileMatch)
 
   .config(shapy.configStates_)
   .config(shapy.configHttp_);

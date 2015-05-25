@@ -7,13 +7,14 @@
     <!-- Style sheets -->
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/editor.css" />
+    <link rel="stylesheet" href="/css/browser.css" />
 
     <!-- External dependencies. -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular-route.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular-sanitize.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 
     <!-- Closure library dependency tree. -->
     <script src="/js/goog/base.js"></script>
@@ -21,8 +22,15 @@
       goog.addDependency('../editor/camera.js', [
           'shapy.editor.Camera'
       ], []);
+      goog.addDependency('../browser/assets.js', [
+          'shapy.browser.AssetsService'
+      ], []);
       goog.addDependency('../browser/browser.js', [
-          'shapy.browser.BrowserController'
+          'shapy.browser.BrowserController',
+          'shapy.browser.BrowserToolbarController',
+          'shapy.browser.sidebar',
+          'shapy.browser.files',
+          'shapy.browser.file'
       ], [
       ]);
       goog.addDependency('../editor/editor.js', [
@@ -71,7 +79,12 @@
           'shapy.module'
       ], [
           'shapy.AuthService',
+          'shapy.browser.AssetsService',
           'shapy.browser.BrowserController',
+          'shapy.browser.BrowserToolbarController',
+          'shapy.browser.sidebar',
+          'shapy.browser.files',
+          'shapy.browser.file',
           'shapy.equals',
           'shapy.highlight',
           'shapy.SceneService',
@@ -88,7 +101,7 @@
       ]);
       goog.addDependency('../register.js', [
           'shapy.equals',
-          'shapy.email',        
+          'shapy.email',
           'shapy.RegisterController'
       ], []);
       goog.addDependency('../scene.js', [
