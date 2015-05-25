@@ -42,10 +42,10 @@ shapy.editor.CamCube = function(viewport, camera) {
   this.pos_ = goog.vec.Vec3.createFloat32();
   /** @private {!WebGLBuffer} */
   this.mesh_ = null;
-  /** @private {!Object<string, boolean>} @const */
+  /** @private {!goog.vec.Vec3.Type} @const */
   this.hover_ = null;
-  /** @private {!Object<string, boolean>} @const */
-  this.click_ = null;
+  /** @private {boolean} @const */
+  this.click_ = false;
 };
 
 
@@ -77,8 +77,31 @@ shapy.editor.CamCube.NORMALS = [
  * Information used to render faces.
  * @type {!Array<string>}
  */
-shapy.editor.CamCube.FACES = [
-  'front', 'back', 'right', 'left', 'top', 'bottom'
+shapy.editor.CamCube.NORMALS = [
+  // Front.
+  [-1, -1, +1], [-1, +0, +1], [-1, +1, +1],
+  [+0, -1, +1], [+0, +0, +1], [+0, +1, +1],
+  [+1, -1, +1], [+1, +0, +1], [+1, +1, +1],
+  // Back.
+  [-1, -1, -1], [-1, +0, -1], [-1, +1, -1],
+  [+0, -1, -1], [+0, +0, -1], [+0, +1, -1],
+  [+1, -1, -1], [+1, +0, -1], [+1, +1, -1],
+  // Right.
+  [+1, -1, -1], [+1, -1, +0], [+1, -1, +1],
+  [+1, +0, -1], [+1, +0, +0], [+1, +0, +1],
+  [+1, +1, -1], [+1, +1, +0], [+1, +1, +1],
+  // Left.
+  [-1, -1, -1], [-1, -1, +0], [-1, -1, +1],
+  [-1, +0, -1], [-1, +0, +0], [-1, +0, +1],
+  [-1, +1, -1], [-1, +1, +0], [-1, +1, +1],
+  // Top.
+  [-1, +1, -1], [-1, +1, +0], [-1, +1, +1],
+  [+0, +1, -1], [+0, +1, +0], [+0, +1, +1],
+  [+1, +1, -1], [+1, +1, +0], [+1, +1, +1],
+  // Bottom.
+  [-1, -1, -1], [-1, -1, +0], [-1, -1, +1],
+  [+0, -1, -1], [+0, -1, +0], [+0, -1, +1],
+  [+1, -1, -1], [+1, -1, +0], [+1, -1, +1],
 ];
 
 
@@ -230,23 +253,22 @@ shapy.editor.CamCube.prototype.render = function(gl, sh) {
   gl.vertexAttribPointer(2, 2, goog.webgl.FLOAT, false, 20, 12);
 
   var idx = 0;
-  goog.array.forEach(shapy.editor.CamCube.FACES, function(name) {
-    for (var i = 0; i < 3; ++i) {
-      for (var j = 0; j < 3; ++j) {
-        faceName = name + i + j;
+  goog.array.forEach(shapy.editor.CamCube.NORMALS, function(normal) {
+    var n = goog.vec.Vec3.cloneFloat32(normal);
+    goog.vec.Vec3.normalize(n, n);
 
-        if (this.click_ == faceName) {
-          sh.uniform4f('u_colour', 1, 1, 0, 1);
-        } else if (this.hover_ == faceName) {
-          sh.uniform4f('u_colour', 1, 1, 1, 1);
-        } else {
-          sh.uniform4f('u_colour', 0.7, 0.7, 0.7, 1);
-        }
-
-        gl.drawArrays(goog.webgl.TRIANGLES, idx, 6);
-        idx += 6;
+    if (this.hover_ && goog.vec.Vec3.distance(n, this.hover_) < 0.1) {
+      if (this.click_) {
+        sh.uniform4f('u_colour', 1, 1, 0, 1);
+      } else {
+        sh.uniform4f('u_colour', 1, 1, 1, 1);
       }
+    } else {
+      sh.uniform4f('u_colour', 0.7, 0.7, 0.7, 1);
     }
+
+    gl.drawArrays(goog.webgl.TRIANGLES, idx, 6);
+    idx += 6;
   }, this);
 
   gl.disable(goog.webgl.CULL_FACE);
@@ -289,7 +311,7 @@ shapy.editor.CamCube.prototype.raycast_ = function(x, y) {
  * @return {string}
  */
 shapy.editor.CamCube.prototype.getFace_ = function(ray) {
-  var hits, dx, dy, face;
+  var hits, dx, dy;
 
   // Find out which face was hit by the ray.
   hits = goog.array.map(shapy.editor.CamCube.NORMALS, function(normal) {
@@ -308,47 +330,49 @@ shapy.editor.CamCube.prototype.getFace_ = function(ray) {
   if (goog.array.isEmpty(hits)) {
     return null;
   }
-  var h = hits[0];
+  var h = hits[0], dir, b, c;
 
-  // Find out which part of the face was hit.
+  // Get the coordinate system of the face - dir is the normal, b points to the
+  // left and c points upwards. Theese coordinates are then used to find
+  // a normal vector which will orient the camera.
   if (Math.abs(h[0] - 1) <= 0.01) {
-    face = 'right';
+    dir = [+1, 0, 0]; b = [0, +1, 0]; c = [0, 0, +1];
     dx = h[1]; dy = h[2];
   } else if (Math.abs(h[0] + 1) <= 0.01) {
-    face = 'left';
+    dir = [-1, 0, 0]; b = [0, +1, 0]; c = [0, 0, +1];
     dx = h[1]; dy = h[2];
   } else if (Math.abs(h[1] - 1) <= 0.01) {
-    face = 'top';
+    dir = [0, +1, 0.001]; b = [+1, 0, 0]; c = [0, 0, +1];
     dx = h[0]; dy = h[2];
   } else if (Math.abs(h[1] + 1) <= 0.01) {
-    face = 'bottom';
+    dir = [0, -1, 0.001]; b = [+1, 0, 0]; c = [0, 0, +1];
     dx = h[0]; dy = h[2];
   } else if (Math.abs(h[2] - 1) <= 0.01) {
-    face = 'front';
+    dir = [0, 0, +1]; b = [+1, 0, 0]; c = [0, +1, 0];
     dx = h[0]; dy = h[1];
   } else if (Math.abs(h[2] + 1) <= 0.01) {
-    face = 'back';
+    dir = [0, 0, -1]; b = [+1, 0, 0]; c = [0, +1, 0];
     dx = h[0]; dy = h[1];
   } else {
     return null;
   }
 
   if (dx < -shapy.editor.CamCube.CENTER) {
-    face += '0';
-  } else if (dx < shapy.editor.CamCube.CENTER) {
-    face += '1';
-  } else {
-    face += '2';
+    goog.vec.Vec3.subtract(dir, b, dir);
+  }
+  if (dx > shapy.editor.CamCube.CENTER) {
+    goog.vec.Vec3.add(dir, b, dir);
   }
 
   if (dy < -shapy.editor.CamCube.CENTER) {
-    face += '0';
-  } else if (dy < shapy.editor.CamCube.CENTER) {
-    face += '1';
-  } else {
-    face += '2';
+    goog.vec.Vec3.subtract(dir, c, dir);
   }
-  return face;
+  if (dy > shapy.editor.CamCube.CENTER) {
+    goog.vec.Vec3.add(dir, c, dir);
+  }
+
+  goog.vec.Vec3.normalize(dir, dir);
+  return dir;
 };
 
 
@@ -363,18 +387,19 @@ shapy.editor.CamCube.prototype.getFace_ = function(ray) {
 shapy.editor.CamCube.prototype.mouseMove = function(x, y) {
   y = this.size - (this.viewport_.rect.h - y);
   if (x > this.size || y < 0) {
-    this.hover_ = this.click_ = null;
+    this.hover_ = null;
+    this.click_ = false;
     return false;
   }
-  var face = this.getFace_(this.raycast_(x, y));
-  if (!face) {
-    this.click_ = this.hover_ = false;
+  this.hover_ = this.getFace_(this.raycast_(x, y));
+  if (!this.hover_) {
+    this.hover_ = null;
+    this.click_ = false;
     return false;
   }
 
-  this.hover_ = face;
-  if (this.hover_ != this.click) {
-    this.click_ = null;
+  if (this.hover_ != this.click_) {
+    this.click_ = false;
   }
   return true;
 };
@@ -391,18 +416,23 @@ shapy.editor.CamCube.prototype.mouseMove = function(x, y) {
 shapy.editor.CamCube.prototype.mouseDown = function(x, y) {
   y = this.size - (this.viewport_.rect.h - y);
   if (x > this.size || y < 0) {
-    this.hover_ = this.click_ = null;
+    this.hover_ = null;
+    this.click_ = false;
     return false;
   }
-  var face = this.getFace_(this.raycast_(x, y));
-  if (!face) {
+  this.hover_ = this.getFace_(this.raycast_(x, y));
+  if (!this.hover_) {
+    this.click_ = false;
     return false;
   }
 
-  this.click_ = this.hover_;
-  return this.click_ != null;
+  this.click_ = this.hover_ != null;
+  return this.click_;
 };
 
+
+/** @type {number} @const */
+shapy.editor.CamCube.DISTANCE = 5.0;
 
 
 /**
@@ -414,6 +444,16 @@ shapy.editor.CamCube.prototype.mouseDown = function(x, y) {
  * @return {boolean} True if the event was hijacked.
  */
 shapy.editor.CamCube.prototype.mouseUp = function(x, y) {
-  this.click_ = null;
+  if (!this.click_ || !this.hover_) {
+    return false;
+  }
+
+  var n = goog.vec.Vec3.cloneFloat32(this.hover_);
+  goog.vec.Vec3.scale(n, shapy.editor.CamCube.DISTANCE, n);
+  goog.vec.Vec3.add(this.camera_.center, n, this.camera_.eye);
+
+  this.click_ = false;
+  this.hover_ = this.getFace_(this.raycast_(x, y));
+
   return false;
 };

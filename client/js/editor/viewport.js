@@ -670,13 +670,14 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} button Mouse button that was clicked.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
-  if (this.camCube.mouseDown(x, y)) {
-    return;
-  }
   this.currMousePos_.x = x;
   this.currMousePos_.y = y;
   this.lastMousePos_.x = x;
   this.lastMousePos_.y = y;
+
+  if (this.camCube.mouseDown(x, y)) {
+    return;
+  }
 
   switch (button) {
     case 1: {
