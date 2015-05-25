@@ -241,6 +241,8 @@ shapy.editor.CanvasController = function($rootScope) {
   this.layout = new shapy.editor.Layout.Single();
   this.layout.active.rig = this.rig;
 
+  // For testing, set a default rig
+  this.changeRig_(new shapy.editor.Rig.Translate());
 
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
