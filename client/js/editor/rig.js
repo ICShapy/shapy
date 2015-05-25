@@ -192,29 +192,23 @@ shapy.editor.Rig.prototype.mouseDown = goog.abstractMethod;
 
 
 /**
- * Handles mouse enter event.
- *
- * @param {!goog.vec.Ray} ray
- */
-shapy.editor.Rig.prototype.mouseEnter = function(ray) {
-};
-
-
-/**
  * Handles mouse up event.
- *
- * @param {!goog.vec.Ray} ray
  */
-shapy.editor.Rig.prototype.mouseUp = function(ray) {
-  this.select_.x = this.select_.y = this.select_.z = false;
-};
+shapy.editor.Rig.prototype.mouseUp = goog.abstractMethod;
 
 
 /**
  * Handles mouse leave event.
  */
-shapy.editor.Rig.prototype.mouseLeave = function() {
-  this.select_.x = this.select_.y = this.select_.z = false;
+shapy.editor.Rig.prototype.mouseLeave = goog.abstractMethod;
+
+
+/**
+ * Handles mouse enter event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.prototype.mouseEnter = function(ray) {
 };
 
 
@@ -446,6 +440,24 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
   this.lastPos_ = this.getClosest_(ray);
+};
+
+
+/**
+ * Handles mouse up event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
+  this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
+/**
+ * Handles mouse leave event.
+ */
+shapy.editor.Rig.Translate.prototype.mouseLeave = function() {
+  this.select_.x = this.select_.y = this.select_.z = false;
 };
 
 
@@ -830,6 +842,24 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
 };
 
 
+/**
+ * Handles mouse up event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
+  this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
+/**
+ * Handles mouse leave event.
+ */
+shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
+  this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
 
 /**
  * Rig used to alter scaling.
@@ -1106,3 +1136,20 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.lastPos_ = this.getClosest_(ray);
 };
 
+
+/**
+ * Handles mouse up event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
+  this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
+/**
+ * Handles mouse leave event.
+ */
+shapy.editor.Rig.Scale.prototype.mouseLeave = function() {
+  this.select_.x = this.select_.y = this.select_.z = false;
+};
