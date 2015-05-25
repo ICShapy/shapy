@@ -200,7 +200,7 @@ shapy.editor.Editable.Object.prototype.getData = function() {
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.Editable.Object.prototype.setPosition = function(x, y, z) {
+shapy.editor.Editable.Object.prototype.translate = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
   this.computeModel_();
 }
@@ -221,7 +221,7 @@ shapy.editor.Editable.Object.prototype.getPosition = function() {
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.Editable.Object.prototype.setScale = function(x, y, z) {
+shapy.editor.Editable.Object.prototype.scale = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.scale_, x, y, z);
   this.computeModel_();
 }
