@@ -350,7 +350,7 @@ shapy.editor.Renderer.prototype.renderBorder = function(vp) {
     this.shBorder_.use();
     vp.active ?
       this.shBorder_.uniform4f('u_colour', 1, 1, 0, 1) :
-      this.shBorder_.uniform4f('u_colour', .1, .1, .1, .1);
+      this.shBorder_.uniform4f('u_colour', .4, .4, .4, 1);
 
     this.shBorder_.uniform2f('u_size', vp.rect.w, vp.rect.h);
     this.shBorder_.uniformMat4x4('u_view', this.identity);
