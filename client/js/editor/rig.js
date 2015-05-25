@@ -320,8 +320,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
-    gl.drawArrays(
-      goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
   } else if (this.hover_.x) {
     sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
   } else {
@@ -330,14 +328,19 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
+  // Line on X.
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.271, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
+  }
+
   // Arrow on Y.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
-    gl.drawArrays(
-      goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
   } else if (this.hover_.y) {
     sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
   } else {
@@ -346,14 +349,19 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
+  // Line on Y.
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 0.255, 0.412, 0.882, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
+  }
+
   // Arrow on Z.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.z) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
-    gl.drawArrays(
-        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
   } else if (this.hover_.z) {
     sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
   } else {
@@ -361,6 +369,13 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
+
+  // Line on Z.
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 0.196, 0.804, 0.196, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
+  }
 
   // Box on the origin.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
@@ -899,7 +914,7 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
 
   // Build the tube.
   this.buildTube_(
-      d, k, shapy.editor.Rig.Scale.TUBE_BASE, 1.0, 0.02, [0.0, 0.0, 0.0]);
+      d, k, shapy.editor.Rig.Scale.TUBE_BASE, 1.0, 0.015, [0.0, 0.0, 0.0]);
   k += shapy.editor.Rig.Scale.TUBE_BASE * 18;
 
   // Construct the cube on the tube.
@@ -944,8 +959,6 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
-    gl.drawArrays(
-        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
   } else if (this.hover_.x) {
     sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
   } else {
@@ -953,6 +966,14 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6);
+
+  // Line on X.
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.271, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  }
 
   // Box on X.
   goog.vec.Mat4.makeTranslate(
@@ -968,8 +989,6 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
-    gl.drawArrays(
-        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
   } else if (this.hover_.y) {
     sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
   } else {
@@ -977,6 +996,14 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6);
+
+  // Line on Y.
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 0.255, 0.412, 0.882, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  }
 
   // Box on Y.
   goog.vec.Mat4.makeTranslate(
@@ -992,8 +1019,6 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.z) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
-    gl.drawArrays(
-        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
   } else if (this.hover_.z) {
     sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
   } else {
@@ -1001,6 +1026,14 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6);
+
+  // Line on Z.
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 0.196, 0.804, 0.196, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  }
 
   // Box on Z.
   goog.vec.Mat4.makeTranslate(
