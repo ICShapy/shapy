@@ -66,26 +66,8 @@ shapy.editor.Rig = function(type) {
     z: false
   };
 
-  /** @private {shapy.editor.Object} */
+  /** @private {shapy.editor.Editable.Type} */
   this.controlObject_ = null;
-
-  /** @private {!goog.vec.Vec3.Type} */
-  this.position_ = goog.vec.Vec3.createFloat32FromValues(-0.5, 0.2, -0.5);
-
-  // TODO: Is it possible for a rig to exist WITHOUT an object to control?
-  this.getPosition_ = function() {
-    if (this.controlObject_ != null)
-      return this.controlObject_.getPosition();
-    else
-      return this.position_;
-  };
-
-  this.setPosition_ = function(x, y, z) {
-    if (this.controlObject_ != null)
-      this.controlObject_.setPosition(x, y, z);
-    else
-      goog.vec.Vec3.setFromValues(this.position_, x, y, z);
-  };
 };
 
 
@@ -177,7 +159,7 @@ shapy.editor.Rig.prototype.buildTube_ = function(d, k, b, l, r, c) {
  */
 shapy.editor.Rig.prototype.getClosest_ = function(ray) {
   var closest = goog.vec.Vec3.createFloat32();
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   var u = goog.vec.Vec3.createFloat32();
 
   // Get the direction vector of the rig axis.
@@ -338,7 +320,7 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -446,7 +428,7 @@ shapy.editor.intersectSphere = function(ray, c, r) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (this.select_.x || this.select_.y || this.select_.z) {
     // Calculate the translation.
@@ -456,7 +438,8 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     this.lastPos_ = currPos;
 
     // Update the position.
-    this.setPosition_(pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
+    this.controlObject_.setPosition(
+        pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
     return;
   }
 
@@ -581,7 +564,7 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
  */
 shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   var i = shapy.editor.Rig.Rotate.DISK / 3;
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -717,7 +700,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Vec3.Type} cursor
  */
 shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
-  var d, r, pos = this.getPosition_();
+  var d, r, pos = this.controlObject_.getPosition();
 
   goog.vec.Vec3.subtract(cursor, pos, cursor);
   d = goog.vec.Vec3.magnitude(cursor);
@@ -740,7 +723,7 @@ shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
  * @return {goog.vec.Vec3.Type}
  */
 shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
-  var position = this.getPosition_();
+  var position = this.controlObject_.getPosition();
 
   // Find intersection point with planes.
   var ix = shapy.editor.geom.intersectPlane(ray, [1, 0, 0], position);
@@ -782,7 +765,7 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   if (this.select_.x || this.select_.y || this.select_.z) {
     this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
     this.adjustCursor_(this.cursor_);
@@ -813,7 +796,7 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
  * @return {number}
  */
 shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (this.hover_.x) {
     return Math.atan2(
@@ -840,7 +823,7 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   var hit = this.getHit_(ray);
   var dx, dy;
 
@@ -961,7 +944,7 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -1173,7 +1156,7 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
     return;
   }
 
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   var c = goog.vec.Vec3.createFloat32();
 
   // Intersection on X.
