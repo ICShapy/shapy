@@ -368,6 +368,7 @@ shapy.editor.CamCube.prototype.mouseMove = function(x, y) {
   }
   var face = this.getFace_(this.raycast_(x, y));
   if (!face) {
+    this.click_ = this.hover_ = false;
     return false;
   }
 
@@ -391,6 +392,10 @@ shapy.editor.CamCube.prototype.mouseDown = function(x, y) {
   y = this.size - (this.viewport_.rect.h - y);
   if (x > this.size || y < 0) {
     this.hover_ = this.click_ = null;
+    return false;
+  }
+  var face = this.getFace_(this.raycast_(x, y));
+  if (!face) {
     return false;
   }
 
