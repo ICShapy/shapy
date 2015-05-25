@@ -209,6 +209,9 @@ shapy.editor.Renderer = function(gl) {
   this.shColour_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_FS);
   this.shColour_.link();
 
+  // Cached meshes of objects
+  this.objectMeshes_ = {};
+
   /** @private {!shapy.editor.Shader} @const */
   this.shBorder_ = new shapy.editor.Shader(this.gl_);
   this.shBorder_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.BORDER_VS);
@@ -301,6 +304,19 @@ shapy.editor.Renderer.prototype.loadTexture_ = function(data) {
 
 
 /**
+ * Update a mesh - this is called by an object if it becomes dirty (version
+ * number changes).
+ */
+shapy.editor.Renderer.prototype.updateObject = function(object) {
+  // Re-build mesh
+  // TODO: Keep version history
+  var data = object.getGeometryData();
+  this.objectMeshes_[object.id] = shapy.editor.Mesh.createFromObject(
+    this.gl_, data.vertices, data.edges, data.faces);
+};
+
+
+/**
  * Start rendering a scene.
  */
 shapy.editor.Renderer.prototype.start = function() {
@@ -331,6 +347,13 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
     this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
     this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, 6);
     this.gl_.disableVertexAttribArray(0);
+
+    // TODO:
+    // Render each object
+    //this.shColour_.use();
+    //goog.object.forEach(this.objectMeshes_, function(mesh, id, meshes) {
+    //  mesh.render(this.shColour_);
+    //}, this);
   }
   this.gl_.disable(goog.webgl.BLEND);
 };
