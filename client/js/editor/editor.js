@@ -260,7 +260,6 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
 
   this.objects_['test']
       = shapy.editor.Editable.Object.createCube(0.5, 0.5, 0.5);
-  //this.objects_['test'] = shapy.editor.Editable.Object.createPolygon(6, 2);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -308,7 +307,8 @@ shapy.editor.CanvasController.prototype.render = function() {
     vp.camera.compute();
     vp.camCube.compute();
 
-    // Render the entities & overlays.
+    // Render the objects & overlays.
+    this.renderer_.renderObjects(vp);
     this.renderer_.renderGround(vp);
     this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);

@@ -85,6 +85,7 @@ shapy.editor.Editable.Object = function(vertices, edges, faces) {
    * @private {goog.vec.Mat4} @const
    */
   this.model_ = goog.vec.Mat4.createFloat32();
+  goog.vec.Mat4.makeIdentity(this.model_);
 
   /**
    * True if any data field is dirty.
@@ -133,6 +134,7 @@ goog.inherits(shapy.editor.Editable.Object, shapy.editor.Editable);
  * @private
  */
 shapy.editor.Editable.Object.prototype.computeModel_ = function() {
+  goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
@@ -192,18 +194,23 @@ shapy.editor.Editable.Object.prototype.getData = function() {
 
 
 /**
- * Retrieves the position.
+ * Updates the object position.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
  */
-shapy.editor.Editable.prototype.getPosition = function() {
-  return this.position_;
-};
+shapy.editor.Editable.Object.prototype.setPosition = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
+  this.computeModel_();
+}
 
 
 /**
- * Sets the object postion.
+ * Retrieves the object position.
  */
-shapy.editor.Editable.Object.prototype.setPosition = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.position_, x, y, z);
+shapy.editor.Editable.Object.prototype.getPosition = function() {
+  return this.translate_;
 };
 
 
@@ -262,12 +269,12 @@ shapy.editor.Editable.Object.createCube = function(w, h, d) {
   ];
 
   // Edge layout:
-  //   +--4--+
-  //  /     /5
-  // +--0--+ |
-  // 3   6 1 +
-  // |     |/
-  // +--2--+
+  //     +--4--+
+  //   8/|7   9/5
+  //   +--0--+ |
+  //   3 +-6-1-+
+  // 11|/    |/10
+  //   +--2--+
   var edges = [
     [0, 1], [1, 3], [3, 2], [2, 0], // Front
     [4, 5], [5, 7], [7, 6], [6, 4], // Back
@@ -280,7 +287,7 @@ shapy.editor.Editable.Object.createCube = function(w, h, d) {
     [1, 9, 5, 10],  // +X
     [4, 7, 6, 5],   // -Z
     [8, 3, 11, 7],  // -X
-    [0, 8, 4, 9],   // +Y
+    [4, 9, 0, 8],   // +Y
     [2, 10, 6, 11]  // -Y
   ];
 
