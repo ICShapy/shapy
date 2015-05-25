@@ -316,7 +316,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
 
   // Arrow on X.
-  goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
@@ -332,7 +331,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
   // Arrow on Y.
-  goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
@@ -349,7 +347,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
   // Arrow on Z.
-  goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
@@ -366,7 +363,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
 
   // Box on the origin.
-  goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
   sh.uniform4f('u_colour', 1, 1, 0, 1);
@@ -1014,7 +1010,6 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
       goog.webgl.TRIANGLES, shapy.editor.Rig.Scale.TUBE_BASE * 6 , 36);
 
   // Box on the origin.
-  goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
   sh.uniform4f('u_colour', 1, 1, 0, 1);
@@ -1127,11 +1122,11 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
   this.hover_.x = shapy.editor.intersectCube(ray, c, 0.1);
 
   // Intersection on Y.
-  goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + 1.0, pos[2]);
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + this.scale_[1], pos[2]);
   this.hover_.y = shapy.editor.intersectCube(ray, c, 0.1);
 
   // Intersection on Z.
-  goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + 1.0);
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + this.scale_[2]);
   this.hover_.z = shapy.editor.intersectCube(ray, c, 0.1);
 };
 
