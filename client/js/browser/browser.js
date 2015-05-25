@@ -39,10 +39,8 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @export
    */
   this.assets = [];
-
-  for (var i = 1; i < 200; ++i) {
-    this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
-  }
+  // Set displayed assets to content of home folder.
+  this.displayDir(new shapy.browser.Asset.Dir(0, 'home'));
 
   /**
    * Query from user filtering results.
@@ -91,10 +89,9 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
   //use service to perform entering
   //temporary - update this.assets with return of service method
   this.assets = []
-  if (dir.id == 0) {
-    for (var i = 1; i < 200; ++i) {
-      this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
-    }
+  var hundreds = (dir.id + 99) / 100
+  for (var i = hundreds * 100 + 1; i <= (hundreds + 1) * 100; ++i) {
+    this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
   }
 };
 
@@ -151,7 +148,7 @@ shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
       type: 'pathAsset',
       asset: asset
   });
-  // Drop redundant tail of path
+  // Drop redundant tail of path.
   var poppedAsset;
   do {
     poppedAsset = this.path.pop()
@@ -194,7 +191,7 @@ shapy.browser.files = function() {
       };
 
       $(window).resize(adjustWidth);
-      $scope.$watch('browserCtrl.files', function() {
+      $scope.$watch('browserCtrl.assets', function() {
         adjustWidth();
       }, true);
     }
