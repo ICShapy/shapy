@@ -906,7 +906,13 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
-  sh.uniform4f('u_colour', 0.7, 0.0, 0.0, 1.0);
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.7, 0.0, 0.0, 1.0);
+  }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36);
 
@@ -915,7 +921,13 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
-  sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.y) {
+    sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
+  }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36);
 
@@ -924,7 +936,13 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
-  sh.uniform4f('u_colour', 0.0, 0.7, 0.0, 1.0);
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.z) {
+    sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.7, 0.0, 1.0);
+  }
   gl.drawArrays(
       goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36);
 
@@ -941,36 +959,41 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
 
 
 /**
- * Determines if the ray intersects the cube using a modified
+ * Determines if the ray intersects the axis-aligned cube using a modified
  * version of Smits' algorithm.
+ * // TODO: change algorithm to include non axis-aligned boxes
  *
  * @param {!goog.vec.Ray}  ray Ray
  * @param {!goog.vec.Vec3} c   Center of the cube.
  * @param {number}         a   Length of the edge.
  */
 shapy.editor.intersectCube = function(ray, c, a) {
-  var tmin, tmax, tymin, tymax, tzmin, zmax;
+  var tmin, tmax, tymin, tymax, tzmin, zmax, div;
 
   var min = goog.vec.Vec3.createFloat32();
   goog.vec.Vec3.setFromValues(min, c[0] - a / 2, c[1] - a / 2, c[2] - a / 2);
 
   var max = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.setFromValues(min, c[0] + a / 2, c[1] + a / 2, c[2] + a / 2);
+  goog.vec.Vec3.setFromValues(max, c[0] + a / 2, c[1] + a / 2, c[2] + a / 2);
+
+  div = 1 / ray.dir[0];
 
   if (ray.dir[0] >= 0) {
-    tmin = (min[0] - ray.origin[0]) / ray.dir[0];
-    tmax = (max[0] - ray.origin[0]) / ray.dir[0];
+    tmin = (min[0] - ray.origin[0]) * div;
+    tmax = (max[0] - ray.origin[0]) * div;
   } else {
-    tmin = (max[0] - ray.origin[0]) / ray.dir[0];
-    tmax = (min[0] - ray.origin[0]) / ray.dir[0];
+    tmin = (max[0] - ray.origin[0]) * div;
+    tmax = (min[0] - ray.origin[0]) * div;
   }
 
+  div = 1 / ray.dir[1];
+
   if (ray.dir[1] >= 0) {
-    tymin = (min[1] - ray.origin[1]) / ray.dir[1];
-    tymax = (max[1] - ray.origin[1]) / ray.dir[1];
+    tymin = (min[1] - ray.origin[1]) * div;
+    tymax = (max[1] - ray.origin[1]) * div;
   } else {
-    tymin = (max[1] - ray.origin[1]) / ray.dir[1];
-    tymax = (min[1] - ray.origin[1]) / ray.dir[1];
+    tymin = (max[1] - ray.origin[1]) * div;
+    tymax = (min[1] - ray.origin[1]) * div;
   }
 
   if ((tmin > tymax) || (tymin > tmax)) {
@@ -985,18 +1008,29 @@ shapy.editor.intersectCube = function(ray, c, a) {
     tmax = tymax;
   }
 
+  div = 1 / ray.dir[2];
+
   if (ray.dir[2] >= 0) {
-    tzmin = (min[2] - ray.origin[2]) / ray.dir[2];
-    tzmax = (max[2] - ray.origin[2]) / ray.dir[2];
+    tzmin = (min[2] - ray.origin[2]) * div;
+    tzmax = (max[2] - ray.origin[2]) * div;
   } else {
-    tzmin = (max[2] - ray.origin[2]) / ray.dir[2];
-    tzmax = (min[2] - ray.origin[2]) / ray.dir[2];
+    tzmin = (max[2] - ray.origin[2]) * div;
+    tzmax = (min[2] - ray.origin[2]) * div;
   }
 
-  // Lab closes...
-  // TODO: finish & improve.
+  if ((tmin > tzmax) || (tzmin > tmax)) {
+    return false;
+  }
 
-  return false;
+  if (tzmin > tmin) {
+    tmin = tzmin;
+  }
+
+  if (tzmax < tmax) {
+    tmax = tzmax;
+  }
+
+  return (tmin < Number.MAX_VALUE) || (tmax > 0.0);
 };
 
 
@@ -1006,7 +1040,25 @@ shapy.editor.intersectCube = function(ray, c, a) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
+  if (this.select_.x || this.select_.y || this.select_.z) {
+    //console.log (this.select_.x, this.select_.y, this.select_.z);
+    return;
+  }
 
+  var pos = this.getPosition_();
+  var c = goog.vec.Vec3.createFloat32();
+
+  // Intersection on X.
+  goog.vec.Vec3.setFromValues(c, pos[0] + 1.0, pos[1], pos[2]);
+  this.hover_.x = shapy.editor.intersectCube(ray, c, 0.1);
+
+  // Intersection on Y.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + 1.0, pos[2]);
+  this.hover_.y = shapy.editor.intersectCube(ray, c, 0.1);
+
+  // Intersection on Z.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + 1.0);
+  this.hover_.z = shapy.editor.intersectCube(ray, c, 0.1);
 };
 
 
