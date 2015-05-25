@@ -438,7 +438,7 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     this.lastPos_ = currPos;
 
     // Update the position.
-    this.controlObject_.setPosition(
+    this.controlObject_.translate(
         pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
     return;
   }
@@ -1148,7 +1148,7 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
     goog.vec.Vec3.add(this.scale_, d, this.scale_);
 
     // Update the scale of the model to be the relative scale
-    this.controlObject_.setScale(
+    this.controlObject_.scale(
       this.scale_[0] * this.scaleRelativeTo_[0],
       this.scale_[1] * this.scaleRelativeTo_[1],
       this.scale_[2] * this.scaleRelativeTo_[2]
