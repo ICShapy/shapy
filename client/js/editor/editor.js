@@ -227,15 +227,14 @@ shapy.editor.CanvasController = function($rootScope) {
    * @public {!shapy.editor.Rig}
    */
   //this.rig = new shapy.editor.Rig.Rotate();
-  //this.rig = new shapy.editor.Rig.Translate();
-  this.rig = new shapy.editor.Rig.Scale();
+  this.rig = new shapy.editor.Rig.Translate();
+  //this.rig = new shapy.editor.Rig.Scale();
 
   /**
    * Root layout.
    * @public {!shapy.editor.Layout} @const
    */
   this.layout = new shapy.editor.Layout.Single();
-
   this.layout.active.rig = this.rig;
 
 
@@ -259,8 +258,8 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
-  //this.objects_['test'] = shapy.editor.Object.createCube(2, 2, 2);
-  this.objects_['test'] = shapy.editor.Object.createPolygon(6, 2);
+  this.objects_['test'] = shapy.editor.Object.createCube(0.5, 0.5, 0.5);
+  //this.objects_['test'] = shapy.editor.Object.createPolygon(6, 2);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -290,10 +289,19 @@ shapy.editor.CanvasController.prototype.render = function() {
 
   // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();
+
+  // First pass - render objects.
+  goog.object.forEach(this.layout.viewports, function(vp, name) {
+    this.renderer_.renderObjects(vp);
+  }, this);
+
+  // Second pass - render rigs.
   if (this.layout.active && this.layout.active.rig) {
     this.layout.active.camera.compute();
     this.renderer_.renderRig(this.layout.active, this.layout.active.rig);
   }
+
+  // Third pass - render overlay & ground plane.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     // Update viewport, camera, cube, etc.
     vp.camera.compute();

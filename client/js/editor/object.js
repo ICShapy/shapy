@@ -184,11 +184,17 @@ shapy.editor.Object.createPolygon = function(n, radius) {
   }
 
   return new shapy.editor.Object(vertices, edges, [face]);
-}
+};
 
 
 /**
- * Build an cube object
+ * Build an cube object.
+ *
+ * @param {number} w
+ * @param {number} h
+ * @param {number} d
+ *
+ * @return {!shapy.editor.Object}
  */
 shapy.editor.Object.createCube = function(w, h, d) {
   // Vertex layout:
