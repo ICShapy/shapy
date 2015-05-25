@@ -898,7 +898,7 @@ shapy.editor.Rig.Scale.TUBE_BASE = 16;
  * @param {!WebGLContext}        gl WebGL context.
  */
 shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
-  var d = new Float32Array(shapy.editor.Rig.Scale.TUBE_BASE * 18 + 18 * 36);
+  var d = new Float32Array(shapy.editor.Rig.Scale.TUBE_BASE * 18 + 18 * 36 + 6);
   var k = 0;
 
   // Build the tube.
@@ -908,9 +908,15 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
 
   // Construct the cube on the tube.
   this.buildCube_(d, k, 0.07);
+  k += 108;
 
   // Construct the cube on the origin.
-  this.buildCube_(d, k + 108, 0.05);
+  this.buildCube_(d, k, 0.05);
+  k+= 108;
+
+  // Line through the rig.
+  d[k++] = -1000.0; d[k++] = 0.0; d[k++] = 0.0;
+  d[k++] =  1000.0; d[k++] = 0.0; d[k++] = 0.0;
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
@@ -942,6 +948,8 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
   } else if (this.hover_.x) {
     sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
   } else {
@@ -964,6 +972,8 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
   } else if (this.hover_.y) {
     sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
   } else {
@@ -986,6 +996,8 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.z) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
   } else if (this.hover_.z) {
     sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
   } else {
@@ -1144,6 +1156,9 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
  */
 shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
   this.select_.x = this.select_.y = this.select_.z = false;
+
+  // Reset the scale.
+  goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
 };
 
 
@@ -1152,4 +1167,7 @@ shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
  */
 shapy.editor.Rig.Scale.prototype.mouseLeave = function() {
   this.select_.x = this.select_.y = this.select_.z = false;
+
+  // Reset the scale.
+  goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
 };
