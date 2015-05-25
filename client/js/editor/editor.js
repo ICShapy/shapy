@@ -11,11 +11,11 @@ goog.require('goog.object');
 goog.require('goog.string.format');
 goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
+goog.require('shapy.editor.Editable');
 goog.require('shapy.editor.Layout');
 goog.require('shapy.editor.Layout.Single');
 goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
-goog.require('shapy.editor.Object');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Viewport');
 
@@ -258,8 +258,9 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
-  this.objects_['test'] = shapy.editor.Object.createCube(0.5, 0.5, 0.5);
-  //this.objects_['test'] = shapy.editor.Object.createPolygon(6, 2);
+  this.objects_['test']
+      = shapy.editor.Editable.Object.createCube(0.5, 0.5, 0.5);
+  //this.objects_['test'] = shapy.editor.Editable.Object.createPolygon(6, 2);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);

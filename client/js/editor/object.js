@@ -1,10 +1,45 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Object');
+goog.provide('shapy.editor.Editable');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec3');
+
+
+
+/**
+ * Editable provides a way to:
+ * - scale
+ * - rotate
+ * - translate
+ * objects, vertices and edges.
+ *
+ * @constructor
+ */
+shapy.editor.Editable = function() {
+};
+
+
+/**
+ * Scales the editable.
+ */
+shapy.editor.Editable.prototype.scale = function() {
+};
+
+
+/**
+ * Rotates the editable.
+ */
+shapy.editor.Editable.prototype.rotate = function() {
+};
+
+
+/**
+ * Translate the editable.
+ */
+shapy.editor.Editable.prototype.translate = function() {
+};
 
 
 
@@ -21,7 +56,9 @@ goog.require('goog.vec.Vec3');
  *
  * @constructor
  */
-shapy.editor.Object = function(vertices, edges, faces) {
+shapy.editor.Editable.Object = function(vertices, edges, faces) {
+  shapy.editor.Editable.call(this);
+
   /** @public {number} */
   this.id = 1;
 
@@ -30,6 +67,11 @@ shapy.editor.Object = function(vertices, edges, faces) {
    * @public {boolean}
    */
   this.dirtyMesh = true;
+
+  /**
+   * @private {goog.vec.Vec3}
+   */
+  this.position_ = goog.vec.Vec3.createFromValues(0, 0, 0);
 
   /** @private {goog.vec.Vec3} @const */
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
@@ -43,12 +85,6 @@ shapy.editor.Object = function(vertices, edges, faces) {
    * @private {goog.vec.Mat4} @const
    */
   this.model_ = goog.vec.Mat4.createFloat32();
-
-  /**
-   * Position of the object
-   * @private {goog.vec.Vec3}
-   */
-  this.position_ = goog.vec.Vec3.createFromValues(0, 0, 0);
 
   /**
    * True if any data field is dirty.
@@ -88,6 +124,7 @@ shapy.editor.Object = function(vertices, edges, faces) {
    */
    this.faces_ = faces;
 };
+goog.inherits(shapy.editor.Editable.Object, shapy.editor.Editable);
 
 
 /**
@@ -95,7 +132,7 @@ shapy.editor.Object = function(vertices, edges, faces) {
  *
  * @private
  */
-shapy.editor.Object.prototype.computeModel_ = function() {
+shapy.editor.Editable.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
@@ -117,7 +154,7 @@ shapy.editor.Object.prototype.computeModel_ = function() {
 /**
  * Retrieves the geometry data.
  */
-shapy.editor.Object.prototype.getGeometryData = function() {
+shapy.editor.Editable.Object.prototype.getGeometryData = function() {
   return {
     vertices: this.vertices_,
     edges: this.edges_,
@@ -129,7 +166,7 @@ shapy.editor.Object.prototype.getGeometryData = function() {
 /**
  * Retrieves the object data.
  */
-shapy.editor.Object.prototype.getData = function() {
+shapy.editor.Editable.Object.prototype.getData = function() {
   return {
     id: this.id,
     dirtyMesh: this.dirtyMesh,
@@ -153,11 +190,20 @@ shapy.editor.Object.prototype.getData = function() {
   };
 };
 
+
 /**
- * Retrieves the object position.
+ * Retrieves the position.
  */
-shapy.editor.Object.prototype.getPosition = function() {
+shapy.editor.Editable.prototype.getPosition = function() {
   return this.position_;
+};
+
+
+/**
+ * Sets the object postion.
+ */
+shapy.editor.Editable.Object.prototype.setPosition = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.position_, x, y, z);
 };
 
 
@@ -167,7 +213,7 @@ shapy.editor.Object.prototype.getPosition = function() {
  * @param {number} n Number of sides
  * @param {number} radius Radius of each vertex
  */
-shapy.editor.Object.createPolygon = function(n, radius) {
+shapy.editor.Editable.Object.createPolygon = function(n, radius) {
   // A polygon is a circle divided into 'n' vertices
   var vertices = [];
   var edges = [];
@@ -196,7 +242,7 @@ shapy.editor.Object.createPolygon = function(n, radius) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.editor.Object.createCube = function(w, h, d) {
+shapy.editor.Editable.Object.createCube = function(w, h, d) {
   // Vertex layout:
   //   4-----5
   //  /     /|
@@ -238,5 +284,5 @@ shapy.editor.Object.createCube = function(w, h, d) {
     [2, 10, 6, 11]  // -Y
   ];
 
-  return new shapy.editor.Object(vertices, edges, faces);
+  return new shapy.editor.Editable.Object(vertices, edges, faces);
 };

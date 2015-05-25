@@ -29,30 +29,54 @@ goog.require('shapy.editor.geom');
  * @param {shapy.editor.Rig.Type} type Type of the rig.
  */
 shapy.editor.Rig = function(type) {
-  /** @public {shapy.editor.Rig.Type} @const */
+  /**
+   * @public {shapy.editor.Rig.Type}
+   * @const
+   */
   this.type = type;
-  /** @private {WebGLBuffer} */
+
+  /**
+   * @private {WebGLBuffer}
+   */
   this.mesh_ = null;
-  /** @private {!goog.vec.Mat4.Type} @const */
+
+  /**
+   * @private {!goog.vec.Mat4.Type}
+   * @const
+   */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
-  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+
+  /**
+   * @private {{ x: boolean, y: boolean, z: boolean}}
+   * @const
+   */
   this.hover_ = {
     x: false,
     y: false,
     z: false
   };
-  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+
+  /**
+   * @private {{ x: boolean, y: boolean, z: boolean}}
+   * @const
+   */
   this.select_ = {
     x: false,
     y: false,
     z: false
   };
-  // TODO: have the control object hold position.
+
+  // TODO: have rig retrieve this from control object.
+
   /** @private {!goog.vec.Vec3.Type} */
   this.position_ = goog.vec.Vec3.createFloat32FromValues(-0.5, 0.2, -0.5);
-  // TODO: have rig retrieve this from control object.
+
   this.getPosition_ = function() {
     return this.position_;
+  };
+
+  this.setPosition_ = function(x, y, z) {
+    goog.vec.Vec3.setFromValues(this.position_, x, y, z);
   };
 };
 
@@ -422,8 +446,9 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     var currPos = this.getClosest_(ray);
     goog.vec.Vec3.subtract(currPos, this.lastPos_, t);
     this.lastPos_ = currPos;
+
     // Update the position.
-    goog.vec.Vec3.add(pos, t, pos);
+    this.setPosition_(pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
     return;
   }
 
