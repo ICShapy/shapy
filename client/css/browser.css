@@ -84,9 +84,9 @@ img {
 sh-path {
   position: fixed;
   top: 0;
-  left: 380px;
-  right: 0;
-  bottom: 30px;
+  left: 383px;
+  right: 130px;
+  height: 30px;
   display: grid;
   overflow: auto;
 }
