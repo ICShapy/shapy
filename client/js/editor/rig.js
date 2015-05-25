@@ -904,6 +904,11 @@ shapy.editor.Rig.Scale = function() {
    * @private {goog.vec.Vec3.Type}
    */
   this.scale_ = goog.vec.Vec3.createFloat32FromValues(1.0, 1.0, 1.0);
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.scaleRelativeTo_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Scale, shapy.editor.Rig);
 
@@ -1158,6 +1163,13 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
 
     // Update the scale.
     goog.vec.Vec3.add(this.scale_, d, this.scale_);
+
+    // Update the scale of the model to be the relative scale
+    this.controlObject_.setScale(
+      this.scale_[0] * this.scaleRelativeTo_[0],
+      this.scale_[1] * this.scaleRelativeTo_[1],
+      this.scale_[2] * this.scaleRelativeTo_[2]
+    );
     return;
   }
 
@@ -1188,6 +1200,8 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
   this.lastPos_ = this.getClosest_(ray);
+  goog.vec.Vec3.setFromArray(
+    this.scaleRelativeTo_, this.controlObject_.getScale());
 };
 
 

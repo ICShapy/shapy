@@ -215,6 +215,27 @@ shapy.editor.Editable.Object.prototype.getPosition = function() {
 
 
 /**
+ * Updates the object scale.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Editable.Object.prototype.setScale = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.scale_, x, y, z);
+  this.computeModel_();
+}
+
+
+/**
+ * Retrieves the object scale.
+ */
+shapy.editor.Editable.Object.prototype.getScale = function() {
+  return this.scale_;
+};
+
+
+/**
  * Build a polygon object
  *
  * @param {number} n Number of sides
