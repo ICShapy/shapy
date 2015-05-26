@@ -155,7 +155,7 @@ sh-path {
   right: 130px;
   height: 30px;
   display: grid;
-  overflow-x: scroll;
+  overflow: hidden;
 }
 
 sh-path-asset {
@@ -182,7 +182,7 @@ sh-path-asset > h1 {
   font-size: 14px;
   color: #ffffff;
   width: 70px;
-  overflow-x: scroll;
+  overflow: hidden;
 }
 
 /**
