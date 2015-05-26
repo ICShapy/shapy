@@ -501,8 +501,10 @@ shapy.editor.Rig.Rotate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.ROTATE);
   /** @private {!goog.vec.Vec3.Type} */
   this.normal_ = goog.vec.Vec3.createFloat32();
-  /** @private {goog.vec.Vec3.Type} */
+  /** @private {!goog.vec.Vec3.Type} */
   this.cursor_ = goog.vec.Vec3.createFloat32();
+  /** @private {!goog.vec.Vec3.Type} */
+  this.initialAngle_ = 0.0;
   /** @private {number} */
   this.startAngle_ = 0.0;
   /** @private {number} */
@@ -770,7 +772,22 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
     this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
     this.adjustCursor_(this.cursor_);
     this.currentAngle_ = this.getAngle_(this.cursor_);
-    return;
+
+    if (this.select_.x) {
+      this.controlObject_.rotate(
+          this.initialAngle_ + this.currentAngle_ - this.startAngle_, 0, 0);
+      return;
+    }
+    if (this.select_.y) {
+      this.controlObject_.rotate(
+          0, this.initialAngle_ - this.currentAngle_ + this.startAngle_, 0);
+      return;
+    }
+    if (this.select_.z) {
+      this.controlObject_.rotate(
+          0, 0, this.initialAngle_ + this.currentAngle_ - this.startAngle_);
+      return;
+    }
   }
 
   var hit = this.getHit_(ray);
@@ -825,7 +842,7 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
 shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   var pos = this.controlObject_.getPosition();
   var hit = this.getHit_(ray);
-  var dx, dy;
+  var dx, dy, angle;
 
   if (!hit) {
     return;
@@ -834,16 +851,20 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
   this.adjustCursor_(this.cursor_);
   this.startAngle_ = this.currentAngle_ = this.getAngle_(this.cursor_);
+  angle = this.controlObject_.getRotation();
 
   if (this.hover_.x) {
+    this.initialAngle_ = angle[0];
     this.select_.x = true;
     return;
   }
   if (this.hover_.y) {
+    this.initialAngle_ = angle[1];
     this.select_.y = true;
     return;
   }
   if (this.hover_.z) {
+    this.initialAngle_ = angle[2];
     this.select_.z = true;
     return;
   }

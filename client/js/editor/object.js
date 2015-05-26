@@ -135,6 +135,9 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  */
 shapy.editor.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.translate(
+      this.model_,
+      this.translate_[0], this.translate_[1], this.translate_[2]);
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
@@ -147,9 +150,6 @@ shapy.editor.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.rotateZ(
       this.model_,
       this.rotate_[2]);
-  goog.vec.Mat4.translate(
-      this.model_,
-      this.translate_[0], this.translate_[1], this.translate_[2]);
 };
 
 
@@ -208,6 +208,8 @@ shapy.editor.Object.prototype.translate = function(x, y, z) {
 
 /**
  * Retrieves the object position.
+ *
+ * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.prototype.getPosition = function() {
   return this.translate_;
@@ -224,15 +226,42 @@ shapy.editor.Object.prototype.getPosition = function() {
 shapy.editor.Object.prototype.scale = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.scale_, x, y, z);
   this.computeModel_();
-}
+};
 
 
 /**
  * Retrieves the object scale.
+ *
+ * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.prototype.getScale = function() {
   return this.scale_;
 };
+
+
+/**
+ * Rotates the editable.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.prototype.rotate = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.rotate_, x, y, z);
+  this.computeModel_();
+};
+
+
+/**
+ * Retrieves the object rotation.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.prototype.getRotation = function() {
+  return this.rotate_;
+};
+
+
 
 
 /**
