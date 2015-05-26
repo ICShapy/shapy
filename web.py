@@ -8,7 +8,6 @@ import tornado.ioloop
 import tornado.web
 import tornadoredis
 
-import oauth2
 import psycopg2
 import momoko
 

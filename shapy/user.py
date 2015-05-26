@@ -188,10 +188,16 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
       user = yield self.facebook_request(
           '/me',
           access_token=current['access_token'])
+
+      if 'email' in user:
+        email = user['email']
+      else:
+        email = user['first_name'] + user['last_name']
+
       cursors = yield momoko.Op(self.db.transaction, (
           (
               '''UPDATE users SET fb_id=%s WHERE email=%s RETURNING id;''',
-              (user['id'], user['email'])
+              (user['id'], email)
           ),
           (
               '''INSERT INTO users (first_name, last_name, email, fb_id)
@@ -201,9 +207,9 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
               (
                 user['first_name'],
                 user['last_name'],
-                user['email'],
+                email,
                 user['id'],
-                user['email']
+                email
               )
           ),
       ))
@@ -264,7 +270,10 @@ class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
 
     # If the user never logged in, create an entry.
     if not user:
-      email = current['emails'][0]['value']
+      if current['emails']:
+        email = current['emails'][0]['value']
+      else:
+        email = current['name']['givenName'] + current['name']['familyName']
       cursors = yield momoko.Op(self.db.transaction, (
           (
               '''UPDATE users SET gp_id=%s WHERE email=%s RETURNING id;''',
