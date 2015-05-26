@@ -9,11 +9,13 @@ goog.require('goog.vec.Vec3');
 
 
 /**
- * Editable provides a way to:
+ * Editable provides a way to manipulat properties of vertices, edges and faces.
+ *
  * - scale
  * - rotate
  * - translate
- * objects, vertices and edges.
+ *
+ * This is just an interface - objects must implement individual methods.
  *
  * @constructor
  */
@@ -24,22 +26,19 @@ shapy.editor.Editable = function() {
 /**
  * Scales the editable.
  */
-shapy.editor.Editable.prototype.scale = function() {
-};
+shapy.editor.Editable.prototype.scale = function() { };
 
 
 /**
  * Rotates the editable.
  */
-shapy.editor.Editable.prototype.rotate = function() {
-};
+shapy.editor.Editable.prototype.rotate = function() { };
 
 
 /**
  * Translate the editable.
  */
-shapy.editor.Editable.prototype.translate = function() {
-};
+shapy.editor.Editable.prototype.translate = function() { };
 
 
 
@@ -55,9 +54,14 @@ shapy.editor.Editable.prototype.translate = function() {
  * matrix of the object.
  *
  * @constructor
+ *
+ * @param {string} id
+ * @param {!Array<Object>} vertices
+ * @param {!Array<Object>} edges
+ * @param {!Array<Object>} faces
  */
 shapy.editor.Object = function(id, vertices, edges, faces) {
-  shapy.editor.Editable.call(this);
+  goog.base(this, shapy.editor.Editable);
 
   /** @public {string} */
   this.id = id;
@@ -130,10 +134,8 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
 
 /**
  * Recomputes the model matrix.
- *
- * @private
  */
-shapy.editor.Object.prototype.computeModel_ = function() {
+shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.makeIdentity(this.model_);
   goog.vec.Mat4.translate(
       this.model_,
@@ -202,7 +204,6 @@ shapy.editor.Object.prototype.getData = function() {
  */
 shapy.editor.Object.prototype.translate = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
-  this.computeModel_();
 }
 
 
@@ -225,7 +226,6 @@ shapy.editor.Object.prototype.getPosition = function() {
  */
 shapy.editor.Object.prototype.scale = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.scale_, x, y, z);
-  this.computeModel_();
 };
 
 
@@ -248,7 +248,6 @@ shapy.editor.Object.prototype.getScale = function() {
  */
 shapy.editor.Object.prototype.rotate = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.rotate_, x, y, z);
-  this.computeModel_();
 };
 
 
@@ -308,14 +307,14 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
   // |     |/
   // 2-----3
   var vertices = [
-    -w, h, d,
-    w, h, d,
-    -w, -h, d,
-    w, -h, d,
-    -w, h, -d,
-    w, h, -d,
-    -w, -h, -d,
-    w, -h, -d
+    -w, +h, +d, // 0
+    +w, +h, +d, // 1
+    -w, -h, +d, // 2
+    +w, -h, +d, // 3
+    -w, +h, -d, // 4
+    +w, +h, -d, // 5
+    -w, -h, -d, // 6
+    +w, -h, -d, // 7
   ];
 
   // Edge layout:

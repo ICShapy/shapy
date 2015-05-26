@@ -257,6 +257,10 @@ shapy.editor.CanvasController = function($rootScope) {
   // For testing, set a default rig
   //this.changeRig_(new shapy.editor.Rig.Translate());
 
+  // For testing.
+  this.objects_['x'] = shapy.editor.Object.createCube('x', 0.5, 0.5, 0.5);
+  this.selectObject(this.objects_['x']);
+
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
 
@@ -302,8 +306,15 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.layout.resize(width, height);
   }
 
+  // Update viewport matrices.
+  goog.object.forEach(this.layout.viewports, function(vp, name) {
+    vp.camera.compute();
+    vp.camCube.compute();
+  });
+
   // Synchronise meshes
   goog.object.forEach(this.objects_, function(object, name, objects) {
+    object.computeModel();
     if (object.dirtyMesh) {
       this.renderer_.updateObject(object);
       object.dirtyMesh = false;
@@ -315,6 +326,8 @@ shapy.editor.CanvasController.prototype.render = function() {
 
   // First pass - render objects.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
+    vp.camera.compute();
+
     this.renderer_.renderObjects(vp);
   }, this);
 
@@ -326,10 +339,6 @@ shapy.editor.CanvasController.prototype.render = function() {
 
   // Third pass - render overlay & ground plane.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
-    // Update viewport, camera, cube, etc.
-    vp.camera.compute();
-    vp.camCube.compute();
-
     // Render the objects & overlays.
     this.renderer_.renderGround(vp);
     this.renderer_.renderBorder(vp);

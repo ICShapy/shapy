@@ -44,7 +44,7 @@ shapy.editor.OBJECT_FS =
   '  vec3 a3 = smoothstep(vec3(0.0), fwidth(v_bary) * 0.25, v_bary);  \n' +
   '  float e = min(min(a3.x, a3.y), a3.z);                            \n' +
   '  vec4 border = u_border;                                          \n' +
-  '  if (any(lessThan(v_bary, vec3(0.03)))) {                         \n' +
+  '  if (any(lessThan(v_bary, vec3(0.01)))) {                         \n' +
   '    border.a *= e;                                                 \n' +
   '  } else {                                                         \n' +
   '    border.a = 0.0;                                                \n' +
@@ -232,7 +232,6 @@ shapy.editor.Renderer = function(gl) {
   this.shRig_.link();
 
   /** @private {!shapy.editor.Mesh} @const */
-  this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
   this.txCube_ = this.loadTexture_(shapy.editor.CUBE_TEXTURE);
 
   /** @private {!WebGLBuffer} @const */
@@ -252,7 +251,7 @@ shapy.editor.Renderer = function(gl) {
 
   /**
    * Cached mesh and model matrix pairs
-   * @private {!Object<int, Array<shapy.editor.Mesh|goog.vec.Mat4>>} 
+   * @private {!Object<int, Array<shapy.editor.Mesh|goog.vec.Mat4>>}
    */
   this.objectCache_ = {};
 
@@ -325,8 +324,9 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
   this.objectCache_[object.id] = [mesh, object.model_];
 
   // Store this revision
-  if (!(object.id in this.objectHistory_))
+  if (!(object.id in this.objectHistory_)) {
     this.objectHistory_[object.id] = [];
+  }
   this.objectHistory_[object.id].push(mesh);
 };
 
