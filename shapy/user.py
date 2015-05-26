@@ -104,9 +104,12 @@ class RegisterHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
         '''INSERT INTO users (id, first_name, last_name, email, password)
            VALUES (DEFAULT, %s, %s, %s, %s)
-           RETURNING id
-           ''',
-        (firstName, lastName, email, pass_with_salt))
+           RETURNING id''', (
+          firstName,
+          lastName,
+          email,
+          pass_with_salt
+    ))
 
     # Check if the user was created successfully.
     user = cursor.fetchone()
@@ -185,17 +188,31 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
       user = yield self.facebook_request(
           '/me',
           access_token=current['access_token'])
-      cursor = yield momoko.Op(self.db.execute,
-          '''INSERT INTO users(id, first_name, last_name, email, fb_id)
-             VALUES (DEFAULT, %s, %s, %s, %s)
-             RETURNING id''', (
-          user['first_name'],
-          user['last_name'],
-          user['email'],
-          user['id']
+      cursors = yield momoko.Op(self.db.transaction, (
+          (
+              '''UPDATE users SET fb_id=%s WHERE email=%s RETURNING id;''',
+              (user['id'], user['email'])
+          ),
+          (
+              '''INSERT INTO users (first_name, last_name, email, fb_id)
+                 SELECT %s, %s, %s, %s
+                 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email=%s)
+                 RETURNING id''',
+              (
+                user['first_name'],
+                user['last_name'],
+                user['email'],
+                user['id'],
+                user['email']
+              )
+          ),
       ))
 
-      user = cursor.fetchone()
+      user = None
+      for cursor in cursors:
+        user = cursor.fetchone()
+        if user: break
+
       if not user:
         raise HTTPError(400, 'Registration failed.')
 
@@ -247,16 +264,32 @@ class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
 
     # If the user never logged in, create an entry.
     if not user:
-      cursor = yield momoko.Op(self.db.execute,
-          '''INSERT INTO users(id, first_name, last_name, email, gp_id)
-             VALUES (DEFAULT, %s, %s, %s, %s)
-             RETURNING id''', (
-            current['name']['givenName'],
-            current['name']['familyName'],
-            current['emails'][0]['value'],
-            current['id']
+      email = current['emails'][0]['value']
+      cursors = yield momoko.Op(self.db.transaction, (
+          (
+              '''UPDATE users SET gp_id=%s WHERE email=%s RETURNING id;''',
+              (current['id'], email)
+          ),
+          (
+              '''INSERT INTO users (first_name, last_name, email, gp_id)
+                 SELECT %s, %s, %s, %s
+                 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email=%s)
+                 RETURNING id''',
+              (
+                current['name']['givenName'],
+                current['name']['familyName'],
+                email,
+                current['id'],
+                email
+              )
+          ),
       ))
-      user = cursor.fetchone()
+
+      user = None
+      for cursor in cursors:
+        user = cursor.fetchone()
+        if user: break
+
       if not user:
         raise HTTPError(400, 'Registration failed.')
 
