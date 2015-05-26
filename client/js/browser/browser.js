@@ -40,7 +40,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    */
   this.assets = [];
   // Enter home folder.
-  this.assetEnter(this.shAssets_.getDir('home', null, null));
+  this.assetEnter(this.shAssets_.createDir('home', null, null));
 
   /**
    * Query from user filtering results.
@@ -84,11 +84,6 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
 shapy.browser.BrowserController.prototype.displayDir = function(dir, assets) {
   // Query database for the contents
   assets = this.shAssets_.queryDir(dir);
-  //TEMP:
-  for (var i = 1; i <= 100; ++i) {
-    assets.push(this.shAssets_.getDir('dir', false, 0));
-  }
-
 
   // Message BrowserToolbarController that path needs to be updated with dir.
   this.rootscope_.$emit('browser', {

@@ -32,7 +32,7 @@ shapy.browser.AssetsService = function($http, $q) {
  * @param {boolean} public   Flag showing whether dir is publicly accessible
  * @param {Asset.Dir} parent Parent directory
  */
-shapy.browser.AssetsService.prototype.getDir = function(name, public, parent) {
+shapy.browser.AssetsService.prototype.createDir = function(name, public, parent) {
   if (name == 'home') {
     return new shapy.browser.Asset.Dir(0, 'home');
   } else {
@@ -51,7 +51,28 @@ shapy.browser.AssetsService.prototype.getDir = function(name, public, parent) {
  */
 shapy.browser.AssetsService.prototype.queryDir = function(dir) {
   assets = [];
-  // Use htttp and q services...
+  this.http_.get('/api/assets/dir/' + dir.id)
+      .success(function(response) {
+              goog.array.forEach(response, function(item) {
+                switch (item['type']) {
+                  case 'dir'     :
+                    assets.push(new shapy.browser.Asset.Dir(item['id'],
+                                                            item['name']));
+                    break;
+                  case 'scene'   :
+                    assets.push(new shapy.browser.Asset.Scene(item['id'],
+                                                              item['name']),
+                                                              item['preview']);
+                    break;
+                  case 'texture' :
+                    assets.push(new shapy.browser.Asset.Texture(item['id'],
+                                                              item['name']),
+                                                              item['preview']);
+                    break;
+                  default        : console.log("Wrong type in database!");
+                }
+              });
+      });
 
   return assets;
 };
