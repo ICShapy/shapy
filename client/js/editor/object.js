@@ -138,9 +138,6 @@ shapy.editor.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.translate(
       this.model_,
       this.translate_[0], this.translate_[1], this.translate_[2]);
-  goog.vec.Mat4.scale(
-      this.model_,
-      this.scale_[0], this.scale_[1], this.scale_[2]);
   goog.vec.Mat4.rotateX(
       this.model_,
       this.rotate_[0]);
@@ -150,6 +147,9 @@ shapy.editor.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.rotateZ(
       this.model_,
       this.rotate_[2]);
+  goog.vec.Mat4.scale(
+      this.model_,
+      this.scale_[0], this.scale_[1], this.scale_[2]);
 };
 
 
