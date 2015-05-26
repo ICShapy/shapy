@@ -108,7 +108,7 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
    * @public {string}
    * @export
    */
-  this.path = [new shapy.browser.Asset.Dir(0, 'home')];
+  this.path = [];
 
   // Add new dir tu current path when user requests entering further dirs.
   $rootScope.$on('browser', goog.bind(function(name, data) {
