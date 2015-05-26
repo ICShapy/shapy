@@ -25,7 +25,7 @@
   </sh-sidebar>
   <sh-files>
     <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query">
-      <sh-file ng-click="browserCtrl.assetEnter(asset)">
+      <sh-file ng-click="asset.enter(browserCtrl)">
         <div> <img src="{{asset.image}}"> </div>
         <h1> {{asset.name}} </h1>
       </sh-file>

@@ -7,6 +7,8 @@ goog.provide('shapy.browser.Asset.Dir');
 goog.provide('shapy.browser.Asset.Scene');
 goog.provide('shapy.browser.Asset.Texture');
 
+goog.require('shapy.browser.BrowserController');
+
 
 
 /**
@@ -60,6 +62,14 @@ shapy.browser.Asset = function(id, name, image) {
   this.image = image;
 };
 
+/**
+ * Enters asset.
+ *
+ * @public
+ */
+shapy.browser.Asset.prototype.enter = goog.abstractMethod;
+
+
 
 /**
  * Creates an asset representing a directory.
@@ -74,6 +84,24 @@ shapy.browser.Asset.Dir = function(id, name) {
   shapy.browser.Asset.call(this, id, name, "/img/folder.png");
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
+
+/**
+ * Enters directory - queries database and displays new dir.
+ *
+ * @param {!shapy.browser.BrowserController} controller Ctrl for browser.htm;
+ */
+shapy.browser.Asset.Dir.prototype.enter =  function(controller) {
+  // Query database.
+  assets = []
+  var hundreds = (this.id + 99) / 100
+  for (var i = hundreds * 100 + 1; i <= (hundreds + 1) * 100; ++i) {
+    assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
+  }
+  // Ask controller to display new dir contents.
+  controller.displayDir(this, assets);
+};
+
+
 
 /**
  * Creates an asset representing a scene.
@@ -91,6 +119,17 @@ shapy.browser.Asset.Scene = function(id, name, image) {
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 
 /**
+ * Enters Scene.
+ *
+ * @param {!shapy.browser.BrowserController} controller Ctrl for browser.htm;
+ */
+shapy.browser.Asset.Scene.prototype.enter =  function(controller) {
+  console.log("Asset.Scene.prototype.enter - UNIMPLEMENTED");
+};
+
+
+
+/**
  * Creates an asset representing a texture.
  *
  * @constructor
@@ -104,6 +143,15 @@ shapy.browser.Asset.Texture = function(id, name, image) {
   shapy.browser.Asset.call(this, id, name, image);
 };
 goog.inherits(shapy.browser.Asset.Texture, shapy.browser.Asset);
+
+/**
+ * Enters Texture.
+ *
+ * @param {!shapy.browser.BrowserController} controller Ctrl for browser.htm;
+ */
+shapy.browser.Asset.Texture.prototype.enter =  function(controller) {
+  console.log("Asset.Texture.prototype.enter - UNIMPLEMENTED");
+};
 
 
 
