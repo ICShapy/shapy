@@ -415,7 +415,7 @@ shapy.editor.Renderer.prototype.renderBorder = function(vp) {
 
 
 /**
- * Renders the BORDER
+ * Renders the cube
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
