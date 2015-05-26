@@ -1,10 +1,45 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Object');
+goog.provide('shapy.editor.Editable');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec3');
+
+
+
+/**
+ * Editable provides a way to:
+ * - scale
+ * - rotate
+ * - translate
+ * objects, vertices and edges.
+ *
+ * @constructor
+ */
+shapy.editor.Editable = function() {
+};
+
+
+/**
+ * Scales the editable.
+ */
+shapy.editor.Editable.prototype.scale = function() {
+};
+
+
+/**
+ * Rotates the editable.
+ */
+shapy.editor.Editable.prototype.rotate = function() {
+};
+
+
+/**
+ * Translate the editable.
+ */
+shapy.editor.Editable.prototype.translate = function() {
+};
 
 
 
@@ -21,15 +56,22 @@ goog.require('goog.vec.Vec3');
  *
  * @constructor
  */
-shapy.editor.Object = function(vertices, edges, faces) {
-  /** @public {number} */
-  this.id = 1;
+shapy.editor.Object = function(id, vertices, edges, faces) {
+  shapy.editor.Editable.call(this);
+
+  /** @public {string} */
+  this.id = id;
 
   /**
    * True if the mesh is dirty, needing to be rebuilt.
    * @public {boolean}
    */
   this.dirtyMesh = true;
+
+  /**
+   * @private {goog.vec.Vec3}
+   */
+  this.position_ = goog.vec.Vec3.createFromValues(0, 0, 0);
 
   /** @private {goog.vec.Vec3} @const */
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
@@ -43,12 +85,7 @@ shapy.editor.Object = function(vertices, edges, faces) {
    * @private {goog.vec.Mat4} @const
    */
   this.model_ = goog.vec.Mat4.createFloat32();
-
-  /**
-   * Position of the object
-   * @private {goog.vec.Vec3}
-   */
-  this.position_ = goog.vec.Vec3.createFromValues(0, 0, 0);
+  goog.vec.Mat4.makeIdentity(this.model_);
 
   /**
    * True if any data field is dirty.
@@ -88,6 +125,7 @@ shapy.editor.Object = function(vertices, edges, faces) {
    */
    this.faces_ = faces;
 };
+goog.inherits(shapy.editor.Object, shapy.editor.Editable);
 
 
 /**
@@ -96,6 +134,10 @@ shapy.editor.Object = function(vertices, edges, faces) {
  * @private
  */
 shapy.editor.Object.prototype.computeModel_ = function() {
+  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.translate(
+      this.model_,
+      this.translate_[0], this.translate_[1], this.translate_[2]);
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
@@ -108,9 +150,6 @@ shapy.editor.Object.prototype.computeModel_ = function() {
   goog.vec.Mat4.rotateZ(
       this.model_,
       this.rotate_[2]);
-  goog.vec.Mat4.translate(
-      this.model_,
-      this.translate_[0], this.translate_[1], this.translate_[2]);
 };
 
 
@@ -153,12 +192,76 @@ shapy.editor.Object.prototype.getData = function() {
   };
 };
 
+
+/**
+ * Updates the object position.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.prototype.translate = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
+  this.computeModel_();
+}
+
+
 /**
  * Retrieves the object position.
+ *
+ * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.prototype.getPosition = function() {
-  return this.position_;
+  return this.translate_;
 };
+
+
+/**
+ * Updates the object scale.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.prototype.scale = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.scale_, x, y, z);
+  this.computeModel_();
+};
+
+
+/**
+ * Retrieves the object scale.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.prototype.getScale = function() {
+  return this.scale_;
+};
+
+
+/**
+ * Rotates the editable.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.prototype.rotate = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.rotate_, x, y, z);
+  this.computeModel_();
+};
+
+
+/**
+ * Retrieves the object rotation.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.prototype.getRotation = function() {
+  return this.rotate_;
+};
+
+
 
 
 /**
@@ -196,7 +299,7 @@ shapy.editor.Object.createPolygon = function(n, radius) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.editor.Object.createCube = function(w, h, d) {
+shapy.editor.Object.createCube = function(id, w, h, d) {
   // Vertex layout:
   //   4-----5
   //  /     /|
@@ -216,12 +319,12 @@ shapy.editor.Object.createCube = function(w, h, d) {
   ];
 
   // Edge layout:
-  //   +--4--+
-  //  /     /5
-  // +--0--+ |
-  // 3   6 1 +
-  // |     |/
-  // +--2--+
+  //     +--4--+
+  //   8/|7   9/5
+  //   +--0--+ |
+  //   3 +-6-1-+
+  // 11|/    |/10
+  //   +--2--+
   var edges = [
     [0, 1], [1, 3], [3, 2], [2, 0], // Front
     [4, 5], [5, 7], [7, 6], [6, 4], // Back
@@ -234,9 +337,9 @@ shapy.editor.Object.createCube = function(w, h, d) {
     [1, 9, 5, 10],  // +X
     [4, 7, 6, 5],   // -Z
     [8, 3, 11, 7],  // -X
-    [0, 8, 4, 9],   // +Y
+    [4, 9, 0, 8],   // +Y
     [2, 10, 6, 11]  // -Y
   ];
 
-  return new shapy.editor.Object(vertices, edges, faces);
+  return new shapy.editor.Object(id, vertices, edges, faces);
 };

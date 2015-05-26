@@ -29,31 +29,45 @@ goog.require('shapy.editor.geom');
  * @param {shapy.editor.Rig.Type} type Type of the rig.
  */
 shapy.editor.Rig = function(type) {
-  /** @public {shapy.editor.Rig.Type} @const */
+  /**
+   * @public {shapy.editor.Rig.Type}
+   * @const
+   */
   this.type = type;
-  /** @private {WebGLBuffer} */
+
+  /**
+   * @private {WebGLBuffer}
+   */
   this.mesh_ = null;
-  /** @private {!goog.vec.Mat4.Type} @const */
+
+  /**
+   * @private {!goog.vec.Mat4.Type}
+   * @const
+   */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
-  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+
+  /**
+   * @private {{ x: boolean, y: boolean, z: boolean}}
+   * @const
+   */
   this.hover_ = {
     x: false,
     y: false,
     z: false
   };
-  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+
+  /**
+   * @private {{ x: boolean, y: boolean, z: boolean}}
+   * @const
+   */
   this.select_ = {
     x: false,
     y: false,
     z: false
   };
-  // TODO: have the control object hold position.
-  /** @private {!goog.vec.Vec3.Type} */
-  this.position_ = goog.vec.Vec3.createFloat32FromValues(-0.5, 0.2, -0.5);
-  // TODO: have rig retrieve this from control object.
-  this.getPosition_ = function() {
-    return this.position_;
-  };
+
+  /** @private {shapy.editor.Editable.Type} */
+  this.controlObject_ = null;
 };
 
 
@@ -145,7 +159,7 @@ shapy.editor.Rig.prototype.buildTube_ = function(d, k, b, l, r, c) {
  */
 shapy.editor.Rig.prototype.getClosest_ = function(ray) {
   var closest = goog.vec.Vec3.createFloat32();
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   var u = goog.vec.Vec3.createFloat32();
 
   // Get the direction vector of the rig axis.
@@ -306,7 +320,7 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -414,7 +428,7 @@ shapy.editor.intersectSphere = function(ray, c, r) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (this.select_.x || this.select_.y || this.select_.z) {
     // Calculate the translation.
@@ -422,8 +436,10 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     var currPos = this.getClosest_(ray);
     goog.vec.Vec3.subtract(currPos, this.lastPos_, t);
     this.lastPos_ = currPos;
+
     // Update the position.
-    goog.vec.Vec3.add(pos, t, pos);
+    this.controlObject_.translate(
+        pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
     return;
   }
 
@@ -485,8 +501,10 @@ shapy.editor.Rig.Rotate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.ROTATE);
   /** @private {!goog.vec.Vec3.Type} */
   this.normal_ = goog.vec.Vec3.createFloat32();
-  /** @private {goog.vec.Vec3.Type} */
+  /** @private {!goog.vec.Vec3.Type} */
   this.cursor_ = goog.vec.Vec3.createFloat32();
+  /** @private {!goog.vec.Vec3.Type} */
+  this.initialAngle_ = 0.0;
   /** @private {number} */
   this.startAngle_ = 0.0;
   /** @private {number} */
@@ -548,7 +566,7 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
  */
 shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   var i = shapy.editor.Rig.Rotate.DISK / 3;
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -684,7 +702,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Vec3.Type} cursor
  */
 shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
-  var d, r, pos = this.getPosition_();
+  var d, r, pos = this.controlObject_.getPosition();
 
   goog.vec.Vec3.subtract(cursor, pos, cursor);
   d = goog.vec.Vec3.magnitude(cursor);
@@ -707,7 +725,7 @@ shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
  * @return {goog.vec.Vec3.Type}
  */
 shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
-  var position = this.getPosition_();
+  var position = this.controlObject_.getPosition();
 
   // Find intersection point with planes.
   var ix = shapy.editor.geom.intersectPlane(ray, [1, 0, 0], position);
@@ -749,12 +767,27 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   if (this.select_.x || this.select_.y || this.select_.z) {
     this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
     this.adjustCursor_(this.cursor_);
     this.currentAngle_ = this.getAngle_(this.cursor_);
-    return;
+
+    if (this.select_.x) {
+      this.controlObject_.rotate(
+          this.initialAngle_ + this.currentAngle_ - this.startAngle_, 0, 0);
+      return;
+    }
+    if (this.select_.y) {
+      this.controlObject_.rotate(
+          0, this.initialAngle_ - this.currentAngle_ + this.startAngle_, 0);
+      return;
+    }
+    if (this.select_.z) {
+      this.controlObject_.rotate(
+          0, 0, this.initialAngle_ + this.currentAngle_ - this.startAngle_);
+      return;
+    }
   }
 
   var hit = this.getHit_(ray);
@@ -780,7 +813,7 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
  * @return {number}
  */
 shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (this.hover_.x) {
     return Math.atan2(
@@ -807,9 +840,9 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   var hit = this.getHit_(ray);
-  var dx, dy;
+  var dx, dy, angle;
 
   if (!hit) {
     return;
@@ -818,16 +851,20 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
   this.adjustCursor_(this.cursor_);
   this.startAngle_ = this.currentAngle_ = this.getAngle_(this.cursor_);
+  angle = this.controlObject_.getRotation();
 
   if (this.hover_.x) {
+    this.initialAngle_ = angle[0];
     this.select_.x = true;
     return;
   }
   if (this.hover_.y) {
+    this.initialAngle_ = angle[1];
     this.select_.y = true;
     return;
   }
   if (this.hover_.z) {
+    this.initialAngle_ = angle[2];
     this.select_.z = true;
     return;
   }
@@ -871,6 +908,11 @@ shapy.editor.Rig.Scale = function() {
    * @private {goog.vec.Vec3.Type}
    */
   this.scale_ = goog.vec.Vec3.createFloat32FromValues(1.0, 1.0, 1.0);
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.scaleRelativeTo_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Scale, shapy.editor.Rig);
 
@@ -923,7 +965,7 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -1125,10 +1167,17 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
 
     // Update the scale.
     goog.vec.Vec3.add(this.scale_, d, this.scale_);
+
+    // Update the scale of the model to be the relative scale
+    this.controlObject_.scale(
+      this.scale_[0] * this.scaleRelativeTo_[0],
+      this.scale_[1] * this.scaleRelativeTo_[1],
+      this.scale_[2] * this.scaleRelativeTo_[2]
+    );
     return;
   }
 
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   var c = goog.vec.Vec3.createFloat32();
 
   // Intersection on X.
@@ -1155,6 +1204,8 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
   this.lastPos_ = this.getClosest_(ray);
+  goog.vec.Vec3.setFromArray(
+    this.scaleRelativeTo_, this.controlObject_.getScale());
 };
 
 

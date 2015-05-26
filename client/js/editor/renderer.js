@@ -17,9 +17,7 @@ shapy.editor.OBJECT_VS =
   'attribute vec4 a_colour;                         \n' +
   'attribute vec3 a_bary;                           \n' +
 
-  'uniform mat4 u_view;                             \n' +
-  'uniform mat4 u_proj;                             \n' +
-  'uniform mat4 u_vp;                               \n' +
+  'uniform mat4 u_mvp;                              \n' +
 
   'varying vec3 v_bary;                             \n' +
   'varying vec4 v_colour;                           \n' +
@@ -27,7 +25,7 @@ shapy.editor.OBJECT_VS =
   'void main() {                                    \n' +
   '  v_bary = a_bary;                               \n' +
   '  v_colour = a_colour;                           \n' +
-  '  gl_Position = u_vp * vec4(a_vertex, 1);        \n' +
+  '  gl_Position = u_mvp * vec4(a_vertex, 1);       \n' +
   '}                                                \n';
 
 
@@ -209,9 +207,6 @@ shapy.editor.Renderer = function(gl) {
   this.shObject_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_FS);
   this.shObject_.link();
 
-  // Cached meshes of objects
-  this.objectMeshes_ = {};
-
   /** @private {!shapy.editor.Shader} @const */
   this.shBorder_ = new shapy.editor.Shader(this.gl_);
   this.shBorder_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.BORDER_VS);
@@ -254,6 +249,18 @@ shapy.editor.Renderer = function(gl) {
       -1, 0, -1, 1, 0, 1, -1, 0, 1,
       -1, 0, -1, 1, 0, 1, 1, 0, -1
   ]), goog.webgl.STATIC_DRAW);
+
+  /**
+   * Cached mesh and model matrix pairs
+   * @private {!Object<int, Array<shapy.editor.Mesh|goog.vec.Mat4>>} 
+   */
+  this.objectCache_ = {};
+
+  /**
+   * Object mesh history, stored as a map of arrays indexed by object id
+   * @private {!Object<int, Array<shapy.editor.Mesh>>}
+   */
+  this.objectHistory_ = {};
 };
 
 
@@ -304,17 +311,23 @@ shapy.editor.Renderer.prototype.loadTexture_ = function(data) {
 
 
 /**
- * Update a mesh - this is called by an object if it becomes dirty (version
- * number changes).
+ * Update a mesh
  *
- * @param {shapy.editor.Object} object
+ * @param {shapy.editor.Object} object Object to update.
  */
 shapy.editor.Renderer.prototype.updateObject = function(object) {
+  object.dirtyMesh = false;
+
   // Re-build mesh
-  // TODO: Keep version history
   var data = object.getGeometryData();
-  this.objectMeshes_[object.id] = shapy.editor.Mesh.createFromObject(
-      this.gl_, data.vertices, data.edges, data.faces);
+  var mesh = shapy.editor.Mesh.createFromObject(
+      this.gl_, data.vertices, data.edges, data.faces)
+  this.objectCache_[object.id] = [mesh, object.model_];
+
+  // Store this revision
+  if (!(object.id in this.objectHistory_))
+    this.objectHistory_[object.id] = [];
+  this.objectHistory_[object.id].push(mesh);
 };
 
 
@@ -324,6 +337,26 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
 shapy.editor.Renderer.prototype.start = function() {
   this.gl_.clearColor(0.95, 1, 1, 1);
   this.gl_.clear(goog.webgl.COLOR_BUFFER_BIT | goog.webgl.DEPTH_BUFFER_BIT);
+};
+
+
+/**
+ * Renders all objects.
+ *
+ * @param {!shapy.editor.Viewport} vp Current viewport.
+ */
+shapy.editor.Renderer.prototype.renderObjects = function(vp, objects) {
+  this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+  this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+
+  this.shObject_.use();
+
+  goog.object.forEach(this.objectCache_, function(pair, id, meshes) {
+    var mvp = goog.vec.Mat4.createFloat32();
+    goog.vec.Mat4.multMat(vp.camera.vp, pair[1], mvp);
+    this.shObject_.uniformMat4x4('u_mvp', mvp);
+    pair[0].render(this.shObject_);
+  }, this);
 };
 
 
@@ -351,24 +384,6 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
     this.gl_.disableVertexAttribArray(0);
   }
   this.gl_.disable(goog.webgl.BLEND);
-};
-
-
-/**
- * Renders all objects.
- */
-shapy.editor.Renderer.prototype.renderObjects = function(vp, objects) {
-  this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
-  this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
-
-  this.shObject_.use();
-  this.shObject_.uniformMat4x4('u_view', vp.camera.view);
-  this.shObject_.uniformMat4x4('u_proj', vp.camera.proj);
-  this.shObject_.uniformMat4x4('u_vp', vp.camera.vp);
-
-  goog.object.forEach(this.objectMeshes_, function(mesh, id, meshes) {
-    mesh.render(this.shObject_);
-  }, this);
 };
 
 
