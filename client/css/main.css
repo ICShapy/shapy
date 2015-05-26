@@ -221,6 +221,10 @@ form .error > span {
   display: block;
 }
 
+form .button {
+  text-align: center;
+}
+
 form input[type=password],
 form input[type=email],
 form input[type=text] {

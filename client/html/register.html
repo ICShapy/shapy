@@ -88,9 +88,21 @@
         Passwords do not match
     </span>
   </div>
-  <input
-      type="button"
-      value="Register"
-      ng-disabled="register.$invalid"
-      ng-click="registerCtrl.register()"  />
+  <div class="button">
+    <input
+        type="button"
+        value="Register"
+        ng-disabled="register.$invalid"
+        ng-click="registerCtrl.register()"  />
+  </div>
+  <div class="button">
+    <a href="" onclick="window.location.href='/api/user/auth/fb'">
+      Sign Up with Facebook
+    </a>
+  </div>
+  <div class="button">
+    <a href="" onclick="window.location.href='/api/user/auth/gp'">
+      Sign Up with Google
+    </a>
+  </div>
 </form>

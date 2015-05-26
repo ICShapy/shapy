@@ -8,6 +8,7 @@ import tornado.ioloop
 import tornado.web
 import tornadoredis
 
+import oauth2
 import psycopg2
 import momoko
 
@@ -38,6 +39,8 @@ def main(args):
   app = tornado.web.Application([
     # API handlers.
     (r'/api/user/auth',             shapy.user.AuthHandler),
+    (r'/api/user/auth/fb',          shapy.user.FacebookHandler),
+    (r'/api/user/auth/gp',          shapy.user.GoogleHandler),
     (r'/api/assets/list/([0-9]+)',  shapy.assets.ListAssetsHandler),
     (r'/api/user/check/([^/]+)',    shapy.user.CheckHandler),
     (r'/api/user/login',            shapy.user.LoginHandler),
@@ -53,7 +56,16 @@ def main(args):
     (r'/html/(.*)', tornado.web.StaticFileHandler, { 'path': 'client/html' }),
     (r'/img/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/img' }),
     (r'(.*)',       IndexHandler, { 'path': 'client/index.html' }),
-  ], debug=True, cookie_secret=os.environ.get('COOKIE_SECRET'))
+  ],
+    debug=True,
+    cookie_secret=os.environ.get('COOKIE_SECRET'),
+    facebook_api_key=os.environ.get('FB_API_KEY'),
+    facebook_secret=os.environ.get('FB_SECRET'),
+    google_oauth={
+      'key': os.environ.get('GOOGLE_CLIENT'),
+      'secret': os.environ.get('GOOGLE_SECRET')
+    }
+  )
 
   # Read configuration.
   app.DB_HOST = os.environ.get('DB_HOST', 'localhost')
@@ -65,9 +77,6 @@ def main(args):
   app.RD_HOST = os.environ.get('RD_HOST', 'localhost')
   app.RD_PORT = int(os.environ.get('RD_PORT', 7759))
   app.RD_PASS = os.environ.get('RD_PASS', '')
-
-  app.FB_API_KEY = os.environ.get('FB_API_KEY')
-  app.FB_SECRET = os.environ.get('FB_SECRET')
 
   # Connect to the postgresql database.
   app.db = momoko.Pool(

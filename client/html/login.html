@@ -48,10 +48,20 @@
     </div>
   </div>
 
-  <div>
+  <div class="button">
     <input
         type="submit"
         value="Login"
         ng-disabled="login.$invalid" />
+  </div>
+  <div class="button">
+    <a href="" onclick="window.location.replace('/api/user/auth/fb')">
+      Sign In with Facebook
+    </a>
+  </div>
+  <div class="button">
+    <a href="" onclick="window.location.replace('/api/user/auth/gp')">
+      Sign In with Google
+    </a>
   </div>
 </form>

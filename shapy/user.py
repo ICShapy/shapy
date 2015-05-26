@@ -8,6 +8,7 @@ import hashlib
 import json
 
 import momoko
+from tornado.auth import FacebookGraphMixin, GoogleOAuth2Mixin
 from tornado.gen import coroutine, Task
 from tornado.web import HTTPError
 import tornadoredis
@@ -146,3 +147,51 @@ class InfoHandler(APIHandler):
   def get(self, user_id):
     user = yield Account.get(self.db, user_id)
     self.write(json.dumps(user.__dict__))
+
+
+class FacebookHandler(APIHandler, FacebookGraphMixin):
+  """Exchanges a Facebook access token."""
+
+  REDIRECT_URI = 'http://localhost:8000/api/user/auth/fb'
+
+  @coroutine
+  def get(self):
+    """Redirects the user or handles the token."""
+
+    if self.get_argument('code', False):
+      user = yield self.get_authenticated_user(
+          redirect_uri=self.REDIRECT_URI,
+          client_id=self.settings['facebook_api_key'],
+          client_secret=self.settings['facebook_secret'],
+          code=self.get_argument('code'))
+      print user
+    else:
+      yield self.authorize_redirect(
+          redirect_uri=self.REDIRECT_URI,
+          client_id=self.settings['facebook_api_key'],
+          extra_params={
+            'scope': 'email'
+          })
+
+
+class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
+  """Exchanges a Google access token."""
+
+  REDIRECT_URI = 'http://localhost:8000/api/user/auth/gp'
+
+  @coroutine
+  def get(self):
+    """Redirects the user or handles the token."""
+
+    if self.get_argument('code', False):
+      user = yield self.get_authenticated_user(
+          redirect_uri=self.REDIRECT_URI,
+          code=self.get_argument('code'))
+      print user
+    else:
+      yield self.authorize_redirect(
+          redirect_uri=self.REDIRECT_URI,
+          client_id=self.settings['google_oauth']['key'],
+          scope=['profile', 'email'],
+          response_type='code',
+          extra_params={'approval_prompt': 'auto'})
