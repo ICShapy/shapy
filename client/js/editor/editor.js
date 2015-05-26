@@ -279,7 +279,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
 
   // TODO: Use the UI to create and select objects
   this.objects_['test']
-      = shapy.editor.Editable.Object.createCube(0.5, 0.5, 0.5);
+      = shapy.editor.Object.createCube(0.5, 0.5, 0.5);
   this.selectObject(this.objects_['test']);
 
   // Set up resources.
