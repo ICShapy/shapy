@@ -45,7 +45,7 @@ class LoginHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
         '''SELECT id, password FROM users WHERE email=%s''', (email,))
     user = cursor.fetchone()
-    if not user:
+    if not user or not user[1]:
       raise HTTPError(401, 'Invalid username or password.')
 
     # Fetch the hash & the salt.
