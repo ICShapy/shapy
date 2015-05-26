@@ -40,7 +40,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    */
   this.assets = [];
   // Enter home folder.
-  (new shapy.browser.Asset.Dir(0, 'home')).enter(this);
+  this.assetEnter(this.shAssets_.getDir('home', null, null));
 
   /**
    * Query from user filtering results.
@@ -56,11 +56,23 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
         break;
       }
       case 'pathAsset': {
-        (data['asset']).enter(this);
+        this.assetEnter(data['asset']);
         break;
       }
     }
   }, this));
+};
+
+/**
+ * Performs action associated with clicking on given asset.
+ *
+ * @param {!shapy.browser.Asset} asset Asset that is to be entered.
+ */
+shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
+  switch (asset.type) {
+    case 'dir' :   this.displayDir(asset); break;
+    default    :   console.log("assetEnter - unimplemented case!");
+  }
 };
 
 /**
@@ -70,11 +82,20 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
  * @param {Array.<!shapy.browser.Asset>} assets Assets that are contained in this dir.
  */
 shapy.browser.BrowserController.prototype.displayDir = function(dir, assets) {
+  // Query database for the contents
+  assets = this.shAssets_.queryDir(dir);
+  //TEMP:
+  for (var i = 1; i <= 100; ++i) {
+    assets.push(this.shAssets_.getDir('dir', false, 0));
+  }
+
+
   // Message BrowserToolbarController that path needs to be updated with dir.
   this.rootscope_.$emit('browser', {
       type: 'dir',
       dir: dir
   });
+
   // Update assets with answer from database.
   this.assets = assets;
 };
