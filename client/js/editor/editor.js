@@ -255,10 +255,17 @@ shapy.editor.CanvasController = function($rootScope) {
   this.layout.active.rig = this.rig;
 
   // For testing, set a default rig
-  this.changeRig_(new shapy.editor.Rig.Translate());
+  //this.changeRig_(new shapy.editor.Rig.Translate());
 
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
+
+
+/**
+ * Used for generation object ids.
+ * @type {number}
+ */
+shapy.editor.CanvasController.ID = 1;
 
 
 /**
@@ -276,11 +283,6 @@ shapy.editor.CanvasController.prototype.init = function(canvas) {
   this.gl_ = this.canvas_.getContext('webgl');
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
-
-  // TODO: Use the UI to create and select objects
-  this.objects_['test']
-      = shapy.editor.Object.createCube(0.5, 0.5, 0.5);
-  this.selectObject(this.objects_['test']);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -333,6 +335,15 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);
   }, this);
+};
+
+
+/**
+ * Dummy method for generating unique object ids.
+ * // TODO: take user into account when generating ids.
+ */
+shapy.editor.CanvasController.generateId = function() {
+  return 'obj' + shapy.editor.CanvasController.ID++;
 };
 
 
@@ -406,9 +417,13 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
       break;
     }
     case 'addObject': {
+      var id = shapy.editor.CanvasController.generateId();
+
       switch (evt.object) {
         case 'cube': {
-          console.log('cube');
+          this.objects_[id]
+            = shapy.editor.Object.createCube(id, 0.5, 0.5, 0.5);
+          this.selectObject(this.objects_[id]);
           break;
         }
         case 'sphere': {

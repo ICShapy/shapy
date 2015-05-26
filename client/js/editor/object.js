@@ -56,11 +56,11 @@ shapy.editor.Editable.prototype.translate = function() {
  *
  * @constructor
  */
-shapy.editor.Object = function(vertices, edges, faces) {
+shapy.editor.Object = function(id, vertices, edges, faces) {
   shapy.editor.Editable.call(this);
 
-  /** @public {number} */
-  this.id = 1;
+  /** @public {string} */
+  this.id = id;
 
   /**
    * True if the mesh is dirty, needing to be rebuilt.
@@ -270,7 +270,7 @@ shapy.editor.Object.createPolygon = function(n, radius) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.editor.Object.createCube = function(w, h, d) {
+shapy.editor.Object.createCube = function(id, w, h, d) {
   // Vertex layout:
   //   4-----5
   //  /     /|
@@ -312,5 +312,5 @@ shapy.editor.Object.createCube = function(w, h, d) {
     [2, 10, 6, 11]  // -Y
   ];
 
-  return new shapy.editor.Object(vertices, edges, faces);
+  return new shapy.editor.Object(id, vertices, edges, faces);
 };
