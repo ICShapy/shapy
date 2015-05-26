@@ -53,7 +53,7 @@ shapy.editor.Mesh = function(gl, buffer, data) {
  * Destroys a mesh.
  */
 shapy.editor.Mesh.prototype.free = function() {
-
+  // TODO: This should be implemented ASAP.
 };
 
 
@@ -89,20 +89,14 @@ shapy.editor.Mesh.prototype.render = function(sh) {
 
 
 /**
- * Checks if the mesh intersects a ray.
- */
-shapy.editor.Mesh.prototype.intersects = function(ray) {
-
-};
-
-
-/**
  * Create from an object
  *
  * @param {!WebGLContext} gl Context
  * @param {type}          v Vertices
  * @param {type}          e Edges
  * @param {type}          f Faces
+ *
+ * @return {!shapy.editor.Mesh}
  */
 shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   // If a face has more than 3 edges, triangulate by treating the face as a
@@ -120,13 +114,31 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   var d = new Float32Array(size << 6);
   var k = 0;
 
-  var addVertex = function(x, y, z, a, b, c) {
-    d[k++] = x; d[k++] = y; d[k++] = z; // position
-    d[k++] = 0; d[k++] = 0; d[k++] = 0; // normal
-    d[k++] = 0; d[k++] = 0; // texcoord
-    d[k++] = 0.2; d[k++] = 0.2; d[k++] = 0.2; d[k++] = 1; // diffuse
-    d[k++] = a; d[k++] = b; d[k++] = c;  // bary
-    d[k++] = 0; // pad
+  var addVertex = function(pos, a, b, c) {
+    // Position.
+    d[k++] = pos[0];
+    d[k++] = pos[1];
+    d[k++] = pos[2];
+
+    // Normal.
+    d[k++] = 0; d[k++] = 0; d[k++] = 0;
+
+    // UV.
+    d[k++] = 0; d[k++] = 0;
+
+    // Diffuse.
+    d[k++] = 0.2;
+    d[k++] = 0.2;
+    d[k++] = 0.2;
+    d[k++] = 1;
+
+    // Barycentric coordinate.
+    d[k++] = a;
+    d[k++] = b;
+    d[k++] = c;
+
+    // Padding.
+    d[k++] = 0;
   };
 
   // Fill out the vertex buffer
@@ -172,9 +184,9 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
         c = e[face[j + 1]][0];
       }
 
-      addVertex(v[a * 3], v[a * 3 + 1], v[a * 3 + 2], 1, 0, 0);
-      addVertex(v[b * 3], v[b * 3 + 1], v[b * 3 + 2], 0, 1, 0);
-      addVertex(v[c * 3], v[c * 3 + 1], v[c * 3 + 2], 0, 0, 1);
+      addVertex(v[a].position, 1, 0, 0);
+      addVertex(v[b].position, 0, 1, 0);
+      addVertex(v[c].position, 0, 0, 1);
     }
   });
 

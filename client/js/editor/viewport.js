@@ -66,14 +66,12 @@ shapy.editor.Layout.prototype.resize = function(w, h) {
 /**
  * Finds out which viewport is touched by the mouse.
  *
- * @private
- *
  * @param {number} x Mouse X position.
  * @param {number} y Mouse Y position.
  *
  * @return {?{ vp: shapy.editor.Viewport, x: number, y: number }}
  */
-shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
+shapy.editor.Layout.prototype.getViewport = function(x, y) {
   for (var name in this.viewports) {
     if (!this.viewports.hasOwnProperty(name)) {
       continue;
@@ -101,7 +99,7 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
  * @param {MouseEvent} e
  */
 shapy.editor.Layout.prototype.mouseMove = function(e) {
-  var result = this.getViewport_(e.offsetX, e.offsetY);
+  var result = this.getViewport(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
     return;
   }
@@ -125,7 +123,7 @@ shapy.editor.Layout.prototype.mouseMove = function(e) {
  * @param {MouseEvent} e Original event.
  */
 shapy.editor.Layout.prototype.mouseDown = function(e) {
-  var result = this.getViewport_(e.offsetX, e.offsetY);
+  var result = this.getViewport(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
     return;
   }
@@ -149,7 +147,7 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
  * @return {booblean} True if event was processed.
  */
 shapy.editor.Layout.prototype.mouseUp = function(e) {
-  var result = this.getViewport_(e.offsetX, e.offsetY);
+  var result = this.getViewport(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
     return false;
   }
@@ -164,7 +162,7 @@ shapy.editor.Layout.prototype.mouseUp = function(e) {
  * @param {MouseEvent} e
  */
 shapy.editor.Layout.prototype.mouseEnter = function(e) {
-  var result = this.getViewport_(e.offsetX, e.offsetY);
+  var result = this.getViewport(e.offsetX, e.offsetY);
   if (!result || result.vp) {
     return;
   }

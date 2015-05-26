@@ -4,6 +4,7 @@
 goog.provide('shapy.editor.Editable');
 
 goog.require('goog.vec.Mat4');
+goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
 
 
@@ -92,6 +93,12 @@ shapy.editor.Object = function(id, vertices, edges, faces) {
   goog.vec.Mat4.makeIdentity(this.model_);
 
   /**
+   * Cached inverse model matrix, used for raycasting.
+   * @private {!goog.vec.Mat4.Type} @const
+   */
+  this.invModel_ = goog.vec.Mat4.createFloat32();
+
+  /**
    * True if any data field is dirty.
    * @private {boolean}
    */
@@ -111,9 +118,12 @@ shapy.editor.Object = function(id, vertices, edges, faces) {
 
   /**
    * Object Vertex List
-   * @private {object}
+   * @private {!Array<shapy.editor.Object.Vertex>}
+   * @const
    */
-  this.vertices_ = vertices;
+  this.vertices_ = goog.array.map(vertices, function(vert) {
+    return new shapy.editor.Object.Vertex(this, vert[0], vert[1], vert[2]);
+  }, this);
 
   /**
    * Edge List
@@ -130,6 +140,58 @@ shapy.editor.Object = function(id, vertices, edges, faces) {
    this.faces_ = faces;
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
+
+
+/**
+ * Vertex of an object.
+ *
+ * @constructor
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.Vertex = function(object, x, y, z) {
+  /** @private {!shapy.editor.Object} @const */
+  this.object_ = object;
+
+  /**
+   * Position of the vertex.
+   * @public {!goog.vec.Vec3.Type} @const
+   */
+  this.position = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+
+  /**
+   * UV coordinate of the vertex.
+   * @public {!goog.vec.Vec2.Type} @const
+   */
+  this.uv = goog.vec.Vec2.createFloat32();
+};
+goog.inherits(shapy.editor.Object, shapy.editor.Editable);
+
+
+/**
+ * Retrieves the vertex position.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.Vertex.prototype.getPosition = function() {
+  return this.position;
+};
+
+
+/**
+ * Translate the editable.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
+  goog.vec.Vec3.setFromValues(this.position, x, y, z);
+  this.object_.dirtyMesh = true;
+};
+
 
 
 /**
@@ -152,11 +214,14 @@ shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.rotateZ(
       this.model_,
       this.rotate_[2]);
+  goog.vec.Mat4.invert(this.model_, this.invModel_);
 };
 
 
 /**
  * Retrieves the geometry data.
+ *
+ * @return {!Object}
  */
 shapy.editor.Object.prototype.getGeometryData = function() {
   return {
@@ -261,6 +326,30 @@ shapy.editor.Object.prototype.getRotation = function() {
 };
 
 
+/**
+ * Finds all parts that intersect a ray.
+ *
+ * @param {!goog.vec.Ray} ray
+ *
+ * @return {!Array<shapy.editor.Editable>}
+ */
+shapy.editor.Object.prototype.pick = function(ray) {
+  var o = goog.vec.Vec3.createFloat32();
+  var d = goog.vec.Vec3.createFloat32();
+  var t = goog.vec.Vec3.createFloat32();
+
+  // Move the ray to model space.
+  goog.vec.Mat4.multVec3(this.invModel_, ray.origin, o);
+  goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, d);
+
+  // Compute distance to all vertices.
+  return goog.array.filter(this.vertices_, function(vert) {
+    goog.vec.Vec3.subtract(vert.position, o, t);
+    goog.vec.Vec3.cross(d, t, t);
+    return goog.vec.Vec3.magnitude(t) < 0.2;
+  });
+};
+
 
 
 /**
@@ -268,6 +357,8 @@ shapy.editor.Object.prototype.getRotation = function() {
  *
  * @param {number} n Number of sides
  * @param {number} radius Radius of each vertex
+ *
+ * @return {!shapy.editor.Object}
  */
 shapy.editor.Object.createPolygon = function(n, radius) {
   // A polygon is a circle divided into 'n' vertices
@@ -292,6 +383,7 @@ shapy.editor.Object.createPolygon = function(n, radius) {
 /**
  * Build an cube object.
  *
+ * @param {string} id
  * @param {number} w
  * @param {number} h
  * @param {number} d
@@ -307,14 +399,14 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
   // |     |/
   // 2-----3
   var vertices = [
-    -w, +h, +d, // 0
-    +w, +h, +d, // 1
-    -w, -h, +d, // 2
-    +w, -h, +d, // 3
-    -w, +h, -d, // 4
-    +w, +h, -d, // 5
-    -w, -h, -d, // 6
-    +w, -h, -d, // 7
+    [-w, +h, +d], // 0
+    [+w, +h, +d], // 1
+    [-w, -h, +d], // 2
+    [+w, -h, +d], // 3
+    [-w, +h, -d], // 4
+    [+w, +h, -d], // 5
+    [-w, -h, -d], // 6
+    [+w, -h, -d], // 7
   ];
 
   // Edge layout:

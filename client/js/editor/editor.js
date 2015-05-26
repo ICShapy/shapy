@@ -284,7 +284,11 @@ shapy.editor.CanvasController.prototype.init = function(canvas, scene) {
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
   this.scene_.objects['x'] = shapy.editor.Object.createCube('x', 0.5, 0.5, 0.5);
+  this.scene_.objects['x'].translate_[2] = -5;
   this.selectObject(this.scene_.objects['x']);
+
+  this.scene_.objects['y'] = shapy.editor.Object.createCube('y', 0.5, 0.5, 0.5);
+  this.selectObject(this.scene_.objects['y']);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -514,7 +518,19 @@ shapy.editor.CanvasDirective = function(shScene) {
             if (canvasCtrl.layout.mouseUp(e) || e.which != 1) {
               return;
             }
-            console.log('up');
+
+            // TODO: find a nicer way to do this.
+            var result = canvasCtrl.layout.getViewport(e.offsetX, e.offsetY);
+            if (!result.vp) {
+              return;
+            }
+
+            var ray = result.vp.raycast_(result.x, result.y);
+            var pick = scene.pick(ray);
+            if (!pick) {
+              return;
+            }
+            canvasCtrl.selectObject(pick);
           }))
           .mouseenter(wrap(function(e) { canvasCtrl.layout.mouseEnter(e); }))
           .mouseleave(wrap(function(e) { canvasCtrl.layout.mouseLeave(e); }))

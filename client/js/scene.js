@@ -82,6 +82,32 @@ shapy.Scene.prototype.setName = function(name) {
 
 
 /**
+ * Picks an object intersected by a ray.
+ *
+ * @param {!goog.vec.Ray} ray
+ *
+ * @return {!shapy.editor.Editable}
+ */
+shapy.Scene.prototype.pick = function(ray) {
+  var hits;
+
+  // Find all the editable parts that intersect the ray.
+  hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
+    return obj.pick(ray);
+  });
+  hits = goog.array.flatten(hits);
+
+  if (goog.array.isEmpty(hits)) {
+    return null;
+  }
+
+  // TODO: sort hits.
+  return hits[0];
+};
+
+
+
+/**
  * Retrieves a scene object from cache or server.
  *
  * @constructor
