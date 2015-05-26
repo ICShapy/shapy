@@ -23,4 +23,13 @@
   <div>
     <span>{{ editorCtrl.scene.name }}</span>
   </div>
+
+  <!-- Menu for adding objects -->
+  <div>
+    <span> Add </span>
+    <ul>
+      <li ng-click="editorCtrl.addObject('cube')">Cube</li>
+      <li ng-click="editorCtrl.addObject('sphere')">Sphere</li>
+    </ul>
+  </div>
 </sh-menu>

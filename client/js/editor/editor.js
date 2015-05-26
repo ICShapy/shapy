@@ -176,6 +176,19 @@ shapy.editor.EditorToolbarController.prototype.layout = function(name) {
 };
 
 
+/**
+ * Called when new object has to be added.
+ *
+ * @param {string} name Name of the object.
+ */
+shapy.editor.EditorToolbarController.prototype.addObject = function(name) {
+  this.rootScope_.$emit('editor', {
+    type: 'addObject',
+    object: name
+  });
+};
+
+
 
 /**
  * Canvas controller class.
@@ -199,7 +212,8 @@ shapy.editor.CanvasController = function($rootScope) {
   this.parent_ = null;
 
   /**
-   * WebGL rendering context attached to the canvas.
+   * WebGL rendering con  this.sock_.onmessage = goog.bind(this.onMessage_, this);
+text attached to the canvas.
    * @private {WebGLRenderingContext}
    */
   this.gl_ = null;
@@ -216,7 +230,8 @@ shapy.editor.CanvasController = function($rootScope) {
    */
   this.objects_ = {};
 
-  /**
+  /**  this.sock_.onmessage = goog.bind(this.onMessage_, this);
+
    * Size of the canvas.
    * @private {!goog.math.Size} @const
    */
@@ -335,6 +350,19 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
         case 'quad': this.layout = new shapy.editor.Layout.Quad(); break;
       }
       this.layout.active.rig = this.rig;
+      break;
+    }
+    case 'addObject': {
+      switch (evt.object) {
+        case 'cube': {
+          console.log('cube');
+          break;
+        }
+        case 'sphere': {
+          console.log('sphere');
+          break;
+        }
+      }
       break;
     }
   }
