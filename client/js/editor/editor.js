@@ -225,13 +225,13 @@ shapy.editor.CanvasController = function($rootScope) {
 
   /**
    * Map of all objects in the scene.
-   * @private {!Object<string, shapy.editor.Object>}
+   * @private {!shapy.Scene}
    */
-  this.objects_ = {};
+  this.scene_ = null;
 
   /**
    * Currently selected object
-   * @private {shapy.editor.Object}
+   * @public {shapy.editor.Object}
    */
   this.selectedObject = null;
 
@@ -254,13 +254,6 @@ shapy.editor.CanvasController = function($rootScope) {
   this.layout = new shapy.editor.Layout.Single();
   this.layout.active.rig = this.rig;
 
-  // For testing, set a default rig
-  //this.changeRig_(new shapy.editor.Rig.Translate());
-
-  // For testing.
-  this.objects_['x'] = shapy.editor.Object.createCube('x', 0.5, 0.5, 0.5);
-  this.selectObject(this.objects_['x']);
-
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
 
@@ -279,14 +272,19 @@ shapy.editor.CanvasController.ID = 1;
  * initialised by calling this method and passing in a handle to the context.
  *
  * @param {HTMLCanvasElement} canvas Canvas element.
+ * @param {!shapy.Scene}      scene      The current scene.
  */
-shapy.editor.CanvasController.prototype.init = function(canvas) {
+shapy.editor.CanvasController.prototype.init = function(canvas, scene) {
   // Fetch nodes.
   this.canvas_ = canvas;
+  this.scene_ = scene;
   this.parent_ = goog.dom.getParentElement(this.canvas_);
   this.gl_ = this.canvas_.getContext('webgl');
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
+
+  this.scene_.objects['x'] = shapy.editor.Object.createCube('x', 0.5, 0.5, 0.5);
+  this.selectObject(this.scene_.objects['x']);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -313,7 +311,7 @@ shapy.editor.CanvasController.prototype.render = function() {
   });
 
   // Synchronise meshes
-  goog.object.forEach(this.objects_, function(object, name, objects) {
+  goog.object.forEach(this.scene_.objects, function(object, name, objects) {
     object.computeModel();
     if (object.dirtyMesh) {
       this.renderer_.updateObject(object);
@@ -349,7 +347,10 @@ shapy.editor.CanvasController.prototype.render = function() {
 
 /**
  * Dummy method for generating unique object ids.
- * // TODO: take user into account when generating ids.
+ *
+ * TODO: take user into account when generating ids.
+ *
+ * @return {string} Object ID.
  */
 shapy.editor.CanvasController.generateId = function() {
   return 'obj' + shapy.editor.CanvasController.ID++;
@@ -357,50 +358,59 @@ shapy.editor.CanvasController.generateId = function() {
 
 
 /**
- * Select an object
+ * Select an object.
+ *
+ * @param {shapy.editor.Object} o
  */
 shapy.editor.CanvasController.prototype.selectObject = function(o) {
   this.selectedObject = o;
   if (this.rig) {
     this.rig.controlObject_ = o;
   }
-}
+};
 
 
 /**
  * Change rig type
+ *
+ * @private
+ *
+ * @param {shapy.editor.Rig} rig
  */
-shapy.editor.CanvasController.prototype.changeRig_ = function(r) {
-  this.rig = r;
+shapy.editor.CanvasController.prototype.changeRig_ = function(rig) {
+  this.rig = rig;
   this.layout.active.rig = this.rig;
   this.rig.controlObject_ = this.selectedObject;
-}
+};
 
 
 /**
  * On a key press
  *
- * If this CanvasController doesn't want to handle it, pass it to the layout
+ * If this CanvasController doesn't want to handle it, pass it to the layout.
+ *
+ * @param {number} keyCode
  */
-shapy.editor.CanvasController.prototype.keyDown = function(kc) {
-  switch (kc) {
-    // Change current rig type
-    case 84: // t
+shapy.editor.CanvasController.prototype.keyDown = function(keyCode) {
+  switch (keyCode) {
+    case 84: { // t
       this.changeRig_(new shapy.editor.Rig.Translate());
       break;
-
-    case 82: // r
+    }
+    case 82: { // r
       this.changeRig_(new shapy.editor.Rig.Rotate());
       break;
-
-    case 83: // s
+    }
+    case 83: { // s
       this.changeRig_(new shapy.editor.Rig.Scale());
       break;
-
-    default:
-      this.layout.keyDown(kc);
+    }
+    default: {
+      this.layout.keyDown(keyCode);
+      break;
+    }
   }
-}
+};
 
 
 /**
@@ -430,9 +440,9 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
 
       switch (evt.object) {
         case 'cube': {
-          this.objects_[id]
-            = shapy.editor.Object.createCube(id, 0.5, 0.5, 0.5);
-          this.selectObject(this.objects_[id]);
+          this.scene_.objects[id] =
+              shapy.editor.Object.createCube(id, 0.5, 0.5, 0.5);
+          this.selectObject(this.scene_.objects[id]);
           break;
         }
         case 'sphere': {
@@ -452,9 +462,11 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
  * It is responsible for setting up the WebGL context and delegating all events
  * to the controller.
  *
+ * @param {!shapy.SceneService} shScene The Scene service.
+ *
  * @return {!angular.directive}
  */
-shapy.editor.CanvasDirective = function() {
+shapy.editor.CanvasDirective = function(shScene) {
   return {
     restrict: 'A',
     scope: {},
@@ -463,49 +475,57 @@ shapy.editor.CanvasDirective = function() {
     link: function($scope, $elem, $attrs, canvasCtrl) {
       var running = true;
 
-      // Set up the context.
-      canvasCtrl.init($elem[0]);
+      // Retrieve the scene & attach it to the controller.
+      shScene.get('1@1').then(function(scene) {
+        // Set up the context.
+        canvasCtrl.init($elem[0], scene);
 
-      // Render event.
-      (function loop() {
-        canvasCtrl.render();
-        if (running) {
-          requestAnimationFrame(loop);
-        }
-      }) ();
+        // Render event.
+        (function loop() {
+          canvasCtrl.render();
+          if (running) {
+            requestAnimationFrame(loop);
+          }
+        }) ();
 
-      // Exit event.
-      $scope.$on('$destroy', function() {
-        running = false;
-      });
+        // Exit event.
+        $scope.$on('$destroy', function() {
+          running = false;
+        });
 
-      // Wrapper for event handlers that hijacks them completely.
-      var wrap = function(method) {
-        return function(e) {
-          e.offsetY = canvasCtrl.layout.size.height - e.offsetY;
-          e.preventDefault();
-          e.stopPropagation();
-          method(e);
-          return false;
-        };
-      };
-
-      // Key presses.
-      $(window).keydown(function(e) { canvasCtrl.keyDown(e.keyCode); });
-
-      // Mouse events.
-      $($elem[0])
-        .mousedown(wrap(function(e) { canvasCtrl.layout.mouseDown(e); }))
-        .mouseup(wrap(function(e) { canvasCtrl.layout.mouseUp(e); }))
-        .mouseenter(wrap(function(e) { canvasCtrl.layout.mouseEnter(e); }))
-        .mouseleave(wrap(function(e) { canvasCtrl.layout.mouseLeave(e); }))
-        .mousemove(wrap(function(e) { canvasCtrl.layout.mouseMove(e); }))
-        .bind('mousewheel', wrap(function(e) {
-            canvasCtrl.layout.mouseWheel(e);
-        }))
-        .bind('contextmenu', wrap(function(e) {
+        // Wrapper for event handlers that hijacks them completely.
+        var wrap = function(method) {
+          return function(e) {
+            e.offsetY = canvasCtrl.layout.size.height - e.offsetY;
+            e.preventDefault();
+            e.stopPropagation();
+            method(e);
             return false;
-        }));
+          };
+        };
+
+        // Key presses.
+        $(window).keydown(function(e) { canvasCtrl.keyDown(e.keyCode); });
+
+        // Mouse events.
+        $($elem[0])
+          .mousedown(wrap(function(e) { canvasCtrl.layout.mouseDown(e); }))
+          .mouseup(wrap(function(e) {
+            if (canvasCtrl.layout.mouseUp(e) || e.which != 1) {
+              return;
+            }
+            console.log('up');
+          }))
+          .mouseenter(wrap(function(e) { canvasCtrl.layout.mouseEnter(e); }))
+          .mouseleave(wrap(function(e) { canvasCtrl.layout.mouseLeave(e); }))
+          .mousemove(wrap(function(e) { canvasCtrl.layout.mouseMove(e); }))
+          .bind('mousewheel', wrap(function(e) {
+              canvasCtrl.layout.mouseWheel(e);
+          }))
+          .bind('contextmenu', wrap(function(e) {
+              return false;
+          }));
+      });
     }
   };
 };

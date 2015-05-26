@@ -457,5 +457,5 @@ shapy.editor.CamCube.prototype.mouseUp = function(x, y) {
   this.click_ = false;
   this.hover_ = this.getFace_(this.raycast_(x, y));
 
-  return false;
+  return true;
 };

@@ -478,7 +478,9 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
+  var captured = this.select_.x || this.select_.x || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
+  return captured;
 };
 
 
@@ -877,7 +879,9 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
+  var captured = this.select_.x || this.select_.x || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
+  return captured;
 };
 
 
@@ -1215,10 +1219,10 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
+  var captured = this.select_.x || this.select_.x || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
-
-  // Reset the scale.
   goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
+  return captured;
 };
 
 

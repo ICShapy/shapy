@@ -32,11 +32,19 @@ shapy.Scene = function(id, data) {
    * @public {Array<string>}
    */
   this.users = data['users'] || [];
+
+  /**
+   * List of objects in the scene.
+   * @public {!Object<string, shapy.Object>}
+   */
+  this.objects = {};
 };
 
 
 /**
  * Adds a new user to the list of people editing.
+ *
+ * @param {string} user
  */
 shapy.Scene.prototype.addUser = function(user) {
   goog.array.insert(this.users, user);
@@ -45,6 +53,8 @@ shapy.Scene.prototype.addUser = function(user) {
 
 /**
  * Removes a user from the list of people editing.
+ *
+ * @param {string} user
  */
 shapy.Scene.prototype.removeUser = function(user) {
   goog.array.remove(this.users, user);
@@ -53,6 +63,8 @@ shapy.Scene.prototype.removeUser = function(user) {
 
 /**
  * Sets the list of users.
+ *
+ * @param {string} users
  */
 shapy.Scene.prototype.setUsers = function(users) {
   this.users = users;
@@ -61,6 +73,8 @@ shapy.Scene.prototype.setUsers = function(users) {
 
 /**
  * Changes the name of the scene.
+ *
+ * @param {string} name
  */
 shapy.Scene.prototype.setName = function(name) {
   this.name = name;

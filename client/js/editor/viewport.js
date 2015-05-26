@@ -145,14 +145,16 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
  * Handles a mouse release event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {booblean} True if event was processed.
  */
 shapy.editor.Layout.prototype.mouseUp = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
-    return;
+    return false;
   }
 
-  result.vp.mouseUp(result.x, result.y);
+  return result.vp.mouseUp(result.x, result.y);
 };
 
 
@@ -334,7 +336,7 @@ shapy.editor.Layout.Double.prototype.mouseDown = function(e) {
  */
 shapy.editor.Layout.Double.prototype.mouseUp = function(e) {
   if (!this.resize_) {
-    goog.base(this, 'mouseUp', e);
+    return goog.base(this, 'mouseUp', e);
   }
   this.hover_ = this.resize_ = false;
 };
@@ -490,7 +492,7 @@ shapy.editor.Layout.Quad.prototype.mouseDown = function(e) {
  */
 shapy.editor.Layout.Quad.prototype.mouseUp = function(e) {
   if (!this.resizeX_ && !this.resizeY_) {
-    goog.base(this, 'mouseUp', e);
+    return goog.base(this, 'mouseUp', e);
   }
   this.hoverX_ = this.hoverY_ = this.resizeX_ = this.resizeY_ = false;
 };
@@ -713,14 +715,19 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
+  var ray = this.raycast_(x, y);
+
   if (this.camCube.mouseUp(x, y)) {
-    return;
+    return true;
   }
+
   if (!this.isRotating_ && !this.isPanning_ && this.rig) {
-    this.rig.mouseUp(this.raycast_(x, y));
+    return this.rig.mouseUp(ray);
   }
+
   this.isRotating_ = false;
   this.isPanning_ = false;
+  return false;
 };
 
 
