@@ -111,7 +111,7 @@ class RegisterHandler(APIHandler):
     # Check if the user was created successfully.
     user = cursor.fetchone()
     if not user:
-      raise HTTPError(400, 'Registering failed.')
+      raise HTTPError(400, 'Registration failed.')
 
     # Log the user in after registering.
     token = os.urandom(16).encode('hex')
@@ -158,20 +158,55 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
   def get(self):
     """Redirects the user or handles the token."""
 
-    if self.get_argument('code', False):
-      user = yield self.get_authenticated_user(
-          redirect_uri=self.REDIRECT_URI,
-          client_id=self.settings['facebook_api_key'],
-          client_secret=self.settings['facebook_secret'],
-          code=self.get_argument('code'))
-      print user
-    else:
+    if not self.get_argument('code', False):
       yield self.authorize_redirect(
           redirect_uri=self.REDIRECT_URI,
           client_id=self.settings['facebook_api_key'],
           extra_params={
             'scope': 'email'
           })
+      return
+
+    # Activate the token.
+    current = yield self.get_authenticated_user(
+        redirect_uri=self.REDIRECT_URI,
+        client_id=self.settings['facebook_api_key'],
+        client_secret=self.settings['facebook_secret'],
+        code=self.get_argument('code'))
+
+    # Check if a user with that ID already exists.
+    cursor = yield momoko.Op(self.db.execute,
+        '''SELECT id FROM users WHERE fb_id=%s''',
+        (current['id'],))
+    user = cursor.fetchone()
+
+    # If the user never logged in, create an entry.
+    if not user:
+      user = yield self.facebook_request(
+          '/me',
+          access_token=current['access_token'])
+      cursor = yield momoko.Op(self.db.execute,
+          '''INSERT INTO users(id, first_name, last_name, email, fb_id)
+             VALUES (DEFAULT, %s, %s, %s, %s)
+             RETURNING id''', (
+          user['first_name'],
+          user['last_name'],
+          user['email'],
+          user['id']
+      ))
+
+      user = cursor.fetchone()
+      if not user:
+        raise HTTPError(400, 'Registration failed.')
+
+    # Create a new session & attach the user.
+    token = os.urandom(16).encode('hex')
+    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user[0])
+    self.set_secure_cookie('session', token)
+
+    # Go back to the homepage.
+    self.redirect('/')
+
 
 
 class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
@@ -183,15 +218,52 @@ class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
   def get(self):
     """Redirects the user or handles the token."""
 
-    if self.get_argument('code', False):
-      user = yield self.get_authenticated_user(
-          redirect_uri=self.REDIRECT_URI,
-          code=self.get_argument('code'))
-      print user
-    else:
+    if not self.get_argument('code', False):
       yield self.authorize_redirect(
           redirect_uri=self.REDIRECT_URI,
           client_id=self.settings['google_oauth']['key'],
           scope=['profile', 'email'],
           response_type='code',
           extra_params={'approval_prompt': 'auto'})
+      return
+
+    # Exchange the code for a token.
+    current = yield self.get_authenticated_user(
+        redirect_uri=self.REDIRECT_URI,
+        code=self.get_argument('code'))
+
+    # Pull profile info.
+    response = yield Task(self.get_auth_http_client().fetch,
+        ('https://www.googleapis.com/plus/v1/people/me' +
+          '?access_token=%s') %
+        (current['access_token']))
+    current = json.loads(response.body)
+
+    # Check if a user with that ID already exists.
+    cursor = yield momoko.Op(self.db.execute,
+        '''SELECT id FROM users WHERE gp_id=%s''',
+        (current['id'],))
+    user = cursor.fetchone()
+
+    # If the user never logged in, create an entry.
+    if not user:
+      cursor = yield momoko.Op(self.db.execute,
+          '''INSERT INTO users(id, first_name, last_name, email, gp_id)
+             VALUES (DEFAULT, %s, %s, %s, %s)
+             RETURNING id''', (
+            current['name']['givenName'],
+            current['name']['familyName'],
+            current['emails'][0]['value'],
+            current['id']
+      ))
+      user = cursor.fetchone()
+      if not user:
+        raise HTTPError(400, 'Registration failed.')
+
+    # Create a new session & attach the user.
+    token = os.urandom(16).encode('hex')
+    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user[0])
+    self.set_secure_cookie('session', token)
+
+    # Go back to the homepage.
+    self.redirect('/')
