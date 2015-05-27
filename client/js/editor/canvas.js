@@ -53,7 +53,12 @@ shapy.editor.canvas = function(shScene, shEditor) {
         .mouseup(wrap(shEditor.mouseUp))
         .mousemove(wrap(shEditor.mouseMove));
       $(window)
-        .keydown(goog.bind(shEditor.keyDown, shEditor));
+        .keydown(wrap(function(e) {
+          if (e.target.tagName != 'BODY') {
+            return;
+          }
+          shEditor.keyDown(e);
+        }));
     }
   };
 };
