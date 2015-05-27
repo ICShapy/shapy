@@ -218,7 +218,7 @@ shapy.editor.Object.Edge = function(object, start, end) {
   /** @public {number} @const */
   this.end = end;
 };
-goog.inherits(shapy.editor.Object, shapy.editor.Editable);
+goog.inherits(shapy.editor.Object.Edge, shapy.editor.Editable);
 
 
 /**

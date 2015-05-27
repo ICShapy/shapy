@@ -68,6 +68,9 @@ shapy.editor.Rig = function(type) {
 
   /** @private {shapy.editor.Editable.Type} */
   this.controlObject_ = null;
+
+  /** @public {Function} */
+  this.onFinish = null;
 };
 
 
@@ -458,10 +461,16 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
  * Handles mouse up event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean} True if event was captured.
  */
 shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.x || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
+  if (this.onFinish) {
+    var pos = this.controlObject_.getPosition();
+    this.onFinish(this.controlObject_, pos[0], pos[1], pos[2]);
+  }
   return captured;
 };
 

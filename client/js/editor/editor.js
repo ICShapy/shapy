@@ -62,6 +62,7 @@ shapy.editor.EditorController = function(
   this.sock_.onmessage = goog.bind(this.onMessage_, this);
   this.sock_.onclose = goog.bind(this.onClose_, this);
   this.scope_.$on('$destroy', goog.bind(this.onDestroy_, this));
+  this.rootScope_.$on('editor', goog.bind(this.onEditorMessage_, this));
 };
 
 
@@ -97,6 +98,20 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
         this.scene.removeUser(data['user']);
         break;
       }
+      case 'edit': {
+        switch (data['tool']) {
+          case 'translate': {
+            this.scene.objects[data['id']].translate(
+                data['x'], data['y'], data['z']);
+            break;
+          }
+          default: {
+            console.error('Invalid tool "' + data['tool'] + "'");
+            break;
+          }
+        }
+        break;
+      }
       default: {
         console.error('Invalid message type "' + data['type'] + '"');
         break;
@@ -105,6 +120,18 @@ shapy.editor.EditorController.prototype.onMessage_ = function(evt) {
   }, this));
 };
 
+
+/**
+ * Called when an object in the scene is being edited.
+ *
+ * @private
+ *
+ * @param {string} n    Name of the message.
+ * @param {Object} data Editor message.
+ */
+shapy.editor.EditorController.prototype.onEditorMessage_ = function(n, data) {
+  this.sock_.send(JSON.stringify(data));
+};
 
 /**
  * Called when the server suspends the connection.
@@ -241,13 +268,6 @@ shapy.editor.CanvasController = function($rootScope) {
    */
   this.vp_ = new goog.math.Size(0, 0);
 
-  /** @private {!shapy.editor.Rig} @const */
-  this.rigTranslate_ = new shapy.editor.Rig.Translate();
-  /** @private {!shapy.editor.Rig} @const */
-  this.rigRotate_ = new shapy.editor.Rig.Rotate();
-  /** @private {!shapy.editor.Rig} @const */
-  this.rigScale_ = new shapy.editor.Rig.Scale();
-
   /**
    * Active rig.
    * @public {!shapy.editor.Rig}
@@ -262,6 +282,34 @@ shapy.editor.CanvasController = function($rootScope) {
   this.layout.active.rig = this.rig;
 
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
+
+
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigTranslate_ = new shapy.editor.Rig.Translate();
+  this.rigTranslate_.onFinish = goog.bind(function(obj, x, y, z) {
+    // TODO: find a better way to distinguish objects.
+    if (obj.object != obj) {
+      return;
+    }
+    $rootScope.$broadcast('editor', {
+      'type': 'edit',
+      'tool': 'translate',
+      'id': obj.id,
+      'x': x,
+      'y': y,
+      'z': z
+    });
+  }, this);
+
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigRotate_ = new shapy.editor.Rig.Rotate();
+  this.rigRotate_.onFinish = goog.bind(function(x, y, z) {
+  }, this);
+
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigScale_ = new shapy.editor.Rig.Scale();
+  this.rigScale_.onFinish = goog.bind(function(x, y, z) {
+  }, this);
 };
 
 
@@ -295,7 +343,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas, scene) {
 
   this.scene_.objects['y'] = shapy.editor.Object.createCube('y', 0.5, 0.5, 0.5);
   this.selectObject(this.scene_.objects['y']);
-  this.changeRig_(new shapy.editor.Rig.Translate());
+  this.changeRig_(this.rigTranslate_);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
