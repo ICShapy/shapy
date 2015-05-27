@@ -4,6 +4,8 @@
 goog.provide('shapy.Scene');
 goog.provide('shapy.SceneService');
 
+goog.require('shapy.editor.Object');
+
 
 
 /**
@@ -38,6 +40,24 @@ shapy.Scene = function(id, data) {
    * @public {!Object<string, shapy.Object>}
    */
   this.objects = {};
+
+  /**
+   * Next identifier.
+   * @private {string}
+   */
+  this.nextID_ = 0;
+};
+
+
+/**
+ * Generates a new object ID.
+ *
+ * @return {string} Unique Object ID.
+ */
+shapy.Scene.prototype.getNextID = function() {
+  var id = this.nextID_;
+  this.nextID_++;
+  return 'obj_' + id;
 };
 
 
@@ -109,6 +129,38 @@ shapy.Scene.prototype.pick = function(ray) {
 
   // TODO: sort hits.
   return hits[0].item;
+};
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} w
+ * @param {number} h
+ * @param {number} d
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.Scene.prototype.createCube = function(w, h, d) {
+  var id = this.getNextID();
+  var object = shapy.editor.Object.createCube(id, w, h, d);
+  this.objects[id] = object;
+  return object;
+};
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} r
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.Scene.prototype.createSphere = function(r) {
+  var id = this.getNextID();
+  var object = shapy.editor.Object.createSphere(id, r);
+  this.objects[id] = object;
+  return object;
 };
 
 

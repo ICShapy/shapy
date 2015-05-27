@@ -15,8 +15,8 @@ goog.require('shapy.browser.fileMatch');
 goog.require('shapy.browser.files');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.editor.Editor');
-goog.require('shapy.editor.Service');
-goog.require('shapy.editor.Toolbar');
+goog.require('shapy.editor.EditorController');
+goog.require('shapy.editor.ToolbarController');
 goog.require('shapy.editor.canvas');
 goog.require('shapy.email');
 goog.require('shapy.equals');
@@ -106,11 +106,13 @@ shapy.configStates_ = function(
       },
       views: {
         'body@': {
-          templateUrl: '/html/editor.html'
+          templateUrl: '/html/editor.html',
+          controller: shapy.editor.EditorController,
+          controllerAs: 'editorCtrl'
         },
         'toolbar': {
           templateUrl: '/html/editor-toolbar.html',
-          controller: shapy.editor.Toolbar,
+          controller: shapy.editor.ToolbarController,
           controllerAs: 'editorCtrl'
         }
       }
@@ -179,6 +181,8 @@ shapy.HttpInterceptor = function($q, shNotify) {
  *
  * @private
  * @ngInject
+ *
+ * @param {!angular.$httpProvider} $httpProvider Angular HTTP provider.
  */
 shapy.configHttp_ = function($httpProvider) {
   $httpProvider.interceptors.push('shHttp');
@@ -202,7 +206,7 @@ shapy.module = angular
   .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
-  .service('shEditor', shapy.editor.Service)
+  .service('shEditor', shapy.editor.Editor)
 
   .directive('shSidebar', shapy.browser.sidebar)
   .directive('shFiles', shapy.browser.files)

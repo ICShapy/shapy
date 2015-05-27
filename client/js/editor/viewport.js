@@ -188,35 +188,6 @@ shapy.editor.Layout.prototype.mouseLeave = function(e) {
 
 
 /**
- * Handles a mouse wheel event.
- *
- * @param {MouseEvent} e
- */
-shapy.editor.Layout.prototype.mouseWheel = function(e) {
-  if (!this.lastHover) {
-    return;
-  }
-
-  this.lastHover.mouseWheel(e.originalEvent.wheelDelta);
-};
-
-
-/**
- * Handles a key press event.
- *
- * @param {KeyEvent} e
- */
-shapy.editor.Layout.prototype.keyDown = function(e) {
-  if (!this.lastHover) {
-    return;
-  }
-
-  this.lastHover.keyDown(e);
-};
-
-
-
-/**
  * Creates a layout with a single viewport.
  *
  * @constructor

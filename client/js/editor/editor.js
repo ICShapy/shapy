@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.editor.Editor');
+goog.provide('shapy.editor.EditorController');
 
 goog.require('goog.dom');
 goog.require('goog.math.Size');
@@ -15,52 +16,290 @@ goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
 goog.require('shapy.editor.Layout.Single');
 goog.require('shapy.editor.Renderer');
+goog.require('shapy.editor.Rig');
+goog.require('shapy.editor.Rig.Rotate');
+goog.require('shapy.editor.Rig.Scale');
+goog.require('shapy.editor.Rig.Translate');
 goog.require('shapy.editor.Viewport');
 
 
 
 /**
- * Class handling the editor interface.
+ * Minor editor controller.
+ *
+ * @constructor
+ *
+ * @param {!shapy.Scene}         scene
+ * @param {!shapy.editor.Editor} shEditor
+ */
+shapy.editor.EditorController = function(scene, shEditor) {
+  /** @private {!shapy.Scene} @const */
+  this.scene_ = scene;
+  /** @private {!shapy.editor.Editor} @const */
+  this.shEditor_ = shEditor;
+
+  // Initialise the scene.
+  this.shEditor_.setScene(this.scene_);
+};
+
+
+
+/**
+ * Editor service exposing all editor functionality.
  *
  * @constructor
  * @ngInject
  *
- * @param {!shapy.auth.User} user User information.
- * @param {!shapy.Scene} scene Current scene.
- * @param {!angular.$rootScope} $rootScope Angular rootScope.
- * @param {!angular.$scope} $scope Angular scope.
  * @param {!angular.$location} $location Angular location service.
  */
-shapy.editor.Editor = function(
-    user,
-    scene,
-    $rootScope,
-    $scope,
-    $location)
-{
-  /** @private {!angular.$scope} @const */
-  this.rootScope_ = $rootScope;
-  /** @private {!angular.$scope} @const */
-  this.scope_ = $scope;
+shapy.editor.Editor = function($location) {
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigTranslate_ = new shapy.editor.Rig.Translate();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigRotate_ = new shapy.editor.Rig.Rotate();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigScale_ = new shapy.editor.Rig.Scale();
+
+  /** @private {!angular.$location} @const */
+  this.location_ = $location;
+
+  /**
+   * Canvas.
+   * @private {!HTMLCanvasElement}
+   */
+  this.canvas_ = null;
+
+  /**
+   * Parent element of the canvas.
+   * @private {!Element}
+   */
+  this.parent_ = null;
+
+  /**
+   * WebGL context.
+   * @private {!WebGLContext}
+   */
+  this.gl_ = null;
 
   /**
    * Current scene.
-   * @public {!shapy.Scene}
+   * @private {!shapy.Scene}
    */
-  this.scene = scene;
+  this.scene_ = null;
 
   /**
    * WebSocket connection.
-   * @private {WebSocket} @const
+   * @private {WebSocket}
    */
-  this.sock_ = new WebSocket(goog.string.format(
-      'ws://%s:%s/api/edit/%s', $location.host(), $location.port(), scene.id));
+  this.sock_ = null;
 
-  // Set up some event handlers.
-  this.sock_.onmessage = goog.bind(this.onMessage_, this);
-  this.sock_.onclose = goog.bind(this.onClose_, this);
-  this.scope_.$on('$destroy', goog.bind(this.onDestroy_, this));
-  this.rootScope_.$on('editor', goog.bind(this.onEditorMessage_, this));
+  /**
+   * Renderer that manages all WebGL resources.
+   * @private {shapy.editor.Renderer}
+   */
+  this.renderer_ = null;
+
+  /**
+   * Currently selected object
+   * @private {shapy.editor.Object}
+   */
+  this.selected_ = null;
+
+  /**
+   * Active rig.
+   * @private {!shapy.editor.Rig}
+   */
+  this.rig_ = null;
+
+  /**
+   * Active layout.
+   * @private {!shapy.editor.Layout}
+   */
+  this.layout_ = null;
+
+  /**
+   * requestAnimationFrame id.
+   * @private {number}
+   */
+  this.frame_ = null;
+
+  /**
+   * Size of the canvas.
+   * @private {!goog.math.Size} @const
+   */
+  this.vp_ = new goog.math.Size(0, 0);
+};
+
+
+/**
+ * Resets the scene after it changes.
+ *
+ * @param {!shapy.Scene} scene
+ */
+shapy.editor.Editor.prototype.setScene = function(scene) {
+  this.scene_ = scene;
+  this.selected_ = null;
+  this.rig_ = null;
+  if (this.layout_ && this.layout_.active) {
+    this.layout_.active.rig = null;
+  }
+};
+
+
+/**
+ * Resets the canvas after it changes.
+ *
+ * @param {!HTMLCanvasElement} canvas
+ */
+shapy.editor.Editor.prototype.setCanvas = function(canvas) {
+  // Set up the renderer.
+  this.canvas_ = canvas;
+  this.parent_ = goog.dom.getParentElement(this.canvas_);
+  this.gl_ = this.canvas_.getContext('webgl', {
+      stencil: true,
+      antialias: true
+  });
+  this.gl_.getExtension('OES_standard_derivatives');
+  this.renderer_ = new shapy.editor.Renderer(this.gl_);
+
+  // Initialise the layout.
+  this.layout_ = new shapy.editor.Layout.Single();
+  this.scene_.createCube(0.5, 0.5, 0.5);
+  this.select(goog.object.getAnyValue(this.scene_.objects));
+  this.rig(this.rigTranslate_);
+};
+
+
+/**
+ * Changes the layout.
+ *
+ * @param {string} layout Name of the new layout.
+ */
+shapy.editor.Editor.prototype.setLayout = function(layout) {
+  // Clean up after the old layout.
+  if (this.layout_) {
+    goog.object.forEach(this.layout_.viewports, function(vp) {
+      vp.camCube.destroy();
+    }, this);
+  }
+
+  // Change the layout.
+  switch (layout) {
+    case 'single': this.layout_ = new shapy.editor.Layout.Single(); break;
+    case 'double': this.layout_ = new shapy.editor.Layout.Double(); break;
+    case 'quad': this.layout_ = new shapy.editor.Layout.Quad(); break;
+    default: throw Error('Invalid layout "' + layout + "'");
+  }
+
+  // Adjust stuff.
+  this.select(this.selected_);
+  this.rig(this.rig_);
+  this.vp_.width = this.vp_.height = 0;
+};
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {string} type Type of the object.
+ */
+shapy.editor.Editor.prototype.create = function(type) {
+  var id, object;
+
+  switch (type) {
+    case 'cube': {
+      this.select(this.scene_.createCube(0.5, 0.5, 0.5));
+      break;
+    }
+    case 'sphere': {
+      this.select(this.scene_.createSphere(0.5, 0.5, 0.5));
+      break;
+    }
+    default: throw new Error('Invalid object type "' + type + "'");
+  }
+};
+
+
+/**
+ * Called when a frame should be rendered.
+ */
+shapy.editor.Editor.prototype.render = function() {
+  var width = this.parent_.offsetWidth, height = this.parent_.offsetHeight;
+
+  // Resize the canvas if it changes.
+  if (this.vp_.width != width || this.vp_.height != height) {
+    this.vp_.width = this.canvas_.width = this.parent_.offsetWidth;
+    this.vp_.height = this.canvas_.height = this.parent_.offsetHeight;
+    this.layout_.resize(width, height);
+  }
+
+  // Synchronise meshes
+  goog.object.forEach(this.scene_.objects, function(object, name, objects) {
+    object.computeModel();
+    if (object.dirtyMesh) {
+      this.renderer_.updateObject(object);
+      object.dirtyMesh = false;
+    }
+  }, this);
+
+  // Clear the screen, render the scenes and then render overlays.
+  this.renderer_.start();
+
+  // First pass - compute view/proj matrices and render objects.
+  goog.object.forEach(this.layout_.viewports, function(vp, name) {
+    vp.camera.compute();
+    vp.camCube.compute();
+    this.renderer_.renderObjects(vp);
+    this.renderer_.renderGround(vp);
+    this.renderer_.renderBorder(vp);
+    this.renderer_.renderCamCube(vp);
+  }, this);
+
+  // Second pass - render rigs.
+  if (this.layout_.active && this.layout_.active.rig) {
+    this.renderer_.renderRig(this.layout_.active, this.layout_.active.rig);
+  }
+
+  // Queue the next frame.
+  this.frame_ = requestAnimationFrame(goog.bind(this.render, this));
+};
+
+
+/**
+ * Called when everything should be closed.
+ */
+shapy.editor.Editor.prototype.destroy = function() {
+  // Stop rendering.
+  if (this.frame_) {
+    cancelAnimationFrame(this.frame_);
+    this.frame_ = null;
+  }
+
+  // Close the websocket connection.
+  if (this.sock_) {
+    this.sock_.close();
+    this.sock_ = null;
+  }
+
+  // Clean up buffers from camera cubes.
+  if (this.layout_) {
+    goog.object.forEach(this.layout_.viewports, function(vp) {
+      vp.camCube.destroy();
+    }, this);
+    this.layout_ = null;
+  }
+
+  // Clean up the renderer.
+  if (this.renderer_) {
+    this.renderer_.destroy();
+    this.renderer_ = null;
+  }
+
+  // Clean up buffers from rigs.
+  this.rigTranslate_.destroy();
+  this.rigRotate_.destroy();
+  this.rigScale_.destroy();
+  this.rig_ = null;
 };
 
 
@@ -84,22 +323,22 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
   this.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
       case 'join': {
-        this.scene.addUser(data['user']);
+        this.scene_.addUser(data['user']);
         break;
       }
       case 'meta': {
-        this.scene.setName(data['name']);
-        this.scene.setUsers(data['users']);
+        this.scene_.setName(data['name']);
+        this.scene_.setUsers(data['users']);
         break;
       }
       case 'leave': {
-        this.scene.removeUser(data['user']);
+        this.scene_.removeUser(data['user']);
         break;
       }
       case 'edit': {
         switch (data['tool']) {
           case 'translate': {
-            this.scene.objects[data['id']].translate(
+            this.scene_.objects[data['id']].translate(
                 data['x'], data['y'], data['z']);
             break;
           }
@@ -120,18 +359,6 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
 
 
 /**
- * Called when an object in the scene is being edited.
- *
- * @private
- *
- * @param {string} n    Name of the message.
- * @param {Object} data Editor message.
- */
-shapy.editor.Editor.prototype.onEditorMessage_ = function(n, data) {
-  this.sock_.send(JSON.stringify(data));
-};
-
-/**
  * Called when the server suspends the connection.
  *
  * @private
@@ -143,12 +370,140 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
 
 
 /**
- * Called when everything should be closed.
+ * Selects an object.
  *
- * @private
+ * @param {!shapy.editor.Editable} object
  */
-shapy.editor.Editor.prototype.onDestroy_ = function() {
-  this.sock_.close();
+shapy.editor.Editor.prototype.select = function(object) {
+  this.selected_ = object;
+  if (this.rig_) {
+    this.rig_.object = object;
+  }
 };
+
+
+/**
+ * Chooses a rig.
+ *
+ * @param {!shapy.editor.Rig} rig
+ */
+shapy.editor.Editor.prototype.rig = function(rig) {
+  if (!this.selected_) {
+    if (this.layout_) {
+      this.layout_.active.rig = null;
+    }
+    this.rig_ = null;
+    return;
+  }
+
+  this.rig_ = rig;
+  this.rig_.object = this.selected_;
+  if (this.layout_) {
+    this.layout_.active.rig = rig;
+  }
+};
+
+
+/**
+ * Handles a key press.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.keyDown = function(e) {
+  switch (e.keyCode) {
+    case 84: this.rig(this.rigTranslate_); break;
+    case 82: this.rig(this.rigRotate_); break;
+    case 83: this.rig(this.rigScale_); break;
+    default: {
+      if (this.layout_ && this.layout_.active) {
+        this.layout_.active.keyDown(e.keyCode);
+      }
+      break;
+    }
+  }
+};
+
+
+/**
+ * Handles a mouse button press event.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseDown = function(e) {
+  this.layout_.mouseDown(e);
+};
+
+
+/**
+ * Handles a mouse button release event.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseUp = function(e) {
+  if (this.layout_.mouseUp(e) || e.which != 1) {
+    return;
+  }
+
+  // TODO: find a nicer way to do this.
+  var result = this.layout_.getViewport(e.offsetX, e.offsetY);
+  if (!result.vp) {
+    return;
+  }
+
+  var ray = result.vp.raycast_(result.x, result.y);
+  var pick = this.scene_.pick(ray);
+  if (!pick) {
+    return;
+  }
+  this.select(pick);
+};
+
+
+/**
+ * Handles mouse motion events.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseMove = function(e) {
+  this.layout_.mouseMove(e);
+};
+
+
+/**
+ * Handles a mouse enter event.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseEnter = function(e) {
+  this.layout_.mouseEnter(e);
+};
+
+
+/**
+ * Handles a mouse leave event.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseLeave = function(e) {
+  this.layout_.mouseLeave(e);
+};
+
+
+/**
+ * Handles the mouse wheel motion.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseWheel = function(e) {
+  if (this.layout_ && this.layout_.active) {
+    this.layout_.active.mouseWheel(e.originalEvent.wheelDelta);
+  }
+};
+
+
+
+
+
+
 
 

@@ -10,21 +10,25 @@ goog.provide('shapy.editor.ToolbarController');
  *
  * @constructor
  *
- * @param {!angular.$scope}    $rootScope The angular root scope.
- * @param {!angular.$scope}    $scope     The angular root scope.
- * @param {!angular.$q}        $q         The angular promise service.
- * @param {!shapy.Scene}       scene      Scene being edited.
- * @param {!shapy.UserService} shUser User service which can cache user info.
+ * @param {!angular.$scope}      $rootScope The angular root scope.
+ * @param {!angular.$scope}      $scope     The angular root scope.
+ * @param {!angular.$q}          $q         The angular promise service.
+ * @param {!shapy.Scene}         scene      Scene being edited.
+ * @param {!shapy.UserService}   shUser User service which can cache user info.
+ * @param {!shapy.editor.Editor} shEditor
  */
-shapy.editor.Toolbar = function(
+shapy.editor.ToolbarController = function(
     $rootScope,
     $scope,
     $q,
     scene,
-    shUser)
+    shUser,
+    shEditor)
 {
   /** @private {!angular.$scope} @const */
   this.rootScope_ = $rootScope;
+  /** @private {!shapy.editor.Editor} @const */
+  this.shEditor_ = shEditor;
 
   /** @public {!shapy.Scene} @const */
   this.scene = scene;
@@ -48,11 +52,8 @@ shapy.editor.Toolbar = function(
  *
  * @param {string} name Name of the new layout.
  */
-shapy.editor.Toolbar.prototype.layout = function(name) {
-  this.rootScope_.$emit('editor', {
-    type: 'layout',
-    layout: name
-  });
+shapy.editor.ToolbarController.prototype.layout = function(name) {
+  this.shEditor_.setLayout(name);
 };
 
 
@@ -61,9 +62,6 @@ shapy.editor.Toolbar.prototype.layout = function(name) {
  *
  * @param {string} name Name of the object.
  */
-shapy.editor.Toolbar.prototype.addObject = function(name) {
-  this.rootScope_.$emit('editor', {
-    type: 'create',
-    object: name
-  });
+shapy.editor.ToolbarController.prototype.addObject = function(name) {
+  this.shEditor_.create(name);
 };
