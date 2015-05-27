@@ -245,6 +245,22 @@ shapy.editor.Object.Edge.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
+  var a = this.object_.vertices[this.start].position;
+  var b = this.object_.vertices[this.end].position;
+
+  var t = goog.vec.Vec3.createFloat32();
+  var s = goog.vec.Vec3.createFloat32();
+
+  // Compute offset.
+  goog.vec.Vec3.add(a, b, t);
+  goog.vec.Vec3.scale(t, 0.5, t);
+  goog.vec.Mat4.multVec3(this.object_.invModel_, [x, y, z], s);
+
+  // Adjust endpoints.
+  goog.vec.Vec3.subtract(s, t, s);
+  goog.vec.Vec3.add(a, s, a);
+  goog.vec.Vec3.add(b, s, b);
+  this.object_.dirtyMesh = true;
 };
 
 
