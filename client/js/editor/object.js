@@ -172,7 +172,7 @@ shapy.editor.Object.Vertex = function(object, x, y, z) {
    */
   this.uv = goog.vec.Vec2.createFloat32();
 };
-goog.inherits(shapy.editor.Object, shapy.editor.Editable);
+goog.inherits(shapy.editor.Object.Vertex, shapy.editor.Editable);
 
 
 /**
@@ -206,7 +206,7 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
  *
  * @constructor
  *
- * @param {!shapy.editor.Obejct} object
+ * @param {!shapy.editor.Object} object
  * @param {number}               start
  * @param {number}               end
  */
@@ -218,11 +218,11 @@ shapy.editor.Object.Edge = function(object, start, end) {
   /** @public {number} @const */
   this.end = end;
 };
-goog.inherits(shapy.editor.Object, shapy.editor.Editable);
+goog.inherits(shapy.editor.Object.Edge, shapy.editor.Editable);
 
 
 /**
- * Retrieves the vertex position.
+ * Retrieves the edge position.
  *
  * @return {!goog.vec.Vec3.Type}
  */
@@ -263,6 +263,52 @@ shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
   goog.vec.Vec3.add(a, s, a);
   goog.vec.Vec3.add(b, s, b);
   this.object.dirtyMesh = true;
+};
+
+
+
+/**
+ * Face of an object.
+ *
+ * @constructor
+ *
+ * @param {!shapy.editor.Object}             object
+ * @param {!Array<shapy.editor.Object.Edge>} edges
+ */
+shapy.editor.Object.Face = function(object, edges) {
+  /**
+   * @public {!shapy.editor.Object}
+   * @const
+   */
+  this.object = object;
+
+  /**
+   * @public {!Array<shapy.editor.Object.Edge>}
+   * @const
+   */
+  this.edges = edges;
+};
+goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
+
+
+/**
+ * Retrieves the face position.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.Face.prototype.getPosition = function() {
+  return null;
+};
+
+
+/**
+ * Translate the face.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
 };
 
 
@@ -461,6 +507,8 @@ shapy.editor.Object.prototype.pick = function(ray) {
       point: p0
     };
   }, this), goog.isDefAndNotNull);
+
+  // Find all intersecting faces.
 
   return [verts, edges];
 };
