@@ -176,7 +176,9 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Vertex.prototype.getPosition = function() {
-  return this.position;
+  var position = goog.vec.Vec3.createFloat32();
+  goog.vec.Mat4.multVec3(this.object_.model_, this.position, position);
+  return position;
 };
 
 
@@ -189,6 +191,7 @@ shapy.editor.Object.Vertex.prototype.getPosition = function() {
  */
 shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.position, x, y, z);
+  goog.vec.Mat4.multVec3(this.object_.invModel_, this.position, this.position);
   this.object_.dirtyMesh = true;
 };
 
