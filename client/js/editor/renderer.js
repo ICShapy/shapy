@@ -335,7 +335,7 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
  * Start rendering a scene.
  */
 shapy.editor.Renderer.prototype.start = function() {
-  this.gl_.clearColor(0.95, 1, 1, 1);
+  this.gl_.clearColor(0.9, 0.9, 0.9, 1);
   this.gl_.clear(goog.webgl.COLOR_BUFFER_BIT | goog.webgl.DEPTH_BUFFER_BIT);
 };
 
@@ -415,7 +415,7 @@ shapy.editor.Renderer.prototype.renderBorder = function(vp) {
 
 
 /**
- * Renders the BORDER
+ * Renders the cube
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */

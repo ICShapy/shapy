@@ -313,8 +313,10 @@ shapy.editor.CanvasController.prototype.render = function() {
   // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();
 
-  // First pass - render objects.
+  // First pass - compute view/proj matrices and render objects.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
+    vp.camera.compute();
+    vp.camCube.compute();
     this.renderer_.renderObjects(vp);
   }, this);
 
@@ -326,11 +328,6 @@ shapy.editor.CanvasController.prototype.render = function() {
 
   // Third pass - render overlay & ground plane.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
-    // Update viewport, camera, cube, etc.
-    vp.camera.compute();
-    vp.camCube.compute();
-
-    // Render the objects & overlays.
     this.renderer_.renderGround(vp);
     this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);
