@@ -7,6 +7,82 @@ sh-sidebar {
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
 }
+sh-sidebar > h1 {
+  position: absolute;
+  height: 30px;
+  font-size: 30px;
+  left: 10px; top: 0px;
+}
+
+sh-sidebar-folders {
+  height: 250px;
+  overflow: scroll;
+  position: absolute;
+  top: 60px; left: 10px; right: 0; bottom: 0;
+
+}
+
+sh-sidebar-folder {
+  display: block;
+  position: relative;
+  float: top;
+  width: 100px;
+  height: 30px;
+  cursor:pointer;
+}
+
+sh-sidebar-folder > div {
+  position: absolute;
+  top: 5px; left: 0; right: 0; bottom: 0;
+  width: 30px;
+}
+
+sh-sidebar-folder > h2 {
+  position: absolute;
+  top: 0;  left: 32px;
+  height: 30px;
+  text-align: left;
+  font-weight: normal;
+  font-size: 14px;
+  width: 70px;
+  overflow-x: scroll;
+}
+
+sh-sidebar-all {
+  position: absolute;
+  top: 311px; bottom: 0; left: 0; right: 0;
+  height: 80px;
+  border-bottom: 1px dashed #cccccc;
+  margin-left: 10px;
+}
+
+sh-sidebar-all > div > h1 {
+  font-size: 14px;
+  font-style: italic;
+  font-weight: bold;
+}
+
+sh-sidebar-all > div > h1:hover {
+  cursor: pointer;
+}
+
+sh-sidebar-options {
+  position: absolute;
+  top: 400px;
+  margin-left: 10px;
+}
+
+sh-sidebar-options > div > input[type="text"] {
+  width: 195px;
+}
+
+sh-sidebar-options > div > input[type="button"] {
+  width: 98px;
+}
+
+sh-sidebar-options > input[type="button"] {
+  width: 200px;
+}
 
 /**
  * Assets
@@ -59,15 +135,6 @@ sh-file > div:hover {
 }
 
 /**
- * All images
- */
-
-img {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-/**
  * Browser
  */
 
@@ -84,11 +151,11 @@ img {
 sh-path {
   position: fixed;
   top: 0;
-  left: 380px;
-  right: 0;
-  bottom: 30px;
+  left: 383px;
+  right: 130px;
+  height: 30px;
   display: grid;
-  overflow: auto;
+  overflow-x: scroll;
 }
 
 sh-path-asset {
@@ -114,4 +181,27 @@ sh-path-asset > h1 {
   font-weight: normal;
   font-size: 14px;
   color: #ffffff;
+  width: 70px;
+  overflow-x: scroll;
+}
+
+/**
+ * All images
+ */
+
+sh-path-asset > div > img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+sh-sidebar-folder > div > img {
+  margin-top: 5px;
+  margin-left: 5px;
+  max-width: 80%;
+  max-height: 80%;
+}
+
+sh-file > div > img {
+  max-width: 100%;
+  max-height: 100%;
 }

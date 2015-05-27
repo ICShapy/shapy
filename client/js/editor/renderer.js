@@ -201,7 +201,6 @@ shapy.editor.Renderer = function(gl) {
   /** @private {!WebGLContext} @const */
   this.gl_ = gl;
 
-
   /** @private {!shapy.editor.Shader} @const */
   this.shObject_ = new shapy.editor.Shader(this.gl_);
   this.shObject_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_VS);
@@ -261,6 +260,13 @@ shapy.editor.Renderer = function(gl) {
    * @private {!Object<int, Array<shapy.editor.Mesh>>}
    */
   this.objectHistory_ = {};
+};
+
+
+/**
+ * Cleans up resources used by the renderer.
+ */
+shapy.editor.Renderer.prototype.destroy = function() {
 };
 
 
@@ -480,6 +486,6 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
     this.shRig_.uniform1f('u_alpha', 0.4);
     rig.render(this.gl_, this.shRig_);
   }
-  
+
   this.gl_.disable(goog.webgl.STENCIL_TEST);
 };

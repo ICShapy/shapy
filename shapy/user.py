@@ -149,6 +149,8 @@ class InfoHandler(APIHandler):
   @coroutine
   def get(self, user_id):
     user = yield Account.get(self.db, user_id)
+    if not user:
+      raise HTTPError(404, 'User does not exist.')
     self.write(json.dumps(user.__dict__))
 
 

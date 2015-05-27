@@ -69,7 +69,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     # If the user is not valid, quit the room.
     if not user:
-      self.user = None
       self.close()
       return
 
@@ -77,6 +76,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.user = user
     self.scene_id = scene_id
     self.chan_id = 'chan_%s' % scene_id
+    self.lock_id = 'lock_%s' % scene_id
 
     # Start listening & broadcasting on the channel.
     self.chan = tornadoredis.Client(
@@ -84,22 +84,21 @@ class WSHandler(WebSocketHandler, BaseHandler):
         port=self.application.RD_PORT,
         password=self.application.RD_PASS)
     self.chan.connect()
+    self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
 
     # Get the scene object & add the client.
-    scene = yield Scene.get(self.redis, scene_id)
+    def add_user(scene):
+      scene.add_user(self.user.id)
+    scene = yield self.update_scene_(add_user)
 
-    # Transfer initial metadata.
+    # Broadcast join message.
     self.write_message(json.dumps({
         'type': 'meta',
         'name': scene.name,
         'users': scene.users
     }))
-
-    # Broadcast the initial join message.
-    scene.add_user(self.user.id)
-    yield Scene.put(self.redis, scene)
     self.redis.publish(self.chan_id, json.dumps({
         'type': 'join',
         'user': self.user.id
@@ -108,8 +107,15 @@ class WSHandler(WebSocketHandler, BaseHandler):
   @coroutine
   def on_message(self, message):
     """Handles an incoming message."""
-    if not self.user:
+
+    if not hasattr(self, 'user'):
       return
+    data = json.loads(message)
+
+    if data['type'] == 'name':
+      def update_name(scene):
+        scene.name = data['value']
+      yield self.update_scene_(update_name)
 
     self.redis.publish(self.chan_id, message)
 
@@ -118,7 +124,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not self.user or message.kind != 'message':
+    if not hasattr(self, 'user') or message.kind != 'message':
       return
 
     self.write_message(message.body)
@@ -127,7 +133,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   @coroutine
   def on_close(self):
     """Handles connection termination."""
-    if not self.user:
+    if not hasattr(self, 'user'):
       return
 
     # Remove the user from the scene.
@@ -145,6 +151,16 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.chan.unsubscribe(self.chan_id)
     self.chan.disconnect()
 
+  @coroutine
+  def update_scene_(self, func):
+    """Helper to update a scene."""
+
+    yield Task(self.lock.acquire, blocking=True)
+    scene = yield Scene.get(self.redis, self.scene_id)
+    func(scene)
+    yield Scene.put(self.redis, scene)
+    yield Task(self.lock.release)
+    raise Return(scene)
 
 
 class SceneHandler(APIHandler):

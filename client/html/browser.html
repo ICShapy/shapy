@@ -1,7 +1,27 @@
 <div>
   <sh-sidebar>
     <h1>Folders</h1>
-    <h1>Folders</h1>
+    <sh-sidebar-folders>
+      <sh-sidebar-folder>
+        <div> <img src="/img/folder_dark.png"> </div>
+        <h2>home</h2>
+      </sh-sidebar-folder>
+    </sh-sidebar-folders>
+  <sh-sidebar-all>
+    <div><h1> All your scenes </h1> </div>
+    <div><h1> All your textures </h1> </div>
+    <div><h1> All public files </h1> </div>
+  </sh-sidebar-all>
+  <sh-sidebar-options>
+    <div><input type="text" placeholder="Name"/></div>
+    <div>
+      <input type="button" value="New Folder" ng-click=""/>
+      <input type="button" value="New Scene" ng-click=""/>
+    </div>
+    </br>
+    <input type="button" value="Upload Texture" ng-click=""/>
+  <sh-sidebar-options>
+
   </sh-sidebar>
   <sh-files>
     <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query">

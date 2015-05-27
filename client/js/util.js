@@ -2,6 +2,7 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.api');
+goog.provide('shapy.editable');
 goog.provide('shapy.highlight');
 
 goog.require('goog.string');
@@ -67,6 +68,43 @@ shapy.highlight = function($rootScope, $location) {
 
       $rootScope.$on('$locationChangeSuccess', update);
       update();
+    }
+  };
+};
+
+
+/**
+ * Decorator for contenteditable stuff.
+ *
+ * @return {!angular.Directive}
+ */
+shapy.editable = function() {
+  return {
+    restrict: 'E',
+    replace: true,
+    template: '<span contenteditable=true></span>',
+    require: 'ngModel',
+    link: function($scope, $elem, $attr, ngModel) {
+      ngModel.$render = function() {
+        $elem.text(ngModel.$viewValue);
+      };
+
+      $elem
+        .text(ngModel.$modelValue)
+        .blur(function() {
+          $scope.$apply(function() {
+            var text = $elem.text().replace(/[^a-z0-9 ]/gi, '');
+            ngModel.$setViewValue(text || 'Untitled Scene');
+            $elem.text(ngModel.$viewValue);
+          });
+        })
+        .keypress(function(e) {
+          if (e.which == 13) {
+            $elem.blur();
+            return false;
+          }
+          return true;
+        });
     }
   };
 };

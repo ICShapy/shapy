@@ -39,8 +39,8 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @export
    */
   this.assets = [];
-  // Set displayed assets to content of home folder.
-  this.displayDir(new shapy.browser.Asset.Dir(0, 'home'));
+  // Enter home folder.
+  this.assetEnter(this.shAssets_.createDir('home', null, null));
 
   /**
    * Query from user filtering results.
@@ -56,7 +56,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
         break;
       }
       case 'pathAsset': {
-        this.displayDir(data['asset']);
+        this.assetEnter(data['asset']);
         break;
       }
     }
@@ -69,30 +69,30 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
  * @param {!shapy.browser.Asset} asset Asset that is to be entered.
  */
 shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
-  // Message BrowserToolbarController that path needs to be updated with asset.
-  this.rootscope_.$emit('browser', {
-      type: 'asset',
-      asset: asset
-  });
-  // TODO:
-  //use service to perform entering - not only dir!!!
-  this.displayDir(asset);
+  switch (asset.type) {
+    case 'dir' :   this.displayDir(asset); break;
+    default    :   console.log("assetEnter - unimplemented case!");
+  }
 };
 
 /**
  * Displays content of given dir.
  *
  * @param {!shapy.browser.Asset.Dir} dir Dir to display.
+ * @param {Array.<!shapy.browser.Asset>} assets Assets that are contained in this dir.
  */
-shapy.browser.BrowserController.prototype.displayDir = function(dir) {
-  // TODO:
-  //use service to perform entering
-  //temporary - update this.assets with return of service method
-  this.assets = []
-  var hundreds = (dir.id + 99) / 100
-  for (var i = hundreds * 100 + 1; i <= (hundreds + 1) * 100; ++i) {
-    this.assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
-  }
+shapy.browser.BrowserController.prototype.displayDir = function(dir, assets) {
+  // Query database for the contents
+  assets = this.shAssets_.queryDir(dir);
+
+  // Message BrowserToolbarController that path needs to be updated with dir.
+  this.rootscope_.$emit('browser', {
+      type: 'dir',
+      dir: dir
+  });
+
+  // Update assets with answer from database.
+  this.assets = assets;
 };
 
 
@@ -124,13 +124,13 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
    * @public {string}
    * @export
    */
-  this.path = [new shapy.browser.Asset.Dir(0, 'home')];
+  this.path = [];
 
-  // Add new asset tu current path when user requests entering further dirs.
+  // Add new dir tu current path when user requests entering further dirs.
   $rootScope.$on('browser', goog.bind(function(name, data) {
     switch (data['type']) {
-      case 'asset': {
-        this.path.push(data['asset']);
+      case 'dir': {
+        this.path.push(data['dir']);
         break;
       }
     }
@@ -143,17 +143,16 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
  * @param {!shapy.browser.Asset.Dir} asset Asset (dir) from path to which are returning.
  */
 shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset) {
-  // Message BrowserController that user requested returning to given asset from path.
-  this.rootscope_.$emit('browser', {
-      type: 'pathAsset',
-      asset: asset
-  });
   // Drop redundant tail of path.
   var poppedAsset;
   do {
     poppedAsset = this.path.pop()
   } while (poppedAsset.id != asset.id);
-  this.path.push(asset);
+  // Message BrowserController that user requested returning to given asset from path.
+  this.rootscope_.$emit('browser', {
+      type: 'pathAsset',
+      asset: asset
+  });
 };
 
 
@@ -220,8 +219,8 @@ shapy.browser.file = function() {
  */
 shapy.browser.fileMatch = function() {
   return function(files, pattern) {
-    return goog.array.filter(files, function(file) {
-      return goog.string.contains(file.name, pattern);
+    return goog.array.filter(files, function(asset) {
+      return goog.string.contains(asset.name, pattern);
     });
   };
 };
