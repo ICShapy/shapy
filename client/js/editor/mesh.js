@@ -144,24 +144,21 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   // Fill out the vertex buffer
   // Just for reference:
   // * face[i] is the i'th edge in the face
-  // * e[face[i]] gives the pair of vertices in the i'th edge of the face
-  // * e[face[i]][0] gives the first vertex in the i'th edge of the face
+  // * face[i].first gives the first vertex in the i'th edge of the face
   goog.array.forEach(f, function(face) {
     // Unfortunately, this algorithm is a bit more complicated than it should be
     // because edge i's tail doesn't necessarily points to edge i+1's head
-    var a = e[face[0]].start;
+    var a = face[0].start;
     for (var j = 0; j < (face.length - 2); j++) { // edge ID
-      var b = e[face[j]].end;
-      var c = e[face[j + 1]].end;
+      var b = face[j].end;
+      var c = face[j + 1].end;
 
       // If in the first iteration, we discover that 'a' is incorrect
       // (eg. [b, a], [b, c] or [b, a], [c, b] rather than [a, b], [b, c]) then
       // ensure 'a' is correct before continuing.
       if (j == 0) {
-        if (e[face[0]].start == e[face[1]].start ||
-            e[face[0]].start == e[face[1]].end)
-        {
-          a = e[face[0]].end;
+        if (face[0].start == face[1].start || face[0].start == face[1].end) {
+          a = face[0].end;
         }
       }
 
@@ -171,19 +168,19 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
       // the triangle of [a, b, c].
 
       // Deal with the case [b, a], [b, c]
-      if (e[face[j]].start == e[face[j + 1]].start) {
-        b = e[face[j]].start;
+      if (face[j].start == face[j + 1].start) {
+        b = face[j].start;
       }
 
       // Deal with the case [b, a], [c, b]
-      if (e[face[j]].start == e[face[j + 1]].end) {
-        b = e[face[j]].start;
-        c = e[face[j + 1]].start;
+      if (face[j].start == face[j + 1].end) {
+        b = face[j].start;
+        c = face[j + 1].start;
       }
 
       // Deal with the case [a, b], [c, b]
-      if (e[face[j]].end == e[face[j + 1]].end) {
-        c = e[face[j + 1]].start;
+      if (face[j].end == face[j + 1].end) {
+        c = face[j + 1].start;
       }
 
       addVertex(v[a].position, 1, 0, 0);
