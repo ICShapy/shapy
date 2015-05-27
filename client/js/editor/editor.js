@@ -241,9 +241,16 @@ shapy.editor.CanvasController = function($rootScope) {
    */
   this.vp_ = new goog.math.Size(0, 0);
 
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigTranslate_ = new shapy.editor.Rig.Translate();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigRotate_ = new shapy.editor.Rig.Rotate();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigScale_ = new shapy.editor.Rig.Scale();
+
   /**
    * Active rig.
-   * @public {shapy.editor.Rig}
+   * @public {!shapy.editor.Rig}
    */
   this.rig = null;
 
@@ -392,15 +399,15 @@ shapy.editor.CanvasController.prototype.changeRig_ = function(rig) {
 shapy.editor.CanvasController.prototype.keyDown = function(keyCode) {
   switch (keyCode) {
     case 84: { // t
-      this.changeRig_(new shapy.editor.Rig.Translate());
+      this.changeRig_(this.rigTranslate_);
       break;
     }
     case 82: { // r
-      this.changeRig_(new shapy.editor.Rig.Rotate());
+      this.changeRig_(this.rigRotate_);
       break;
     }
     case 83: { // s
-      this.changeRig_(new shapy.editor.Rig.Scale());
+      this.changeRig_(this.rigScale_);
       break;
     }
     default: {
@@ -525,6 +532,19 @@ shapy.editor.CanvasDirective = function(shScene) {
               return;
             }
             canvasCtrl.selectObject(pick);
+          }))
+          .dblclick(wrap(function(e) {
+            var result = canvasCtrl.layout.getViewport(e.offsetX, e.offsetY);
+            if (!result.vp || e.which != 1) {
+              return;
+            }
+
+            var ray = result.vp.raycast_(result.x, result.y);
+            var pick = scene.pick(ray);
+            if (!pick) {
+              return;
+            }
+            canvasCtrl.selectObject(pick.object);
           }))
           .mouseenter(wrap(function(e) { canvasCtrl.layout.mouseEnter(e); }))
           .mouseleave(wrap(function(e) { canvasCtrl.layout.mouseLeave(e); }))

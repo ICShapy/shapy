@@ -66,6 +66,8 @@ shapy.editor.Object = function(id, vertices, edges, faces) {
 
   /** @public {string} */
   this.id = id;
+  /** @public {!shapy.editor.Object} */
+  this.object = this;
 
   /**
    * True if the mesh is dirty, needing to be rebuilt.
@@ -155,8 +157,8 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  * @param {number} z
  */
 shapy.editor.Object.Vertex = function(object, x, y, z) {
-  /** @private {!shapy.editor.Object} @const */
-  this.object_ = object;
+  /** @public {!shapy.editor.Object} @const */
+  this.object = object;
 
   /**
    * Position of the vertex.
@@ -180,7 +182,7 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  */
 shapy.editor.Object.Vertex.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32();
-  goog.vec.Mat4.multVec3(this.object_.model_, this.position, position);
+  goog.vec.Mat4.multVec3(this.object.model_, this.position, position);
   return position;
 };
 
@@ -194,8 +196,8 @@ shapy.editor.Object.Vertex.prototype.getPosition = function() {
  */
 shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.position, x, y, z);
-  goog.vec.Mat4.multVec3(this.object_.invModel_, this.position, this.position);
-  this.object_.dirtyMesh = true;
+  goog.vec.Mat4.multVec3(this.object.invModel_, this.position, this.position);
+  this.object.dirtyMesh = true;
 };
 
 
@@ -209,8 +211,8 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
  * @param {number}               end
  */
 shapy.editor.Object.Edge = function(object, start, end) {
-  /** @private {!shapy.editor.Object} @const */
-  this.object_ = object;
+  /** @public {!shapy.editor.Object} @const */
+  this.object = object;
   /** @public {number} @const */
   this.start = start;
   /** @public {number} @const */
@@ -225,13 +227,13 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Edge.prototype.getPosition = function() {
-  var a = this.object_.vertices[this.start].position;
-  var b = this.object_.vertices[this.end].position;
+  var a = this.object.vertices[this.start].position;
+  var b = this.object.vertices[this.end].position;
   var t = goog.vec.Vec3.createFloat32();
 
   goog.vec.Vec3.add(a, b, t);
   goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Mat4.multVec3(this.object_.model_, t, t);
+  goog.vec.Mat4.multVec3(this.object.model_, t, t);
 
   return t;
 };
@@ -245,8 +247,8 @@ shapy.editor.Object.Edge.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
-  var a = this.object_.vertices[this.start].position;
-  var b = this.object_.vertices[this.end].position;
+  var a = this.object.vertices[this.start].position;
+  var b = this.object.vertices[this.end].position;
 
   var t = goog.vec.Vec3.createFloat32();
   var s = goog.vec.Vec3.createFloat32();
@@ -254,13 +256,13 @@ shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
   // Compute offset.
   goog.vec.Vec3.add(a, b, t);
   goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Mat4.multVec3(this.object_.invModel_, [x, y, z], s);
+  goog.vec.Mat4.multVec3(this.object.invModel_, [x, y, z], s);
 
   // Adjust endpoints.
   goog.vec.Vec3.subtract(s, t, s);
   goog.vec.Vec3.add(a, s, a);
   goog.vec.Vec3.add(b, s, b);
-  this.object_.dirtyMesh = true;
+  this.object.dirtyMesh = true;
 };
 
 
