@@ -334,7 +334,7 @@ shapy.editor.CanvasController.prototype.init = function(canvas, scene) {
   this.canvas_ = canvas;
   this.scene_ = scene;
   this.parent_ = goog.dom.getParentElement(this.canvas_);
-  this.gl_ = this.canvas_.getContext('webgl');
+  this.gl_ = this.canvas_.getContext('webgl', {stencil: true});
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
@@ -380,21 +380,15 @@ shapy.editor.CanvasController.prototype.render = function() {
     vp.camera.compute();
     vp.camCube.compute();
     this.renderer_.renderObjects(vp);
-  }, this);
-
-  // Second pass - render rigs.
-  if (this.layout.active && this.layout.active.rig) {
-    this.layout.active.camera.compute();
-    this.renderer_.renderRig(this.layout.active, this.layout.active.rig);
-  }
-
-  // Third pass - render overlay & ground plane.
-  goog.object.forEach(this.layout.viewports, function(vp, name) {
-    // Render the objects & overlays.
     this.renderer_.renderGround(vp);
     this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);
   }, this);
+
+  // Second pass - render rigs.
+  if (this.layout.active && this.layout.active.rig) {
+    this.renderer_.renderRig(this.layout.active, this.layout.active.rig);
+  }
 };
 
 
