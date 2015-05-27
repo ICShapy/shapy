@@ -304,16 +304,6 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
  * @param {!Array<shapy.editor.Object.Edge>}
  */
 shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
-  //var p0 = face[0].start;
-  //var p1 = face[0].end;
-  //var p2 = face[1].start;
-
-  //if (p0 == p2 || p1 == p2) {
-  //  p2 = face[1].end;
-  //}
-
-  //return [p0, p1, p2];
-
   var p0 = this.edges[0].start;
   var p1 = this.edges[0].end;
   var p2 = this.edges[1].start;
@@ -322,7 +312,9 @@ shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
     p2 = this.edges[1].end;
   }
 
-  return [p0, p1, p2];
+  return [this.object.vertices[p0].position,
+          this.object.vertices[p1].position,
+          this.object.vertices[p2].position];
 };
 
 
@@ -333,11 +325,7 @@ shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
  */
 shapy.editor.Object.Face.prototype.getPosition = function() {
   var t  = this.getFaceVertices_();
-  var p0 = this.object.vertices[t[0]].position;
-  var p1 = this.object.vertices[t[1]].position;
-  var p2 = this.object.vertices[t[2]].position;
-
-  return shapy.editor.geom.getCentroid(p0, p1, p2);
+  return shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
 };
 
 
@@ -350,9 +338,9 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
  */
 shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
   var t  = this.getFaceVertices_();
-  var p0 = this.object.vertices[t[0]].position;
-  var p1 = this.object.vertices[t[1]].position;
-  var p2 = this.object.vertices[t[2]].position;
+  var p0 = t[0];
+  var p1 = t[1];
+  var p2 = t[2];
   var c  = shapy.editor.geom.getCentroid(p0, p1, p2);
 
   // Get the translation vector.
@@ -574,63 +562,13 @@ shapy.editor.Object.prototype.pick = function(ray) {
 
     // Get 3 distinct points forming the triangle.
     var t  = face.getFaceVertices_();
-    var p1 = this.vertices[t[0]].position;
-    var p2 = this.vertices[t[1]].position;
-    var p3 = this.vertices[t[2]].position;
+    var i = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
 
-    // Compute triangle edge vectors.
-    goog.vec.Vec3.subtract(p2, p1, u);
-    goog.vec.Vec3.subtract(p3, p1, v);
-
-    // Compute the normal of the plane containing the triangle.
-    var n = goog.vec.Vec3.createFloat32();
-    goog.vec.Vec3.cross(u, v, n);
-
-    // Determine if the ray is parallel to the triangle.
-    var b = goog.vec.Vec3.dot(n, ray.dir);
-    if (Math.abs(b) < 0.0001) {
+    if (!i) {
       return null;
     }
 
-    // Get intersection of the ray and the triangle plane.
-    var w0 = goog.vec.Vec3.createFloat32();
-    goog.vec.Vec3.subtract(ray.origin, p1, w0);
-    var a = -goog.vec.Vec3.dot(n, w0);
-
-    var r = a / b;
-    if (r < 0.0) {
-      return null;
-    }
-
-    var i = goog.vec.Vec3.createFloat32();
-    goog.vec.Vec3.scale(ray.dir, r, i);
-    goog.vec.Vec3.add(i, ray.origin, i);
-
-    // Determine if the intersection point is whithin the triangle.
-    var uu = goog.vec.Vec3.dot(u, u);
-    var uv = goog.vec.Vec3.dot(u, v);
-    var vv = goog.vec.Vec3.dot(v, v);
-
-    var w = goog.vec.Vec3.createFloat32();
-    goog.vec.Vec3.subtract(i, p1, w);
-
-    var wu = goog.vec.Vec3.dot(w, u);
-    var wv = goog.vec.Vec3.dot(w, v);
-    var d  = uv * uv - uu * vv;
-
-    var s = (uv * wv - vv * wu) / d;
-
-    if (s < 0.0 || s > 1.0) {
-      return null;
-    }
-
-    var t = (uv * wu - uu * wv) / d;
-
-    if (t < 0.0 || (s + t) > 1.0) {
-      return null;
-    }
-
-    // TODO(Ilija): use the centroid instead of the intersection point
+    // TODO(Ilija): fix the issue with selecting faces instead of edges.
     return {
       item: face,
       point: i

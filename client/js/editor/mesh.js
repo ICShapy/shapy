@@ -141,6 +141,8 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
     d[k++] = 0;
   };
 
+  // TODO(Ilija): Simplify the rest of the method, since the faces are now
+  //              already given as triangles.
   // Fill out the vertex buffer
   // Just for reference:
   // * face[i] is the i'th edge in the face
