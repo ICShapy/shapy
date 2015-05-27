@@ -25,6 +25,57 @@ shapy.browser.AssetsService = function($http, $q) {
   this.q_ = $q;
 };
 
+/**
+ * Creates Asset.Dir from args and injects it into database.
+ *
+ * @param {string} name      Name of the directory
+ * @param {boolean} public   Flag showing whether dir is publicly accessible
+ * @param {Asset.Dir} parent Parent directory
+ */
+shapy.browser.AssetsService.prototype.createDir = function(name, public, parent) {
+  if (name == 'home') {
+    return new shapy.browser.Asset.Dir(0, 'home');
+  } else {
+    //inject into database, obtain id
+    // TEMP:
+    id = Math.floor(Math.random() * 2000000000) + 1
+    return new shapy.browser.Asset.Dir(id, 'dir' + id);
+  }
+};
+
+/**
+ * Sends request to server to query database for contents of given dir.
+ * Returns array of assets.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
+ */
+shapy.browser.AssetsService.prototype.queryDir = function(dir) {
+  assets = [];
+  this.http_.get('/api/assets/dir/' + dir.id)
+      .success(function(response) {
+              goog.array.forEach(response, function(item) {
+                switch (item['type']) {
+                  case 'dir'     :
+                    assets.push(new shapy.browser.Asset.Dir(item['id'],
+                                                            item['name']));
+                    break;
+                  case 'scene'   :
+                    assets.push(new shapy.browser.Asset.Scene(item['id'],
+                                                              item['name']),
+                                                              item['preview']);
+                    break;
+                  case 'texture' :
+                    assets.push(new shapy.browser.Asset.Texture(item['id'],
+                                                              item['name']),
+                                                              item['preview']);
+                    break;
+                  default        : console.log("Wrong type in database!");
+                }
+              });
+      });
+
+  return assets;
+};
 
 
 
@@ -34,10 +85,11 @@ shapy.browser.AssetsService = function($http, $q) {
  * @constructor
  *
  * @param {number} id    Id of the asset.
+ * @param {string} type  Type of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
  */
-shapy.browser.Asset = function(id, name, image) {
+shapy.browser.Asset = function(id, name, type, image) {
   /**
    * Id of the asset.
    * @public {number}
@@ -51,6 +103,13 @@ shapy.browser.Asset = function(id, name, image) {
    * @const
    */
   this.name = name;
+
+  /**
+   * Type of the asset.
+   * @public {string}
+   * @const
+   */
+  this.type = type;
 
   /**
    * Path to image to be displayed for asset in browser.
@@ -71,9 +130,11 @@ shapy.browser.Asset = function(id, name, image) {
  * @param {string} name  Name of the asset.
  */
 shapy.browser.Asset.Dir = function(id, name) {
-  shapy.browser.Asset.call(this, id, name, "/img/folder.png");
+  shapy.browser.Asset.call(this, id, name, 'dir', "/img/folder.png");
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
+
+
 
 /**
  * Creates an asset representing a scene.
@@ -86,9 +147,11 @@ goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
  * @param {string} image Path to image to be displayed for asset in browser.
  */
 shapy.browser.Asset.Scene = function(id, name, image) {
-  shapy.browser.Asset.call(this, id, name, image);
+  shapy.browser.Asset.call(this, id, name, 'scene', image);
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
+
+
 
 /**
  * Creates an asset representing a texture.
@@ -101,7 +164,7 @@ goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
  * @param {string} image Path to image to be displayed for asset in browser.
  */
 shapy.browser.Asset.Texture = function(id, name, image) {
-  shapy.browser.Asset.call(this, id, name, image);
+  shapy.browser.Asset.call(this, id, name, 'texture', image);
 };
 goog.inherits(shapy.browser.Asset.Texture, shapy.browser.Asset);
 
