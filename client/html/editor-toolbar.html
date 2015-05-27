@@ -9,6 +9,11 @@
     </ul>
   </div>
 
+  <!-- Static display of scene name -->
+  <div>
+    <span>{{ editorCtrl.scene.name }}</span>
+  </div>
+
   <!-- Toggles between layouts -->
   <div>
     <span>View</span>
@@ -17,11 +22,6 @@
       <li ng-click="editorCtrl.layout('double')">Double</li>
       <li ng-click="editorCtrl.layout('quad')">Quad</li>
     </ul>
-  </div>
-
-  <!-- Static display of scene name -->
-  <div>
-    <span>{{ editorCtrl.scene.name }}</span>
   </div>
 
   <!-- Menu for adding objects -->

@@ -2,27 +2,28 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.require('shapy.AuthService');
+goog.require('shapy.HeaderController');
+goog.require('shapy.LoginController');
+goog.require('shapy.RegisterController');
 goog.require('shapy.SceneService');
 goog.require('shapy.UserService');
-goog.require('shapy.highlight');
-goog.require('shapy.email');
-goog.require('shapy.equals');
-goog.require('shapy.browser.fileMatch');
-goog.require('shapy.LoginController');
-goog.require('shapy.HeaderController');
-goog.require('shapy.RegisterController');
+goog.require('shapy.browser.AssetsService');
 goog.require('shapy.browser.BrowserController');
 goog.require('shapy.browser.BrowserToolbarController');
-goog.require('shapy.browser.sidebar');
-goog.require('shapy.browser.files');
 goog.require('shapy.browser.file');
-goog.require('shapy.browser.AssetsService');
-goog.require('shapy.editor.EditorController');
-goog.require('shapy.editor.EditorToolbarController');
-goog.require('shapy.editor.CanvasDirective');
+goog.require('shapy.browser.fileMatch');
+goog.require('shapy.browser.files');
+goog.require('shapy.browser.sidebar');
+goog.require('shapy.editor.Editor');
+goog.require('shapy.editor.Service');
+goog.require('shapy.editor.Toolbar');
+goog.require('shapy.editor.canvas');
+goog.require('shapy.email');
+goog.require('shapy.equals');
+goog.require('shapy.highlight');
 goog.require('shapy.menu');
-goog.require('shapy.notification.notifyBar');
 goog.require('shapy.notification.Service');
+goog.require('shapy.notification.notifyBar');
 
 goog.provide('shapy.module');
 
@@ -105,9 +106,7 @@ shapy.configStates_ = function(
       },
       views: {
         'body@': {
-          templateUrl: '/html/editor.html',
-          controller: shapy.editor.EditorController,
-          controllerAs: 'editorCtrl'
+          templateUrl: '/html/editor.html'
         },
         'toolbar': {
           templateUrl: '/html/editor-toolbar.html',
@@ -203,11 +202,12 @@ shapy.module = angular
   .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
+  .service('shEditor', shapy.editor.Service)
 
   .directive('shSidebar', shapy.browser.sidebar)
   .directive('shFiles', shapy.browser.files)
   .directive('shFile', shapy.browser.file)
-  .directive('shCanvas', shapy.editor.CanvasDirective)
+  .directive('shCanvas', shapy.editor.canvas)
   .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)
   .directive('shNotifyBar', shapy.notification.notifyBar)

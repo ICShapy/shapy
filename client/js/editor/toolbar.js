@@ -31,7 +31,10 @@ shapy.editor.Toolbar = function(
   /** @public {!Array<!shapy.User>} */
   this.users = [];
 
-  $scope.$watch('editorCtrl.scene.users', goog.bind(function(users) {
+  // Watch for changes in the user ID list & fetch user objects periodically.
+  $scope.$watch(goog.bind(function() {
+    return this.scene.users;
+  }, this), goog.bind(function() {
     $q.all(goog.array.map(this.scene.users, goog.bind(shUser.get, shUser)))
         .then(goog.bind(function(users) {
           this.users = users;

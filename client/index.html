@@ -36,10 +36,14 @@
           'shapy.browser.file'
       ], [
       ]);
+      goog.addDependency('../editor/canvas.js', [
+          'shapy.editor.canvas'
+      ], []);
       goog.addDependency('../editor/editor.js', [
           'shapy.editor.EditorController',
           'shapy.editor.EditorToolbarController',
-          'shapy.editor.CanvasDirective'
+          'shapy.editor.CanvasDirective',
+          'shapy.editor.Service'
       ], [
           'shapy.editor.CamCube',
           'shapy.editor.Object',
@@ -111,8 +115,9 @@
           'shapy.UserService',
           'shapy.LoginController',
           'shapy.HeaderController',
-          'shapy.editor.CanvasDirective',
+          'shapy.editor.canvas',
           'shapy.editor.EditorController',
+          'shapy.editor.Service',
           'shapy.editor.ToolbarController',
           'shapy.email',
           'shapy.notification.notifyBar',
