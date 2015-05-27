@@ -477,7 +477,6 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
     // Render rig inside objects
     this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.KEEP);
     this.gl_.stencilFunc(goog.webgl.EQUAL, 0, 0xFF);
-    this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
     this.shRig_.uniform1f('u_alpha', 0.4);
     rig.render(this.gl_, this.shRig_);
   }
