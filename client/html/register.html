@@ -96,13 +96,15 @@
         ng-click="registerCtrl.register()"  />
   </div>
   <div class="button">
-    <a href="" onclick="window.location.href='/api/user/auth/fb'">
-      Sign Up with Facebook
-    </a>
+    <input
+        type="button"
+        class="facebook"
+        onclick="window.location.replace('/api/user/auth/fb')"/>
   </div>
   <div class="button">
-    <a href="" onclick="window.location.href='/api/user/auth/gp'">
-      Sign Up with Google
-    </a>
+    <input
+        type="button"
+        class="google"
+        onclick="window.location.replace('/api/user/auth/gp')"/>
   </div>
 </form>

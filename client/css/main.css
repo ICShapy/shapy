@@ -246,3 +246,53 @@ form input[type=email]
 input.ng-invalid.ng-touched {
   border:1px solid #f00;
 }
+
+
+
+.facebook {
+  background: url('/img/fb-normal.png');
+  background-size: cover;
+  height: 44px;
+  width: 236px;
+  cursor: pointer;
+  border: none;
+}
+
+.facebook:hover {
+  background: url('/img/fb-hover.png') !important;
+  background-size: cover;
+}
+
+.facebook:active {
+  background: url('/img/fb-press.png') !important;
+  background-size: cover;
+}
+
+.facebook:focus {
+  outline: 0;
+}
+
+
+.google {
+  background: url('/img/gp-normal.png');
+  background-size: cover;
+  height: 54px;
+  width: 246px;
+  cursor: pointer;
+  border: none;
+}
+
+.google:hover {
+  background: url('/img/gp-hover.png') !important;
+  background-size: cover;
+}
+
+.google:active {
+  background: url('/img/gp-press.png') !important;
+  background-size: cover;
+  border: none;
+}
+
+.google:focus {
+  outline: 0;
+}
