@@ -194,6 +194,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
   // Initialise the layout.
+  this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
   this.scene_.createCube(0.5, 0.5, 0.5);
   this.select(goog.object.getAnyValue(this.scene_.objects));
