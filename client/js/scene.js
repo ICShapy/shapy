@@ -92,16 +92,6 @@ shapy.Scene.prototype.setUsers = function(users) {
 
 
 /**
- * Changes the name of the scene.
- *
- * @param {string} name
- */
-shapy.Scene.prototype.setName = function(name) {
-  this.name = name;
-};
-
-
-/**
  * Picks an object intersected by a ray.
  *
  * @param {!goog.vec.Ray} ray

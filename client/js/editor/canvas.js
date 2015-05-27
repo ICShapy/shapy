@@ -30,10 +30,7 @@ shapy.editor.canvas = function(shScene, shEditor) {
       var wrap = function(method) {
         return function(e) {
           e.offsetY = $elem.height() - e.offsetY;
-          e.preventDefault();
-          e.stopPropagation();
           (goog.bind(method, shEditor))(e);
-          return false;
         };
       };
 

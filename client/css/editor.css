@@ -28,3 +28,12 @@
   height: 100%;
   overflow: hidden;
 }
+
+#editor-title {
+  cursor: text;
+  overflow: hidden;
+}
+
+#editor-title:focus {
+  outline: 0;
+}

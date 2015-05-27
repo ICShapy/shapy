@@ -11,7 +11,10 @@
 
   <!-- Static display of scene name -->
   <div>
-    <span>{{ editorCtrl.scene.name }}</span>
+    <sh-editable
+        id="editor-title"
+        ng-model="editorCtrl.scene.name">
+    </sh-editable>
   </div>
 
   <!-- Toggles between layouts -->

@@ -91,10 +91,22 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.scene_ = null;
 
   /**
+   * Name of the scene.
+   * @private {string}
+   */
+  this.name_ = '';
+
+  /**
    * WebSocket connection.
    * @private {WebSocket}
    */
   this.sock_ = null;
+
+  /**
+   * Pending requests.
+   * @private {!Array<Object>}
+   */
+  this.pending_ = [];
 
   /**
    * Renderer that manages all WebGL resources.
@@ -131,6 +143,16 @@ shapy.editor.Editor = function($location, $rootScope) {
    * @private {!goog.math.Size} @const
    */
   this.vp_ = new goog.math.Size(0, 0);
+
+  // Watch for changes in the name.
+  $rootScope.$watch(goog.bind(function() {
+    return this.scene_ && this.scene_.name;
+  }, this), goog.bind(function(newName, oldName) {
+    if (newName == oldName) {
+      return;
+    }
+    this.sendCommand({ type: 'name', value: newName });
+  }, this));
 };
 
 
@@ -146,10 +168,12 @@ shapy.editor.Editor.prototype.setScene = function(scene) {
   this.rig(null);
 
   // Set up the websocket connectio.
+  this.pending_ = [];
   this.sock_ = new WebSocket(goog.string.format('ws://%s:%d/api/edit/%s',
       this.location_.host(), this.location_.port(), this.scene_.id));
   this.sock_.onmessage = goog.bind(this.onMessage_, this);
   this.sock_.onclose = goog.bind(this.onClose_, this);
+  this.sock_.onopen = goog.bind(this.onOpen_, this);
 };
 
 
@@ -329,12 +353,18 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
 
   this.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
+      case 'name': {
+        if (this.scene_.name != data['value']) {
+          this.scene_.name = data['value'];
+        }
+        break;
+      }
       case 'join': {
         this.scene_.addUser(data['user']);
         break;
       }
       case 'meta': {
-        this.scene_.setName(data['name']);
+        this.scene_.name = data['name'];
         this.scene_.setUsers(data['users']);
         break;
       }
@@ -362,6 +392,18 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
       }
     }
   }, this));
+};
+
+
+/**
+ * Called when the connection opens - flushes pending requests.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.onOpen_ = function() {
+  goog.array.map(this.pending_, function(message) {
+    this.sock_.send(JSON.stringify(message));
+  }, this);
 };
 
 
@@ -508,9 +550,16 @@ shapy.editor.Editor.prototype.mouseWheel = function(e) {
 };
 
 
+/**
+ * Sends a command over websockets.
+ *
+ * @param {Object} data
+ */
+shapy.editor.Editor.prototype.sendCommand = function(data) {
+  if (!this.sock_ || this.sock_.readyState != 1) {
+    this.pending_.push(data);
+    return;
+  }
 
-
-
-
-
-
+  this.sock_.send(JSON.stringify(data));
+};

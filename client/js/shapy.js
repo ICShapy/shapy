@@ -14,6 +14,7 @@ goog.require('shapy.browser.file');
 goog.require('shapy.browser.fileMatch');
 goog.require('shapy.browser.files');
 goog.require('shapy.browser.sidebar');
+goog.require('shapy.editable');
 goog.require('shapy.editor.Editor');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.ToolbarController');
@@ -217,6 +218,7 @@ shapy.module = angular
   .directive('shNotifyBar', shapy.notification.notifyBar)
   .directive('shEmail', shapy.email)
   .directive('shMenu', shapy.menu)
+  .directive('shEditable', shapy.editable)
 
   .factory('shHttp', shapy.HttpInterceptor)
 
