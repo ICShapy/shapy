@@ -405,24 +405,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
 
 /**
- * Determines if the ray intersects the sphere.
- *
- * @param {!goog.vec.Ray}  ray Ray
- * @param {!goog.vec.Vec3} c   Center of the sphere.
- * @param {number}         r   Radius of the sphere.
- */
-shapy.editor.intersectSphere = function(ray, c, r) {
-  var origC = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.subtract(c, ray.origin, origC);
-
-  var cross = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.cross(ray.dir, origC, cross);
-
-  return goog.vec.Vec3.magnitude(cross) <= r;
-};
-
-
-/**
  * Handles mouse move event.
  *
  * @param {!goog.vec.Ray} ray
@@ -447,15 +429,15 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
 
   // Find intersection with X arrow.
   goog.vec.Vec3.setFromValues(c, pos[0] + 1.1, pos[1], pos[2]);
-  this.hover_.x = shapy.editor.intersectSphere(ray, c, 0.1);
+  this.hover_.x = shapy.editor.geom.intersectSphere(ray, c, 0.1);
 
   // Find intersection with Y arrow.
   goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + 1.1, pos[2]);
-  this.hover_.y = shapy.editor.intersectSphere(ray, c, 0.1);
+  this.hover_.y = shapy.editor.geom.intersectSphere(ray, c, 0.1);
 
   // Find intersection with Z arrow.
   goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + 1.1);
-  this.hover_.z = shapy.editor.intersectSphere(ray, c, 0.1);
+  this.hover_.z = shapy.editor.geom.intersectSphere(ray, c, 0.1);
 };
 
 
@@ -1081,82 +1063,6 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
 
 
 /**
- * Determines if the ray intersects the axis-aligned cube using a modified
- * version of Smits' algorithm.
- * // TODO: change algorithm to include non axis-aligned boxes
- *
- * @param {!goog.vec.Ray}  ray Ray
- * @param {!goog.vec.Vec3} c   Center of the cube.
- * @param {number}         a   Length of the edge.
- */
-shapy.editor.intersectCube = function(ray, c, a) {
-  var tmin, tmax, tymin, tymax, tzmin, zmax, div;
-
-  var min = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.setFromValues(min, c[0] - a / 2, c[1] - a / 2, c[2] - a / 2);
-
-  var max = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.setFromValues(max, c[0] + a / 2, c[1] + a / 2, c[2] + a / 2);
-
-  div = 1 / ray.dir[0];
-
-  if (ray.dir[0] >= 0) {
-    tmin = (min[0] - ray.origin[0]) * div;
-    tmax = (max[0] - ray.origin[0]) * div;
-  } else {
-    tmin = (max[0] - ray.origin[0]) * div;
-    tmax = (min[0] - ray.origin[0]) * div;
-  }
-
-  div = 1 / ray.dir[1];
-
-  if (ray.dir[1] >= 0) {
-    tymin = (min[1] - ray.origin[1]) * div;
-    tymax = (max[1] - ray.origin[1]) * div;
-  } else {
-    tymin = (max[1] - ray.origin[1]) * div;
-    tymax = (min[1] - ray.origin[1]) * div;
-  }
-
-  if ((tmin > tymax) || (tymin > tmax)) {
-    return false;
-  }
-
-  if (tymin > tmin) {
-    tmin = tymin;
-  }
-
-  if (tymax < tmax) {
-    tmax = tymax;
-  }
-
-  div = 1 / ray.dir[2];
-
-  if (ray.dir[2] >= 0) {
-    tzmin = (min[2] - ray.origin[2]) * div;
-    tzmax = (max[2] - ray.origin[2]) * div;
-  } else {
-    tzmin = (max[2] - ray.origin[2]) * div;
-    tzmax = (min[2] - ray.origin[2]) * div;
-  }
-
-  if ((tmin > tzmax) || (tzmin > tmax)) {
-    return false;
-  }
-
-  if (tzmin > tmin) {
-    tmin = tzmin;
-  }
-
-  if (tzmax < tmax) {
-    tmax = tzmax;
-  }
-
-  return (tmin < Number.MAX_VALUE) || (tmax > 0.0);
-};
-
-
-/**
  * Handles mouse move event.
  *
  * @param {!goog.vec.Ray} ray
@@ -1186,15 +1092,15 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
 
   // Intersection on X.
   goog.vec.Vec3.setFromValues(c, pos[0] + this.scale_[0], pos[1], pos[2]);
-  this.hover_.x = shapy.editor.intersectCube(ray, c, 0.1);
+  this.hover_.x = shapy.editor.geom.intersectCube(ray, c, 0.1);
 
   // Intersection on Y.
   goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + this.scale_[1], pos[2]);
-  this.hover_.y = shapy.editor.intersectCube(ray, c, 0.1);
+  this.hover_.y = shapy.editor.geom.intersectCube(ray, c, 0.1);
 
   // Intersection on Z.
   goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + this.scale_[2]);
-  this.hover_.z = shapy.editor.intersectCube(ray, c, 0.1);
+  this.hover_.z = shapy.editor.geom.intersectCube(ray, c, 0.1);
 };
 
 

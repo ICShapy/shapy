@@ -272,7 +272,7 @@ shapy.editor.Object.prototype.getData = function() {
  */
 shapy.editor.Object.prototype.translate = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
-}
+};
 
 
 /**

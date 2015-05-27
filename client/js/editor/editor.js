@@ -308,15 +308,8 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.layout.resize(width, height);
   }
 
-  // Update viewport matrices.
-  goog.object.forEach(this.layout.viewports, function(vp, name) {
-    vp.camera.compute();
-    vp.camCube.compute();
-  });
-
   // Synchronise meshes
-  goog.object.forEach(this.scene_.objects, function(object, name, objects) {
-    object.computeModel();
+  goog.object.forEach(this.objects_, function(object, name, objects) {
     if (object.dirtyMesh) {
       this.renderer_.updateObject(object);
       object.dirtyMesh = false;
@@ -326,9 +319,10 @@ shapy.editor.CanvasController.prototype.render = function() {
   // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();
 
-  // First pass - render objects.
+  // First pass - compute view/proj matrices and render objects.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     vp.camera.compute();
+    vp.camCube.compute();
 
     this.renderer_.renderObjects(vp);
   }, this);
