@@ -45,7 +45,7 @@ class LoginHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
         '''SELECT id, password FROM users WHERE email=%s''', (email,))
     user = cursor.fetchone()
-    if not user:
+    if not user or not user[1]:
       raise HTTPError(401, 'Invalid username or password.')
 
     # Fetch the hash & the salt.
@@ -104,9 +104,12 @@ class RegisterHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
         '''INSERT INTO users (id, first_name, last_name, email, password)
            VALUES (DEFAULT, %s, %s, %s, %s)
-           RETURNING id
-           ''',
-        (firstName, lastName, email, pass_with_salt))
+           RETURNING id''', (
+          firstName,
+          lastName,
+          email,
+          pass_with_salt
+    ))
 
     # Check if the user was created successfully.
     user = cursor.fetchone()
@@ -146,6 +149,8 @@ class InfoHandler(APIHandler):
   @coroutine
   def get(self, user_id):
     user = yield Account.get(self.db, user_id)
+    if not user:
+      raise HTTPError(404, 'User does not exist.')
     self.write(json.dumps(user.__dict__))
 
 
@@ -185,17 +190,37 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
       user = yield self.facebook_request(
           '/me',
           access_token=current['access_token'])
-      cursor = yield momoko.Op(self.db.execute,
-          '''INSERT INTO users(id, first_name, last_name, email, fb_id)
-             VALUES (DEFAULT, %s, %s, %s, %s)
-             RETURNING id''', (
-          user['first_name'],
-          user['last_name'],
-          user['email'],
-          user['id']
+
+      if 'email' in user:
+        email = user['email']
+      else:
+        email = user['first_name'] + user['last_name']
+
+      cursors = yield momoko.Op(self.db.transaction, (
+          (
+              '''UPDATE users SET fb_id=%s WHERE email=%s RETURNING id;''',
+              (user['id'], email)
+          ),
+          (
+              '''INSERT INTO users (first_name, last_name, email, fb_id)
+                 SELECT %s, %s, %s, %s
+                 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email=%s)
+                 RETURNING id''',
+              (
+                user['first_name'],
+                user['last_name'],
+                email,
+                user['id'],
+                email
+              )
+          ),
       ))
 
-      user = cursor.fetchone()
+      user = None
+      for cursor in cursors:
+        user = cursor.fetchone()
+        if user: break
+
       if not user:
         raise HTTPError(400, 'Registration failed.')
 
@@ -247,16 +272,35 @@ class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
 
     # If the user never logged in, create an entry.
     if not user:
-      cursor = yield momoko.Op(self.db.execute,
-          '''INSERT INTO users(id, first_name, last_name, email, gp_id)
-             VALUES (DEFAULT, %s, %s, %s, %s)
-             RETURNING id''', (
-            current['name']['givenName'],
-            current['name']['familyName'],
-            current['emails'][0]['value'],
-            current['id']
+      if current['emails']:
+        email = current['emails'][0]['value']
+      else:
+        email = current['name']['givenName'] + current['name']['familyName']
+      cursors = yield momoko.Op(self.db.transaction, (
+          (
+              '''UPDATE users SET gp_id=%s WHERE email=%s RETURNING id;''',
+              (current['id'], email)
+          ),
+          (
+              '''INSERT INTO users (first_name, last_name, email, gp_id)
+                 SELECT %s, %s, %s, %s
+                 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email=%s)
+                 RETURNING id''',
+              (
+                current['name']['givenName'],
+                current['name']['familyName'],
+                email,
+                current['id'],
+                email
+              )
+          ),
       ))
-      user = cursor.fetchone()
+
+      user = None
+      for cursor in cursors:
+        user = cursor.fetchone()
+        if user: break
+
       if not user:
         raise HTTPError(400, 'Registration failed.')
 

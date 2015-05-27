@@ -6,6 +6,8 @@ goog.provide('shapy.editor.Rig.Rotate');
 goog.provide('shapy.editor.Rig.Scale');
 goog.provide('shapy.editor.Rig.Translate');
 
+goog.require('shapy.editor.geom');
+
 
 
 /**
@@ -27,26 +29,163 @@ goog.provide('shapy.editor.Rig.Translate');
  * @param {shapy.editor.Rig.Type} type Type of the rig.
  */
 shapy.editor.Rig = function(type) {
-  /** @public {shapy.editor.Rig.Type} @const */
+  /**
+   * @public {shapy.editor.Rig.Type}
+   * @const
+   */
   this.type = type;
-  /** @private {!goog.vec.Mat4.Type} @const */
+
+  /**
+   * @private {WebGLBuffer}
+   */
+  this.mesh_ = null;
+
+  /**
+   * @private {!goog.vec.Mat4.Type}
+   * @const
+   */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
-  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+
+  /**
+   * @private {{ x: boolean, y: boolean, z: boolean}}
+   * @const
+   */
   this.hover_ = {
     x: false,
     y: false,
     z: false
   };
-  /** @private {{ x: boolean, y: boolean, z: boolean}} @const */
+
+  /**
+   * @private {{ x: boolean, y: boolean, z: boolean}}
+   * @const
+   */
   this.select_ = {
     x: false,
     y: false,
     z: false
   };
-  // TODO: have rig retrieve this from control object.
-  this.getPosition_ = function() {
-    return [-0.5, 0.2, -0.5];
-  };
+
+  /** @private {shapy.editor.Editable.Type} */
+  this.controlObject_ = null;
+};
+
+
+/**
+ * Creates the mesh for a cube on the origin.
+ *
+ * @private
+ *
+ * @param {!goog.vec.Float32Array} d Array where the indices should be stored.
+ * @param {number}                 k Index where to place the indices.
+ * @param {number}                 a Length of an edge.
+ */
+shapy.editor.Rig.prototype.buildCube_ = function(d, k, a) {
+  // Compute the vertices.
+  var vertices = new Float32Array(24);
+  var i = 0;
+
+  for (var x = -1; x <= 1; x++) {
+    for (var y = -1; y <= 1; y++) {
+      for (var z = -1; z <= 1; z++) {
+        if (x == 0 || y == 0 || z == 0) {
+          continue;
+        }
+
+        vertices[i++] = (a / 2) * x;
+        vertices[i++] = (a / 2) * y;
+        vertices[i++] = (a / 2) * z;
+      }
+    }
+  }
+
+  // Vertices forming the triangles.
+  var triangles = [
+                   0, 4, 6, 6, 2, 0,
+                   0, 4, 1, 4, 5, 1,
+                   4, 5, 7, 7, 6, 4,
+                   5, 7, 3, 3, 1, 5,
+                   0, 1, 3, 3, 0, 2,
+                   2, 6, 7, 7, 3, 2
+                  ];
+
+  // Construct the cube.
+  for (var i = 0; i < triangles.length; i++) {
+    var vertex = triangles[i];
+
+    d[k++] = vertices[3 * vertex    ];
+    d[k++] = vertices[3 * vertex + 1];
+    d[k++] = vertices[3 * vertex + 2];
+  }
+};
+
+
+/**
+ * Creates the mesh for a tube parrallel to the x axis.
+ *
+ * @private
+ *
+ * @param {!goog.vec.Float32Array} d Array where the indices should be stored.
+ * @param {number}                 k Index where to place the indices.
+ * @param {number}                 b Number of points in the base.
+ * @param {number}                 l Length of the tube.
+ * @param {number}                 r Radius of the base.
+ * @param {!goog.vec.Float32Array} c Center of the base.
+ */
+shapy.editor.Rig.prototype.buildTube_ = function(d, k, b, l, r, c) {
+  var angle = 2 * Math.PI / b;
+
+  for (var i = 0; i < b; i++) {
+    var py = r * Math.sin(i * angle);
+    var pz = r * Math.cos(i * angle);
+    var cy = r * Math.sin((i + 1) * angle);
+    var cz = r * Math.cos((i + 1) * angle);
+
+    d[k++] = c[0] + l; d[k++] = c[1] + py; d[k++] = c[2] + pz;
+    d[k++] = c[0];     d[k++] = c[1] + py; d[k++] = c[2] + pz;
+    d[k++] = c[0];     d[k++] = c[1] + cy; d[k++] = c[2] + cz;
+
+    d[k++] = c[0];     d[k++] = c[1] + cy; d[k++] = c[2] + cz;
+    d[k++] = c[0] + l; d[k++] = c[1] + cy; d[k++] = c[2] + cz;
+    d[k++] = c[0] + l; d[k++] = c[1] + py; d[k++] = c[2] + pz;
+  }
+};
+
+
+/**
+ * Computes the closest point on the active rig axis from the ray.
+ *
+ * @param {!goog.vec.Ray}  ray
+ */
+shapy.editor.Rig.prototype.getClosest_ = function(ray) {
+  var closest = goog.vec.Vec3.createFloat32();
+  var pos = this.controlObject_.getPosition();
+  var u = goog.vec.Vec3.createFloat32();
+
+  // Get the direction vector of the rig axis.
+  if (this.select_.x) {
+    goog.vec.Vec3.setFromValues(u, 1, 0, 0);
+  } else if (this.select_.y) {
+    goog.vec.Vec3.setFromValues(u, 0, 1, 0);
+  } else {
+    goog.vec.Vec3.setFromValues(u, 0, 0, 1);
+  }
+
+  // Compute the closest point.
+  var w = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(pos, ray.origin, w);
+
+  var a = goog.vec.Vec3.dot(u, u);
+  var b = goog.vec.Vec3.dot(u, ray.dir);
+  var c = goog.vec.Vec3.dot(ray.dir, ray.dir);
+  var d = goog.vec.Vec3.dot(u, w);
+  var e = goog.vec.Vec3.dot(ray.dir, w);
+
+  var s = (b * e - c * d) / (a * c - b * b);
+  goog.vec.Vec3.scale(u, s, u);
+  goog.vec.Vec3.add(pos, u, closest);
+
+  return closest;
 };
 
 
@@ -57,33 +196,36 @@ shapy.editor.Rig.prototype.render = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse move event.
  */
 shapy.editor.Rig.prototype.mouseMove = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse down event.
  */
 shapy.editor.Rig.prototype.mouseDown = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse up event.
  */
 shapy.editor.Rig.prototype.mouseUp = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse leave event.
  */
-shapy.editor.Rig.prototype.mouseEnter = goog.abstractMethod;
+shapy.editor.Rig.prototype.mouseLeave = goog.abstractMethod;
 
 
 /**
- * Renders the rig.
+ * Handles mouse enter event.
+ *
+ * @param {!goog.vec.Ray} ray
  */
-shapy.editor.Rig.prototype.mouseLeave = goog.abstractMethod;
+shapy.editor.Rig.prototype.mouseEnter = function(ray) {
+};
 
 
 
@@ -107,6 +249,11 @@ shapy.editor.Rig.Type = {
  */
 shapy.editor.Rig.Translate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.TRANSLATE);
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.lastPos_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
 
@@ -126,27 +273,39 @@ shapy.editor.Rig.Translate.CIRCLE = 16;
  * @param {!WebGLContext}        gl WebGL context.
  */
 shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
-  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 18 + 6);
+  // Construct the arrows.
+  var d = new Float32Array(shapy.editor.Rig.Translate.CIRCLE * 36 + 108 + 6);
   var angle = 2 * Math.PI / shapy.editor.Rig.Translate.CIRCLE;
   var k = 0;
 
-  d[k++] = 0.0; d[k++] = 0.0; d[k++] = 0.0;
-  d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;
+  // Construct the tube.
+  this.buildTube_(
+      d, k, shapy.editor.Rig.Translate.CIRCLE, 1.0, 0.02, [0.0, 0.0, 0.0]);
+  k += shapy.editor.Rig.Translate.CIRCLE * 18;
 
+  // Construct the arrowhead.
   for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
     var py = 0.05 * Math.sin(i * angle);
     var pz = 0.05 * Math.cos(i * angle);
     var cy = 0.05 * Math.sin((i + 1) * angle);
     var cz = 0.05 * Math.cos((i + 1) * angle);
 
-    d[k++] = 1.0; d[k++] = py;  d[k++] = pz;
-    d[k++] = 1.0; d[k++] = 0.0; d[k++] = 0.0;
-    d[k++] = 1.0; d[k++] = cy;  d[k++] = cz;
+    d[k++] = 1.000; d[k++] = py;  d[k++] = pz;
+    d[k++] = 1.000; d[k++] = 0.0; d[k++] = 0.0;
+    d[k++] = 1.000; d[k++] = cy;  d[k++] = cz;
 
     d[k++] = 1.125; d[k++] = 0.0; d[k++] = 0.0;
-    d[k++] = 1.0;   d[k++] = py;  d[k++] = pz;
-    d[k++] = 1.0;   d[k++] = cy;  d[k++] = cz;
+    d[k++] = 1.000; d[k++] = py;  d[k++] = pz;
+    d[k++] = 1.000; d[k++] = cy;  d[k++] = cz;
   }
+
+  // Construct a cube on the origin.
+  this.buildCube_(d, k, 0.05);
+  k += 108;
+
+  // Line through the arrow.
+  d[k++] = -1000.0; d[k++] = 0.0; d[k++] = 0.0;
+  d[k++] =  1000.0; d[k++] = 0.0; d[k++] = 0.0;
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
@@ -161,11 +320,11 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
+  var pos = this.controlObject_.getPosition();
+
   if (!this.mesh_) {
     this.build_(gl);
   }
-
-  sh.uniformMat4x4('u_model', this.model_);
 
   gl.enableVertexAttribArray(0);
 
@@ -173,35 +332,143 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
 
   // Arrow on X.
-  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   sh.uniformMat4x4('u_model', this.model_);
-  (this.hover_.x || this.select_.x) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 1, 0, 0, 1);
-  gl.drawArrays(gl.LINE_STRIP, 0, 2);
-  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.7, 0.0, 0.0, 1.0);
+  }
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
+
+  // Line on X.
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.271, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
+  }
 
   // Arrow on Y.
-  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
-  (this.hover_.y || this.select_.y) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 0, 0, 1, 1);
-  gl.drawArrays(gl.LINE_STRIP, 0, 2);
-  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.y) {
+    sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
+  }
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
+
+  // Line on Y.
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 0.255, 0.412, 0.882, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
+  }
 
   // Arrow on Z.
-  goog.vec.Mat4.makeIdentity(this.model_);
-  goog.vec.Mat4.rotateY(this.model_, Math.PI / 2);
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
-  (this.hover_.z || this.select_.z) ?
-      sh.uniform4f('u_colour', 1, 1, 0, 1) :
-      sh.uniform4f('u_colour', 0, 1, 0, 1);
-  gl.drawArrays(gl.LINE_STRIP, 0, 2);
-  gl.drawArrays(goog.webgl.TRIANGLES, 2, shapy.editor.Rig.Translate.CIRCLE * 6);
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.z) {
+    sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.7, 0.0, 1.0);
+  }
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Translate.CIRCLE * 12);
+
+  // Line on Z.
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 0.196, 0.804, 0.196, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Translate.CIRCLE * 12 + 36, 2);
+  }
+
+  // Box on the origin.
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  sh.uniformMat4x4('u_model', this.model_);
+  sh.uniform4f('u_colour', 1, 1, 0, 1);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, shapy.editor.Rig.Translate.CIRCLE * 12, 36);
 
   gl.disableVertexAttribArray(0);
+};
+
+
+/**
+ * Handles mouse move event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
+  var pos = this.controlObject_.getPosition();
+
+  if (this.select_.x || this.select_.y || this.select_.z) {
+    // Calculate the translation.
+    var t = goog.vec.Vec3.createFloat32();
+    var currPos = this.getClosest_(ray);
+    goog.vec.Vec3.subtract(currPos, this.lastPos_, t);
+    this.lastPos_ = currPos;
+
+    // Update the position.
+    this.controlObject_.translate(
+        pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
+    return;
+  }
+
+  var c = goog.vec.Vec3.createFloat32();
+
+  // Find intersection with X arrow.
+  goog.vec.Vec3.setFromValues(c, pos[0] + 1.1, pos[1], pos[2]);
+  this.hover_.x = shapy.editor.geom.intersectSphere(ray, c, 0.1);
+
+  // Find intersection with Y arrow.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + 1.1, pos[2]);
+  this.hover_.y = shapy.editor.geom.intersectSphere(ray, c, 0.1);
+
+  // Find intersection with Z arrow.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + 1.1);
+  this.hover_.z = shapy.editor.geom.intersectSphere(ray, c, 0.1);
+};
+
+
+/**
+ * Handles mouse down event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
+  this.select_.x = this.hover_.x;
+  this.select_.y = this.hover_.y;
+  this.select_.z = this.hover_.z;
+  this.lastPos_ = this.getClosest_(ray);
+};
+
+
+/**
+ * Handles mouse up event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
+  this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
+/**
+ * Handles mouse leave event.
+ */
+shapy.editor.Rig.Translate.prototype.mouseLeave = function() {
+  this.select_.x = this.select_.y = this.select_.z = false;
 };
 
 
@@ -214,16 +481,16 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
  */
 shapy.editor.Rig.Rotate = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.ROTATE);
-  /** @private {WebGLBuffer} */
-  this.mesh_ = null;
   /** @private {!goog.vec.Vec3.Type} */
   this.normal_ = goog.vec.Vec3.createFloat32();
+  /** @private {!goog.vec.Vec3.Type} */
+  this.cursor_ = goog.vec.Vec3.createFloat32();
+  /** @private {!goog.vec.Vec3.Type} */
+  this.initialAngle_ = 0.0;
   /** @private {number} */
   this.startAngle_ = 0.0;
   /** @private {number} */
   this.currentAngle_ = 0.0;
-  /** @private {goog.vec.Vec3.Type} */
-  this.cursor_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
 
@@ -281,13 +548,11 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
  */
 shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   var i = shapy.editor.Rig.Rotate.DISK / 3;
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
   }
-
-  sh.uniformMat4x4('u_model', this.model_);
 
   gl.enableVertexAttribArray(0);
 
@@ -300,7 +565,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
   } else if (this.hover_.y) {
-    sh.uniform4f('u_colour', 0.0, 0.0, 1.0, 1.0);
+    sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
   } else {
     sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
   }
@@ -412,27 +677,6 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
 
 /**
- * Computes the intersection point between a ray and a plane.
- *
- * @param {!goog.vec.Ray}       ray
- * @param {!goog.vec.Vec3.Type} n
- * @param {!goog.vec.Vec3.Type} o
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.intersectPlane = function(ray, n, o) {
-  var d = -goog.vec.Vec3.dot(n, o);
-  var v = goog.vec.Vec3.cloneFloat32(ray.dir);
-  goog.vec.Vec3.scale(
-      v,
-     -(goog.vec.Vec3.dot(ray.origin, n) + d) / goog.vec.Vec3.dot(ray.dir, n),
-      v);
-  goog.vec.Vec3.add(v, ray.origin, v);
-  return v;
-};
-
-
-/**
  * Adjusts the cursor if it is inside the ring to touch the inner edge.
  *
  * @private
@@ -440,7 +684,7 @@ shapy.editor.intersectPlane = function(ray, n, o) {
  * @param {!goog.vec.Vec3.Type} cursor
  */
 shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
-  var d, r, pos = this.getPosition_();
+  var d, r, pos = this.controlObject_.getPosition();
 
   goog.vec.Vec3.subtract(cursor, pos, cursor);
   d = goog.vec.Vec3.magnitude(cursor);
@@ -463,12 +707,12 @@ shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
  * @return {goog.vec.Vec3.Type}
  */
 shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
-  var position = this.getPosition_();
+  var position = this.controlObject_.getPosition();
 
   // Find intersection point with planes.
-  var ix = shapy.editor.intersectPlane(ray, [1, 0, 0], position);
-  var iy = shapy.editor.intersectPlane(ray, [0, 1, 0], position);
-  var iz = shapy.editor.intersectPlane(ray, [0, 0, 1], position);
+  var ix = shapy.editor.geom.intersectPlane(ray, [1, 0, 0], position);
+  var iy = shapy.editor.geom.intersectPlane(ray, [0, 1, 0], position);
+  var iz = shapy.editor.geom.intersectPlane(ray, [0, 0, 1], position);
 
   // Find distance between center and intersection point.
   var cx = goog.vec.Vec3.distance(ix, position);
@@ -500,17 +744,32 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse move event.
  *
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   if (this.select_.x || this.select_.y || this.select_.z) {
-    this.cursor_ = shapy.editor.intersectPlane(ray, this.normal_, pos);
+    this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
     this.adjustCursor_(this.cursor_);
     this.currentAngle_ = this.getAngle_(this.cursor_);
-    return;
+
+    if (this.select_.x) {
+      this.controlObject_.rotate(
+          this.initialAngle_ + this.currentAngle_ - this.startAngle_, 0, 0);
+      return;
+    }
+    if (this.select_.y) {
+      this.controlObject_.rotate(
+          0, this.initialAngle_ - this.currentAngle_ + this.startAngle_, 0);
+      return;
+    }
+    if (this.select_.z) {
+      this.controlObject_.rotate(
+          0, 0, this.initialAngle_ + this.currentAngle_ - this.startAngle_);
+      return;
+    }
   }
 
   var hit = this.getHit_(ray);
@@ -536,7 +795,7 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
  * @return {number}
  */
 shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
 
   if (this.hover_.x) {
     return Math.atan2(
@@ -558,32 +817,36 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse down event.
  *
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
-  var pos = this.getPosition_();
+  var pos = this.controlObject_.getPosition();
   var hit = this.getHit_(ray);
-  var dx, dy;
+  var dx, dy, angle;
 
   if (!hit) {
     return;
   }
 
-  this.cursor_ = shapy.editor.intersectPlane(ray, this.normal_, pos);
+  this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
   this.adjustCursor_(this.cursor_);
   this.startAngle_ = this.currentAngle_ = this.getAngle_(this.cursor_);
+  angle = this.controlObject_.getRotation();
 
   if (this.hover_.x) {
+    this.initialAngle_ = angle[0];
     this.select_.x = true;
     return;
   }
   if (this.hover_.y) {
+    this.initialAngle_ = angle[1];
     this.select_.y = true;
     return;
   }
   if (this.hover_.z) {
+    this.initialAngle_ = angle[2];
     this.select_.z = true;
     return;
   }
@@ -591,7 +854,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
 
 
 /**
- * Renders the rig.
+ * Handles mouse up event.
  *
  * @param {!goog.vec.Ray} ray
  */
@@ -601,16 +864,7 @@ shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
 
 
 /**
- * Renders the rig.
- *
- * @param {!goog.vec.Ray} ray
- */
-shapy.editor.Rig.Rotate.prototype.mouseEnter = function(ray) {
-};
-
-
-/**
- * Renders the rig.
+ * Handles mouse leave event.
  */
 shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
   this.select_.x = this.select_.y = this.select_.z = false;
@@ -626,8 +880,64 @@ shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
  */
 shapy.editor.Rig.Scale = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.SCALE);
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.lastPos_ = goog.vec.Vec3.createFloat32();
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.scale_ = goog.vec.Vec3.createFloat32FromValues(1.0, 1.0, 1.0);
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.scaleRelativeTo_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Scale, shapy.editor.Rig);
+
+
+/**
+ * Number of points used for the base of the tube.
+ * @type {number} @const
+ */
+shapy.editor.Rig.Scale.TUBE_BASE = 16;
+
+
+/**
+ * Creates the mesh for the rig.
+ *
+ * @private
+ *
+ * @param {!WebGLContext}        gl WebGL context.
+ */
+shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
+  var d = new Float32Array(shapy.editor.Rig.Scale.TUBE_BASE * 18 + 18 * 36 + 6);
+  var k = 0;
+
+  // Build the tube.
+  this.buildTube_(
+      d, k, shapy.editor.Rig.Scale.TUBE_BASE, 1.0, 0.015, [0.0, 0.0, 0.0]);
+  k += shapy.editor.Rig.Scale.TUBE_BASE * 18;
+
+  // Construct the cube on the tube.
+  this.buildCube_(d, k, 0.07);
+  k += 108;
+
+  // Construct the cube on the origin.
+  this.buildCube_(d, k, 0.05);
+  k+= 108;
+
+  // Line through the rig.
+  d[k++] = -1000.0; d[k++] = 0.0; d[k++] = 0.0;
+  d[k++] =  1000.0; d[k++] = 0.0; d[k++] = 0.0;
+
+  this.mesh_ = gl.createBuffer();
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
+};
 
 
 /**
@@ -637,5 +947,193 @@ goog.inherits(shapy.editor.Rig.Scale, shapy.editor.Rig);
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
+  var pos = this.controlObject_.getPosition();
 
+  if (!this.mesh_) {
+    this.build_(gl);
+  }
+
+  gl.enableVertexAttribArray(0);
+
+  gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
+  gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
+
+  // Tube on X.
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.scale(this.model_, this.scale_[0], 1.0, 1.0);
+  sh.uniformMat4x4('u_model', this.model_);
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.7, 0.0, 0.0, 1.0);
+  }
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6);
+
+  // Line on X.
+  if (this.select_.x) {
+    sh.uniform4f('u_colour', 1.0, 0.271, 0.0, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  }
+
+  // Box on X.
+  goog.vec.Mat4.makeTranslate(
+      this.model_, pos[0] + this.scale_[0], pos[1], pos[2]);
+  sh.uniformMat4x4('u_model', this.model_);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, shapy.editor.Rig.Scale.TUBE_BASE * 6 , 36);
+
+  // Tube on Y.
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.scale(this.model_, 1.0, this.scale_[1], 1.0);
+  goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.y) {
+    sh.uniform4f('u_colour', 0.2, 0.5, 1.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.0, 0.7, 1.0);
+  }
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6);
+
+  // Line on Y.
+  if (this.select_.y) {
+    sh.uniform4f('u_colour', 0.255, 0.412, 0.882, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  }
+
+  // Box on Y.
+  goog.vec.Mat4.makeTranslate(
+      this.model_, pos[0], pos[1] + this.scale_[1], pos[2]);
+  sh.uniformMat4x4('u_model', this.model_);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, shapy.editor.Rig.Scale.TUBE_BASE * 6 , 36);
+
+  // Tube on Z.
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.scale(this.model_, 1.0, 1.0, this.scale_[2]);
+  goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
+  sh.uniformMat4x4('u_model', this.model_);
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  } else if (this.hover_.z) {
+    sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
+  } else {
+    sh.uniform4f('u_colour', 0.0, 0.7, 0.0, 1.0);
+  }
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, 0, shapy.editor.Rig.Scale.TUBE_BASE * 6);
+
+  // Line on Z.
+  if (this.select_.z) {
+    sh.uniform4f('u_colour', 0.196, 0.804, 0.196, 1.0);
+    gl.drawArrays(
+        goog.webgl.LINES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 72, 2);
+    sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
+  }
+
+  // Box on Z.
+  goog.vec.Mat4.makeTranslate(
+      this.model_, pos[0], pos[1], pos[2] + this.scale_[2]);
+  sh.uniformMat4x4('u_model', this.model_);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, shapy.editor.Rig.Scale.TUBE_BASE * 6 , 36);
+
+  // Box on the origin.
+  goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  sh.uniformMat4x4('u_model', this.model_);
+  sh.uniform4f('u_colour', 1, 1, 0, 1);
+  gl.drawArrays(
+      goog.webgl.TRIANGLES, shapy.editor.Rig.Scale.TUBE_BASE * 6 + 36, 36);
+
+  gl.disableVertexAttribArray(0);
+};
+
+
+/**
+ * Handles mouse move event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
+  if (this.select_.x || this.select_.y || this.select_.z) {
+    // Calculate the movement.
+    var d = goog.vec.Vec3.createFloat32();
+    var currPos = this.getClosest_(ray);
+    goog.vec.Vec3.subtract(currPos, this.lastPos_, d);
+    this.lastPos_ = currPos;
+
+    // Update the scale.
+    goog.vec.Vec3.add(this.scale_, d, this.scale_);
+
+    // Update the scale of the model to be the relative scale
+    this.controlObject_.scale(
+      this.scale_[0] * this.scaleRelativeTo_[0],
+      this.scale_[1] * this.scaleRelativeTo_[1],
+      this.scale_[2] * this.scaleRelativeTo_[2]
+    );
+    return;
+  }
+
+  var pos = this.controlObject_.getPosition();
+  var c = goog.vec.Vec3.createFloat32();
+
+  // Intersection on X.
+  goog.vec.Vec3.setFromValues(c, pos[0] + this.scale_[0], pos[1], pos[2]);
+  this.hover_.x = shapy.editor.geom.intersectCube(ray, c, 0.1);
+
+  // Intersection on Y.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + this.scale_[1], pos[2]);
+  this.hover_.y = shapy.editor.geom.intersectCube(ray, c, 0.1);
+
+  // Intersection on Z.
+  goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + this.scale_[2]);
+  this.hover_.z = shapy.editor.geom.intersectCube(ray, c, 0.1);
+};
+
+
+/**
+ * Handles mouse down event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
+  this.select_.x = this.hover_.x;
+  this.select_.y = this.hover_.y;
+  this.select_.z = this.hover_.z;
+  this.lastPos_ = this.getClosest_(ray);
+  goog.vec.Vec3.setFromArray(
+    this.scaleRelativeTo_, this.controlObject_.getScale());
+};
+
+
+/**
+ * Handles mouse up event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
+  this.select_.x = this.select_.y = this.select_.z = false;
+
+  // Reset the scale.
+  goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
+};
+
+
+/**
+ * Handles mouse leave event.
+ */
+shapy.editor.Rig.Scale.prototype.mouseLeave = function() {
+  this.select_.x = this.select_.y = this.select_.z = false;
+
+  // Reset the scale.
+  goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
 };
