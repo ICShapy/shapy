@@ -597,3 +597,71 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
 
   return new shapy.editor.Object(id, vertices, edges, faces);
 };
+
+
+/**
+ * Build an cube object from triangles.
+ *
+ * @param {string} id
+ * @param {number} w
+ * @param {number} h
+ * @param {number} d
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.editor.Object.createCubeFromTriangles = function(id, w, h, d) {
+  // Vertex layout:
+  //   4-----5
+  //  /     /|
+  // 0-----1 |
+  // | 6   | 7
+  // |     |/
+  // 2-----3
+  var vertices = [
+    [-w, +h, +d], // 0
+    [+w, +h, +d], // 1
+    [-w, -h, +d], // 2
+    [+w, -h, +d], // 3
+    [-w, +h, -d], // 4
+    [+w, +h, -d], // 5
+    [-w, -h, -d], // 6
+    [+w, -h, -d], // 7
+  ];
+
+  // Edge layout:
+  //     +--4--+
+  //   8/|7   9/5
+  //   +--0--+ |
+  //   3 +-6-1-+
+  // 11|/    |/10
+  //   +--2--+
+  var edges = [
+    [0, 1], [1, 3], [3, 2], [2, 0], // Front
+    [4, 5], [5, 7], [7, 6], [6, 4], // Back
+    [0, 4], [1, 5], [3, 7], [2, 6], // Middle
+    [0, 3],                         // Diag 12
+    [5, 3],                         // Diag 13
+    [5, 6],                         // Diag 14
+    [4, 2],                         // Diag 15
+    [4, 1],                         // Diag 16
+    [7, 2]                          // Diag 17
+  ];
+
+  // Faces
+  var faces = [
+    [0, 1, 12],     // +Z
+    [2, 3, 12],     // +Z
+    [1, 9, 13],     // +X
+    [5, 10, 13],    // +X
+    [4, 7, 14],     // -Z
+    [6, 5, 14],     // -Z
+    [8, 3, 15],     // -X
+    [11, 7, 15],    // -X
+    [4, 9, 16],     // +Y
+    [0, 8, 16],     // +Y
+    [2, 10, 17],    // -Y
+    [6, 11, 17]     // -Y
+  ];
+
+  return new shapy.editor.Object(id, vertices, edges, faces);
+};

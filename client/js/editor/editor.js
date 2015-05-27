@@ -338,12 +338,12 @@ shapy.editor.CanvasController.prototype.init = function(canvas, scene) {
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
 
-  this.scene_.objects['x'] = shapy.editor.Object.createCube('x', 0.5, 0.5, 0.5);
-  this.scene_.objects['x'].translate_[2] = -5;
+  //this.scene_.objects['x'] = shapy.editor.Object.createCube('x', 0.5, 0.5, 0.5);
+  //this.scene_.objects['x'].translate_[2] = -5;
 
-  this.scene_.objects['y'] = shapy.editor.Object.createCube('y', 0.5, 0.5, 0.5);
-  this.selectObject(this.scene_.objects['y']);
-  this.changeRig_(this.rigTranslate_);
+  //this.scene_.objects['y'] = shapy.editor.Object.createCube('y', 0.5, 0.5, 0.5);
+  //this.selectObject(this.scene_.objects['y']);
+  //this.changeRig_(this.rigTranslate_);
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -488,7 +488,7 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
       switch (evt.object) {
         case 'cube': {
           this.scene_.objects[id] =
-              shapy.editor.Object.createCube(id, 0.5, 0.5, 0.5);
+              shapy.editor.Object.createCubeFromTriangles(id, 0.5, 0.5, 0.5);
           this.selectObject(this.scene_.objects[id]);
           break;
         }
