@@ -79,12 +79,12 @@ shapy.configStates_ = function(
       views: {
         'body@': {
           templateUrl: '/html/browser.html',
-          controller: 'BrowserController',
+          controller: shapy.browser.BrowserController,
           controllerAs: 'browserCtrl'
         },
         'toolbar': {
           templateUrl: '/html/browser-toolbar.html',
-          controller: 'BrowserToolbarController',
+          controller: shapy.browser.BrowserToolbarController,
           controllerAs: 'browserCtrl'
         }
       }
@@ -106,12 +106,12 @@ shapy.configStates_ = function(
       views: {
         'body@': {
           templateUrl: '/html/editor.html',
-          controller: 'EditorController',
+          controller: shapy.editor.EditorController,
           controllerAs: 'editorCtrl'
         },
         'toolbar': {
           templateUrl: '/html/editor-toolbar.html',
-          controller: 'EditorToolbarController',
+          controller: shapy.editor.Toolbar,
           controllerAs: 'editorCtrl'
         }
       }
@@ -197,11 +197,6 @@ shapy.module = angular
       'ngRoute',
       'ui.router'
   ])
-
-  .controller('BrowserController', shapy.browser.BrowserController)
-  .controller('BrowserToolbarController', shapy.browser.BrowserToolbarController)
-  .controller('EditorController', shapy.editor.EditorController)
-  .controller('EditorToolbarController', shapy.editor.EditorToolbarController)
 
   .service('shAuth', shapy.AuthService)
   .service('shAssets', shapy.browser.AssetsService)

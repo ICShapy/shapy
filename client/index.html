@@ -72,6 +72,9 @@
       goog.addDependency('../editor/shader.js', [
           'shapy.editor.Shader'
       ], []);
+      goog.addDependency('../editor/toolbar.js', [
+          'shapy.editor.ToolbarController'
+      ], []);
       goog.addDependency('../editor/viewport.js', [
           'shapy.editor.Viewport'
       ], []);
@@ -108,9 +111,9 @@
           'shapy.UserService',
           'shapy.LoginController',
           'shapy.HeaderController',
-          'shapy.editor.EditorController',
-          'shapy.editor.EditorToolbarController',
           'shapy.editor.CanvasDirective',
+          'shapy.editor.EditorController',
+          'shapy.editor.ToolbarController',
           'shapy.email',
           'shapy.notification.notifyBar',
           'shapy.notification.Service',

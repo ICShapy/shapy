@@ -155,67 +155,6 @@ shapy.editor.EditorController.prototype.onDestroy_ = function() {
 
 
 
-/**
- * Controller for the editor toolbar.
- *
- * @constructor
- *
- * @param {!angular.$scope}    $rootScope The angular root scope.
- * @param {!angular.$scope}    $scope     The angular root scope.
- * @param {!angular.$q}        $q         The angular promise service.
- * @param {!shapy.Scene}       scene      Scene being edited.
- * @param {!shapy.UserService} shUser User service which can cache user info.
- */
-shapy.editor.EditorToolbarController = function(
-    $rootScope,
-    $scope,
-    $q,
-    scene,
-    shUser)
-{
-  /** @private {!angular.$scope} @const */
-  this.rootScope_ = $rootScope;
-
-  /** @public {!shapy.Scene} @const */
-  this.scene = scene;
-  /** @public {!Array<!shapy.User>} */
-  this.users = [];
-
-  $scope.$watch('editorCtrl.scene.users', goog.bind(function(users) {
-    $q.all(goog.array.map(this.scene.users, goog.bind(shUser.get, shUser)))
-        .then(goog.bind(function(users) {
-          this.users = users;
-        }, this));
-  }, this), true);
-};
-
-
-/**
- * Called when the layout has to be changed.
- *
- * @param {string} name Name of the new layout.
- */
-shapy.editor.EditorToolbarController.prototype.layout = function(name) {
-  this.rootScope_.$emit('editor', {
-    type: 'layout',
-    layout: name
-  });
-};
-
-
-/**
- * Called when new object has to be added.
- *
- * @param {string} name Name of the object.
- */
-shapy.editor.EditorToolbarController.prototype.addObject = function(name) {
-  this.rootScope_.$emit('editor', {
-    type: 'addObject',
-    object: name
-  });
-};
-
-
 
 /**
  * Canvas controller class.
@@ -482,7 +421,7 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
       this.layout.active.rig = this.rig;
       break;
     }
-    case 'addObject': {
+    case 'create': {
       var id = shapy.editor.CanvasController.generateId();
 
       switch (evt.object) {
