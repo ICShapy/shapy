@@ -118,23 +118,25 @@ shapy.editor.Object = function(id, vertices, edges, faces) {
 
   /**
    * Object Vertex List
-   * @private {!Array<shapy.editor.Object.Vertex>}
+   * @public {!Array<shapy.editor.Object.Vertex>}
    * @const
    */
-  this.vertices_ = goog.array.map(vertices, function(vert) {
+  this.vertices = goog.array.map(vertices, function(vert) {
     return new shapy.editor.Object.Vertex(this, vert[0], vert[1], vert[2]);
   }, this);
 
   /**
-   * Edge List
-   * Expressed as pairs of vertex indices indexing this.vertices_
-   * @private {}
+   * Edge List.
+   * @public {!Array<shapy.editor.Object.Edge>}
+   * @const
    */
-  this.edges_ = edges;
+  this.edges = goog.array.map(edges, function(edge) {
+    return new shapy.editor.Object.Edge(this, edge[0], edge[1]);
+  }, this);
 
   /**
    * Face List
-   * Expressed as triples of edge indices indexing this.edges_
+   * Expressed as triples of edge indices indexing this.edges
    * @private {}
    */
    this.faces_ = faces;
@@ -147,6 +149,7 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  *
  * @constructor
  *
+ * @param {!shapy.editor.Object} object
  * @param {number} x
  * @param {number} y
  * @param {number} z
@@ -196,6 +199,55 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
 };
 
 
+/**
+ * Edge of an object.
+ *
+ * @constructor
+ *
+ * @param {!shapy.editor.Obejct} object
+ * @param {number}               start
+ * @param {number}               end
+ */
+shapy.editor.Object.Edge = function(object, start, end) {
+  /** @private {!shapy.editor.Object} @const */
+  this.object_ = object;
+  /** @public {number} @const */
+  this.start = start;
+  /** @public {number} @const */
+  this.end = end;
+};
+goog.inherits(shapy.editor.Object, shapy.editor.Editable);
+
+
+/**
+ * Retrieves the vertex position.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.Edge.prototype.getPosition = function() {
+  var a = this.object_.vertices[this.start];
+  var b = this.object_.vertices[this.end];
+  var t = goog.vec.Vec3.createFloat32();
+
+  goog.vec.Vec3.add(a, b, t);
+  goog.vec.Vec3.scale(t, 0.5, t);
+  goog.vec.Vec3.multVec3(this.model_, t, t);
+
+  return t;
+};
+
+
+/**
+ * Translate the editable.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
+};
+
+
 
 /**
  * Recomputes the model matrix.
@@ -228,8 +280,8 @@ shapy.editor.Object.prototype.computeModel = function() {
  */
 shapy.editor.Object.prototype.getGeometryData = function() {
   return {
-    vertices: this.vertices_,
-    edges: this.edges_,
+    vertices: this.vertices,
+    edges: this.edges,
     faces: this.faces_
   };
 };
@@ -345,12 +397,19 @@ shapy.editor.Object.prototype.pick = function(ray) {
   goog.vec.Mat4.multVec3(this.invModel_, ray.origin, o);
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, d);
 
-  // Compute distance to all vertices.
-  return goog.array.filter(this.vertices_, function(vert) {
+  // Find all intersecting vertices.
+  var v = goog.array.filter(this.vertices, function(vert) {
     goog.vec.Vec3.subtract(vert.position, o, t);
     goog.vec.Vec3.cross(d, t, t);
     return goog.vec.Vec3.magnitude(t) < 0.2;
   });
+
+  // Find all intersecting edges.
+  var e = goog.array.filter(this.edges, function(edge) {
+
+  });
+
+  return [v, e];
 };
 
 

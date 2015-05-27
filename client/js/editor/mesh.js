@@ -149,17 +149,19 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   goog.array.forEach(f, function(face) {
     // Unfortunately, this algorithm is a bit more complicated than it should be
     // because edge i's tail doesn't necessarily points to edge i+1's head
-    var a = e[face[0]][0];
+    var a = e[face[0]].start;
     for (var j = 0; j < (face.length - 1); j++) { // edge ID
-      var b = e[face[j]][1];
-      var c = e[face[j + 1]][1];
+      var b = e[face[j]].end;
+      var c = e[face[j + 1]].end;
 
       // If in the first iteration, we discover that 'a' is incorrect
       // (eg. [b, a], [b, c] or [b, a], [c, b] rather than [a, b], [b, c]) then
       // ensure 'a' is correct before continuing.
       if (j == 0) {
-        if (e[face[0]][0] == e[face[1]][0] || e[face[0]][0] == e[face[1]][1]) {
-          a = e[face[0]][1];
+        if (e[face[0]].start == e[face[1]].start ||
+            e[face[0]].start == e[face[1]].end)
+        {
+          a = e[face[0]].end;
         }
       }
 
@@ -169,19 +171,19 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
       // the triangle of [a, b, c].
 
       // Deal with the case [b, a], [b, c]
-      if (e[face[j]][0] == e[face[j + 1]][0]) {
-        b = e[face[j]][0];
+      if (e[face[j]].start == e[face[j + 1]].start) {
+        b = e[face[j]].start;
       }
 
       // Deal with the case [b, a], [c, b]
-      if (e[face[j]][0] == e[face[j + 1]][1]) {
-        b = e[face[j]][0];
-        c = e[face[j + 1]][0];
+      if (e[face[j]].start == e[face[j + 1]].end) {
+        b = e[face[j]].start;
+        c = e[face[j + 1]].start;
       }
 
       // Deal with the case [a, b], [c, b]
-      if (e[face[j]][1] == e[face[j + 1]][1]) {
-        c = e[face[j + 1]][0];
+      if (e[face[j]].end == e[face[j + 1]].end) {
+        c = e[face[j + 1]].start;
       }
 
       addVertex(v[a].position, 1, 0, 0);

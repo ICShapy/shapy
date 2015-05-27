@@ -285,10 +285,10 @@ shapy.editor.CanvasController.prototype.init = function(canvas, scene) {
 
   this.scene_.objects['x'] = shapy.editor.Object.createCube('x', 0.5, 0.5, 0.5);
   this.scene_.objects['x'].translate_[2] = -5;
-  this.selectObject(this.scene_.objects['x']);
 
   this.scene_.objects['y'] = shapy.editor.Object.createCube('y', 0.5, 0.5, 0.5);
   this.selectObject(this.scene_.objects['y']);
+  this.changeRig_(new shapy.editor.Rig.Translate());
 
   // Set up resources.
   this.gl_.clearColor(0, 0, 0, 1);
@@ -309,7 +309,8 @@ shapy.editor.CanvasController.prototype.render = function() {
   }
 
   // Synchronise meshes
-  goog.object.forEach(this.objects_, function(object, name, objects) {
+  goog.object.forEach(this.scene_.objects, function(object, name, objects) {
+    object.computeModel();
     if (object.dirtyMesh) {
       this.renderer_.updateObject(object);
       object.dirtyMesh = false;
@@ -323,7 +324,6 @@ shapy.editor.CanvasController.prototype.render = function() {
   goog.object.forEach(this.layout.viewports, function(vp, name) {
     vp.camera.compute();
     vp.camCube.compute();
-
     this.renderer_.renderObjects(vp);
   }, this);
 
