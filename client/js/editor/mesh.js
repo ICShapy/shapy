@@ -107,7 +107,7 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   for (var i = 0; i < f.length; i++) {
     // Every new vertex after 3 requires another 3 vertices in the buffer
     // Number of vertices in a face === number of edges in a face
-    size += 3 + (f[i].length - 3) * 3;
+    size += 3 + (f[i].edges.length - 3) * 3;
   }
 
   // Allocate vertex buffer
@@ -146,19 +146,21 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   // * face[i] is the i'th edge in the face
   // * face[i].first gives the first vertex in the i'th edge of the face
   goog.array.forEach(f, function(face) {
+
     // Unfortunately, this algorithm is a bit more complicated than it should be
     // because edge i's tail doesn't necessarily points to edge i+1's head
-    var a = face[0].start;
-    for (var j = 0; j < (face.length - 2); j++) { // edge ID
-      var b = face[j].end;
-      var c = face[j + 1].end;
+    var a = face.edges[0].start;
+    for (var j = 0; j < (face.edges.length - 2); j++) { // edge ID
+      var b = face.edges[j].end;
+      var c = face.edges[j + 1].end;
 
       // If in the first iteration, we discover that 'a' is incorrect
       // (eg. [b, a], [b, c] or [b, a], [c, b] rather than [a, b], [b, c]) then
       // ensure 'a' is correct before continuing.
       if (j == 0) {
-        if (face[0].start == face[1].start || face[0].start == face[1].end) {
-          a = face[0].end;
+        if (face.edges[0].start == face.edges[1].start ||
+            face.edges[0].start == face.edges[1].end) {
+          a = face.edges[0].end;
         }
       }
 
@@ -168,19 +170,19 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
       // the triangle of [a, b, c].
 
       // Deal with the case [b, a], [b, c]
-      if (face[j].start == face[j + 1].start) {
-        b = face[j].start;
+      if (face.edges[j].start == face.edges[j + 1].start) {
+        b = face.edges[j].start;
       }
 
       // Deal with the case [b, a], [c, b]
-      if (face[j].start == face[j + 1].end) {
-        b = face[j].start;
-        c = face[j + 1].start;
+      if (face.edges[j].start == face.edges[j + 1].end) {
+        b = face.edges[j].start;
+        c = face.edges[j + 1].start;
       }
 
       // Deal with the case [a, b], [c, b]
-      if (face[j].end == face[j + 1].end) {
-        c = face[j + 1].start;
+      if (face.edges[j].end == face.edges[j + 1].end) {
+        c = face.edges[j + 1].start;
       }
 
       addVertex(v[a].position, 1, 0, 0);

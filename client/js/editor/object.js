@@ -6,6 +6,7 @@ goog.provide('shapy.editor.Editable');
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
+goog.require('shapy.editor.geom');
 
 
 
@@ -143,7 +144,8 @@ shapy.editor.Object = function(id, vertices, edges, faces) {
    * @const
    */
    this.faces = goog.array.map(faces, function(face) {
-      return [this.edges[face[0]], this.edges[face[1]], this.edges[face[2]]];
+      return new shapy.editor.Object.Face(
+        this, [this.edges[face[0]], this.edges[face[1]], this.edges[face[2]]]);
    }, this);
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
@@ -295,12 +297,47 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
 
 
 /**
+ * Retrives the vertices forming a face.
+ *
+ * @private
+ *
+ * @param {!Array<shapy.editor.Object.Edge>}
+ */
+shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
+  //var p0 = face[0].start;
+  //var p1 = face[0].end;
+  //var p2 = face[1].start;
+
+  //if (p0 == p2 || p1 == p2) {
+  //  p2 = face[1].end;
+  //}
+
+  //return [p0, p1, p2];
+
+  var p0 = this.edges[0].start;
+  var p1 = this.edges[0].end;
+  var p2 = this.edges[1].start;
+
+  if (p0 == p2 || p1 == p2) {
+    p2 = this.edges[1].end;
+  }
+
+  return [p0, p1, p2];
+};
+
+
+/**
  * Retrieves the face position.
  *
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Face.prototype.getPosition = function() {
-  return null;
+  var t  = this.getFaceVertices_();
+  var p0 = this.object.vertices[t[0]].position;
+  var p1 = this.object.vertices[t[1]].position;
+  var p2 = this.object.vertices[t[2]].position;
+
+  return shapy.editor.geom.getCentroid(p0, p1, p2);
 };
 
 
@@ -312,6 +349,27 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
+  var t  = this.getFaceVertices_();
+  var p0 = this.object.vertices[t[0]].position;
+  var p1 = this.object.vertices[t[1]].position;
+  var p2 = this.object.vertices[t[2]].position;
+  var c  = shapy.editor.geom.getCentroid(p0, p1, p2);
+
+  // Get the translation vector.
+  var d  = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.setFromValues(d, x - c[0], y - c[1], z - c[2]);
+
+  // Adjust the points.
+  goog.vec.Vec3.add(p0, d, p0);
+  goog.vec.Mat4.multVec3(this.object.invModel_, p0, p0);
+
+  goog.vec.Vec3.add(p1, d, p1);
+  goog.vec.Mat4.multVec3(this.object.invModel_, p1, p1);
+
+  goog.vec.Vec3.add(p2, d, p2);
+  goog.vec.Mat4.multVec3(this.object.invModel_, p2, p2);
+
+  this.object.dirtyMesh = true;
 };
 
 
@@ -515,15 +573,10 @@ shapy.editor.Object.prototype.pick = function(ray) {
   var faces = goog.array.filter(goog.array.map(this.faces, function(face) {
 
     // Get 3 distinct points forming the triangle.
-    var p1 = this.vertices[face[0].start].position;
-    var p2 = this.vertices[face[0].end].position;
-    var p3;
-
-    if (face[1].start != face[0].end && face[1].start != face[0].start) {
-      p3 = this.vertices[face[1].start].position;
-    } else {
-      p3 = this.vertices[face[1].end].position;
-    }
+    var t  = face.getFaceVertices_();
+    var p1 = this.vertices[t[0]].position;
+    var p2 = this.vertices[t[1]].position;
+    var p3 = this.vertices[t[2]].position;
 
     // Compute triangle edge vectors.
     goog.vec.Vec3.subtract(p2, p1, u);
@@ -577,13 +630,14 @@ shapy.editor.Object.prototype.pick = function(ray) {
       return null;
     }
 
+    // TODO(Ilija): use the centroid instead of the intersection point
     return {
       item: face,
       point: i
     };
   }, this), goog.isDefAndNotNull);
 
-  return [verts, edges];
+  return [verts, edges, faces];
 };
 
 

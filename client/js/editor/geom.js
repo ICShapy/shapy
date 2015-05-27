@@ -117,3 +117,20 @@ shapy.editor.geom.intersectCube = function(ray, c, a) {
 
   return (tmin < Number.MAX_VALUE) || (tmax > 0.0);
 };
+
+/**
+ * Computes the centroid of the triangle.
+ *
+ * @param {!goog.vec.Vec3.Type} p0
+ * @param {!goog.vec.Vec3.Type} p1
+ * @param {!goog.vec.Vec3.Type} p2
+ */
+shapy.editor.geom.getCentroid = function(p0, p1, p2) {
+  var g = goog.vec.Vec3.createFloat32();
+
+  goog.vec.Vec3.add(p0, p1, g);
+  goog.vec.Vec3.add(g, p2, g);
+  goog.vec.Vec3.scale(g, 1/3, g);
+
+  return g;
+};
