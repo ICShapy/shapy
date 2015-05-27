@@ -162,8 +162,9 @@ shapy.editor.RIG_VS =
 shapy.editor.RIG_FS =
   'precision mediump float;\n' +
   'uniform vec4 u_colour;\n' +
+  'uniform float u_alpha;\n' +
   'void main(void) {\n' +
-  '  gl_FragColor = u_colour;\n' +
+  '  gl_FragColor = vec4(u_colour.rgb, u_alpha);\n' +
   '}\n';
 
 
@@ -336,7 +337,11 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
  */
 shapy.editor.Renderer.prototype.start = function() {
   this.gl_.clearColor(0.9, 0.9, 0.9, 1);
-  this.gl_.clear(goog.webgl.COLOR_BUFFER_BIT | goog.webgl.DEPTH_BUFFER_BIT);
+  //this.gl_.stencilMask(0xFF);
+  this.gl_.clear(
+    goog.webgl.COLOR_BUFFER_BIT |
+    goog.webgl.DEPTH_BUFFER_BIT |
+    goog.webgl.STENCIL_BUFFER_BIT);
 };
 
 
@@ -453,13 +458,28 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  this.gl_.depthFunc(goog.webgl.ALWAYS);
+  this.gl_.enable(goog.webgl.STENCIL_TEST);
   {
     this.shRig_.use();
-    this.shRig_.uniformMat4x4('u_view', vp.camera.view);
-    this.shRig_.uniformMat4x4('u_proj', vp.camera.proj);
     this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
+
+    // Render rigs outside objects
+    this.gl_.stencilMask(0xFF);
+    this.gl_.stencilFunc(goog.webgl.ALWAYS, 1, 0xFF);
+    this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.REPLACE);
+    this.shRig_.uniform1f('u_alpha', 1.0);
+    rig.render(this.gl_, this.shRig_);
+    this.gl_.stencilMask(0x00);
+
+    // Clear depth buffer
+    this.gl_.clear(goog.webgl.DEPTH_BUFFER_BIT);
+
+    // Render rig inside objects
+    this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.KEEP);
+    this.gl_.stencilFunc(goog.webgl.EQUAL, 0, 0xFF);
+    this.shRig_.uniform1f('u_alpha', 0.4);
     rig.render(this.gl_, this.shRig_);
   }
-  this.gl_.depthFunc(goog.webgl.LEQUAL);
+  
+  this.gl_.disable(goog.webgl.STENCIL_TEST);
 };
