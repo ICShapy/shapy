@@ -111,7 +111,7 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   }
 
   // Allocate vertex buffer
-  var d = new Float32Array(size << 6);
+  var d = new Float32Array(size << 4);
   var k = 0;
 
   var addVertex = function(pos, a, b, c) {
@@ -150,7 +150,7 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
     // Unfortunately, this algorithm is a bit more complicated than it should be
     // because edge i's tail doesn't necessarily points to edge i+1's head
     var a = e[face[0]].start;
-    for (var j = 0; j < (face.length - 1); j++) { // edge ID
+    for (var j = 0; j < (face.length - 2); j++) { // edge ID
       var b = e[face[j]].end;
       var c = e[face[j + 1]].end;
 

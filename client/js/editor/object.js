@@ -225,13 +225,13 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Edge.prototype.getPosition = function() {
-  var a = this.object_.vertices[this.start];
-  var b = this.object_.vertices[this.end];
+  var a = this.object_.vertices[this.start].position;
+  var b = this.object_.vertices[this.end].position;
   var t = goog.vec.Vec3.createFloat32();
 
   goog.vec.Vec3.add(a, b, t);
   goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Vec3.multVec3(this.model_, t, t);
+  goog.vec.Mat4.multVec3(this.object_.model_, t, t);
 
   return t;
 };
@@ -389,27 +389,62 @@ shapy.editor.Object.prototype.getRotation = function() {
  * @return {!Array<shapy.editor.Editable>}
  */
 shapy.editor.Object.prototype.pick = function(ray) {
-  var o = goog.vec.Vec3.createFloat32();
+  var q = goog.vec.Vec3.createFloat32();
   var d = goog.vec.Vec3.createFloat32();
-  var t = goog.vec.Vec3.createFloat32();
+  var u = goog.vec.Vec3.createFloat32();
+  var v = goog.vec.Vec3.createFloat32();
+  var w = goog.vec.Vec3.createFloat32();
+  var p0 = goog.vec.Vec3.createFloat32();
+  var p1 = goog.vec.Vec3.createFloat32();
 
   // Move the ray to model space.
-  goog.vec.Mat4.multVec3(this.invModel_, ray.origin, o);
-  goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, d);
+  goog.vec.Mat4.multVec3(this.invModel_, ray.origin, q);
+  goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
 
   // Find all intersecting vertices.
-  var v = goog.array.filter(this.vertices, function(vert) {
-    goog.vec.Vec3.subtract(vert.position, o, t);
-    goog.vec.Vec3.cross(d, t, t);
-    return goog.vec.Vec3.magnitude(t) < 0.2;
-  });
+  var verts = goog.array.filter(goog.array.map(this.vertices, function(vert) {
+    goog.vec.Vec3.subtract(vert.position, q, u);
+    goog.vec.Vec3.cross(v, u, u);
+    if (goog.vec.Vec3.magnitude(u) >= 0.10) {
+      return null;
+    }
+
+    return {
+      item: vert,
+      point: vert.position
+    };
+  }, this), goog.isDefAndNotNull);
 
   // Find all intersecting edges.
-  var e = goog.array.filter(this.edges, function(edge) {
+  var edges = goog.array.filter(goog.array.map(this.edges, function(edge) {
+    // Find the ray associated with the edge.
+    var p = this.vertices[edge.start].position;
+    goog.vec.Vec3.subtract(this.vertices[edge.end].position, p, u);
 
-  });
+    // Compute the closest point.
+    goog.vec.Vec3.subtract(p, q, w);
+    var a = goog.vec.Vec3.dot(u, u);
+    var b = goog.vec.Vec3.dot(u, v);
+    var c = goog.vec.Vec3.dot(v, v);
+    var d = goog.vec.Vec3.dot(u, w);
+    var e = goog.vec.Vec3.dot(v, w);
 
-  return [v, e];
+    var r = (a * c - b * b), s = (b * e - c * d) / r, t = (a * e - b * d) / r;
+    goog.vec.Vec3.scale(u, s, w);
+    goog.vec.Vec3.add(p, w, p0);
+    goog.vec.Vec3.scale(v, t, w);
+    goog.vec.Vec3.add(q, w, p1);
+
+    if (goog.vec.Vec3.distance(p0, p1) >= 0.10 || s <= 0 || s >= 1) {
+      return null;
+    }
+    return {
+      item: edge,
+      point: p0
+    };
+  }, this), goog.isDefAndNotNull);
+
+  return [verts, edges];
 };
 
 

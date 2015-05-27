@@ -101,8 +101,14 @@ shapy.Scene.prototype.pick = function(ray) {
     return null;
   }
 
+  goog.array.sort(hits, function(a, b) {
+    var da = goog.vec.Vec3.distance(ray.origin, a.point);
+    var db = goog.vec.Vec3.distance(ray.origin, b.point);
+    return da - db;
+  }, this);
+
   // TODO: sort hits.
-  return hits[0];
+  return hits[0].item;
 };
 
 
