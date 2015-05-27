@@ -66,12 +66,14 @@ shapy.editor.Layout.prototype.resize = function(w, h) {
 /**
  * Finds out which viewport is touched by the mouse.
  *
+ * @private
+ *
  * @param {number} x Mouse X position.
  * @param {number} y Mouse Y position.
  *
  * @return {?{ vp: shapy.editor.Viewport, x: number, y: number }}
  */
-shapy.editor.Layout.prototype.getViewport = function(x, y) {
+shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
   for (var name in this.viewports) {
     if (!this.viewports.hasOwnProperty(name)) {
       continue;
@@ -97,15 +99,17 @@ shapy.editor.Layout.prototype.getViewport = function(x, y) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.prototype.mouseMove = function(e) {
-  var result = this.getViewport(e.offsetX, e.offsetY);
+  var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
-    return;
+    return null;
   }
 
   if (this.lastHover && result.vp == this.lastHover) {
-    this.lastHover.mouseMove(result.x, result.y);
+    return this.lastHover.mouseMove(result.x, result.y);
   } else {
     if (this.lastHover) {
       this.lastHover.mouseLeave();
@@ -121,14 +125,16 @@ shapy.editor.Layout.prototype.mouseMove = function(e) {
  * Handles a mouse press event.
  *
  * @param {MouseEvent} e Original event.
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.prototype.mouseDown = function(e) {
-  var result = this.getViewport(e.offsetX, e.offsetY);
+  var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
     return;
   }
 
-  result.vp.mouseDown(result.x, result.y, e.which);
+  var ray = result.vp.mouseDown(result.x, result.y, e.which);
 
   this.active.active = false;
   var rig = this.active.rig;
@@ -136,6 +142,8 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
   this.active = result.vp;
   this.active.rig = rig;
   this.active.active = true;
+
+  return ray;
 };
 
 
@@ -145,11 +153,13 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
  * @param {MouseEvent} e
  *
  * @return {booblean} True if event was processed.
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.prototype.mouseUp = function(e) {
-  var result = this.getViewport(e.offsetX, e.offsetY);
+  var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
-    return false;
+    return null;
   }
 
   return result.vp.mouseUp(result.x, result.y);
@@ -162,7 +172,7 @@ shapy.editor.Layout.prototype.mouseUp = function(e) {
  * @param {MouseEvent} e
  */
 shapy.editor.Layout.prototype.mouseEnter = function(e) {
-  var result = this.getViewport(e.offsetX, e.offsetY);
+  var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || result.vp) {
     return;
   }
@@ -176,14 +186,17 @@ shapy.editor.Layout.prototype.mouseEnter = function(e) {
  * Handles a mouse leave event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.prototype.mouseLeave = function(e) {
   if (!this.lastHover) {
     return;
   }
 
-  this.lastHover.mouseLeave();
+  var ray = this.lastHover.mouseLeave();
   this.lastHover = null;
+  return ray;
 };
 
 
@@ -212,7 +225,6 @@ goog.inherits(shapy.editor.Layout.Single, shapy.editor.Layout);
  */
 shapy.editor.Layout.Single.prototype.resize = function(w, h) {
   goog.base(this, 'resize', w, h);
-
   this.viewport.resize(0, 0, w, h);
 };
 
@@ -266,6 +278,8 @@ shapy.editor.Layout.Double.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
   this.hover_ = Math.abs(e.offsetX - this.bar_) < 5;
@@ -278,9 +292,10 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
 
   if (this.hover_) {
     $('html,body').css('cursor', 'ew-resize');
+    return null;
   } else {
     $('html,body').css('cursor', 'auto');
-    goog.base(this, 'mouseMove', e);
+    return goog.base(this, 'mouseMove', e);
   }
 };
 
@@ -289,12 +304,15 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Double.prototype.mouseDown = function(e) {
   this.resize_ = this.hover_;
-  if (!this.resize_) {
-    goog.base(this, 'mouseDown', e);
+  if (this.resize_) {
+    return null;
   }
+  return goog.base(this, 'mouseDown', e);
 };
 
 
@@ -302,12 +320,15 @@ shapy.editor.Layout.Double.prototype.mouseDown = function(e) {
  * Handles a mouse up event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Double.prototype.mouseUp = function(e) {
   if (!this.resize_) {
     return goog.base(this, 'mouseUp', e);
   }
   this.hover_ = this.resize_ = false;
+  return null;
 };
 
 
@@ -315,12 +336,15 @@ shapy.editor.Layout.Double.prototype.mouseUp = function(e) {
  * Handles a mouse leave event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Double.prototype.mouseLeave = function(e) {
   if (!this.resize) {
-    goog.base(this, 'mouseLeave', e);
+    return goog.base(this, 'mouseLeave', e);
   }
   this.hover_ = this.resize_ = false;
+  return null;
 };
 
 
@@ -408,6 +432,8 @@ shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
   this.hoverX_ = Math.abs(e.offsetX - this.barX_) < 5;
@@ -434,7 +460,7 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
     $('html,body').css('cursor', 'ns-resize');
   } else {
     $('html,body').css('cursor', 'auto');
-    goog.base(this, 'mouseMove', e);
+    return goog.base(this, 'mouseMove', e);
   }
 };
 
@@ -443,14 +469,17 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Quad.prototype.mouseDown = function(e) {
   this.resizeX_ = this.hoverX_;
   this.resizeY_ = this.hoverY_;
 
-  if (!this.resizeX_ && !this.resizeY_) {
-    goog.base(this, 'mouseDown', e);
+  if (this.resizeX_ || this.resizeY_) {
+    return null;
   }
+  return goog.base(this, 'mouseDown', e);
 };
 
 
@@ -458,12 +487,15 @@ shapy.editor.Layout.Quad.prototype.mouseDown = function(e) {
  * Handles a mouse up event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Quad.prototype.mouseUp = function(e) {
   if (!this.resizeX_ && !this.resizeY_) {
     return goog.base(this, 'mouseUp', e);
   }
   this.hoverX_ = this.hoverY_ = this.resizeX_ = this.resizeY_ = false;
+  return null;
 };
 
 
@@ -471,12 +503,15 @@ shapy.editor.Layout.Quad.prototype.mouseUp = function(e) {
  * Handles a mouse leave event.
  *
  * @param {MouseEvent} e
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.Quad.prototype.mouseLeave = function(e) {
   if (!this.resizeX_ && !this.resizeY_) {
-    goog.base(this, 'mouseLeave', e);
+    return goog.base(this, 'mouseLeave', e);
   }
   this.hoverX_ = this.hoverY_ = this.resizeX_ = this.resizeY_ = false;
+  return null;
 };
 
 
@@ -610,15 +645,17 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
 
   if (this.isRotating_) {
     this.rotate();
-    return;
+    return null;
   }
   if (this.isPanning_) {
     this.pan();
-    return;
+    return null;
   }
   if (this.rig) {
     this.rig.mouseMove(this.raycast_(x, y));
+    return null;
   }
+  return this.raycast_(x, y);
 };
 
 
@@ -653,6 +690,8 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} x      Mouse X coordinate.
  * @param {number} y      Mouse Y coordinate.
  * @param {number} button Mouse button that was clicked.
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
   this.currMousePos_.x = x;
@@ -661,19 +700,22 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
   this.lastMousePos_.y = y;
 
   if (this.camCube.mouseDown(x, y)) {
-    return;
+    return null;
   }
 
   switch (button) {
     case 1: {
       if (this.rig) {
         this.rig.mouseDown(this.raycast_(x, y));
+        return null;
       }
       break;
     }
-    case 2: this.isPanning_ = true; break;
-    case 3: this.isRotating_ = true; break;
+    case 2: this.isPanning_ = true; return null;
+    case 3: this.isRotating_ = true; return null;
   }
+
+  return this.raycast_(x, y);
 };
 
 
@@ -682,21 +724,25 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
   var ray = this.raycast_(x, y);
 
   if (this.camCube.mouseUp(x, y)) {
-    return true;
+    return null;
   }
 
   if (!this.isRotating_ && !this.isPanning_ && this.rig) {
-    return this.rig.mouseUp(ray);
+    if (this.rig.mouseUp(ray)) {
+      return null;
+    }
   }
 
   this.isRotating_ = false;
   this.isPanning_ = false;
-  return false;
+  return ray;
 };
 
 

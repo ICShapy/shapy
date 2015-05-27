@@ -382,6 +382,12 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
  * @param {!shapy.editor.Editable} object
  */
 shapy.editor.Editor.prototype.select = function(object) {
+  if (!object) {
+    this.selected_ = null;
+    this.rig(null);
+    return;
+  }
+
   this.selected_ = object;
   if (this.rig_) {
     this.rig_.object = object;
@@ -447,22 +453,16 @@ shapy.editor.Editor.prototype.mouseDown = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
-  if (this.layout_.mouseUp(e) || e.which != 1) {
+  var ray, pick;
+
+  // If viewports want the event, give up.
+  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
     return;
   }
 
-  // TODO: find a nicer way to do this.
-  var result = this.layout_.getViewport(e.offsetX, e.offsetY);
-  if (!result.vp) {
-    return;
+  if (pick = this.scene_.pick(ray)) {
+    this.select(pick);
   }
-
-  var ray = result.vp.raycast_(result.x, result.y);
-  var pick = this.scene_.pick(ray);
-  if (!pick) {
-    return;
-  }
-  this.select(pick);
 };
 
 
