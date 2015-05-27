@@ -51,8 +51,9 @@ shapy.editor.EditorController = function(scene, shEditor) {
  * @ngInject
  *
  * @param {!angular.$location} $location Angular location service.
+ * @param {!angular.$scope}    $rootScope
  */
-shapy.editor.Editor = function($location) {
+shapy.editor.Editor = function($location, $rootScope) {
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
   /** @private {!shapy.editor.Rig} @const */
@@ -62,6 +63,8 @@ shapy.editor.Editor = function($location) {
 
   /** @private {!angular.$location} @const */
   this.location_ = $location;
+  /** @private {!angular.$scope} @const */
+  this.rootScope_ = $rootScope;
 
   /**
    * Canvas.
@@ -137,12 +140,16 @@ shapy.editor.Editor = function($location) {
  * @param {!shapy.Scene} scene
  */
 shapy.editor.Editor.prototype.setScene = function(scene) {
+  // Clear anything related to the scene.
   this.scene_ = scene;
   this.selected_ = null;
-  this.rig_ = null;
-  if (this.layout_ && this.layout_.active) {
-    this.layout_.active.rig = null;
-  }
+  this.rig(null);
+
+  // Set up the websocket connectio.
+  this.sock_ = new WebSocket(goog.string.format('ws://%s:%d/api/edit/%s',
+      this.location_.host(), this.location_.port(), this.scene_.id));
+  this.sock_.onmessage = goog.bind(this.onMessage_, this);
+  this.sock_.onclose = goog.bind(this.onClose_, this);
 };
 
 
