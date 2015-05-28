@@ -49,6 +49,14 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.public = false;
 
   /**
+   * Home dir.
+   *
+   * @public {!shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.home = this.shAssets_.home;
+
+  /**
    * Assets in current directory.
    * @type Array
    * @public
@@ -57,7 +65,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.assets = [];
 
   // Enter home folder.
-  this.assetEnter(this.shAssets_.home);
+  this.assetEnter(this.home);
 
   /**
    * Query from user filtering results.
@@ -138,8 +146,8 @@ shapy.browser.BrowserController.prototype.createDir = function(name) {
  */
 shapy.browser.BrowserController.prototype.publicEnter = function() {
   this.public = true;
-  this.currentDir = this.shAssets_.home;
-  this.displayDir(this.shAssets_.home);
+  this.currentDir = this.home;
+  this.displayDir(this.home);
 };
 
 
