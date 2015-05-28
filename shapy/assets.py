@@ -18,12 +18,12 @@ class DirectoryHandler(APIHandler):
   @session
   @coroutine
   @asynchronous
-  def get(self, assetNumber, public, user):
+  def get(self, assetNumber, publicSpace, user):
     if not user:
       raise HTTPError(401, 'User not logged in.')
 
     # Convert from binary
-    public = (public == 1)
+    public = bool(int(publicSpace))
 
     # Check if public space queried correctly
     if public and assetNumber != '0':
@@ -42,7 +42,6 @@ class DirectoryHandler(APIHandler):
           (assetNumber, user.id, public))
       if not cursor.fetchone():
         raise HTTPError(400, 'Illegal request for assets.')
-
 
     # Fetch data from the database.
     cursor = yield momoko.Op(self.db.execute,
