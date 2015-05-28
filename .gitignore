@@ -16,3 +16,4 @@ config.sh
 
 # Closure library.
 goog
+.gjslintrc

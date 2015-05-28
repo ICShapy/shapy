@@ -1,9 +1,27 @@
 <div>
   <sh-sidebar>
+    <script type="text/ng-template" id="directory.html">
+      <div ng-repeat="dir in directories" class="directory">
+        <span ng-init="open=false">
+          <img
+              ng-show="open"
+              ng-click="open=false"
+              src="/img/arrow-down.svg" />
+          <img
+              ng-show="!open"
+              ng-click="open=true"
+              src="/img/arrow-right.svg" />
+          {{ dir.name }}
+        </span>
+        <div ng-show="open">
+          Subdirectories go here
+        </div>
+      </div>
+    </script>
 
     <sh-sidebar-folders>
       <ng-include
-          src="'/html/browser-dir-tree.html'"
+          src="'directory.html'"
           ng-init="directories=browserCtrl.assets"/>
     </sh-sidebar-folders>
 

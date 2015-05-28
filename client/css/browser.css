@@ -7,6 +7,22 @@ sh-sidebar {
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
 }
+
+sh-sidebar .directory {
+
+}
+
+sh-sidebar .directory > div {
+  padding-left: 14px;
+}
+
+sh-sidebar .directory img {
+  width: 8px;
+  height: 8px;
+  padding: 2px;
+  cursor: pointer;
+}
+
 sh-sidebar > h1 {
   position: absolute;
   height: 30px;
