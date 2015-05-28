@@ -123,6 +123,14 @@ shapy.editor.CamCube.prototype.resize = function(w, h) {
 
 
 /**
+ * Clears buffers.
+ */
+shapy.editor.CamCube.prototype.destroy = function() {
+  this.mesh_ = null;
+};
+
+
+/**
  * Updates the matrices.
  */
 shapy.editor.CamCube.prototype.compute = function() {
@@ -457,5 +465,5 @@ shapy.editor.CamCube.prototype.mouseUp = function(x, y) {
   this.click_ = false;
   this.hover_ = this.getFace_(this.raycast_(x, y));
 
-  return false;
+  return true;
 };

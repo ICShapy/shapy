@@ -42,7 +42,7 @@ shapy.editor.Mesh = function(gl, buffer, data) {
       goog.vec.Vec4.createFloat32FromValues(
           data.border[0], data.border[1], data.border[2], data.border[3]) :
       goog.vec.Vec4.createFloat32FromValues(
-          0, 0, 0, 0);
+          1, 1, 1, 1);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.buffer_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, buffer, goog.webgl.STATIC_DRAW);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, null);
@@ -53,7 +53,7 @@ shapy.editor.Mesh = function(gl, buffer, data) {
  * Destroys a mesh.
  */
 shapy.editor.Mesh.prototype.free = function() {
-
+  // TODO: This should be implemented ASAP.
 };
 
 
@@ -76,7 +76,8 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 64, 32);
   this.gl_.vertexAttribPointer(4, 3, goog.webgl.FLOAT, false, 64, 48);
 
-  sh.uniform4f('u_border', this.border);
+  sh.uniform4f('u_border',
+      this.border[0], this.border[1], this.border[2], this.border[3]);
   this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.indices_);
 
   this.gl_.disableVertexAttribArray(4);
@@ -88,20 +89,14 @@ shapy.editor.Mesh.prototype.render = function(sh) {
 
 
 /**
- * Checks if the mesh intersects a ray.
- */
-shapy.editor.Mesh.prototype.intersects = function(ray) {
-
-};
-
-
-/**
  * Create from an object
  *
  * @param {!WebGLContext} gl Context
  * @param {type}          v Vertices
  * @param {type}          e Edges
  * @param {type}          f Faces
+ *
+ * @return {!shapy.editor.Mesh}
  */
 shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   // If a face has more than 3 edges, triangulate by treating the face as a
@@ -119,39 +114,54 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   var d = new Float32Array(size << 4);
   var k = 0;
 
-  var addVertex = function(x, y, z) {
-    d[k++] = x; d[k++] = y; d[k++] = z; // position
-    d[k++] = 0; d[k++] = 0; d[k++] = 0; // normal
-    d[k++] = 0; d[k++] = 0; // texcoord
-    d[k++] = 1; d[k++] = 1; d[k++] = 1; d[k++] = 1; // diffuse
-    d[k++] = 0; d[k++] = 0; d[k++] = 0; d[k++] = 0;
-  }
+  var addVertex = function(pos, a, b, c) {
+    // Position.
+    d[k++] = pos[0];
+    d[k++] = pos[1];
+    d[k++] = pos[2];
+
+    // Normal.
+    d[k++] = 0; d[k++] = 0; d[k++] = 0;
+
+    // UV.
+    d[k++] = 0; d[k++] = 0;
+
+    // Diffuse.
+    d[k++] = 0.2;
+    d[k++] = 0.2;
+    d[k++] = 0.2;
+    d[k++] = 1;
+
+    // Barycentric coordinate.
+    d[k++] = a;
+    d[k++] = b;
+    d[k++] = c;
+
+    // Padding.
+    d[k++] = 0;
+  };
 
   // Fill out the vertex buffer
   // Just for reference:
   // * face[i] is the i'th edge in the face
   // * e[face[i]] gives the pair of vertices in the i'th edge of the face
   // * e[face[i]][0] gives the first vertex in the i'th edge of the face
-  // 
-  for (var i = 0; i < f.length; i++) {
-    var face = f[i];
-
+  goog.array.forEach(f, function(face) {
     // Unfortunately, this algorithm is a bit more complicated than it should be
     // because edge i's tail doesn't necessarily points to edge i+1's head
-    //
-    // This iterates from 0 to number of edges - 2 because we ignore the final
-    // edge, and each iteration covers edge j and edge j+1
-    var a = e[face[0]][0];
-    for (var j = 0; j < (f[i].length - 2); j++) { // edge ID
-      var b = e[face[j]][1];
-      var c = e[face[j + 1]][1];
+    var a = e[face[0]].start;
+    for (var j = 0; j < (face.length - 2); j++) { // edge ID
+      var b = e[face[j]].end;
+      var c = e[face[j + 1]].end;
 
       // If in the first iteration, we discover that 'a' is incorrect
       // (eg. [b, a], [b, c] or [b, a], [c, b] rather than [a, b], [b, c]) then
       // ensure 'a' is correct before continuing.
       if (j == 0) {
-        if (e[face[0]][0] == e[face[1]][0] || e[face[0]][0] == e[face[1]][1]) {
-          a = e[face[0]][1];
+        if (e[face[0]].start == e[face[1]].start ||
+            e[face[0]].start == e[face[1]].end)
+        {
+          a = e[face[0]].end;
         }
       }
 
@@ -161,248 +171,26 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
       // the triangle of [a, b, c].
 
       // Deal with the case [b, a], [b, c]
-      if (e[face[j]][0] == e[face[j + 1]][0]) {
-        b = e[face[j]][0];
+      if (e[face[j]].start == e[face[j + 1]].start) {
+        b = e[face[j]].start;
       }
 
       // Deal with the case [b, a], [c, b]
-      if (e[face[j]][0] == e[face[j + 1]][1]) {
-        b = e[face[j]][0];
-        c = e[face[j + 1]][0];
+      if (e[face[j]].start == e[face[j + 1]].end) {
+        b = e[face[j]].start;
+        c = e[face[j + 1]].start;
       }
 
       // Deal with the case [a, b], [c, b]
-      if (e[face[j]][1] == e[face[j + 1]][1]) {
-        c = e[face[j + 1]][0];
+      if (e[face[j]].end == e[face[j + 1]].end) {
+        c = e[face[j + 1]].start;
       }
 
-      addVertex(v[a * 3], v[a * 3 + 1], v[a * 3 + 2]);
-      addVertex(v[b * 3], v[b * 3 + 1], v[b * 3 + 2]);
-      addVertex(v[c * 3], v[c * 3 + 1], v[c * 3 + 2]);
+      addVertex(v[a].position, 1, 0, 0);
+      addVertex(v[b].position, 0, 1, 0);
+      addVertex(v[c].position, 0, 0, 1);
     }
-  }
-
-  return new shapy.editor.Mesh(gl, d, {});
-};
-
-
-/**
- * Creates a plane.
- */
-shapy.editor.Mesh.createPlane = function(gl, w, h, sx, sy) {
-
-};
-
-
-/**
- * Creates an arrow.
- */
-shapy.editor.Mesh.createArrow = function(gl, dir) {
-
-};
-
-
-/**
- * Creates a cube.
- *
- * @param {!WebGLContext} gl Context
- * @param {number}        w  Width of the cube
- * @param {number}        h  Height of the cube
- * @param {number}        d  Depth of the cube
- */
-shapy.editor.Mesh.createCube = function(gl, w, h, d) {
-  // Corner layout:
-  //   4-----5
-  //  /     /|
-  // 0-----1 |
-  // | 6   | 7
-  // |     |/
-  // 2-----3
-
-  // Corner vertices
-  var corners = [
-    -w, h, d,
-    w, h, d,
-    -w, -h, d,
-    w, -h, d,
-    -w, h, -d,
-    w, h, -d,
-    -w, -h, -d,
-    w, -h, -d
-  ];
-
-  // Texture coordinates
-  var tcs = [
-    0, 0,
-    0, 1,
-    1, 0,
-    1, 0,
-    0, 1,
-    1, 1
-  ];
-
-  // Build vertices from corners
-  var indices = [
-    0, 1, 2, 2, 1, 3,
-    1, 5, 3, 3, 5, 7,
-    5, 4, 7, 7, 4, 6,
-    4, 0, 6, 6, 0, 2,
-    4, 5, 0, 0, 5, 1,
-    2, 3, 6, 6, 3, 7
-  ];
-
-  var d = new Float32Array(indices.length << 4); // 16 floats per vertex
-  var k = 0;
-  for (var i = 0; i < indices.length; i++) {
-    var c = indices[i];
-
-    d[k++] = corners[c * 3 + 0];
-    d[k++] = corners[c * 3 + 1];
-    d[k++] = corners[c * 3 + 2];
-
-    d[k++] = 0; d[k++] = 1; d[k++] = 0;
-
-    d[k++] = tcs[(i % 6) * 2 + 0];
-    d[k++] = tcs[(i % 6) * 2 + 1];
-
-    d[k++] = 0.75; d[k++] = 0.75; d[k++] = 0.75; d[k++] = 1;
-
-    d[k++] = 0; d[k++] = 0; d[k++] = 1;
-
-    d[k++] = 0;
-  }
-
-  return new shapy.editor.Mesh(gl, d, {});
-};
-
-
-/**
- * Creates a quad.
- */
-shapy.editor.Mesh.createQuad = function(gl, w, h) {
-  var d = new Float32Array(6 << 4), k = 0;
-
-  d[k++] = -w; d[k++] = -h; d[k++] = 0.0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
-  d[k++] = 1;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;
-
-  d[k++] =  w; d[k++] =  h; d[k++] = 0.0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
-  d[k++] = 0;  d[k++] = 1;  d[k++] = 0;
-  d[k++] = 0;
-
-  d[k++] = -w; d[k++] =  h; d[k++] = 0.0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
-  d[k++] = 0;  d[k++] = 1;  d[k++] = 1;
-  d[k++] = 0;
-
-  d[k++] = -w; d[k++] = -h; d[k++] = 0.0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
-  d[k++] = 1;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;
-
-  d[k++] =  w; d[k++] = -h; d[k++] = 0.0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
-  d[k++] = 0;  d[k++] = 1;  d[k++] = 0;
-  d[k++] = 0;
-
-  d[k++] =  w; d[k++] =  h; d[k++] = 0.0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;
-  d[k++] = 0;  d[k++] = 0;  d[k++] = 0; d[k++] = 0;
-  d[k++] = 0;  d[k++] = 1;  d[k++] = 1;
-  d[k++] = 0;
-
-  return new shapy.editor.Mesh(gl, d, {});
-};
-
-
-/**
- * Creates a sphere.
- */
-shapy.editor.Mesh.createSphere = function(gl, r, phi, theta) {
-
-};
-
-
-/**
- * Creates a circle.
- */
-shapy.editor.Mesh.createCircle = function(gl, norm, r) {
-};
-
-
-/**
- * Creates a mesh for the ground plane.
- *
- * @param {!WebGLContext} gl Context.
- * @param {number}        w  Width of the plane.
- * @param {number}        h  Height of the plane.
- *
- * @return {shapy.editor.mesh}
- */
-shapy.editor.Mesh.createGroundPlane = function(gl, w, h) {
-  var r = 0.5, g = 0.5, b = 0.5, a = 1.0;
-  var d = new Float32Array((w + 1) * (h + 1) * 6 << 4);
-  for (var i = 0, k = 0, x = -w / 2; i < w; ++i, ++x) {
-    for (var j = 0, y = -h / 2; j < h; ++j, ++y) {
-      d[k++] = (x + 0); d[k++] = 0; d[k++] = (y + 0);
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
-      d[k++] = 0;       d[k++] = 1;
-      d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 1;       d[k++] = 0; d[k++] = 0;
-      d[k++] = 0;
-
-      d[k++] = (x + 1); d[k++] = 0; d[k++] = (y + 0);
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
-      d[k++] = 0;       d[k++] = 1;
-      d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
-      d[k++] = 0;
-
-      d[k++] = (x + 1); d[k++] = 0; d[k++] = (y + 1);
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
-      d[k++] = 0;       d[k++] = 1;
-      d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 1;       d[k++] = 1; d[k++] = 1;
-      d[k++] = 0;
-
-      d[k++] = (x + 0); d[k++] = 0; d[k++] = (y + 0);
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
-      d[k++] = 0;       d[k++] = 1;
-      d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 1;       d[k++] = 0; d[k++] = 0;
-      d[k++] = 0;
-
-      d[k++] = (x + 1); d[k++] = 0; d[k++] = (y + 1);
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
-      d[k++] = 0;       d[k++] = 1;
-      d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 1;       d[k++] = 1; d[k++] = 1;
-      d[k++] = 0;
-
-      d[k++] = (x + 0); d[k++] = 0; d[k++] = (y + 1);
-      d[k++] = 0;       d[k++] = 1; d[k++] = 0;
-      d[k++] = 0;       d[k++] = 1;
-      d[k++] = r;       d[k++] = g; d[k++] = b; d[k++] = a;
-      d[k++] = 0;       d[k++] = 0; d[k++] = 1;
-      d[k++] = 0;
-    }
-  }
-
-  return new shapy.editor.Mesh(gl, d, {
-      border: [1, 1, 1, 1]
   });
-};
 
+  return new shapy.editor.Mesh(gl, d, {});
+};

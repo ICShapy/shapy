@@ -4,6 +4,8 @@
 goog.provide('shapy.Scene');
 goog.provide('shapy.SceneService');
 
+goog.require('shapy.editor.Object');
+
 
 
 /**
@@ -32,11 +34,37 @@ shapy.Scene = function(id, data) {
    * @public {Array<string>}
    */
   this.users = data['users'] || [];
+
+  /**
+   * List of objects in the scene.
+   * @public {!Object<string, shapy.Object>}
+   */
+  this.objects = {};
+
+  /**
+   * Next identifier.
+   * @private {string}
+   */
+  this.nextID_ = 0;
+};
+
+
+/**
+ * Generates a new object ID.
+ *
+ * @return {string} Unique Object ID.
+ */
+shapy.Scene.prototype.getNextID = function() {
+  var id = this.nextID_;
+  this.nextID_++;
+  return 'obj_' + id;
 };
 
 
 /**
  * Adds a new user to the list of people editing.
+ *
+ * @param {string} user
  */
 shapy.Scene.prototype.addUser = function(user) {
   goog.array.insert(this.users, user);
@@ -45,6 +73,8 @@ shapy.Scene.prototype.addUser = function(user) {
 
 /**
  * Removes a user from the list of people editing.
+ *
+ * @param {string} user
  */
 shapy.Scene.prototype.removeUser = function(user) {
   goog.array.remove(this.users, user);
@@ -53,6 +83,8 @@ shapy.Scene.prototype.removeUser = function(user) {
 
 /**
  * Sets the list of users.
+ *
+ * @param {string} users
  */
 shapy.Scene.prototype.setUsers = function(users) {
   this.users = users;
@@ -60,11 +92,67 @@ shapy.Scene.prototype.setUsers = function(users) {
 
 
 /**
- * Changes the name of the scene.
+ * Picks an object intersected by a ray.
+ *
+ * @param {!goog.vec.Ray} ray
+ *
+ * @return {!shapy.editor.Editable}
  */
-shapy.Scene.prototype.setName = function(name) {
-  this.name = name;
+shapy.Scene.prototype.pick = function(ray) {
+  var hits;
+
+  // Find all the editable parts that intersect the ray.
+  hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
+    return obj.pick(ray);
+  });
+  hits = goog.array.flatten(hits);
+
+  if (goog.array.isEmpty(hits)) {
+    return null;
+  }
+
+  goog.array.sort(hits, function(a, b) {
+    var da = goog.vec.Vec3.distance(ray.origin, a.point);
+    var db = goog.vec.Vec3.distance(ray.origin, b.point);
+    return da - db;
+  }, this);
+
+  // TODO: sort hits.
+  return hits[0].item;
 };
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} w
+ * @param {number} h
+ * @param {number} d
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.Scene.prototype.createCube = function(w, h, d) {
+  var id = this.getNextID();
+  var object = shapy.editor.Object.createCube(id, w, h, d);
+  this.objects[id] = object;
+  return object;
+};
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} r
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.Scene.prototype.createSphere = function(r) {
+  var id = this.getNextID();
+  var object = shapy.editor.Object.createSphere(id, r);
+  this.objects[id] = object;
+  return object;
+};
+
 
 
 /**

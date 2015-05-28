@@ -44,7 +44,7 @@ shapy.editor.OBJECT_FS =
   '  vec3 a3 = smoothstep(vec3(0.0), fwidth(v_bary) * 0.25, v_bary);  \n' +
   '  float e = min(min(a3.x, a3.y), a3.z);                            \n' +
   '  vec4 border = u_border;                                          \n' +
-  '  if (any(lessThan(v_bary, vec3(0.03)))) {                         \n' +
+  '  if (any(lessThan(v_bary, vec3(0.01)))) {                         \n' +
   '    border.a *= e;                                                 \n' +
   '  } else {                                                         \n' +
   '    border.a = 0.0;                                                \n' +
@@ -162,8 +162,9 @@ shapy.editor.RIG_VS =
 shapy.editor.RIG_FS =
   'precision mediump float;\n' +
   'uniform vec4 u_colour;\n' +
+  'uniform float u_alpha;\n' +
   'void main(void) {\n' +
-  '  gl_FragColor = u_colour;\n' +
+  '  gl_FragColor = vec4(u_colour.rgb, u_alpha);\n' +
   '}\n';
 
 
@@ -200,7 +201,6 @@ shapy.editor.Renderer = function(gl) {
   /** @private {!WebGLContext} @const */
   this.gl_ = gl;
 
-
   /** @private {!shapy.editor.Shader} @const */
   this.shObject_ = new shapy.editor.Shader(this.gl_);
   this.shObject_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_VS);
@@ -232,7 +232,6 @@ shapy.editor.Renderer = function(gl) {
   this.shRig_.link();
 
   /** @private {!shapy.editor.Mesh} @const */
-  this.msCube_ = shapy.editor.Mesh.createCube(gl, 1, 1, 1);
   this.txCube_ = this.loadTexture_(shapy.editor.CUBE_TEXTURE);
 
   /** @private {!WebGLBuffer} @const */
@@ -252,7 +251,7 @@ shapy.editor.Renderer = function(gl) {
 
   /**
    * Cached mesh and model matrix pairs
-   * @private {!Object<int, Array<shapy.editor.Mesh|goog.vec.Mat4>>} 
+   * @private {!Object<int, Array<shapy.editor.Mesh|goog.vec.Mat4>>}
    */
   this.objectCache_ = {};
 
@@ -261,6 +260,13 @@ shapy.editor.Renderer = function(gl) {
    * @private {!Object<int, Array<shapy.editor.Mesh>>}
    */
   this.objectHistory_ = {};
+};
+
+
+/**
+ * Cleans up resources used by the renderer.
+ */
+shapy.editor.Renderer.prototype.destroy = function() {
 };
 
 
@@ -325,8 +331,9 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
   this.objectCache_[object.id] = [mesh, object.model_];
 
   // Store this revision
-  if (!(object.id in this.objectHistory_))
+  if (!(object.id in this.objectHistory_)) {
     this.objectHistory_[object.id] = [];
+  }
   this.objectHistory_[object.id].push(mesh);
 };
 
@@ -336,7 +343,11 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
  */
 shapy.editor.Renderer.prototype.start = function() {
   this.gl_.clearColor(0.9, 0.9, 0.9, 1);
-  this.gl_.clear(goog.webgl.COLOR_BUFFER_BIT | goog.webgl.DEPTH_BUFFER_BIT);
+  //this.gl_.stencilMask(0xFF);
+  this.gl_.clear(
+    goog.webgl.COLOR_BUFFER_BIT |
+    goog.webgl.DEPTH_BUFFER_BIT |
+    goog.webgl.STENCIL_BUFFER_BIT);
 };
 
 
@@ -453,13 +464,28 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  this.gl_.depthFunc(goog.webgl.ALWAYS);
+  this.gl_.enable(goog.webgl.STENCIL_TEST);
   {
     this.shRig_.use();
-    this.shRig_.uniformMat4x4('u_view', vp.camera.view);
-    this.shRig_.uniformMat4x4('u_proj', vp.camera.proj);
     this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
+
+    // Render rigs outside objects
+    this.gl_.stencilMask(0xFF);
+    this.gl_.stencilFunc(goog.webgl.ALWAYS, 1, 0xFF);
+    this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.REPLACE);
+    this.shRig_.uniform1f('u_alpha', 1.0);
+    rig.render(this.gl_, this.shRig_);
+    this.gl_.stencilMask(0x00);
+
+    // Clear depth buffer
+    this.gl_.clear(goog.webgl.DEPTH_BUFFER_BIT);
+
+    // Render rig inside objects
+    this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.KEEP);
+    this.gl_.stencilFunc(goog.webgl.EQUAL, 0, 0xFF);
+    this.shRig_.uniform1f('u_alpha', 0.4);
     rig.render(this.gl_, this.shRig_);
   }
-  this.gl_.depthFunc(goog.webgl.LEQUAL);
+
+  this.gl_.disable(goog.webgl.STENCIL_TEST);
 };

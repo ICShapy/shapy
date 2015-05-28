@@ -66,8 +66,20 @@ shapy.editor.Rig = function(type) {
     z: false
   };
 
-  /** @private {shapy.editor.Editable.Type} */
-  this.controlObject_ = null;
+  /** @public {shapy.editor.Editable} */
+  this.object = null;
+
+  /** @public {Function} */
+  this.onFinish = null;
+};
+
+
+/**
+ * Clears up resources used by the rig.
+ */
+shapy.editor.Rig.prototype.destroy = function() {
+  // TODO: retain GL context & clear properly.
+  this.mesh_ = null;
 };
 
 
@@ -159,7 +171,7 @@ shapy.editor.Rig.prototype.buildTube_ = function(d, k, b, l, r, c) {
  */
 shapy.editor.Rig.prototype.getClosest_ = function(ray) {
   var closest = goog.vec.Vec3.createFloat32();
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
   var u = goog.vec.Vec3.createFloat32();
 
   // Get the direction vector of the rig axis.
@@ -320,7 +332,7 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -410,7 +422,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
 
   if (this.select_.x || this.select_.y || this.select_.z) {
     // Calculate the translation.
@@ -420,7 +432,7 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     this.lastPos_ = currPos;
 
     // Update the position.
-    this.controlObject_.translate(
+    this.object.translate(
         pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
     return;
   }
@@ -458,9 +470,17 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
  * Handles mouse up event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean} True if event was captured.
  */
 shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
+  var captured = this.select_.x || this.select_.x || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
+  if (this.onFinish) {
+    var pos = this.object.getPosition();
+    this.onFinish(this.object, pos[0], pos[1], pos[2]);
+  }
+  return captured;
 };
 
 
@@ -548,7 +568,7 @@ shapy.editor.Rig.Rotate.prototype.build_ = function(gl) {
  */
 shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
   var i = shapy.editor.Rig.Rotate.DISK / 3;
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -684,7 +704,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Vec3.Type} cursor
  */
 shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
-  var d, r, pos = this.controlObject_.getPosition();
+  var d, r, pos = this.object.getPosition();
 
   goog.vec.Vec3.subtract(cursor, pos, cursor);
   d = goog.vec.Vec3.magnitude(cursor);
@@ -707,7 +727,7 @@ shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
  * @return {goog.vec.Vec3.Type}
  */
 shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
-  var position = this.controlObject_.getPosition();
+  var position = this.object.getPosition();
 
   // Find intersection point with planes.
   var ix = shapy.editor.geom.intersectPlane(ray, [1, 0, 0], position);
@@ -749,24 +769,24 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
   if (this.select_.x || this.select_.y || this.select_.z) {
     this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
     this.adjustCursor_(this.cursor_);
     this.currentAngle_ = this.getAngle_(this.cursor_);
 
     if (this.select_.x) {
-      this.controlObject_.rotate(
+      this.object.rotate(
           this.initialAngle_ + this.currentAngle_ - this.startAngle_, 0, 0);
       return;
     }
     if (this.select_.y) {
-      this.controlObject_.rotate(
+      this.object.rotate(
           0, this.initialAngle_ - this.currentAngle_ + this.startAngle_, 0);
       return;
     }
     if (this.select_.z) {
-      this.controlObject_.rotate(
+      this.object.rotate(
           0, 0, this.initialAngle_ + this.currentAngle_ - this.startAngle_);
       return;
     }
@@ -795,7 +815,7 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
  * @return {number}
  */
 shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
 
   if (this.hover_.x) {
     return Math.atan2(
@@ -822,7 +842,7 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
   var hit = this.getHit_(ray);
   var dx, dy, angle;
 
@@ -833,7 +853,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
   this.adjustCursor_(this.cursor_);
   this.startAngle_ = this.currentAngle_ = this.getAngle_(this.cursor_);
-  angle = this.controlObject_.getRotation();
+  angle = this.object.getRotation();
 
   if (this.hover_.x) {
     this.initialAngle_ = angle[0];
@@ -859,7 +879,9 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
+  var captured = this.select_.x || this.select_.x || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
+  return captured;
 };
 
 
@@ -947,7 +969,7 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
 
   if (!this.mesh_) {
     this.build_(gl);
@@ -1075,7 +1097,7 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
     goog.vec.Vec3.add(this.scale_, d, this.scale_);
 
     // Update the scale of the model to be the relative scale
-    this.controlObject_.scale(
+    this.object.scale(
       this.scale_[0] * this.scaleRelativeTo_[0],
       this.scale_[1] * this.scaleRelativeTo_[1],
       this.scale_[2] * this.scaleRelativeTo_[2]
@@ -1083,7 +1105,7 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
     return;
   }
 
-  var pos = this.controlObject_.getPosition();
+  var pos = this.object.getPosition();
   var c = goog.vec.Vec3.createFloat32();
 
   // Intersection on X.
@@ -1111,7 +1133,7 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.select_.z = this.hover_.z;
   this.lastPos_ = this.getClosest_(ray);
   goog.vec.Vec3.setFromArray(
-    this.scaleRelativeTo_, this.controlObject_.getScale());
+    this.scaleRelativeTo_, this.object.getScale());
 };
 
 
@@ -1121,10 +1143,10 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
+  var captured = this.select_.x || this.select_.x || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
-
-  // Reset the scale.
   goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
+  return captured;
 };
 
 
