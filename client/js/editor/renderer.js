@@ -312,6 +312,9 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
 
   // Re-build mesh
   var mesh = new shapy.editor.Mesh(this.gl_, object);
+  if (goog.object.containsKey(this.objectCache_, object.id)) {
+    this.objectCache_[object.id][0].free();
+  }
   this.objectCache_[object.id] = [mesh, object.model_];
 
   // Store this revision

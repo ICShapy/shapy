@@ -116,9 +116,15 @@ shapy.editor.Editor = function($location, $rootScope) {
 
   /**
    * Currently selected object
-   * @private {shapy.editor.Object}
+   * @private {shapy.editor.Editable}
    */
   this.selected_ = null;
+
+  /**
+   * Object hovered by mouse.
+   * @private {!shapy.editor.Editable}
+   */
+  this.hover_ = null;
 
   /**
    * Active rig.

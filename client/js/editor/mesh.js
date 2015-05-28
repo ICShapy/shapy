@@ -126,7 +126,6 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
   this.gl_.drawArrays(goog.webgl.LINES, 0, this.edgeCount_);
 
-  //this.gl_.pointSize(4.0);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
   this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 48, 0);
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
