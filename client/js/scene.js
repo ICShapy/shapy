@@ -107,8 +107,6 @@ shapy.Scene.prototype.pick = function(ray) {
   });
   hits = goog.array.flatten(hits);
 
-  //console.log("Before:", hits);
-
   if (goog.array.isEmpty(hits)) {
     return null;
   }
@@ -119,14 +117,6 @@ shapy.Scene.prototype.pick = function(ray) {
     return da - db;
   }, this);
 
-  var distances = goog.array.map(hits, function(a) {
-    return goog.vec.Vec3.distance(ray.origin, a.point);
-  }, this);
-  
-  console.log(distances);
-  console.log("After:", hits);
-
-  // TODO: sort hits.
   return hits[0].item;
 };
 
