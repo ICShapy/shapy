@@ -1,7 +1,7 @@
 <div>
   <input id="browse-search" type="text" placeholder="Browse" ng-model="browserCtrl.query">
   <sh-path>
-    <div ng-repeat="asset in browserCtrl.path">
+    <div ng-repeat="asset in browserCtrl.path track by asset.id">
       <sh-path-asset ng-click="browserCtrl.assetReturnTo(asset)">
         {{asset.name}}
         <img src="/img/arrow.svg" ng-if="!$last"/>

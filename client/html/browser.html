@@ -1,7 +1,7 @@
 <div>
   <sh-sidebar>
     <script type="text/ng-template" id="directory.html">
-      <div ng-repeat="dir in directories" class="directory">
+      <div ng-repeat="dir in directories track by dir.id" class="directory">
         <span ng-init="open=false">
           <img
               ng-show="open"
@@ -41,7 +41,7 @@
     <sh-sidebar-options>
   </sh-sidebar>
   <sh-files>
-    <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query">
+    <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query track by asset.id ">
       <sh-file>
         <div ng-click="browserCtrl.assetEnter(asset)">
           <img ng-src="{{asset.image}}">
