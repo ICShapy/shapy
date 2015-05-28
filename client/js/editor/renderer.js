@@ -465,7 +465,7 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
 
   // Compute distance from the centre and pass this to the rig
   if (rig) {
-    rig.notifyDistance(goog.vec.Vec3.distance(vp.camera.eye, vp.camera.center));
+    rig.setScale(goog.vec.Vec3.distance(vp.camera.eye, vp.camera.center));
   }
 
   this.gl_.enable(goog.webgl.STENCIL_TEST);

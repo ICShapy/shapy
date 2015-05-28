@@ -40,13 +40,7 @@ shapy.editor.Rig = function(type) {
    * ensure the rig stays at a constant size depending on distance
    * @private {!number}
    */
-  this.viewScale_ = 1;
-
-  /**
-   * This is used as a cache for the scale matrix when rendering
-   * @private {!goog.vec.Mat4.Type}
-   */
-  this.viewScaleMat_ = goog.vec.Mat4.createFloat32();
+  this.size_ = 1;
 
   /**
    * @private {!goog.vec.Mat4.Type}
@@ -95,10 +89,8 @@ shapy.editor.Rig.prototype.destroy = function() {
  *
  * @param {number} distance Distance of the camera from it's focus point
  */
-shapy.editor.Rig.prototype.notifyDistance = function(distance) {
-  var scale = distance / 8;
-  this.viewScale_ = scale;
-  goog.vec.Mat4.makeScale(this.viewScaleMat_, scale, scale, scale);
+shapy.editor.Rig.prototype.setScale = function(distance) {
+  this.size_ = distance / 8;
 };
 
 

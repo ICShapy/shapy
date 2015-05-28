@@ -36,13 +36,13 @@ shapy.editor.Layout = function(viewports) {
    * Pointer to the active viewport.
    * @public {!shapy.editor.Viewport}
    */
-  this.lastHover = goog.object.getAnyValue(this.viewports);
+  this.hover = goog.object.getAnyValue(this.viewports);
 
   /**
    * Active viewport receiving keyboard events.
    * @public {!shapy.editor.Viewport}
    */
-  this.active = this.lastHover;
+  this.active = this.hover;
   this.active.active = true;
 };
 
@@ -104,15 +104,15 @@ shapy.editor.Layout.prototype.mouseMove = function(e) {
     return null;
   }
 
-  if (this.lastHover && result.vp == this.lastHover) {
-    return this.lastHover.mouseMove(result.x, result.y);
+  if (this.hover && result.vp == this.hover) {
+    return this.hover.mouseMove(result.x, result.y);
   } else {
-    if (this.lastHover) {
-      this.lastHover.mouseLeave();
+    if (this.hover) {
+      this.hover.mouseLeave();
     }
 
-    this.lastHover = result.vp;
-    this.lastHover.mouseEnter(result.x, result.y);
+    this.hover = result.vp;
+    this.hover.mouseEnter(result.x, result.y);
   }
 };
 
@@ -173,8 +173,8 @@ shapy.editor.Layout.prototype.mouseEnter = function(e) {
     return;
   }
 
-  this.lastHover = result.vp;
-  this.lastHover.mouseEnter(result.x, result.y);
+  this.hover = result.vp;
+  this.hover.mouseEnter(result.x, result.y);
 };
 
 
@@ -186,12 +186,12 @@ shapy.editor.Layout.prototype.mouseEnter = function(e) {
  * @return {goog.vec.Ray}
  */
 shapy.editor.Layout.prototype.mouseLeave = function(e) {
-  if (!this.lastHover) {
+  if (!this.hover) {
     return;
   }
 
-  var ray = this.lastHover.mouseLeave();
-  this.lastHover = null;
+  var ray = this.hover.mouseLeave();
+  this.hover = null;
   return ray;
 };
 
