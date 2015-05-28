@@ -65,6 +65,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
   this.assets = [];
 
   // Enter home folder.
+  this.shBrowser_.path = [];
   this.assetEnter(this.home);
 
   /**
@@ -109,13 +110,10 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
  * @param {!shapy.browser.Asset.Dir} dir Dir to display.
  */
 shapy.browser.BrowserController.prototype.displayDir = function(dir) {
-  // Message BrowserToolbarController that path needs to be updated with dir.
+  // Update path with dir.
   // Do not update if we entered public space.
   if (!this.public) {
-    this.rootscope_.$emit('browser', {
-        type: 'dir',
-        dir: dir
-    });
+    this.shBrowser_.path.push(dir);
   }
 
   // Query database for the contents
@@ -158,11 +156,13 @@ shapy.browser.BrowserController.prototype.publicEnter = function() {
  * @constructor
  *
  * @param {!angular.$scope} $rootScope The Angular root scope.
- * @param {!angular.$scope} $scope The current scope.
+ * @param {!shapy.browser.BrowserService} shBrowser The browser management service.
  */
-shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
+shapy.browser.BrowserToolbarController = function($rootScope, $scope, shBrowser) {
   /** @private {!angular.$scope} @const */
   this.rootscope_ = $rootScope;
+  /** @private {!shapy.browser.BrowserService} @const */
+  this.shBrowser_ = shBrowser;
   /** @public {string} @const @export */
   this.query = '';
 
@@ -174,21 +174,14 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
     });
   }, this));
 
-  /**
-   * Path to current folder
-   * @public {string}
-   * @export
-   */
-  this.path = [];
+};
 
-  // Add new dir tu current path when user requests entering further dirs.
-  $rootScope.$on('browser', goog.bind(function(name, data) {
-    switch (data['type']) {
-      case 'dir':
-        this.path.push(data['dir']);
-        break;
-    }
-  }, this));
+/**
+ * Returns path to currently browsed directory.
+ *
+ */
+shapy.browser.BrowserToolbarController.prototype.path = function() {
+  return this.shBrowser_.path;
 };
 
 /**
@@ -200,7 +193,7 @@ shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
   // Drop redundant tail of path.
   var poppedAsset;
   do {
-    poppedAsset = this.path.pop();
+    poppedAsset = this.shBrowser_.path.pop();
   } while (poppedAsset.id != asset.id);
   // Message BrowserController that user requested returning to given asset from path.
   this.rootscope_.$emit('browser', {

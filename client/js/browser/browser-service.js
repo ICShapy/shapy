@@ -32,6 +32,14 @@ shapy.browser.BrowserService = function($http, $q) {
    * @const
    */
    this.home = new shapy.browser.Asset.Dir(0, 'home');
+
+
+  /**
+   * Path to current folder
+   * @public {Array.<shapy.browser.Asset.Dir>}
+   * @export
+   */
+  this.path = [];
 };
 
 /**
