@@ -22,15 +22,15 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @param {!angular.$scope} $rootScope The Angular root scope.
  * @param {!angular.$http} $http The angular $http service.
- * @param {!shapy.AssetsService} shAssets The assets management service.
+ * @param {!shapy.browser.BrowserService} shBrowser The browser management service.
  */
-shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
+shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
   /** @private {!angular.$scope} @const */
   this.rootscope_ = $rootScope;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
-  /** @private {!angular.shAssets} @const */
-  this.shAssets_ = shAssets;
+  /** @private {!shapy.browser.BrowserService} @const */
+  this.shBrowser_ = shBrowser;
 
   /**
    * Current directory.
@@ -54,7 +54,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-  this.home = this.shAssets_.home;
+  this.home = this.shBrowser_.home;
 
   /**
    * Assets in current directory.
@@ -119,7 +119,7 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
   }
 
   // Query database for the contents
-  var promise = this.shAssets_.queryDir(dir, this.public);
+  var promise = this.shBrowser_.queryDir(dir, this.public);
   // Update assets with answer from database.
   promise.then(goog.bind(function(assets) {
     this.assets = assets;
@@ -133,7 +133,7 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
  */
 shapy.browser.BrowserController.prototype.createDir = function(name) {
   // Request addding new dir in database
-  var promise = this.shAssets_.createDir(name, this.public, this.currentDir.id);
+  var promise = this.shBrowser_.createDir(name, this.public, this.currentDir.id);
   // Update contents of current dir.
   promise.then(goog.bind(function(dir) {
     this.assets.push(dir);
