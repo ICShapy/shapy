@@ -196,7 +196,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
-  this.scene_.createCube(0.5, 0.5, 0.5);
+  this.scene_.createSphere(2.5, 8, 8);
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
 };
@@ -244,7 +244,7 @@ shapy.editor.Editor.prototype.create = function(type) {
       break;
     }
     case 'sphere': {
-      this.select(this.scene_.createSphere(0.5, 0.5, 0.5));
+      this.select(this.scene_.createSphere(0.5, 16, 16));
       break;
     }
     default: throw new Error('Invalid object type "' + type + "'");
@@ -545,8 +545,8 @@ shapy.editor.Editor.prototype.mouseLeave = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseWheel = function(e) {
-  if (this.layout_ && this.layout_.active) {
-    this.layout_.active.mouseWheel(e.originalEvent.wheelDelta);
+  if (this.layout_ && this.layout_.hover) {
+    this.layout_.hover.mouseWheel(e.originalEvent.wheelDelta);
   }
 };
 

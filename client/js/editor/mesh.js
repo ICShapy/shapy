@@ -99,16 +99,7 @@ shapy.editor.Mesh.prototype.render = function(sh) {
  * @return {!shapy.editor.Mesh}
  */
 shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
-  // If a face has more than 3 edges, triangulate by treating the face as a
-  // triangle fan primitive.
-
-  // Calculate size of the vertex buffer
-  var size = 0;
-  for (var i = 0; i < f.length; i++) {
-    // Every new vertex after 3 requires another 3 vertices in the buffer
-    // Number of vertices in a face === number of edges in a face
-    size += 3 + (f[i].length - 3) * 3;
-  }
+  var size = f.length * 3;
 
   // Allocate vertex buffer
   var d = new Float32Array(size << 4);
@@ -141,55 +132,15 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
     d[k++] = 0;
   };
 
-  // Fill out the vertex buffer
-  // Just for reference:
-  // * face[i] is the i'th edge in the face
-  // * e[face[i]] gives the pair of vertices in the i'th edge of the face
-  // * e[face[i]][0] gives the first vertex in the i'th edge of the face
+  // For each face, figure out the 3 unique vertices, and emit the vertices
   goog.array.forEach(f, function(face) {
-    // Unfortunately, this algorithm is a bit more complicated than it should be
-    // because edge i's tail doesn't necessarily points to edge i+1's head
-    var a = e[face[0]].start;
-    for (var j = 0; j < (face.length - 2); j++) { // edge ID
-      var b = e[face[j]].end;
-      var c = e[face[j + 1]].end;
+    //face = f[1];
+    var faceVertices = face.getVertices_();
 
-      // If in the first iteration, we discover that 'a' is incorrect
-      // (eg. [b, a], [b, c] or [b, a], [c, b] rather than [a, b], [b, c]) then
-      // ensure 'a' is correct before continuing.
-      if (j == 0) {
-        if (e[face[0]].start == e[face[1]].start ||
-            e[face[0]].start == e[face[1]].end)
-        {
-          a = e[face[0]].end;
-        }
-      }
-
-      // So there are 4 possible permutations of
-      // [a, b], [b, c] where one are correct and three are incorrect, so
-      // ensure that the correct values of b and c are chosen when generating
-      // the triangle of [a, b, c].
-
-      // Deal with the case [b, a], [b, c]
-      if (e[face[j]].start == e[face[j + 1]].start) {
-        b = e[face[j]].start;
-      }
-
-      // Deal with the case [b, a], [c, b]
-      if (e[face[j]].start == e[face[j + 1]].end) {
-        b = e[face[j]].start;
-        c = e[face[j + 1]].start;
-      }
-
-      // Deal with the case [a, b], [c, b]
-      if (e[face[j]].end == e[face[j + 1]].end) {
-        c = e[face[j + 1]].start;
-      }
-
-      addVertex(v[a].position, 1, 0, 0);
-      addVertex(v[b].position, 0, 1, 0);
-      addVertex(v[c].position, 0, 0, 1);
-    }
+    // Emit vertices
+    addVertex(faceVertices[0].position, 1, 0, 0);
+    addVertex(faceVertices[1].position, 0, 1, 0);
+    addVertex(faceVertices[2].position, 0, 0, 1);
   });
 
   return new shapy.editor.Mesh(gl, d, {});
