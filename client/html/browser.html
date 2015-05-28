@@ -1,26 +1,26 @@
 <div>
   <sh-sidebar>
-    <h1>Folders</h1>
-    <sh-sidebar-folders>
-      <sh-sidebar-folder>
-        <h2>home</h2>
-      </sh-sidebar-folder>
-    </sh-sidebar-folders>
-  <sh-sidebar-all>
-    <div><h1> All your scenes </h1> </div>
-    <div><h1> All your textures </h1> </div>
-    <div ng-click="browserCtrl.publicEnter()"><h1> All public files </h1> </div>
-  </sh-sidebar-all>
-  <sh-sidebar-options>
-    <div><input type="text" placeholder="Name" ng-model="browserCtrl.name"/></div>
-    <div>
-      <input type="button" value="New Folder" ng-click="browserCtrl.createDir(browserCtrl.name)"/>
-      <input type="button" value="New Scene" ng-click=""/>
-    </div>
-    </br>
-    <input type="button" value="Upload Texture" ng-click=""/>
-  <sh-sidebar-options>
 
+    <sh-sidebar-folders>
+      <ng-include
+          src="'/html/browser-dir-tree.html'"
+          ng-init="directories=browserCtrl.assets"/>
+    </sh-sidebar-folders>
+
+    <sh-sidebar-all>
+      <div><h1> All your scenes </h1> </div>
+      <div><h1> All your textures </h1> </div>
+      <div ng-click="browserCtrl.publicEnter()"><h1> All public files </h1> </div>
+    </sh-sidebar-all>
+    <sh-sidebar-options>
+      <div><input type="text" placeholder="Name" ng-model="browserCtrl.name"/></div>
+      <div>
+        <input type="button" value="New Folder" ng-click="browserCtrl.createDir(browserCtrl.name)"/>
+        <input type="button" value="New Scene" ng-click=""/>
+      </div>
+      </br>
+      <input type="button" value="Upload Texture" ng-click=""/>
+    <sh-sidebar-options>
   </sh-sidebar>
   <sh-files>
     <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query">
