@@ -312,9 +312,25 @@ shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
     p2 = this.edges[1].end;
   }
 
-  return [this.object.vertices[p0].position,
-          this.object.vertices[p1].position,
-          this.object.vertices[p2].position];
+  return [this.object.vertices[p0],
+          this.object.vertices[p1],
+          this.object.vertices[p2]];
+};
+
+
+/**
+ * Retrives the vertices forming a face.
+ *
+ * @private
+ *
+ * @param {!Array<shapy.editor.Object.Edge>}
+ */
+shapy.editor.Object.Face.prototype.getFacePositions_ = function() {
+  var vertices = this.getFaceVertices_();
+
+  return [vertices[0].position,
+          vertices[1].position,
+          vertices[2].position];
 };
 
 
@@ -324,7 +340,7 @@ shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Face.prototype.getPosition = function() {
-  var t  = this.getFaceVertices_();
+  var t  = this.getFacePositions_();
   return shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
 };
 
@@ -337,7 +353,7 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
-  var t  = this.getFaceVertices_();
+  var t  = this.getFacePositions_();
   var p0 = t[0];
   var p1 = t[1];
   var p2 = t[2];
@@ -561,7 +577,7 @@ shapy.editor.Object.prototype.pick = function(ray) {
   var faces = goog.array.filter(goog.array.map(this.faces, function(face) {
 
     // Get 3 distinct points forming the triangle.
-    var t  = face.getFaceVertices_();
+    var t  = face.getFacePositions_();
     var i = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
 
     if (!i) {
@@ -607,63 +623,6 @@ shapy.editor.Object.createPolygon = function(n, radius) {
   return new shapy.editor.Object(vertices, edges, [face]);
 };
 
-
-/**
- * Build an cube object.
- *
- * @param {string} id
- * @param {number} w
- * @param {number} h
- * @param {number} d
- *
- * @return {!shapy.editor.Object}
- */
-shapy.editor.Object.createCube = function(id, w, h, d) {
-  // Vertex layout:
-  //   4-----5
-  //  /     /|
-  // 0-----1 |
-  // | 6   | 7
-  // |     |/
-  // 2-----3
-  var vertices = [
-    [-w, +h, +d], // 0
-    [+w, +h, +d], // 1
-    [-w, -h, +d], // 2
-    [+w, -h, +d], // 3
-    [-w, +h, -d], // 4
-    [+w, +h, -d], // 5
-    [-w, -h, -d], // 6
-    [+w, -h, -d], // 7
-  ];
-
-  // Edge layout:
-  //     +--4--+
-  //   8/|7   9/5
-  //   +--0--+ |
-  //   3 +-6-1-+
-  // 11|/    |/10
-  //   +--2--+
-  var edges = [
-    [0, 1], [1, 3], [3, 2], [2, 0], // Front
-    [4, 5], [5, 7], [7, 6], [6, 4], // Back
-    [0, 4], [1, 5], [3, 7], [2, 6]  // Middle
-  ];
-
-  // Faces
-  var faces = [
-    [0, 1, 2, 3],   // +Z
-    [1, 9, 5, 10],  // +X
-    [4, 7, 6, 5],   // -Z
-    [8, 3, 11, 7],  // -X
-    [4, 9, 0, 8],   // +Y
-    [2, 10, 6, 11]  // -Y
-  ];
-
-  return new shapy.editor.Object(id, vertices, edges, faces);
-};
-
-
 /**
  * Build an cube object from triangles.
  *
@@ -674,7 +633,7 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.editor.Object.createCubeFromTriangles = function(id, w, h, d) {
+shapy.editor.Object.createCube = function(id, w, h, d) {
   // Vertex layout:
   //   4-----5
   //  /     /|
