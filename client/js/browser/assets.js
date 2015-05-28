@@ -72,12 +72,13 @@ shapy.browser.AssetsService.prototype.createDir = function(name, public, parent)
  * @
  */
 shapy.browser.AssetsService.prototype.queryDir = function(dir, public) {
-  var assets = [];
   var publicSpace = (public) ? 1 : 0;
-  this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
-      .success(function(response) {
+  return this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
+      .then(function(response) {
+        var assets = [];
+
         // Iterate over responses, convert into assets.
-        goog.array.forEach(response, function(item) {
+        goog.array.forEach(response.data, function(item) {
           switch (item['type']) {
             case 'dir':
               assets.push(new shapy.browser.Asset.Dir(
@@ -95,10 +96,12 @@ shapy.browser.AssetsService.prototype.queryDir = function(dir, public) {
               console.log('Wrong type in database!');
               break;
           }
+
         });
+
+        return assets;
       });
 
-  return assets;
 };
 
 

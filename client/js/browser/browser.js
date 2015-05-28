@@ -101,9 +101,6 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
  * @param {!shapy.browser.Asset.Dir} dir Dir to display.
  */
 shapy.browser.BrowserController.prototype.displayDir = function(dir) {
-  // Query database for the contents
-  var assets = this.shAssets_.queryDir(dir, this.public);
-
   // Message BrowserToolbarController that path needs to be updated with dir.
   // Do not update if we entered public space.
   if (!this.public) {
@@ -113,8 +110,12 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
     });
   }
 
+  // Query database for the contents
+  var promise = this.shAssets_.queryDir(dir, this.public);
   // Update assets with answer from database.
-  this.assets = assets;
+  promise.then(goog.bind(function(assets) {
+    this.assets = assets;
+  }, this));
 };
 
 /**
