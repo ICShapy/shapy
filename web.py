@@ -39,6 +39,7 @@ def main(args):
     # API handlers.
     (r'/api/user/auth',             shapy.user.AuthHandler),
     (r'/api/assets/dir/([0-9]+)',   shapy.assets.DirectoryHandler),
+    (r'/api/assets/create',         shapy.assets.AssetCreationHandler),
     (r'/api/user/auth/fb',          shapy.user.FacebookHandler),
     (r'/api/user/auth/gp',          shapy.user.GoogleHandler),
     (r'/api/user/check/([^/]+)',    shapy.user.CheckHandler),

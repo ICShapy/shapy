@@ -26,21 +26,41 @@ shapy.browser.AssetsService = function($http, $q) {
 };
 
 /**
- * Creates Asset.Dir from args and injects it into database.
+ * Creates home directory.
+ *
+ */
+shapy.browser.AssetsService.prototype.createHome = function() {
+  return new shapy.browser.Asset.Dir(0, 'home');
+}
+
+
+/**
+ * Injects new dir into databse and returns a promise with response.
  *
  * @param {string} name      Name of the directory
  * @param {boolean} public   Flag showing whether dir is publicly accessible
  * @param {Asset.Dir} parent Parent directory
  */
 shapy.browser.AssetsService.prototype.createDir = function(name, public, parent) {
-  if (name == 'home') {
-    return new shapy.browser.Asset.Dir(0, 'home');
-  } else {
-    //inject into database, obtain id
-    // TEMP:
-    id = Math.floor(Math.random() * 2000000000) + 1
-    return new shapy.browser.Asset.Dir(id, 'dir' + id);
-  }
+  var def = this.q_.defer();
+
+  // TODO: check if name unique in this dir
+
+  // Inject into database, obtain id
+  this.http_.post('/api/assets/create', {
+    name: name,
+    type: 'dir',
+    public: public,
+    parent: parent
+  })
+  .success(function(response) {
+    def.resolve(new shapy.browser.Asset.Dir(response['id'], name));
+  })
+  .error(function() {
+    def.reject();
+  });
+
+  return def.promise;
 };
 
 /**
@@ -53,25 +73,26 @@ shapy.browser.AssetsService.prototype.queryDir = function(dir) {
   assets = [];
   this.http_.get('/api/assets/dir/' + dir.id)
       .success(function(response) {
-              goog.array.forEach(response, function(item) {
-                switch (item['type']) {
-                  case 'dir'     :
-                    assets.push(new shapy.browser.Asset.Dir(item['id'],
-                                                            item['name']));
-                    break;
-                  case 'scene'   :
-                    assets.push(new shapy.browser.Asset.Scene(item['id'],
-                                                              item['name']),
-                                                              item['preview']);
-                    break;
-                  case 'texture' :
-                    assets.push(new shapy.browser.Asset.Texture(item['id'],
-                                                              item['name']),
-                                                              item['preview']);
-                    break;
-                  default        : console.log("Wrong type in database!");
-                }
-              });
+        // Iterate over responses, convert into assets.
+        goog.array.forEach(response, function(item) {
+          switch (item['type']) {
+            case 'dir'     :
+              assets.push(new shapy.browser.Asset.Dir(item['id'],
+                                                      item['name']));
+              break;
+            case 'scene'   :
+              assets.push(new shapy.browser.Asset.Scene(item['id'],
+                                                        item['name']),
+                                                        item['preview']);
+              break;
+            case 'texture' :
+              assets.push(new shapy.browser.Asset.Texture(item['id'],
+                                                        item['name']),
+                                                        item['preview']);
+              break;
+            default        : console.log("Wrong type in database!");
+          }
+        });
       });
 
   return assets;

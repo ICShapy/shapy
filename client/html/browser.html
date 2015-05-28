@@ -13,9 +13,9 @@
     <div><h1> All public files </h1> </div>
   </sh-sidebar-all>
   <sh-sidebar-options>
-    <div><input type="text" placeholder="Name"/></div>
+    <div><input type="text" placeholder="Name" ng-model="browserCtrl.name"/></div>
     <div>
-      <input type="button" value="New Folder" ng-click=""/>
+      <input type="button" value="New Folder" ng-click="browserCtrl.createDir(browserCtrl.name)"/>
       <input type="button" value="New Scene" ng-click=""/>
     </div>
     </br>

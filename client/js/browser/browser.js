@@ -33,14 +33,23 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.shAssets_ = shAssets;
 
   /**
+   * Current directory.
+   * @type {shapy.browser.Asset.Dir}
+   * @public
+   * @export
+   */
+  this.currentDir;
+
+  /**
    * Assets in current directory.
    * @type Array
    * @public
    * @export
    */
   this.assets = [];
+
   // Enter home folder.
-  this.assetEnter(this.shAssets_.createDir('home', null, null));
+  this.assetEnter(this.shAssets_.createHome());
 
   /**
    * Query from user filtering results.
@@ -70,7 +79,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
  */
 shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
   switch (asset.type) {
-    case 'dir' :   this.displayDir(asset); break;
+    case 'dir' :   this.displayDir(asset); this.currentDir = asset; break;
     default    :   console.log("assetEnter - unimplemented case!");
   }
 };
@@ -79,9 +88,8 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
  * Displays content of given dir.
  *
  * @param {!shapy.browser.Asset.Dir} dir Dir to display.
- * @param {Array.<!shapy.browser.Asset>} assets Assets that are contained in this dir.
  */
-shapy.browser.BrowserController.prototype.displayDir = function(dir, assets) {
+shapy.browser.BrowserController.prototype.displayDir = function(dir) {
   // Query database for the contents
   assets = this.shAssets_.queryDir(dir);
 
@@ -93,6 +101,20 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir, assets) {
 
   // Update assets with answer from database.
   this.assets = assets;
+};
+
+/**
+ * Creates new subdir in current dir.
+ *
+ * @param {string} name Name od directory to create,
+ */
+shapy.browser.BrowserController.prototype.createDir = function(name) {
+  // Request addding new dir in database
+  promise = this.shAssets_.createDir(name, false, this.currentDir.id);
+  // Update contents of current dir.
+  promise.then(function(dir) {
+    this.assets.push(dir);
+  });
 };
 
 

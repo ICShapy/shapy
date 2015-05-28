@@ -22,7 +22,8 @@ class DirectoryHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'User not logged in.')
 
-    # Check if request is valid
+    # Check if request is valid - can only browse home ('0')
+    # or existing dir.
     if assetNumber != '0':
       cursor = yield momoko.Op(self.db.execute,
           '''SELECT 1
@@ -36,22 +37,13 @@ class DirectoryHandler(APIHandler):
 
 
     # Fetch data from the database.
-    if assetNumber == '0':
-      cursor = yield momoko.Op(self.db.execute,
-          '''SELECT id, name, type, preview
-             FROM assets
-             WHERE parent is NULL
-             AND owner = %s
-             ''',
-           (user.id,))
-    else:
-      cursor = yield momoko.Op(self.db.execute,
-          '''SELECT id, name, type, preview
-             FROM assets
-             WHERE parent = %s
-             AND owner = %s
-             ''',
-         (assetNumber, user.id))
+    cursor = yield momoko.Op(self.db.execute,
+        '''SELECT id, name, type, preview
+           FROM assets
+           WHERE parent = %s
+           AND owner = %s
+           ''',
+       (assetNumber, user.id))
 
     # Return json with answer
     self.write(json.dumps([
@@ -65,3 +57,52 @@ class DirectoryHandler(APIHandler):
     ]))
 
     self.finish()
+
+
+
+class AssetCreationHandler(APIHandler):
+  """Handles requests to the REST API."""
+
+  @session
+  @coroutine
+  @asynchronous
+  def post(self, user):
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+
+    # Retrieve asset data.
+    req     = json.loads(self.request.body)
+    name    = req['name'] if 'name' in req else None
+    type    = req['type'] if 'type' in req else None
+    data    = req['data'] if 'data' in req else None
+    preview = req['preview'] if 'preview' in req else None
+    public  = req['public'] if 'public' in req else None
+    parent  = req['parent'] if 'parent' in req else None
+
+    # Check if required data specified
+    if not name or not type or public is None or parent is None:
+      raise HTTPError(400, 'Missing asset data, cannot create asset.')
+
+    # Create new account - store in database
+    cursor = yield momoko.Op(self.db.execute,
+        '''INSERT INTO assets (id, name, type, data, preview, public, owner, parent)
+           VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s)
+           RETURNING id''', (
+           name, 
+           type, 
+           data, 
+           preview, 
+           public, 
+           user.id, 
+           parent
+    ))
+
+    # Check if the user was created successfully.
+    asset = cursor.fetchone()
+    if not asset:
+      raise HTTPError(400, 'Asset creation failed.')
+
+    #return id
+    self.write(json.dumps({ 'id' : asset[0]}))
+    self.finish()
+
