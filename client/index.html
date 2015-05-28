@@ -56,21 +56,44 @@
       goog.addDependency('../editor/geom.js', [
           'shapy.editor.geom'
       ], []);
+      goog.addDependency('../editor/layout.js', [
+          'shapy.editor.Layout',
+          'shapy.editor.Layout.Single',
+          'shapy.editor.Layout.Double',
+          'shapy.editor.Layout.Quad'
+      ], []);
       goog.addDependency('../editor/mesh.js', [
           'shapy.editor.Mesh'
       ], []);
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
-      ], []);
+      ], [
+          'shapy.editor.geom'
+      ]);
       goog.addDependency('../editor/renderer.js', [
           'shapy.editor.Renderer'
       ], []);
       goog.addDependency('../editor/rig.js', [
-          'shapy.editor.Rig',
-          'shapy.editor.Rig.Translate',
-          'shapy.editor.Rig.Rotate',
-          'shapy.editor.Rig.Scale'
+          'shapy.editor.Rig'
       ], []);
+      goog.addDependency('../editor/rig-rotate.js', [
+          'shapy.editor.Rig.Rotate'
+      ], [
+          'shapy.editor.geom',
+          'shapy.editor.Rig'
+      ]);
+      goog.addDependency('../editor/rig-scale.js', [
+          'shapy.editor.Rig.Scale'
+      ], [
+          'shapy.editor.geom',
+          'shapy.editor.Rig'
+      ]);
+      goog.addDependency('../editor/rig-translate.js', [
+          'shapy.editor.Rig.Translate'
+      ], [
+          'shapy.editor.geom',
+          'shapy.editor.Rig'
+      ]);
       goog.addDependency('../editor/shader.js', [
           'shapy.editor.Shader'
       ], []);

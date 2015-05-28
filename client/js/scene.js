@@ -117,7 +117,6 @@ shapy.Scene.prototype.pick = function(ray) {
     return da - db;
   }, this);
 
-  // TODO: sort hits.
   return hits[0].item;
 };
 
@@ -143,12 +142,14 @@ shapy.Scene.prototype.createCube = function(w, h, d) {
  * Creates a new object, adding it to the scene.
  *
  * @param {number} r
+ * @param {number} slices
+ * @param {number} stacks
  *
  * @return {!shapy.editor.Object}
  */
-shapy.Scene.prototype.createSphere = function(r) {
+shapy.Scene.prototype.createSphere = function(r, slices, stacks) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createSphere(id, r);
+  var object = shapy.editor.Object.createSphere(id, r, slices, stacks);
   this.objects[id] = object;
   return object;
 };
