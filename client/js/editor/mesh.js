@@ -126,9 +126,9 @@ shapy.editor.Mesh.prototype.free = function() {
     this.gl_.deleteBuffer(this.edges_);
     this.edges_ = null;
   }
-  if (this.vertices_) {
-    this.gl_.deleteBuffer(this.vertices_);
-    this.vertices_ = null;
+  if (this.verts_) {
+    this.gl_.deleteBuffer(this.verts_);
+    this.verts_ = null;
   }
 };
 
