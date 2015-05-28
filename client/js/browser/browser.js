@@ -3,10 +3,10 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.browser.BrowserController');
 goog.provide('shapy.browser.BrowserToolbarController');
-goog.provide('shapy.browser.sidebar');
-goog.provide('shapy.browser.files');
 goog.provide('shapy.browser.file');
 goog.provide('shapy.browser.fileMatch');
+goog.provide('shapy.browser.files');
+goog.provide('shapy.browser.sidebar');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Asset.Dir');
@@ -38,7 +38,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @public
    * @export
    */
-  this.currentDir;
+  this.currentDir = null;
 
   /**
    * Type of current directory.
@@ -49,6 +49,14 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.public = false;
 
   /**
+   * Home dir.
+   *
+   * @public {!shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.home = this.shAssets_.home;
+
+  /**
    * Assets in current directory.
    * @type Array
    * @public
@@ -57,7 +65,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.assets = [];
 
   // Enter home folder.
-  this.assetEnter(this.shAssets_.home);
+  this.assetEnter(this.home);
 
   /**
    * Query from user filtering results.
@@ -68,14 +76,12 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
 
   $rootScope.$on('browser', goog.bind(function(name, data) {
     switch (data['type']) {
-      case 'query': {
+      case 'query':
         this.query = data['query'];
         break;
-      }
-      case 'pathAsset': {
+      case 'pathAsset':
         this.assetEnter(data['asset']);
         break;
-      }
     }
   }, this));
 };
@@ -87,13 +93,13 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
  */
 shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
   switch (asset.type) {
-    case 'dir' : 
+    case 'dir' :
       this.public = false;
       this.currentDir = asset;
       this.displayDir(asset);
       break;
-    default    :   
-      console.log("assetEnter - unimplemented case!");
+    default :
+      console.log('assetEnter - unimplemented case!');
   }
 };
 
@@ -103,9 +109,6 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
  * @param {!shapy.browser.Asset.Dir} dir Dir to display.
  */
 shapy.browser.BrowserController.prototype.displayDir = function(dir) {
-  // Query database for the contents
-  assets = this.shAssets_.queryDir(dir, this.public);
-
   // Message BrowserToolbarController that path needs to be updated with dir.
   // Do not update if we entered public space.
   if (!this.public) {
@@ -115,8 +118,12 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
     });
   }
 
+  // Query database for the contents
+  var promise = this.shAssets_.queryDir(dir, this.public);
   // Update assets with answer from database.
-  this.assets = assets;
+  promise.then(goog.bind(function(assets) {
+    this.assets = assets;
+  }, this));
 };
 
 /**
@@ -126,11 +133,11 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
  */
 shapy.browser.BrowserController.prototype.createDir = function(name) {
   // Request addding new dir in database
-  promise = this.shAssets_.createDir(name, this.public, this.currentDir.id);
+  var promise = this.shAssets_.createDir(name, this.public, this.currentDir.id);
   // Update contents of current dir.
-  promise.then(function(dir) {
+  promise.then(goog.bind(function(dir) {
     this.assets.push(dir);
-  });
+  }, this));
 };
 
 /**
@@ -139,9 +146,9 @@ shapy.browser.BrowserController.prototype.createDir = function(name) {
  */
 shapy.browser.BrowserController.prototype.publicEnter = function() {
   this.public = true;
-  this.currentDir = this.shAssets_.home;
-  this.displayDir(this.shAssets_.home);
-}
+  this.currentDir = this.home;
+  this.displayDir(this.home);
+};
 
 
 
@@ -164,7 +171,7 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
     $rootScope.$emit('browser', {
       type: 'query',
       query: this.query
-    })
+    });
   }, this));
 
   /**
@@ -177,10 +184,9 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
   // Add new dir tu current path when user requests entering further dirs.
   $rootScope.$on('browser', goog.bind(function(name, data) {
     switch (data['type']) {
-      case 'dir': {
+      case 'dir':
         this.path.push(data['dir']);
         break;
-      }
     }
   }, this));
 };
@@ -194,7 +200,7 @@ shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
   // Drop redundant tail of path.
   var poppedAsset;
   do {
-    poppedAsset = this.path.pop()
+    poppedAsset = this.path.pop();
   } while (poppedAsset.id != asset.id);
   // Message BrowserController that user requested returning to given asset from path.
   this.rootscope_.$emit('browser', {

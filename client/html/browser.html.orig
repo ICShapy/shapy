@@ -5,12 +5,17 @@
       <button class="right"><img src="/img/arrow-right.svg"/></button>
     </div>
     <script type="text/ng-template" id="directory.html">
-      <div ng-repeat="dir in directories track by dir.id" class="directory">
+<<<<<<< HEAD
+      <div ng-repeat="dir in directories" class="directory">
         <span
             ng-init="open=false"
             ng-click="open=!open"
             ng-class="{open: open}"
             class="name" >
+=======
+      <div ng-repeat="dir in directories track by dir.id" class="directory">
+        <span ng-init="open=false">
+>>>>>>> 2dff2020ee081f64a8edd88da98a24855af2892e
           <img
               class="down"
               ng-show="open"
