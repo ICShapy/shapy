@@ -343,7 +343,6 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
  */
 shapy.editor.Renderer.prototype.start = function() {
   this.gl_.clearColor(0.9, 0.9, 0.9, 1);
-  //this.gl_.stencilMask(0xFF);
   this.gl_.clear(
     goog.webgl.COLOR_BUFFER_BIT |
     goog.webgl.DEPTH_BUFFER_BIT |
@@ -356,7 +355,7 @@ shapy.editor.Renderer.prototype.start = function() {
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
-shapy.editor.Renderer.prototype.renderObjects = function(vp, objects) {
+shapy.editor.Renderer.prototype.renderObjects = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
@@ -463,6 +462,11 @@ shapy.editor.Renderer.prototype.renderCamCube = function(vp) {
 shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+
+  // Compute distance from the centre and pass this to the rig
+  if (rig) {
+    rig.notifyDistance(goog.vec.Vec3.distance(vp.camera.eye, vp.camera.center));
+  }
 
   this.gl_.enable(goog.webgl.STENCIL_TEST);
   {
