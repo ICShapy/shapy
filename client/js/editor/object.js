@@ -610,6 +610,7 @@ shapy.editor.Object.createPolygon = function(n, radius) {
   return new shapy.editor.Object(vertices, edges, [face]);
 };
 
+
 /**
  * Build an cube object from triangles.
  *
@@ -660,19 +661,62 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
 
   // Faces
   var faces = [
-    [0, 1, 12],     // +Z
-    [2, 3, 12],     // +Z
-    [1, 9, 13],     // +X
-    [5, 10, 13],    // +X
-    [4, 7, 14],     // -Z
-    [6, 5, 14],     // -Z
-    [8, 3, 15],     // -X
-    [11, 7, 15],    // -X
-    [4, 9, 16],     // +Y
-    [0, 8, 16],     // +Y
-    [2, 10, 17],    // -Y
-    [6, 11, 17]     // -Y
+    [0, 1, 12], [2, 3, 12],     // +Z
+    [1, 9, 13], [5, 10, 13],    // +X
+    [4, 7, 14], [6, 5, 14],     // -Z
+    [8, 3, 15], [11, 7, 15],    // -X
+    [4, 9, 16],  [0, 8, 16],    // +Y
+    [2, 10, 17], [6, 11, 17]    // -Y
   ];
+
+  return new shapy.editor.Object(id, vertices, edges, faces);
+};
+
+
+/**
+ * Build an cube object from triangles.
+ *
+ * @param {string} id
+ * @param {number} r
+ * @param {number} slices
+ * @param {number} stacks
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
+  var vertices = [], edges = [], faces = [];
+
+  // Create all vertices.
+  var dPhi = Math.PI / stacks, dTheta = 2 * Math.PI / slices;
+  for (var i = 0; i < stacks; ++i) {
+    var phi = Math.PI / 2.0 - dPhi * i;
+    for (var j = 0; j < slices; ++j) {
+      var theta = dTheta * j;
+      vertices.push([
+        r * Math.cos(phi) * Math.sin(theta),
+        r * Math.sin(phi),
+        r * Math.cos(phi) * Math.cos(theta)
+      ]);
+
+
+      var v00 = (i + 0) % stacks * slices + (j + 0) % slices;
+      var v01 = (i + 0) % stacks * slices + (j + 1) % slices;
+      var v10 = (i + 1) % stacks * slices + (j + 0) % slices;
+      var v11 = (i + 1) % stacks * slices + (j + 1) % slices;
+
+      edges.push([v00, v01]);
+      edges.push([v01, v11]);
+      edges.push([v11, v00]);
+      edges.push([v00, v11]);
+      edges.push([v11, v10]);
+      edges.push([v10, v00]);
+
+      var e = (i * slices + j) * 6;
+      faces.push([e + 0, e + 1, e + 2]);
+      faces.push([e + 3, e + 4, e + 5]);
+    }
+  }
+  console.log(stacks, slices);
 
   return new shapy.editor.Object(id, vertices, edges, faces);
 };
