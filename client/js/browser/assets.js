@@ -24,10 +24,10 @@ shapy.browser.AssetsService = function($http, $q) {
   /** @private {!angular.$q} @const */
   this.q_ = $q;
 
-  /** 
-   * Home dir. 
+  /**
+   * Home dir.
    *
-   * @public {!shapy.browser.Asset.Dir} 
+   * @public {!shapy.browser.Asset.Dir}
    * @const
    */
    this.home = new shapy.browser.Asset.Dir(0, 'home');
@@ -68,30 +68,36 @@ shapy.browser.AssetsService.prototype.createDir = function(name, public, parent)
  *
  * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
  * @param {boolean} public Type of directory to query.
+ *
+ * @
  */
 shapy.browser.AssetsService.prototype.queryDir = function(dir, public) {
-  publicSpace = (public) ? 1 : 0;
-  assets = [];
+  var assets = [];
+  var publicSpace = (public) ? 1 : 0;
   this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
       .success(function(response) {
         // Iterate over responses, convert into assets.
         goog.array.forEach(response, function(item) {
           switch (item['type']) {
-            case 'dir'     :
-              assets.push(new shapy.browser.Asset.Dir(item['id'],
-                                                      item['name']));
+            case 'dir': {
+              assets.push(new shapy.browser.Asset.Dir(
+                  item['id'], item['name']));
               break;
-            case 'scene'   :
-              assets.push(new shapy.browser.Asset.Scene(item['id'],
-                                                        item['name']),
-                                                        item['preview']);
+            }
+            case 'scene': {
+              assets.push(new shapy.browser.Asset.Scene(
+                  item['id'], item['name']), item['preview']);
               break;
-            case 'texture' :
-              assets.push(new shapy.browser.Asset.Texture(item['id'],
-                                                        item['name']),
-                                                        item['preview']);
+            }
+            case 'texture': {
+              assets.push(new shapy.browser.Asset.Texture(
+                  item['id'], item['name']), item['preview']);
               break;
-            default        : console.log("Wrong type in database!");
+            }
+            default: {
+              console.log("Wrong type in database!");
+              break;
+            }
           }
         });
       });
