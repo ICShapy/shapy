@@ -18,9 +18,16 @@ class DirectoryHandler(APIHandler):
   @session
   @coroutine
   @asynchronous
-  def get(self, assetNumber, user):
+  def get(self, assetNumber, public, user):
     if not user:
       raise HTTPError(401, 'User not logged in.')
+
+    # Convert from binary
+    public = (public == 1)
+
+    # Check if public space queried correctly
+    if public and assetNumber != '0':
+      raise HTTPError(400, 'There are no subdirs in public space.')
 
     # Check if request is valid - can only browse home ('0')
     # or existing dir.
@@ -30,8 +37,9 @@ class DirectoryHandler(APIHandler):
              FROM assets
              WHERE id = %s
              AND owner = %s
+             AND public = %s
              ''',
-          (assetNumber, user.id))
+          (assetNumber, user.id, public))
       if not cursor.fetchone():
         raise HTTPError(400, 'Illegal request for assets.')
 
@@ -42,8 +50,9 @@ class DirectoryHandler(APIHandler):
            FROM assets
            WHERE parent = %s
            AND owner = %s
+           AND public = %s
            ''',
-       (assetNumber, user.id))
+       (assetNumber, user.id, public))
 
     # Return json with answer
     self.write(json.dumps([

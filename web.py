@@ -38,7 +38,7 @@ def main(args):
   app = tornado.web.Application([
     # API handlers.
     (r'/api/user/auth',             shapy.user.AuthHandler),
-    (r'/api/assets/dir/([0-9]+)',   shapy.assets.DirectoryHandler),
+    (r'/api/assets/dir/([0-9]+)/([0-1])',   shapy.assets.DirectoryHandler),
     (r'/api/assets/create',         shapy.assets.AssetCreationHandler),
     (r'/api/user/auth/fb',          shapy.user.FacebookHandler),
     (r'/api/user/auth/gp',          shapy.user.GoogleHandler),

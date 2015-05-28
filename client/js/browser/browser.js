@@ -41,6 +41,14 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.currentDir;
 
   /**
+   * Type of current directory.
+   * @type {boolean}
+   * @public
+   * @export
+   */
+  this.public = false;
+
+  /**
    * Assets in current directory.
    * @type Array
    * @public
@@ -49,7 +57,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.assets = [];
 
   // Enter home folder.
-  this.assetEnter(this.shAssets_.createHome());
+  this.assetEnter(this.shAssets_.home);
 
   /**
    * Query from user filtering results.
@@ -79,8 +87,13 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
  */
 shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
   switch (asset.type) {
-    case 'dir' :   this.displayDir(asset); this.currentDir = asset; break;
-    default    :   console.log("assetEnter - unimplemented case!");
+    case 'dir' : 
+      this.public = false;
+      this.currentDir = asset;
+      this.displayDir(asset);
+      break;
+    default    :   
+      console.log("assetEnter - unimplemented case!");
   }
 };
 
@@ -91,13 +104,16 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
  */
 shapy.browser.BrowserController.prototype.displayDir = function(dir) {
   // Query database for the contents
-  assets = this.shAssets_.queryDir(dir);
+  assets = this.shAssets_.queryDir(dir, this.public);
 
   // Message BrowserToolbarController that path needs to be updated with dir.
-  this.rootscope_.$emit('browser', {
-      type: 'dir',
-      dir: dir
-  });
+  // Do not update if we entered public space.
+  if (!this.public) {
+    this.rootscope_.$emit('browser', {
+        type: 'dir',
+        dir: dir
+    });
+  }
 
   // Update assets with answer from database.
   this.assets = assets;
@@ -110,12 +126,22 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
  */
 shapy.browser.BrowserController.prototype.createDir = function(name) {
   // Request addding new dir in database
-  promise = this.shAssets_.createDir(name, false, this.currentDir.id);
+  promise = this.shAssets_.createDir(name, this.public, this.currentDir.id);
   // Update contents of current dir.
   promise.then(function(dir) {
     this.assets.push(dir);
   });
 };
+
+/**
+ * Enters public assets space.
+ *
+ */
+shapy.browser.BrowserController.prototype.publicEnter = function() {
+  this.public = true;
+  this.currentDir = this.shAssets_.home;
+  this.displayDir(this.shAssets_.home);
+}
 
 
 
