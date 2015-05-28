@@ -310,9 +310,11 @@ shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
     p2 = this.edges[1].end;
   }
 
-  return [this.object.vertices[p0],
-          this.object.vertices[p1],
-          this.object.vertices[p2]];
+  return [
+      this.object.vertices[p0],
+      this.object.vertices[p1],
+      this.object.vertices[p2]
+  ];
 };
 
 
@@ -325,15 +327,11 @@ shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
  */
 shapy.editor.Object.Face.prototype.getFacePositions_ = function() {
   var vertices = this.getFaceVertices_();
-  var p0 = goog.vec.Vec3.createFloat32();
-  var p1 = goog.vec.Vec3.createFloat32();
-  var p2 = goog.vec.Vec3.createFloat32();
-
-  goog.vec.Mat4.multVec3(this.object.model_, vertices[0].position, p0);
-  goog.vec.Mat4.multVec3(this.object.model_, vertices[1].position, p1);
-  goog.vec.Mat4.multVec3(this.object.model_, vertices[2].position, p2);
-
-  return [p0, p1, p2];
+  return [
+      vertices[0].position,
+      vertices[1].position,
+      vertices[2].position
+  ];
 };
 
 
@@ -345,7 +343,7 @@ shapy.editor.Object.Face.prototype.getFacePositions_ = function() {
 shapy.editor.Object.Face.prototype.getPosition = function() {
   var t  = this.getFacePositions_();
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
-  //goog.vec.Mat4.multVec3(this.object.model_, c, c);
+  goog.vec.Mat4.multVec3(this.object.model_, c, c);
   return c;
 };
 
@@ -365,18 +363,14 @@ shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
   var c  = shapy.editor.geom.getCentroid(p0, p1, p2);
 
   // Get the translation vector.
-  var d  = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.setFromValues(d, x - c[0], y - c[1], z - c[2]);
+  var d  = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+  goog.vec.Mat4.multVec3(this.object.invModel_, d, d);
+  goog.vec.Vec3.subtract(d, c, d);
 
   // Adjust the points.
   goog.vec.Vec3.add(p0, d, p0);
-  goog.vec.Mat4.multVec3(this.object.invModel_, p0, p0);
-
   goog.vec.Vec3.add(p1, d, p1);
-  goog.vec.Mat4.multVec3(this.object.invModel_, p1, p1);
-
   goog.vec.Vec3.add(p2, d, p2);
-  goog.vec.Mat4.multVec3(this.object.invModel_, p2, p2);
 
   this.object.dirtyMesh = true;
 };
@@ -532,6 +526,12 @@ shapy.editor.Object.prototype.pick = function(ray) {
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
   var r = new goog.vec.Ray(q, v);
 
+  var toWorldCoords = function(pm, m) {
+    var pw = goog.vec.Vec3.createFloat32();
+    goog.vec.Mat4.multVec3(m, pm, pw);
+    return pw;
+  };
+
   // Find all intersecting vertices.
   var verts = goog.array.filter(goog.array.map(this.vertices, function(vert) {
     goog.vec.Vec3.subtract(vert.position, q, u);
@@ -542,7 +542,7 @@ shapy.editor.Object.prototype.pick = function(ray) {
 
     return {
       item: vert,
-      point: vert.position
+      point: toWorldCoords(vert.position, vert.object.model_)
     };
   }, this), goog.isDefAndNotNull);
 
@@ -559,14 +559,12 @@ shapy.editor.Object.prototype.pick = function(ray) {
 
     return {
       item: edge,
-      point: c.p0
+      point: toWorldCoords(c.p0, edge.object.model_)
     };
   }, this), goog.isDefAndNotNull);
 
   // Find all intersecting faces.
   var faces = goog.array.filter(goog.array.map(this.faces, function(face) {
-
-    // Get 3 distinct points forming the triangle.
     var t  = face.getFacePositions_();
     var i = shapy.editor.geom.intersectTriangle(r, t[0], t[1], t[2]);
 
@@ -576,7 +574,7 @@ shapy.editor.Object.prototype.pick = function(ray) {
 
     return {
       item: face,
-      point: i
+      point: toWorldCoords(i, face.object.model_)
     };
   }, this), goog.isDefAndNotNull);
 
@@ -594,7 +592,7 @@ shapy.editor.Object.prototype.pick = function(ray) {
  * @return {!shapy.editor.Object}
  */
 shapy.editor.Object.createPolygon = function(n, radius) {
-  // A polygon is a circle divided into 'n' vertices
+  // A polygon is a circle divided into 'n'
   var vertices = [];
   var edges = [];
   var face = [];
