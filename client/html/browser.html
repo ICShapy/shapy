@@ -1,8 +1,13 @@
 <div>
   <sh-sidebar>
-    <div class="create">
+    <div class="create" ng-init="show=false">
       <button class="left">NEW SCENE</button>
-      <button class="right"><img src="/img/arrow-right.svg"/></button>
+      <button class="right" ng-click="show=!show"><img src="/img/arrow-right.svg"/></button>
+      <ul class="menu" ng-show="show">
+        <li ng-click="show=false;" >Scene</li>
+        <li ng-click="show=false;" >Folder</li>
+        <li ng-click="show=false;" >Image</li>
+      </ul>
     </div>
     <script type="text/ng-template" id="directory.html">
       <div ng-repeat="dir in directories track by dir.id" class="directory">

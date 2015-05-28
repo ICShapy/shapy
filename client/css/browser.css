@@ -6,6 +6,7 @@ sh-sidebar {
   bottom: 0;
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
+  z-index: 1000;
 }
 
 sh-sidebar .create img {
@@ -14,12 +15,44 @@ sh-sidebar .create img {
 }
 
 sh-sidebar .create {
+  position: relative;
   height: 28px;
   padding: 7px 0px 7px 0px;
   margin-left: auto;
   margin-right: auto;
   width: 119px;
 }
+
+sh-sidebar ul.menu {
+  position: absolute;
+  top: 18px; left: 98px;
+  width: 100px;
+  border: 1px solid #222222;
+  box-shadow: 1px 1px 1px #777777;
+  background-color: #eeeeee;
+}
+
+sh-sidebar ul.menu {
+  list-style-type: none;
+  padding: 0;
+}
+
+sh-sidebar ul.menu li {
+  padding: 5px;
+  margin: 0;
+  cursor: pointer;
+}
+
+sh-sidebar ul.menu li:hover {
+  background-color: #ccc;
+}
+
+sh-sidebar ul.menu li:active {
+  background-color: #bbb;
+}
+
+
+
 
 sh-sidebar .create > button {
   display: block;
