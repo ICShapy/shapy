@@ -545,8 +545,8 @@ shapy.editor.Editor.prototype.mouseLeave = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseWheel = function(e) {
-  if (this.layout_ && this.layout_.active) {
-    this.layout_.active.mouseWheel(e.originalEvent.wheelDelta);
+  if (this.layout_ && this.layout_.hover) {
+    this.layout_.hover.mouseWheel(e.originalEvent.wheelDelta);
   }
 };
 
