@@ -1,11 +1,11 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.browser.AssetsService');
 goog.provide('shapy.browser.Asset');
 goog.provide('shapy.browser.Asset.Dir');
 goog.provide('shapy.browser.Asset.Scene');
 goog.provide('shapy.browser.Asset.Texture');
+goog.provide('shapy.browser.AssetsService');
 
 
 
@@ -79,25 +79,21 @@ shapy.browser.AssetsService.prototype.queryDir = function(dir, public) {
         // Iterate over responses, convert into assets.
         goog.array.forEach(response, function(item) {
           switch (item['type']) {
-            case 'dir': {
+            case 'dir':
               assets.push(new shapy.browser.Asset.Dir(
                   item['id'], item['name']));
               break;
-            }
-            case 'scene': {
+            case 'scene':
               assets.push(new shapy.browser.Asset.Scene(
                   item['id'], item['name']), item['preview']);
               break;
-            }
-            case 'texture': {
+            case 'texture':
               assets.push(new shapy.browser.Asset.Texture(
                   item['id'], item['name']), item['preview']);
               break;
-            }
-            default: {
-              console.log("Wrong type in database!");
+            default:
+              console.log('Wrong type in database!');
               break;
-            }
           }
         });
       });
@@ -158,7 +154,7 @@ shapy.browser.Asset = function(id, name, type, image) {
  * @param {string} name  Name of the asset.
  */
 shapy.browser.Asset.Dir = function(id, name) {
-  shapy.browser.Asset.call(this, id, name, 'dir', "/img/folder.png");
+  shapy.browser.Asset.call(this, id, name, 'dir', '/img/folder.png');
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
 
