@@ -727,11 +727,12 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
  * @return {!shapy.editor.Object}
  */
 shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
-  var vertices = [], edges = [], faces = [];
+  var vertices = [], edges = [], faces = [], k = 0;
 
   // Create all vertices.
   var dPhi = Math.PI / stacks, dTheta = 2 * Math.PI / slices;
-  for (var i = 0; i <= stacks; ++i) {
+  vertices.push([0, r, 0]);
+  for (var i = 1; i < stacks; ++i) {
     var phi = Math.PI / 2.0 - dPhi * i;
     for (var j = 0; j < slices; ++j) {
       var theta = dTheta * j;
@@ -742,13 +743,25 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
       ]);
     }
   }
+  vertices.push([0, -r, 0]);
 
-  for (var i = 0; i < stacks; ++i) {
-    for (var j = 0; j < slices; ++j) {
-      var v00 = (i + 0) * slices + (j + 0) % slices;
-      var v01 = (i + 0) * slices + (j + 1) % slices;
-      var v10 = (i + 1) * slices + (j + 0) % slices;
-      var v11 = (i + 1) * slices + (j + 1) % slices;
+  for (var j = 0; j < slices; ++j, k += 3) {
+    var v00 = 0;
+    var v01 = 1 + j;
+    var v10 = 1 + (j + 1) % slices;
+
+    edges.push([v00, v01]);
+    edges.push([v01, v10]);
+    edges.push([v10, v00]);
+    faces.push([k + 0, k + 1, k + 2]);
+  }
+
+  for (var i = 1; i < stacks - 1; ++i) {
+    for (var j = 0; j < slices; ++j, k += 6) {
+      var v00 = 1 + (i - 1) * slices + (j + 0) % slices;
+      var v01 = 1 + (i - 1) * slices + (j + 1) % slices;
+      var v10 = 1 + (i - 0) * slices + (j + 0) % slices;
+      var v11 = 1 + (i - 0) * slices + (j + 1) % slices;
 
       edges.push([v00, v01]);
       edges.push([v01, v11]);
@@ -757,10 +770,20 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
       edges.push([v11, v10]);
       edges.push([v10, v00]);
 
-      var e = (i * slices + j) * 6;
-      faces.push([e + 0, e + 1, e + 2]);
-      faces.push([e + 3, e + 4, e + 5]);
+      faces.push([k + 0, k + 1, k + 2]);
+      faces.push([k + 3, k + 4, k + 5]);
     }
+  }
+
+  for (var j = 0; j < slices; ++j, k += 3) {
+    var v00 = 1 + (stacks - 1) * slices;
+    var v01 = 1 + (stacks - 2) * slices + j;
+    var v10 = 1 + (stacks - 2) * slices + (j + 1) % slices;
+
+    edges.push([v00, v01]);
+    edges.push([v01, v10]);
+    edges.push([v10, v00]);
+    faces.push([k + 0, k + 1, k + 2]);
   }
 
   return new shapy.editor.Object(id, vertices, edges, faces);
