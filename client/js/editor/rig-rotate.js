@@ -96,7 +96,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
   // Y ring.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
-  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
+  goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
@@ -109,7 +109,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
   // X ring.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
-  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
+  goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
@@ -123,7 +123,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
   // Z ring.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
-  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
+  goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
   goog.vec.Mat4.rotateX(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.z) {
@@ -140,7 +140,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
     var r = (1.0 - shapy.editor.Rig.Rotate.RADIUS);
     gl.lineWidth(2.0);
     goog.vec.Mat4.makeIdentity(this.model_);
-    goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
+    goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
     sh.uniformMat4x4('u_model', this.model_);
 
     var tmp = gl.createBuffer();
@@ -204,7 +204,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
     }
 
     goog.vec.Mat4.makeIdentity(this.model_);
-    goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
+    goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
     sh.uniformMat4x4('u_model', this.model_);
     gl.bufferData(goog.webgl.ARRAY_BUFFER, data, goog.webgl.STREAM_DRAW);
     sh.uniform4f('u_colour', 0.0, 0.0, 0.0, 1.0);
@@ -233,9 +233,9 @@ shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
   // TODO(David): Wtf is happening here?!
   goog.vec.Vec3.subtract(cursor, pos, cursor);
   d = goog.vec.Vec3.magnitude(cursor);
-  if (d < this.viewScale_) {
+  if (d < this.size_) {
     r = 1.0 - shapy.editor.Rig.Rotate.RADIUS;
-    goog.vec.Vec3.scale(cursor, r / d * this.viewScale_, cursor);
+    goog.vec.Vec3.scale(cursor, r / d * this.size_, cursor);
   }
 
   goog.vec.Vec3.add(pos, cursor, cursor);
@@ -260,14 +260,14 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
   var iz = shapy.editor.geom.intersectPlane(ray, [0, 0, 1], position);
 
   // Find distance between center and intersection point.
-  var cx = goog.vec.Vec3.distance(ix, position) / this.viewScale_;
-  var cy = goog.vec.Vec3.distance(iy, position) / this.viewScale_;
-  var cz = goog.vec.Vec3.distance(iz, position) / this.viewScale_;
+  var cx = goog.vec.Vec3.distance(ix, position) / this.size_;
+  var cy = goog.vec.Vec3.distance(iy, position) / this.size_;
+  var cz = goog.vec.Vec3.distance(iz, position) / this.size_;
 
   // Find distance to intersection points.
-  var ex = goog.vec.Vec3.distance(ix, ray.origin) / this.viewScale_;
-  var ey = goog.vec.Vec3.distance(iy, ray.origin) / this.viewScale_;
-  var ez = goog.vec.Vec3.distance(iz, ray.origin) / this.viewScale_;
+  var ex = goog.vec.Vec3.distance(ix, ray.origin) / this.size_;
+  var ey = goog.vec.Vec3.distance(iy, ray.origin) / this.size_;
+  var ez = goog.vec.Vec3.distance(iz, ray.origin) / this.size_;
 
   // Choose the best match - closest to origin.
   var hits = [
