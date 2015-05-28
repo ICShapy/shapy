@@ -3,7 +3,6 @@
     <h1>Folders</h1>
     <sh-sidebar-folders>
       <sh-sidebar-folder>
-        <div> <img src="/img/folder_dark.png"> </div>
         <h2>home</h2>
       </sh-sidebar-folder>
     </sh-sidebar-folders>
@@ -26,7 +25,7 @@
   <sh-files>
     <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query">
       <sh-file ng-click="browserCtrl.assetEnter(asset)">
-        <div> <img src="{{asset.image}}"> </div>
+        <div> <img ng-src="{{asset.image}}"> </div>
         <h1> {{asset.name}} </h1>
       </sh-file>
     </div>
