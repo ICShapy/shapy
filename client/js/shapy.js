@@ -33,6 +33,10 @@ goog.provide('shapy.module');
  *
  * @private
  * @ngInject
+ *
+ * @param {!angular.$stateProvider} $stateProvider
+ * @param {!angular.$urlRouterProvider} $urlRouterProvider
+ * @param {!angular.$locationProvider} $locationProvider
  */
 shapy.configStates_ = function(
     $stateProvider,

@@ -11,11 +11,11 @@ goog.require('goog.object');
 goog.require('goog.string.format');
 goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
+goog.require('shapy.editor.Editable');
 goog.require('shapy.editor.Layout');
 goog.require('shapy.editor.Layout.Single');
 goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
-goog.require('shapy.editor.Object');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Viewport');
 
@@ -176,6 +176,19 @@ shapy.editor.EditorToolbarController.prototype.layout = function(name) {
 };
 
 
+/**
+ * Called when new object has to be added.
+ *
+ * @param {string} name Name of the object.
+ */
+shapy.editor.EditorToolbarController.prototype.addObject = function(name) {
+  this.rootScope_.$emit('editor', {
+    type: 'addObject',
+    object: name
+  });
+};
+
+
 
 /**
  * Canvas controller class.
@@ -212,9 +225,15 @@ shapy.editor.CanvasController = function($rootScope) {
 
   /**
    * Map of all objects in the scene.
-   * @private {!Object<string, shapy.Object>} @const
+   * @private {!Object<string, shapy.editor.Object>}
    */
   this.objects_ = {};
+
+  /**
+   * Currently selected object
+   * @private {shapy.editor.Object}
+   */
+  this.selectedObject = null;
 
   /**
    * Size of the canvas.
@@ -223,13 +242,30 @@ shapy.editor.CanvasController = function($rootScope) {
   this.vp_ = new goog.math.Size(0, 0);
 
   /**
+   * Active rig.
+   * @public {shapy.editor.Rig}
+   */
+  this.rig = null;
+
+  /**
    * Root layout.
    * @public {!shapy.editor.Layout} @const
    */
   this.layout = new shapy.editor.Layout.Single();
+  this.layout.active.rig = this.rig;
+
+  // For testing, set a default rig
+  //this.changeRig_(new shapy.editor.Rig.Translate());
 
   $rootScope.$on('editor', goog.bind(this.onEvent_, this));
 };
+
+
+/**
+ * Used for generation object ids.
+ * @type {number}
+ */
+shapy.editor.CanvasController.ID = 1;
 
 
 /**
@@ -266,15 +302,93 @@ shapy.editor.CanvasController.prototype.render = function() {
     this.layout.resize(width, height);
   }
 
+  // Synchronise meshes
+  goog.object.forEach(this.objects_, function(object, name, objects) {
+    if (object.dirtyMesh) {
+      this.renderer_.updateObject(object);
+      object.dirtyMesh = false;
+    }
+  }, this);
+
   // Clear the screen, render the scenes and then render overlays.
   this.renderer_.start();
+
+  // First pass - compute view/proj matrices and render objects.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
-    this.renderer_.renderScene(vp);
+    vp.camera.compute();
+    vp.camCube.compute();
+    this.renderer_.renderObjects(vp);
   }, this);
+
+  // Second pass - render rigs.
+  if (this.layout.active && this.layout.active.rig) {
+    this.layout.active.camera.compute();
+    this.renderer_.renderRig(this.layout.active, this.layout.active.rig);
+  }
+
+  // Third pass - render overlay & ground plane.
   goog.object.forEach(this.layout.viewports, function(vp, name) {
-    this.renderer_.renderOverlay(vp);
+    this.renderer_.renderGround(vp);
+    this.renderer_.renderBorder(vp);
+    this.renderer_.renderCamCube(vp);
   }, this);
 };
+
+
+/**
+ * Dummy method for generating unique object ids.
+ * // TODO: take user into account when generating ids.
+ */
+shapy.editor.CanvasController.generateId = function() {
+  return 'obj' + shapy.editor.CanvasController.ID++;
+};
+
+
+/**
+ * Select an object
+ */
+shapy.editor.CanvasController.prototype.selectObject = function(o) {
+  this.selectedObject = o;
+  if (this.rig) {
+    this.rig.controlObject_ = o;
+  }
+}
+
+
+/**
+ * Change rig type
+ */
+shapy.editor.CanvasController.prototype.changeRig_ = function(r) {
+  this.rig = r;
+  this.layout.active.rig = this.rig;
+  this.rig.controlObject_ = this.selectedObject;
+}
+
+
+/**
+ * On a key press
+ *
+ * If this CanvasController doesn't want to handle it, pass it to the layout
+ */
+shapy.editor.CanvasController.prototype.keyDown = function(kc) {
+  switch (kc) {
+    // Change current rig type
+    case 84: // t
+      this.changeRig_(new shapy.editor.Rig.Translate());
+      break;
+
+    case 82: // r
+      this.changeRig_(new shapy.editor.Rig.Rotate());
+      break;
+
+    case 83: // s
+      this.changeRig_(new shapy.editor.Rig.Scale());
+      break;
+
+    default:
+      this.layout.keyDown(kc);
+  }
+}
 
 
 /**
@@ -295,6 +409,24 @@ shapy.editor.CanvasController.prototype.onEvent_ = function(name, evt) {
         case 'single': this.layout = new shapy.editor.Layout.Single(); break;
         case 'double': this.layout = new shapy.editor.Layout.Double(); break;
         case 'quad': this.layout = new shapy.editor.Layout.Quad(); break;
+      }
+      this.layout.active.rig = this.rig;
+      break;
+    }
+    case 'addObject': {
+      var id = shapy.editor.CanvasController.generateId();
+
+      switch (evt.object) {
+        case 'cube': {
+          this.objects_[id]
+            = shapy.editor.Object.createCube(id, 0.5, 0.5, 0.5);
+          this.selectObject(this.objects_[id]);
+          break;
+        }
+        case 'sphere': {
+          console.log('sphere');
+          break;
+        }
       }
       break;
     }
@@ -345,6 +477,9 @@ shapy.editor.CanvasDirective = function() {
           return false;
         };
       };
+
+      // Key presses.
+      $(window).keydown(function(e) { canvasCtrl.keyDown(e.keyCode); });
 
       // Mouse events.
       $($elem[0])

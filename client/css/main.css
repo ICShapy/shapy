@@ -4,15 +4,6 @@ html {
 }
 
 
-#body {
-  position: fixed;
-  top: 31px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: auto;
-}
-
 /**
  * Page header
  */
@@ -25,7 +16,6 @@ html {
   background-color: #0A1E38;
   border-bottom: 1px solid #111111;
   z-index: 1000;
-  overflow: hidden;
 }
 
 #header a, #header span {
@@ -72,7 +62,7 @@ html {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 999;
+  z-index: 0;
 }
 
 #login {
@@ -144,7 +134,6 @@ sh-notify-bar {
  */
 #toolbar {
   float: left;
-  z-index: 10000;
 }
 
 sh-menu {
@@ -232,6 +221,10 @@ form .error > span {
   display: block;
 }
 
+form .button {
+  text-align: center;
+}
+
 form input[type=password],
 form input[type=email],
 form input[type=text] {
@@ -252,4 +245,54 @@ form input[type=email]
 
 input.ng-invalid.ng-touched {
   border:1px solid #f00;
+}
+
+
+
+.facebook {
+  background: url('/img/fb-normal.png');
+  background-size: cover;
+  height: 44px;
+  width: 236px;
+  cursor: pointer;
+  border: none;
+}
+
+.facebook:hover {
+  background: url('/img/fb-hover.png') !important;
+  background-size: cover;
+}
+
+.facebook:active {
+  background: url('/img/fb-press.png') !important;
+  background-size: cover;
+}
+
+.facebook:focus {
+  outline: 0;
+}
+
+
+.google {
+  background: url('/img/gp-normal.png');
+  background-size: cover;
+  height: 54px;
+  width: 246px;
+  cursor: pointer;
+  border: none;
+}
+
+.google:hover {
+  background: url('/img/gp-hover.png') !important;
+  background-size: cover;
+}
+
+.google:active {
+  background: url('/img/gp-press.png') !important;
+  background-size: cover;
+  border: none;
+}
+
+.google:focus {
+  outline: 0;
 }

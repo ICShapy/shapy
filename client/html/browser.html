@@ -10,12 +10,12 @@
   <sh-sidebar-all>
     <div><h1> All your scenes </h1> </div>
     <div><h1> All your textures </h1> </div>
-    <div><h1> All public files </h1> </div>
+    <div ng-click="browserCtrl.publicEnter()"><h1> All public files </h1> </div>
   </sh-sidebar-all>
   <sh-sidebar-options>
-    <div><input type="text" placeholder="Name"/></div>
+    <div><input type="text" placeholder="Name" ng-model="browserCtrl.name"/></div>
     <div>
-      <input type="button" value="New Folder" ng-click=""/>
+      <input type="button" value="New Folder" ng-click="browserCtrl.createDir(browserCtrl.name)"/>
       <input type="button" value="New Scene" ng-click=""/>
     </div>
     </br>
@@ -25,7 +25,7 @@
   </sh-sidebar>
   <sh-files>
     <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query">
-      <sh-file ng-click="asset.enter(browserCtrl)">
+      <sh-file ng-click="browserCtrl.assetEnter(asset)">
         <div> <img src="{{asset.image}}"> </div>
         <h1> {{asset.name}} </h1>
       </sh-file>

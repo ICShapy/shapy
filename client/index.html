@@ -19,6 +19,9 @@
     <!-- Closure library dependency tree. -->
     <script src="/js/goog/base.js"></script>
     <script type="text/javascript">
+      goog.addDependency('../editor/camcube.js', [
+          'shapy.editor.CamCube'
+      ], []);
       goog.addDependency('../editor/camera.js', [
           'shapy.editor.Camera'
       ], []);
@@ -38,11 +41,19 @@
           'shapy.editor.EditorToolbarController',
           'shapy.editor.CanvasDirective'
       ], [
+          'shapy.editor.CamCube',
           'shapy.editor.Object',
           'shapy.editor.Mesh',
           'shapy.editor.Renderer',
-          'shapy.editor.Viewport'
+          'shapy.editor.Viewport',
+          'shapy.editor.Rig',
+          'shapy.editor.Rig.Translate',
+          'shapy.editor.Rig.Rotate',
+          'shapy.editor.Rig.Scale'
       ]);
+      goog.addDependency('../editor/geom.js', [
+          'shapy.editor.geom'
+      ], []);
       goog.addDependency('../editor/mesh.js', [
           'shapy.editor.Mesh'
       ], []);
@@ -51,6 +62,12 @@
       ], []);
       goog.addDependency('../editor/renderer.js', [
           'shapy.editor.Renderer'
+      ], []);
+      goog.addDependency('../editor/rig.js', [
+          'shapy.editor.Rig',
+          'shapy.editor.Rig.Translate',
+          'shapy.editor.Rig.Rotate',
+          'shapy.editor.Rig.Scale'
       ], []);
       goog.addDependency('../editor/shader.js', [
           'shapy.editor.Shader'

@@ -7,8 +7,6 @@ goog.provide('shapy.browser.Asset.Dir');
 goog.provide('shapy.browser.Asset.Scene');
 goog.provide('shapy.browser.Asset.Texture');
 
-goog.require('shapy.browser.BrowserController');
-
 
 
 /**
@@ -25,8 +23,81 @@ shapy.browser.AssetsService = function($http, $q) {
   this.http_ = $http;
   /** @private {!angular.$q} @const */
   this.q_ = $q;
+
+  /** 
+   * Home dir. 
+   *
+   * @public {!shapy.browser.Asset.Dir} 
+   * @const
+   */
+   this.home = new shapy.browser.Asset.Dir(0, 'home');
 };
 
+/**
+ * Injects new dir into databse and returns a promise with response.
+ *
+ * @param {string} name      Name of the directory
+ * @param {boolean} public   Flag showing whether dir is publicly accessible
+ * @param {Asset.Dir} parent Parent directory
+ */
+shapy.browser.AssetsService.prototype.createDir = function(name, public, parent) {
+  var def = this.q_.defer();
+
+  // TODO: check if name unique in this dir
+
+  // Inject into database, obtain id
+  this.http_.post('/api/assets/create', {
+    name: name,
+    type: 'dir',
+    public: public,
+    parent: parent
+  })
+  .success(function(response) {
+    def.resolve(new shapy.browser.Asset.Dir(response['id'], name));
+  })
+  .error(function() {
+    def.reject();
+  });
+
+  return def.promise;
+};
+
+/**
+ * Sends request to server to query database for contents of given dir.
+ * Returns array of assets.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
+ * @param {boolean} public Type of directory to query.
+ */
+shapy.browser.AssetsService.prototype.queryDir = function(dir, public) {
+  publicSpace = (public) ? 1 : 0;
+  assets = [];
+  this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
+      .success(function(response) {
+        // Iterate over responses, convert into assets.
+        goog.array.forEach(response, function(item) {
+          switch (item['type']) {
+            case 'dir'     :
+              assets.push(new shapy.browser.Asset.Dir(item['id'],
+                                                      item['name']));
+              break;
+            case 'scene'   :
+              assets.push(new shapy.browser.Asset.Scene(item['id'],
+                                                        item['name']),
+                                                        item['preview']);
+              break;
+            case 'texture' :
+              assets.push(new shapy.browser.Asset.Texture(item['id'],
+                                                        item['name']),
+                                                        item['preview']);
+              break;
+            default        : console.log("Wrong type in database!");
+          }
+        });
+      });
+
+  return assets;
+};
 
 
 
@@ -36,10 +107,11 @@ shapy.browser.AssetsService = function($http, $q) {
  * @constructor
  *
  * @param {number} id    Id of the asset.
+ * @param {string} type  Type of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
  */
-shapy.browser.Asset = function(id, name, image) {
+shapy.browser.Asset = function(id, name, type, image) {
   /**
    * Id of the asset.
    * @public {number}
@@ -55,20 +127,19 @@ shapy.browser.Asset = function(id, name, image) {
   this.name = name;
 
   /**
+   * Type of the asset.
+   * @public {string}
+   * @const
+   */
+  this.type = type;
+
+  /**
    * Path to image to be displayed for asset in browser.
    * @public {string}
    * @const
    */
   this.image = image;
 };
-
-/**
- * Enters asset.
- *
- * @public
- */
-shapy.browser.Asset.prototype.enter = goog.abstractMethod;
-
 
 
 /**
@@ -81,25 +152,9 @@ shapy.browser.Asset.prototype.enter = goog.abstractMethod;
  * @param {string} name  Name of the asset.
  */
 shapy.browser.Asset.Dir = function(id, name) {
-  shapy.browser.Asset.call(this, id, name, "/img/folder.png");
+  shapy.browser.Asset.call(this, id, name, 'dir', "/img/folder.png");
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
-
-/**
- * Enters directory - queries database and displays new dir.
- *
- * @param {!shapy.browser.BrowserController} controller Ctrl for browser.htm;
- */
-shapy.browser.Asset.Dir.prototype.enter =  function(controller) {
-  // Query database.
-  assets = []
-  var hundreds = (this.id + 99) / 100
-  for (var i = hundreds * 100 + 1; i <= (hundreds + 1) * 100; ++i) {
-    assets.push(new shapy.browser.Asset.Dir(i, 'dir' + i));
-  }
-  // Ask controller to display new dir contents.
-  controller.displayDir(this, assets);
-};
 
 
 
@@ -114,18 +169,9 @@ shapy.browser.Asset.Dir.prototype.enter =  function(controller) {
  * @param {string} image Path to image to be displayed for asset in browser.
  */
 shapy.browser.Asset.Scene = function(id, name, image) {
-  shapy.browser.Asset.call(this, id, name, image);
+  shapy.browser.Asset.call(this, id, name, 'scene', image);
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
-
-/**
- * Enters Scene.
- *
- * @param {!shapy.browser.BrowserController} controller Ctrl for browser.htm;
- */
-shapy.browser.Asset.Scene.prototype.enter =  function(controller) {
-  console.log("Asset.Scene.prototype.enter - UNIMPLEMENTED");
-};
 
 
 
@@ -140,18 +186,9 @@ shapy.browser.Asset.Scene.prototype.enter =  function(controller) {
  * @param {string} image Path to image to be displayed for asset in browser.
  */
 shapy.browser.Asset.Texture = function(id, name, image) {
-  shapy.browser.Asset.call(this, id, name, image);
+  shapy.browser.Asset.call(this, id, name, 'texture', image);
 };
 goog.inherits(shapy.browser.Asset.Texture, shapy.browser.Asset);
-
-/**
- * Enters Texture.
- *
- * @param {!shapy.browser.BrowserController} controller Ctrl for browser.htm;
- */
-shapy.browser.Asset.Texture.prototype.enter =  function(controller) {
-  console.log("Asset.Texture.prototype.enter - UNIMPLEMENTED");
-};
 
 
 
