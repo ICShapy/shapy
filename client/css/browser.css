@@ -8,6 +8,57 @@ sh-sidebar {
   border-right: 1px solid #cccccc;
 }
 
+sh-sidebar .create img {
+  width: 9px;
+  height: 9px;
+}
+
+sh-sidebar .create {
+  height: 28px;
+  padding: 7px 0px 7px 0px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 119px;
+}
+
+sh-sidebar .create > button {
+  display: block;
+  float: left;
+  height: 28px;
+  background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
+  border: none;
+  cursor: pointer;
+}
+
+sh-sidebar .create > button.left {
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
+  width: 99px;
+  border-right: 1px solid #009;
+  color: white;
+  font-weight: bold;
+}
+
+sh-sidebar .create > button.right {
+  border-bottom-right-radius: 2px;
+  border-top-right-radius: 2px;
+  width: 20px;
+}
+
+sh-sidebar .create > button:hover {
+  background: linear-gradient(to bottom, #2f569f 0%,#232662 99%);
+  outline: 0;
+}
+
+sh-sidebar .create > button:focus {
+  outline: 0;
+}
+
+sh-sidebar .create > button:active {
+  background: linear-gradient(to bottom, #2f566f 0%,#232652 99%);
+}
+
+
 sh-sidebar .directory {
 
 }
@@ -21,6 +72,30 @@ sh-sidebar .directory img {
   height: 8px;
   padding: 2px;
   cursor: pointer;
+}
+
+sh-sidebar .name {
+  cursor: pointer;
+}
+
+sh-sidebar .name.open{
+  font-weight: bold;
+}
+
+sh-sidebar .name:hover img.down {
+  content: url('/img/arrow-down-hover.svg');
+}
+
+sh-sidebar .name:active img.down {
+  content: url('/img/arrow-down-press.svg');
+}
+
+sh-sidebar .name:hover img.right {
+  content: url('/img/arrow-right-hover.svg');
+}
+
+sh-sidebar .name:active img.right {
+  content: url('/img/arrow-right-press.svg');
 }
 
 sh-sidebar > h1 {

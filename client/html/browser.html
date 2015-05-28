@@ -1,15 +1,23 @@
 <div>
   <sh-sidebar>
+    <div class="create">
+      <button class="left">NEW SCENE</button>
+      <button class="right"><img src="/img/arrow-right.svg"/></button>
+    </div>
     <script type="text/ng-template" id="directory.html">
       <div ng-repeat="dir in directories" class="directory">
-        <span ng-init="open=false">
+        <span
+            ng-init="open=false"
+            ng-click="open=!open"
+            ng-class="{open: open}"
+            class="name" >
           <img
+              class="down"
               ng-show="open"
-              ng-click="open=false"
               src="/img/arrow-down.svg" />
           <img
+              class="right"
               ng-show="!open"
-              ng-click="open=true"
               src="/img/arrow-right.svg" />
           {{ dir.name }}
         </span>
