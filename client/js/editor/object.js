@@ -301,7 +301,7 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
  *
  * @private
  */
-shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
+shapy.editor.Object.Face.prototype.getVertices_ = function() {
   var p0 = this.edges[0].start;
   var p1 = this.edges[0].end;
   var p2 = this.edges[1].start;
@@ -325,8 +325,8 @@ shapy.editor.Object.Face.prototype.getFaceVertices_ = function() {
  *
  * @param {!Array<shapy.editor.Object.Edge>}
  */
-shapy.editor.Object.Face.prototype.getFacePositions_ = function() {
-  var vertices = this.getFaceVertices_();
+shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
+  var vertices = this.getVertices_();
   return [
       vertices[0].position,
       vertices[1].position,
@@ -341,7 +341,7 @@ shapy.editor.Object.Face.prototype.getFacePositions_ = function() {
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Face.prototype.getPosition = function() {
-  var t  = this.getFacePositions_();
+  var t  = this.getVertexPositions_();
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
   goog.vec.Mat4.multVec3(this.object.model_, c, c);
   return c;
@@ -356,7 +356,7 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
-  var t  = this.getFacePositions_();
+  var t  = this.getVertexPositions_();
   var p0 = t[0];
   var p1 = t[1];
   var p2 = t[2];
@@ -518,7 +518,6 @@ shapy.editor.Object.prototype.getRotation = function() {
  */
 shapy.editor.Object.prototype.pick = function(ray) {
   var q = goog.vec.Vec3.createFloat32();
-  var u = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
 
   // Move the ray to model space.
@@ -526,59 +525,103 @@ shapy.editor.Object.prototype.pick = function(ray) {
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
   var r = new goog.vec.Ray(q, v);
 
-  var toWorldCoords = function(pm, m) {
-    var pw = goog.vec.Vec3.createFloat32();
-    goog.vec.Mat4.multVec3(m, pm, pw);
-    return pw;
-  };
+  return [
+      this.pickVertices_(r), 
+      this.pickEdges_(r), 
+      this.pickFaces_(r)
+  ];
+};
+
+
+/**
+ * Finds all vertices that intersect a ray.
+ *
+ * @param {!goog.vec.Ray} ray Ray converted to model space.
+ *
+ * @return {!Array<shapy.editor.Editable>}
+ */
+shapy.editor.Object.prototype.pickVertices_ = function(ray) {
+  var u = goog.vec.Vec3.createFloat32();
 
   // Find all intersecting vertices.
-  var verts = goog.array.filter(goog.array.map(this.vertices, function(vert) {
-    goog.vec.Vec3.subtract(vert.position, q, u);
-    goog.vec.Vec3.cross(v, u, u);
+  return goog.array.filter(goog.array.map(this.vertices, function(vert) {
+    goog.vec.Vec3.subtract(vert.position, ray.origin, u);
+    goog.vec.Vec3.cross(ray.dir, u, u);
     if (goog.vec.Vec3.magnitude(u) >= 0.10) {
       return null;
     }
 
+    // Convert the intersection point to world space.
+    var p = goog.vec.Vec3.createFloat32();
+    goog.vec.Mat4.multVec3(vert.object.model_, vert.position, p);
+
     return {
       item: vert,
-      point: toWorldCoords(vert.position, vert.object.model_)
+      point: p
     };
   }, this), goog.isDefAndNotNull);
+};
+
+
+/**
+ * Finds all edges that intersect a ray.
+ *
+ * @param {!goog.vec.Ray} ray Ray converted to model space.
+ *
+ * @return {!Array<shapy.editor.Editable>}
+ */
+shapy.editor.Object.prototype.pickEdges_ = function(ray) {
+  var u = goog.vec.Vec3.createFloat32();
 
   // Find all intersecting edges.
-  var edges = goog.array.filter(goog.array.map(this.edges, function(edge) {
+  return goog.array.filter(goog.array.map(this.edges, function(edge) {
     // Find the ray associated with the edge.
-    var p = this.vertices[edge.start].position;
-    goog.vec.Vec3.subtract(this.vertices[edge.end].position, p, u);
-    var c = shapy.editor.geom.getClosest(new goog.vec.Ray(p, u), r);
+    var e0 = this.vertices[edge.start].position;
+    goog.vec.Vec3.subtract(this.vertices[edge.end].position, e0, u);
+    var c = shapy.editor.geom.getClosest(new goog.vec.Ray(e0, u), ray);
 
     if (goog.vec.Vec3.distance(c.p0, c.p1) >= 0.10 || c.s <= 0 || c.s >= 1) {
       return null;
     }
 
+    // Convert the intersection point to world space.
+    var p = goog.vec.Vec3.createFloat32();
+    goog.vec.Mat4.multVec3(edge.object.model_, c.p0, p);
+
     return {
       item: edge,
-      point: toWorldCoords(c.p0, edge.object.model_)
+      point: p
     };
   }, this), goog.isDefAndNotNull);
+};
 
+
+/**
+ * Finds all faces that intersect a ray.
+ *
+ * @param {!goog.vec.Ray} ray Ray converted to model space.
+ *
+ * @return {!Array<shapy.editor.Editable>}
+ */
+shapy.editor.Object.prototype.pickFaces_ = function(ray) {
   // Find all intersecting faces.
-  var faces = goog.array.filter(goog.array.map(this.faces, function(face) {
-    var t  = face.getFacePositions_();
-    var i = shapy.editor.geom.intersectTriangle(r, t[0], t[1], t[2]);
+  return goog.array.filter(goog.array.map(this.faces, function(face) {
+    var t = face.getVertexPositions_();
+    var i = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
 
     if (!i) {
       return null;
     }
 
+    // Convert the intersection point to world space.
+    var p = goog.vec.Vec3.createFloat32();
+    goog.vec.Mat4.multVec3(face.object.model_, i, p);
+
     return {
       item: face,
-      point: toWorldCoords(i, face.object.model_)
+      point: p
     };
   }, this), goog.isDefAndNotNull);
-
-  return [verts, edges, faces];
 };
 
 
@@ -609,6 +652,7 @@ shapy.editor.Object.createPolygon = function(n, radius) {
 
   return new shapy.editor.Object(vertices, edges, [face]);
 };
+
 
 /**
  * Build an cube object from triangles.
