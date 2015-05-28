@@ -96,6 +96,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
   // Y ring.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
@@ -108,6 +109,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
   // X ring.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
@@ -121,6 +123,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 
   // Z ring.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
   goog.vec.Mat4.rotateX(this.model_, Math.PI / 2);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.z) {
@@ -137,6 +140,7 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
     var r = (1.0 - shapy.editor.Rig.Rotate.RADIUS);
     gl.lineWidth(2.0);
     goog.vec.Mat4.makeIdentity(this.model_);
+    goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
     sh.uniformMat4x4('u_model', this.model_);
 
     var tmp = gl.createBuffer();
@@ -149,6 +153,8 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
     ]), goog.webgl.STATIC_DRAW);
     gl.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
 
+    goog.vec.Mat4.makeIdentity(this.model_);
+    sh.uniformMat4x4('u_model', this.model_);
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
     gl.drawArrays(goog.webgl.LINES, 0, 2);
 
@@ -197,6 +203,9 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
       }
     }
 
+    goog.vec.Mat4.makeIdentity(this.model_);
+    goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
+    sh.uniformMat4x4('u_model', this.model_);
     gl.bufferData(goog.webgl.ARRAY_BUFFER, data, goog.webgl.STREAM_DRAW);
     sh.uniform4f('u_colour', 0.0, 0.0, 0.0, 1.0);
     gl.drawArrays(goog.webgl.LINES, 0, 2);
@@ -221,11 +230,12 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
 shapy.editor.Rig.Rotate.prototype.adjustCursor_ = function(cursor) {
   var d, r, pos = this.object.getPosition();
 
+  // TODO(David): Wtf is happening here?!
   goog.vec.Vec3.subtract(cursor, pos, cursor);
   d = goog.vec.Vec3.magnitude(cursor);
-  if (d < 1.0) {
+  if (d < this.viewScale_) {
     r = 1.0 - shapy.editor.Rig.Rotate.RADIUS;
-    goog.vec.Vec3.scale(cursor, r / d, cursor);
+    goog.vec.Vec3.scale(cursor, r / d * this.viewScale_, cursor);
   }
 
   goog.vec.Vec3.add(pos, cursor, cursor);
@@ -250,14 +260,14 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
   var iz = shapy.editor.geom.intersectPlane(ray, [0, 0, 1], position);
 
   // Find distance between center and intersection point.
-  var cx = goog.vec.Vec3.distance(ix, position);
-  var cy = goog.vec.Vec3.distance(iy, position);
-  var cz = goog.vec.Vec3.distance(iz, position);
+  var cx = goog.vec.Vec3.distance(ix, position) / this.viewScale_;
+  var cy = goog.vec.Vec3.distance(iy, position) / this.viewScale_;
+  var cz = goog.vec.Vec3.distance(iz, position) / this.viewScale_;
 
   // Find distance to intersection points.
-  var ex = goog.vec.Vec3.distance(ix, ray.origin);
-  var ey = goog.vec.Vec3.distance(iy, ray.origin);
-  var ez = goog.vec.Vec3.distance(iz, ray.origin);
+  var ex = goog.vec.Vec3.distance(ix, ray.origin) / this.viewScale_;
+  var ey = goog.vec.Vec3.distance(iy, ray.origin) / this.viewScale_;
+  var ez = goog.vec.Vec3.distance(iz, ray.origin) / this.viewScale_;
 
   // Choose the best match - closest to origin.
   var hits = [
@@ -266,7 +276,7 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
       [[0, 0, 1], cz, ez, iz]
   ];
   hits = goog.array.filter(hits, function(e) {
-      return Math.abs(e[1] - 1.0) < shapy.editor.Rig.Rotate.RADIUS;
+    return Math.abs(e[1] - 1.0) < shapy.editor.Rig.Rotate.RADIUS;
   }, this);
   goog.array.sort(hits, function(e1, e2) { return e1[2] - e2[2]; }, this);
 

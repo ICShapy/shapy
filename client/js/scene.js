@@ -142,7 +142,7 @@ shapy.Scene.prototype.pick = function(ray) {
  */
 shapy.Scene.prototype.createCube = function(w, h, d) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createCubeFromTriangles(id, w, h, d);
+  var object = shapy.editor.Object.createCube(id, w, h, d);
   this.objects[id] = object;
   return object;
 };

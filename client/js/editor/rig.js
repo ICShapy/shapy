@@ -36,8 +36,20 @@ shapy.editor.Rig = function(type) {
   this.mesh_ = null;
 
   /**
+   * This represents the scale of the rig relative to the base size, used to
+   * ensure the rig stays at a constant size depending on distance
+   * @private {!number}
+   */
+  this.viewScale_ = 1;
+
+  /**
+   * This is used as a cache for the scale matrix when rendering
    * @private {!goog.vec.Mat4.Type}
-   * @const
+   */
+  this.viewScaleMat_ = goog.vec.Mat4.createFloat32();
+
+  /**
+   * @private {!goog.vec.Mat4.Type}
    */
   this.model_ = goog.vec.Mat4.createFloat32Identity();
 
@@ -75,6 +87,18 @@ shapy.editor.Rig = function(type) {
 shapy.editor.Rig.prototype.destroy = function() {
   // TODO: retain GL context & clear properly.
   this.mesh_ = null;
+};
+
+
+/**
+ * Sets the scale of the rig and recomputes the scale matrix
+ *
+ * @param {number} distance Distance of the camera from it's focus point
+ */
+shapy.editor.Rig.prototype.notifyDistance = function(distance) {
+  var scale = distance / 8;
+  this.viewScale_ = scale;
+  goog.vec.Mat4.makeScale(this.viewScaleMat_, scale, scale, scale);
 };
 
 
@@ -162,6 +186,7 @@ shapy.editor.Rig.prototype.buildTube_ = function(d, k, b, l, r, c) {
 /**
  * Computes the closest point on the active rig axis from the ray.
  *
+ * @private
  * @param {!goog.vec.Ray}  ray
  */
 shapy.editor.Rig.prototype.getClosest_ = function(ray) {

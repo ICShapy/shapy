@@ -83,9 +83,9 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
 /**
  * Renders the rig.
  *
- * @param {!WebGLContext}        gl WebGL context.
- * @param {!shapy.editor.Shader} sh Current shader.
- */
+ * @param {!WebGLContext}        gl    WebGL context.
+ * @param {!shapy.editor.Shader} sh    Current shader.
+ *  */
 shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   var pos = this.object.getPosition();
 
@@ -100,6 +100,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
   // Arrow on X.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.x) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
@@ -121,6 +122,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   // Arrow on Y.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateZ(this.model_, Math.PI / 2);
+  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.y) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
@@ -142,6 +144,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   // Arrow on Z.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
   goog.vec.Mat4.rotateY(this.model_, -Math.PI / 2);
+  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
   sh.uniformMat4x4('u_model', this.model_);
   if (this.select_.z) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
@@ -162,6 +165,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
   // Box on the origin.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
+  goog.vec.Mat4.multMat(this.viewScaleMat_, this.model_, this.model_);
   sh.uniformMat4x4('u_model', this.model_);
   sh.uniform4f('u_colour', 1, 1, 0, 1);
   gl.drawArrays(
@@ -195,16 +199,22 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
   var c = goog.vec.Vec3.createFloat32();
 
   // Find intersection with X arrow.
-  goog.vec.Vec3.setFromValues(c, pos[0] + 1.1, pos[1], pos[2]);
-  this.hover_.x = shapy.editor.geom.intersectSphere(ray, c, 0.1);
+  goog.vec.Vec3.setFromValues(
+    c, pos[0] + 1.1 * this.viewScale_, pos[1], pos[2]);
+  this.hover_.x = shapy.editor.geom.intersectSphere(
+    ray, c, 0.1 * this.viewScale_);
 
   // Find intersection with Y arrow.
-  goog.vec.Vec3.setFromValues(c, pos[0], pos[1] + 1.1, pos[2]);
-  this.hover_.y = shapy.editor.geom.intersectSphere(ray, c, 0.1);
+  goog.vec.Vec3.setFromValues(
+    c, pos[0], pos[1] + 1.1 * this.viewScale_, pos[2]);
+  this.hover_.y = shapy.editor.geom.intersectSphere(
+    ray, c, 0.1 * this.viewScale_);
 
   // Find intersection with Z arrow.
-  goog.vec.Vec3.setFromValues(c, pos[0], pos[1], pos[2] + 1.1);
-  this.hover_.z = shapy.editor.geom.intersectSphere(ray, c, 0.1);
+  goog.vec.Vec3.setFromValues(
+    c, pos[0], pos[1], pos[2] + 1.1 * this.viewScale_);
+  this.hover_.z = shapy.editor.geom.intersectSphere(
+    ray, c, 0.1 * this.viewScale_);
 };
 
 
