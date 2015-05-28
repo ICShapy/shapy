@@ -159,31 +159,24 @@ sh-path {
 }
 
 sh-path-asset {
-  display: block;
+  display: inline-block;
   position: relative;
   float: left;
-  width: 100px;
-  height: 30px;
-  cursor:pointer;
+  padding: 7px 2px 7px 2px;
+  height: 16px;
+  font-size: 16px;
+  cursor: pointer;
+  color: white;
 }
 
-sh-path-asset > div {
-  position: absolute;
-  top: 5px; left: 0; right: 0; bottom: 0;
-  width: 30px;
+sh-path-asset:hover {
+  background-color: #555555;
+}
+sh-path-asset > img {
+  width: 10px;
+  height: 10px;
 }
 
-sh-path-asset > h1 {
-  position: absolute;
-  top: 0;  left: 32px;
-  height: 30px;
-  text-align: left;
-  font-weight: normal;
-  font-size: 14px;
-  color: #ffffff;
-  width: 70px;
-  overflow: hidden;
-}
 
 /**
  * All images

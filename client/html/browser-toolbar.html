@@ -3,8 +3,8 @@
   <sh-path>
     <div ng-repeat="asset in browserCtrl.path">
       <sh-path-asset ng-click="browserCtrl.assetReturnTo(asset)">
-        <div> <img src="/img/folder_dark.png"> </div>
-        <h1> {{asset.name}} </h1>
+        {{asset.name}}
+        <img src="/img/arrow.svg" ng-if="!$last"/>
       </sh-path-asset>
     </div>
   </sh-path>
