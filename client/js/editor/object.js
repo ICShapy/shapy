@@ -526,8 +526,8 @@ shapy.editor.Object.prototype.pick = function(ray) {
   var r = new goog.vec.Ray(q, v);
 
   return [
-      this.pickVertices_(r), 
-      this.pickEdges_(r), 
+      this.pickVertices_(r),
+      this.pickEdges_(r),
       this.pickFaces_(r)
   ];
 };
@@ -731,7 +731,7 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
 
   // Create all vertices.
   var dPhi = Math.PI / stacks, dTheta = 2 * Math.PI / slices;
-  for (var i = 0; i < stacks; ++i) {
+  for (var i = 0; i <= stacks; ++i) {
     var phi = Math.PI / 2.0 - dPhi * i;
     for (var j = 0; j < slices; ++j) {
       var theta = dTheta * j;
@@ -740,12 +740,15 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
         r * Math.sin(phi),
         r * Math.cos(phi) * Math.cos(theta)
       ]);
+    }
+  }
 
-
-      var v00 = (i + 0) % stacks * slices + (j + 0) % slices;
-      var v01 = (i + 0) % stacks * slices + (j + 1) % slices;
-      var v10 = (i + 1) % stacks * slices + (j + 0) % slices;
-      var v11 = (i + 1) % stacks * slices + (j + 1) % slices;
+  for (var i = 0; i < stacks; ++i) {
+    for (var j = 0; j < slices; ++j) {
+      var v00 = (i + 0) * slices + (j + 0) % slices;
+      var v01 = (i + 0) * slices + (j + 1) % slices;
+      var v10 = (i + 1) * slices + (j + 0) % slices;
+      var v11 = (i + 1) * slices + (j + 1) % slices;
 
       edges.push([v00, v01]);
       edges.push([v01, v11]);
@@ -759,7 +762,6 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
       faces.push([e + 3, e + 4, e + 5]);
     }
   }
-  console.log(stacks, slices);
 
   return new shapy.editor.Object(id, vertices, edges, faces);
 };
