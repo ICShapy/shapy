@@ -135,7 +135,7 @@ shapy.editor.Mesh.createFromObject = function(gl, v, e, f) {
   // For each face, figure out the 3 unique vertices, and emit the vertices
   goog.array.forEach(f, function(face) {
     //face = f[1];
-    var faceVertices = face.getFaceVertices_();
+    var faceVertices = face.getVertices_();
 
     // Emit vertices
     addVertex(faceVertices[0].position, 1, 0, 0);
