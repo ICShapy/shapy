@@ -176,20 +176,6 @@ shapy.editor.Object.prototype.computeModel = function() {
 
 
 /**
- * Retrieves the geometry data.
- *
- * @return {!Object}
- */
-shapy.editor.Object.prototype.getGeometryData = function() {
-  return {
-    vertices: this.vertices,
-    edges: this.edges,
-    faces: this.faces
-  };
-};
-
-
-/**
  * Updates the object position.
  *
  * @param {number} x

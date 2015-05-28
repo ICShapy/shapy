@@ -79,10 +79,10 @@ def main(args):
   app.RD_PASS = os.environ.get('RD_PASS', '')
 
   # Connect to the postgresql database.
-  app.db = momoko.Pool(
-      dsn='dbname=%s user=%s password=%s host=%s port=%d' %
-          (app.DB_NAME, app.DB_USER, app.DB_PASS, app.DB_HOST, app.DB_PORT),
-      size=1)
+  #app.db = momoko.Pool(
+  #    dsn='dbname=%s user=%s password=%s host=%s port=%d' %
+  #        (app.DB_NAME, app.DB_USER, app.DB_PASS, app.DB_HOST, app.DB_PORT),
+  #    size=1)
 
   # Start the server.
   tornado.httpserver.HTTPServer(app).listen(int(os.environ.get('PORT', 8000)))

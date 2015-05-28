@@ -19,12 +19,11 @@ shapy.editor.OBJECT_VS =
 
   'uniform mat4 u_mvp;                              \n' +
 
-  'varying vec3 v_bary;                             \n' +
   'varying vec4 v_colour;                           \n' +
 
   'void main() {                                    \n' +
-  '  v_bary = a_bary;                               \n' +
   '  v_colour = a_colour;                           \n' +
+  '  gl_PointSize = 7.0;                            \n' +
   '  gl_Position = u_mvp * vec4(a_vertex, 1);       \n' +
   '}                                                \n';
 
@@ -37,22 +36,9 @@ shapy.editor.OBJECT_FS =
 
   'uniform vec4 u_border;                                             \n' +
   'varying vec4 v_colour;                                             \n' +
-  'varying vec3 v_bary;                                               \n' +
 
   'void main() {                                                      \n' +
-  // The border's alpha determines its intensity.
-  '  vec3 a3 = smoothstep(vec3(0.0), fwidth(v_bary) * 0.25, v_bary);  \n' +
-  '  float e = min(min(a3.x, a3.y), a3.z);                            \n' +
-  '  vec4 border = u_border;                                          \n' +
-  '  if (any(lessThan(v_bary, vec3(0.01)))) {                         \n' +
-  '    border.a *= e;                                                 \n' +
-  '  } else {                                                         \n' +
-  '    border.a = 0.0;                                                \n' +
-  '  }                                                                \n' +
-
-  // The final colour is lerped diffuse + border.
-  '  vec3 colour = mix(v_colour.rgb, border.rgb, border.a);           \n' +
-  '  gl_FragColor = vec4(colour.rgb, v_colour.a);                     \n' +
+  '  gl_FragColor = vec4(v_colour.rgb, 1.0);                          \n' +
   '}                                                                  \n';
 
 
@@ -325,9 +311,7 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
   object.dirtyMesh = false;
 
   // Re-build mesh
-  var data = object.getGeometryData();
-  var mesh = shapy.editor.Mesh.createFromObject(
-      this.gl_, data.vertices, data.edges, data.faces)
+  var mesh = new shapy.editor.Mesh(this.gl_, object);
   this.objectCache_[object.id] = [mesh, object.model_];
 
   // Store this revision
