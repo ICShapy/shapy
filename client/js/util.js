@@ -93,8 +93,7 @@ shapy.editable = function() {
         .text(ngModel.$modelValue)
         .blur(function() {
           $scope.$apply(function() {
-            var text = $elem.text().replace(/[^a-z0-9 ]/gi, '');
-            ngModel.$setViewValue(text || 'Untitled Scene');
+            ngModel.$setViewValue($elem.text() || 'Untitled Scene');
             $elem.text(ngModel.$viewValue);
           });
         })
@@ -103,7 +102,7 @@ shapy.editable = function() {
             $elem.blur();
             return false;
           }
-          return true;
+          return /[a-zA-Z0-9_\. ]/.test(String.fromCharCode(e.keyCode));
         });
     }
   };

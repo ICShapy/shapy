@@ -110,7 +110,7 @@ sh-file {
   cursor: pointer;
 }
 
-sh-file > h1 {
+sh-file > .name {
   display: block;
   position: absolute;
   bottom: 0; left: 0; right: 0; height: 16px;
@@ -120,6 +120,11 @@ sh-file > h1 {
   font-weight: normal;
   font-size: 14px;
   padding: 0 10px 0 10px;
+  cursor: text;
+}
+
+sh-file > .name:focus {
+  outline: 0;
 }
 
 sh-file > div {
