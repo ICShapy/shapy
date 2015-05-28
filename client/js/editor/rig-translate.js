@@ -193,7 +193,7 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     // Update the position.
     this.object.translate(
         pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
-    return;
+    return true;
   }
 
   var c = goog.vec.Vec3.createFloat32();
@@ -215,6 +215,8 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     c, pos[0], pos[1], pos[2] + 1.1 * this.size_);
   this.hover_.z = shapy.editor.geom.intersectSphere(
     ray, c, 0.1 * this.size_);
+
+  return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
 

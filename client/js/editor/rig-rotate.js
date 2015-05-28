@@ -303,17 +303,17 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
     if (this.select_.x) {
       this.object.rotate(
           this.initialAngle_ + this.currentAngle_ - this.startAngle_, 0, 0);
-      return;
+      return true;
     }
     if (this.select_.y) {
       this.object.rotate(
           0, this.initialAngle_ - this.currentAngle_ + this.startAngle_, 0);
-      return;
+      return true;
     }
     if (this.select_.z) {
       this.object.rotate(
           0, 0, this.initialAngle_ + this.currentAngle_ - this.startAngle_);
-      return;
+      return true;
     }
   }
 
@@ -327,6 +327,8 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
   this.hover_.x = hit[0][0] != 0;
   this.hover_.y = hit[0][1] != 0;
   this.hover_.z = hit[0][2] != 0;
+
+  return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
 

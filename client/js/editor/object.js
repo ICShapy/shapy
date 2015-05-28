@@ -22,6 +22,34 @@ goog.require('shapy.editor.geom');
  * @constructor
  */
 shapy.editor.Editable = function() {
+  /** @public {!boolean} */
+  this.hover = false;
+  /** @public {!boolean} */
+  this.selected = false;
+};
+
+
+/**
+ * Hovers over the editable.
+ *
+ * @param {boolean} hover
+ */
+shapy.editor.Editable.prototype.setHover = function(hover) {
+  this.hover = hover;
+  // TODO: do this properly.
+  this.object.dirtyMesh = true;
+};
+
+
+/**
+ * Selects the editable.
+ *
+ * @param {boolean} selected
+ */
+shapy.editor.Editable.prototype.setSelected = function(selected) {
+  this.selected = selected;
+  // TODO: do this properly.
+  this.object.dirtyMesh = true;
 };
 
 
@@ -63,7 +91,7 @@ shapy.editor.Editable.prototype.translate = function() { };
  * @param {!Array<Object>} faces
  */
 shapy.editor.Object = function(id, vertices, edges, faces) {
-  goog.base(this, shapy.editor.Editable);
+  shapy.editor.Editable.call(this);
 
   /** @public {string} */
   this.id = id;
@@ -533,6 +561,8 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
  * @param {number} z
  */
 shapy.editor.Object.Vertex = function(object, x, y, z) {
+  shapy.editor.Editable.call(this);
+
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
 
@@ -588,6 +618,8 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
  * @param {number}               end
  */
 shapy.editor.Object.Edge = function(object, start, end) {
+  shapy.editor.Editable.call(this);
+
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
   /** @public {number} @const */
@@ -653,6 +685,8 @@ shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
  * @param {!Array<shapy.editor.Object.Edge>} edges
  */
 shapy.editor.Object.Face = function(object, edges) {
+  shapy.editor.Editable.call(this);
+
   /**
    * @public {!shapy.editor.Object}
    * @const

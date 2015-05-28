@@ -131,9 +131,10 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   this.currMousePos_.y = y;
 
   if (this.camCube.mouseMove(x, y)) {
-    return;
+    return null;
   }
 
+  var ray = this.raycast_(x, y);
   if (this.isRotating_) {
     this.rotate();
     return null;
@@ -142,11 +143,10 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
     this.pan();
     return null;
   }
-  if (this.rig) {
-    this.rig.mouseMove(this.raycast_(x, y));
+  if (this.rig && this.rig.mouseMove(ray)) {
     return null;
   }
-  return this.raycast_(x, y);
+  return ray;
 };
 
 

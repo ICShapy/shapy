@@ -521,7 +521,22 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  this.layout_.mouseMove(e);
+  var pick, ray;
+
+  if (!(ray = this.layout_.mouseMove(e))) {
+    return;
+  }
+  if (!(pick = this.scene_.pick(ray))) {
+    return;
+  }
+
+  if (pick != this.hover_) {
+    if (this.hover_) {
+      this.hover_.setHover(false);
+    }
+    pick.setHover(true);
+    this.hover_ = pick;
+  }
 };
 
 

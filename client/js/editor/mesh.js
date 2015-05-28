@@ -44,7 +44,9 @@ shapy.editor.Mesh = function(gl, object) {
  * Builds the mesh.
  */
 shapy.editor.Mesh.prototype.build_ = function() {
-  var add = function(d, pos, r, g, b) {
+  var r = 0, g = 0, b = 0;
+
+  var add = function(d, pos) {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
     d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
     d[k++] = 0; d[k++] = 0;                               // UV.
@@ -57,9 +59,18 @@ shapy.editor.Mesh.prototype.build_ = function() {
   var f = new Float32Array(this.faceCount_ * 48);
   goog.array.forEach(this.object_.faces, function(face) {
     var faceVertices = face.getVertices_();
-    add(f, faceVertices[0].position, 0.2, 0.2, 0.2);
-    add(f, faceVertices[1].position, 0.2, 0.2, 0.2);
-    add(f, faceVertices[2].position, 0.2, 0.2, 0.2);
+
+    if (face.selected) {
+      r = 1.0; g = 1.0; b = 0.0;
+    } else if (face.hover) {
+      r = 0.8; g = 0.4; b = 0.0;
+    } else {
+      r = 0.2; g = 0.2; b = 0.2;
+    }
+
+    add(f, faceVertices[0].position);
+    add(f, faceVertices[1].position);
+    add(f, faceVertices[2].position);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
@@ -69,8 +80,16 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var e = new Float32Array(this.edgeCount_ * 48);
   goog.array.forEach(this.object_.edges, function(edge) {
-    add(e, this.object_.vertices[edge.start].position, 1.0, 1.0, 1.0);
-    add(e, this.object_.vertices[edge.end].position, 1.0, 1.0, 1.0);
+    if (edge.selected) {
+      r = 1.0; g = 1.0; b = 0.0;
+    } else if (edge.hover) {
+      r = 0.8; g = 0.4; b = 0.0;
+    } else {
+      r = 1.0; g = 1.0; b = 1.0;
+    }
+
+    add(e, this.object_.vertices[edge.start].position);
+    add(e, this.object_.vertices[edge.end].position);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
@@ -80,7 +99,15 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var v = new Float32Array(this.vertCount_ * 48);
   goog.array.forEach(this.object_.vertices, function(vert) {
-    add(v, vert.position, 0.0, 0.0, 1.0);
+    if (vert.selected) {
+      r = 1.0; g = 1.0; b = 0.0;
+    } else if (vert.hover) {
+      r = 0.8; g = 0.4; b = 0.0;
+    } else {
+      r = 0.0; g = 0.0; b = 1.0;
+    }
+
+    add(v, vert.position);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, v, goog.webgl.STATIC_DRAW);

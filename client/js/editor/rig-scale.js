@@ -224,7 +224,7 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
       this.scale_[1] * this.scaleRelativeTo_[1],
       this.scale_[2] * this.scaleRelativeTo_[2]
     );
-    return;
+    return true;
   }
 
   var pos = this.object.getPosition();
@@ -244,6 +244,8 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
   goog.vec.Vec3.setFromValues(
     c, pos[0], pos[1], pos[2] + this.scale_[2] * this.size_);
   this.hover_.z = shapy.editor.geom.intersectCube(ray, c, 0.1 * this.size_);
+
+  return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
 
