@@ -204,3 +204,42 @@ shapy.editor.geom.getCentroid = function(p0, p1, p2) {
 
   return g;
 };
+
+
+/**
+ * Computes the points where two rays are closest to each other.
+ *
+ * @param {!goog.vec.Ray} r0
+ * @param {!goog.vec.Ray} r1
+ */
+shapy.editor.geom.getClosest = function(r0, r1) {
+  var w0 = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(r0.origin, r1.origin, w0);
+
+  var a = goog.vec.Vec3.dot(r0.dir, r0.dir);
+  var b = goog.vec.Vec3.dot(r0.dir, r1.dir);
+  var c = goog.vec.Vec3.dot(r1.dir, r1.dir);
+  var d = goog.vec.Vec3.dot(r0.dir, w0);
+  var e = goog.vec.Vec3.dot(r1.dir, w0);
+
+  var r =  a * c - b * b;
+  var s = (b * e - c * d) / r;
+  var t = (a * e - b * d) / r;
+
+  var p0 = goog.vec.Vec3.createFloat32();
+  var p1 = goog.vec.Vec3.createFloat32();
+
+  goog.vec.Vec3.scale(r0.dir, s, p0);
+  goog.vec.Vec3.scale(r1.dir, t, p1);
+
+  goog.vec.Vec3.add(r0.origin, p0, p0);
+  goog.vec.Vec3.add(r1.origin, p1, p1);
+
+  return {
+    p0: p0,
+    p1: p1,
+    s: s,
+    t: t
+  };
+}; 
+

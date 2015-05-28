@@ -165,8 +165,6 @@ shapy.editor.Rig.prototype.buildTube_ = function(d, k, b, l, r, c) {
  * @param {!goog.vec.Ray}  ray
  */
 shapy.editor.Rig.prototype.getClosest_ = function(ray) {
-  var closest = goog.vec.Vec3.createFloat32();
-  var pos = this.object.getPosition();
   var u = goog.vec.Vec3.createFloat32();
 
   // Get the direction vector of the rig axis.
@@ -178,21 +176,8 @@ shapy.editor.Rig.prototype.getClosest_ = function(ray) {
     goog.vec.Vec3.setFromValues(u, 0, 0, 1);
   }
 
-  // Compute the closest point.
-  var w = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.subtract(pos, ray.origin, w);
-
-  var a = goog.vec.Vec3.dot(u, u);
-  var b = goog.vec.Vec3.dot(u, ray.dir);
-  var c = goog.vec.Vec3.dot(ray.dir, ray.dir);
-  var d = goog.vec.Vec3.dot(u, w);
-  var e = goog.vec.Vec3.dot(ray.dir, w);
-
-  var s = (b * e - c * d) / (a * c - b * b);
-  goog.vec.Vec3.scale(u, s, u);
-  goog.vec.Vec3.add(pos, u, closest);
-
-  return closest;
+  return shapy.editor.geom.getClosest(
+      new goog.vec.Ray(this.object.getPosition(), u), ray).p0;
 };
 
 

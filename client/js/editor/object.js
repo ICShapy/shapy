@@ -503,16 +503,13 @@ shapy.editor.Object.prototype.getRotation = function() {
  */
 shapy.editor.Object.prototype.pick = function(ray) {
   var q = goog.vec.Vec3.createFloat32();
-  var d = goog.vec.Vec3.createFloat32();
   var u = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
-  var w = goog.vec.Vec3.createFloat32();
-  var p0 = goog.vec.Vec3.createFloat32();
-  var p1 = goog.vec.Vec3.createFloat32();
 
   // Move the ray to model space.
   goog.vec.Mat4.multVec3(this.invModel_, ray.origin, q);
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
+  var r = new goog.vec.Ray(q, v);
 
   // Find all intersecting vertices.
   var verts = goog.array.filter(goog.array.map(this.vertices, function(vert) {
@@ -533,27 +530,15 @@ shapy.editor.Object.prototype.pick = function(ray) {
     // Find the ray associated with the edge.
     var p = this.vertices[edge.start].position;
     goog.vec.Vec3.subtract(this.vertices[edge.end].position, p, u);
+    var c = shapy.editor.geom.getClosest(new goog.vec.Ray(p, u), r);
 
-    // Compute the closest point.
-    goog.vec.Vec3.subtract(p, q, w);
-    var a = goog.vec.Vec3.dot(u, u);
-    var b = goog.vec.Vec3.dot(u, v);
-    var c = goog.vec.Vec3.dot(v, v);
-    var d = goog.vec.Vec3.dot(u, w);
-    var e = goog.vec.Vec3.dot(v, w);
-
-    var r = (a * c - b * b), s = (b * e - c * d) / r, t = (a * e - b * d) / r;
-    goog.vec.Vec3.scale(u, s, w);
-    goog.vec.Vec3.add(p, w, p0);
-    goog.vec.Vec3.scale(v, t, w);
-    goog.vec.Vec3.add(q, w, p1);
-
-    if (goog.vec.Vec3.distance(p0, p1) >= 0.10 || s <= 0 || s >= 1) {
+    if (goog.vec.Vec3.distance(c.p0, c.p1) >= 0.10 || c.s <= 0 || c.s >= 1) {
       return null;
     }
+
     return {
       item: edge,
-      point: p0
+      point: c.p0
     };
   }, this), goog.isDefAndNotNull);
 
@@ -562,13 +547,12 @@ shapy.editor.Object.prototype.pick = function(ray) {
 
     // Get 3 distinct points forming the triangle.
     var t  = face.getFaceVertices_();
-    var i = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
+    var i = shapy.editor.geom.intersectTriangle(r, t[0], t[1], t[2]);
 
     if (!i) {
       return null;
     }
 
-    // TODO(Ilija): fix the issue with selecting faces instead of edges.
     return {
       item: face,
       point: i
