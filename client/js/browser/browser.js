@@ -22,15 +22,15 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @param {!angular.$scope} $rootScope The Angular root scope.
  * @param {!angular.$http} $http The angular $http service.
- * @param {!shapy.AssetsService} shAssets The assets management service.
+ * @param {!shapy.browser.BrowserService} shBrowser The browser management service.
  */
-shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
+shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
   /** @private {!angular.$scope} @const */
   this.rootscope_ = $rootScope;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
-  /** @private {!angular.shAssets} @const */
-  this.shAssets_ = shAssets;
+  /** @private {!shapy.browser.BrowserService} @const */
+  this.shBrowser_ = shBrowser;
 
   /**
    * Current directory.
@@ -54,7 +54,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-  this.home = this.shAssets_.home;
+  this.home = this.shBrowser_.home;
 
   /**
    * Assets in current directory.
@@ -65,6 +65,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shAssets) {
   this.assets = [];
 
   // Enter home folder.
+  this.shBrowser_.path = [];
   this.assetEnter(this.home);
 
   /**
@@ -109,21 +110,22 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
  * @param {!shapy.browser.Asset.Dir} dir Dir to display.
  */
 shapy.browser.BrowserController.prototype.displayDir = function(dir) {
-  // Message BrowserToolbarController that path needs to be updated with dir.
+  // Update path with dir.
   // Do not update if we entered public space.
   if (!this.public) {
-    this.rootscope_.$emit('browser', {
-        type: 'dir',
-        dir: dir
-    });
+    this.shBrowser_.path.push(dir);
   }
 
-  // Query database for the contents
-  var promise = this.shAssets_.queryDir(dir, this.public);
-  // Update assets with answer from database.
-  promise.then(goog.bind(function(assets) {
-    this.assets = assets;
-  }, this));
+  if (dir.loaded) {
+    this.assets = dir.subdirs.concat(dir.otherAssets);
+  } else {
+    // Query database for the contents
+    var promise = this.shBrowser_.queryDir(dir, this.public);
+    // Update assets with answer from database.
+    promise.then(goog.bind(function(assets) {
+      this.assets = assets;
+    }, this));
+  }
 };
 
 /**
@@ -133,7 +135,7 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
  */
 shapy.browser.BrowserController.prototype.createDir = function(name) {
   // Request addding new dir in database
-  var promise = this.shAssets_.createDir(name, this.public, this.currentDir.id);
+  var promise = this.shBrowser_.createDir(name, this.public, this.currentDir);
   // Update contents of current dir.
   promise.then(goog.bind(function(dir) {
     this.assets.push(dir);
@@ -150,6 +152,40 @@ shapy.browser.BrowserController.prototype.publicEnter = function() {
   this.displayDir(this.home);
 };
 
+/**
+ * Enters directory chosen from folder tree.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir to enter.
+ */
+shapy.browser.BrowserController.prototype.enterFromTree = function(dir) {
+  // Compose new path to current dir.
+  var newPath = [];
+  var current = dir;
+  while (current.parent !== null) {
+    current = current.parent;
+    newPath.push(current);
+  }
+  newPath.reverse();
+
+  // Pass new path to toolbar.
+  this.shBrowser_.path = newPath;
+
+  // Enter the directory.
+  this.assetEnter(dir);
+};
+
+/**
+ * Updates subdirectories of provided directory.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir which subdirs we update.
+ */
+shapy.browser.BrowserController.prototype.subdirs = function(dir) {
+  if (!dir.loaded) {
+    // Query database for the contents - causes automatic update
+    var promise = this.shBrowser_.queryDir(dir, this.public);
+  }
+
+};
 
 
 /**
@@ -158,11 +194,13 @@ shapy.browser.BrowserController.prototype.publicEnter = function() {
  * @constructor
  *
  * @param {!angular.$scope} $rootScope The Angular root scope.
- * @param {!angular.$scope} $scope The current scope.
+ * @param {!shapy.browser.BrowserService} shBrowser The browser management service.
  */
-shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
+shapy.browser.BrowserToolbarController = function($rootScope, $scope, shBrowser) {
   /** @private {!angular.$scope} @const */
   this.rootscope_ = $rootScope;
+  /** @private {!shapy.browser.BrowserService} @const */
+  this.shBrowser_ = shBrowser;
   /** @public {string} @const @export */
   this.query = '';
 
@@ -174,21 +212,14 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope) {
     });
   }, this));
 
-  /**
-   * Path to current folder
-   * @public {string}
-   * @export
-   */
-  this.path = [];
+};
 
-  // Add new dir tu current path when user requests entering further dirs.
-  $rootScope.$on('browser', goog.bind(function(name, data) {
-    switch (data['type']) {
-      case 'dir':
-        this.path.push(data['dir']);
-        break;
-    }
-  }, this));
+/**
+ * Returns path to currently browsed directory.
+ *
+ */
+shapy.browser.BrowserToolbarController.prototype.path = function() {
+  return this.shBrowser_.path;
 };
 
 /**
@@ -200,7 +231,7 @@ shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
   // Drop redundant tail of path.
   var poppedAsset;
   do {
-    poppedAsset = this.path.pop();
+    poppedAsset = this.shBrowser_.path.pop();
   } while (poppedAsset.id != asset.id);
   // Message BrowserController that user requested returning to given asset from path.
   this.rootscope_.$emit('browser', {
@@ -244,9 +275,9 @@ shapy.browser.files = function() {
       };
 
       $(window).resize(adjustWidth);
-      $scope.$watch('browserCtrl.assets', function() {
+      $scope.$watchCollection('browserCtrl.assets', function() {
         adjustWidth();
-      }, true);
+      });
     }
   };
 };

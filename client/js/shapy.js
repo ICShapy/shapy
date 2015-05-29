@@ -7,8 +7,8 @@ goog.require('shapy.LoginController');
 goog.require('shapy.RegisterController');
 goog.require('shapy.SceneService');
 goog.require('shapy.UserService');
-goog.require('shapy.browser.AssetsService');
 goog.require('shapy.browser.BrowserController');
+goog.require('shapy.browser.BrowserService');
 goog.require('shapy.browser.BrowserToolbarController');
 goog.require('shapy.browser.file');
 goog.require('shapy.browser.fileMatch');
@@ -203,7 +203,7 @@ shapy.module = angular
   ])
 
   .service('shAuth', shapy.AuthService)
-  .service('shAssets', shapy.browser.AssetsService)
+  .service('shBrowser', shapy.browser.BrowserService)
   .service('shScene', shapy.SceneService)
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
