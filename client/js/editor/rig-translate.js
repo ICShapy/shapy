@@ -165,7 +165,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
 
   // Box on the origin.
   goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
-  goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.scale);
+  goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
   sh.uniformMat4x4('u_model', this.model_);
   sh.uniform4f('u_colour', 1, 1, 0, 1);
   gl.drawArrays(

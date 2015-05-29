@@ -42,6 +42,8 @@ shapy.editor.Mesh = function(gl, object) {
 
 /**
  * Builds the mesh.
+ *
+ * @private
  */
 shapy.editor.Mesh.prototype.build_ = function() {
   var r = 0, g = 0, b = 0;
