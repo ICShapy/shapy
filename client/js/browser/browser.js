@@ -148,6 +148,28 @@ shapy.browser.BrowserController.prototype.publicEnter = function() {
   this.displayDir(this.home);
 };
 
+/**
+ * Enters directory chosen from folder tree.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir to enter.
+ */
+shapy.browser.BrowserController.prototype.enterFromTree = function(dir) {
+  // Compose new path to current dir.
+  var newPath = [];
+  var current = dir;
+  while (current.parent !== null) {
+    current = current.parent;
+    newPath.push(current);
+  }
+  newPath.reverse();
+
+  // Pass new path to toolbar.
+  this.shBrowser_.path = newPath;
+
+  // Enter the directory.
+  this.assetEnter(dir);
+};
+
 
 
 /**
