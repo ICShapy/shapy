@@ -117,6 +117,13 @@ shapy.Scene.prototype.pick = function(ray) {
     return da - db;
   }, this);
 
+  //var ds = goog.array.map(hits, function(a) {
+  //  return goog.vec.Vec3.distance(ray.origin, a.point);
+  //});
+
+  //console.log(hits);
+  //console.log(ds);
+
   return hits[0].item;
 };
 

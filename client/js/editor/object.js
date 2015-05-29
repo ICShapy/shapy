@@ -193,6 +193,13 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
 
 
 /**
+ * Edge distance treshold.
+ * @type {number} @const
+ */
+shapy.editor.Object.EDGE_DIST_TRESHOLD = 0.01;
+
+
+/**
  * Recomputes the model matrix.
  */
 shapy.editor.Object.prototype.computeModel = function() {
@@ -322,7 +329,7 @@ shapy.editor.Object.prototype.pickVertices_ = function(ray) {
   var v = goog.object.filter(goog.object.map(this.verts, function(vert) {
     goog.vec.Vec3.subtract(vert.position, ray.origin, u);
     goog.vec.Vec3.cross(ray.dir, u, u);
-    if (goog.vec.Vec3.magnitude(u) >= 0.10) {
+    if (goog.vec.Vec3.magnitude(u) >= 0.01) {
       return null;
     }
 
@@ -358,7 +365,7 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
     goog.vec.Vec3.subtract(this.verts[edge.end].position, e0, u);
     var c = shapy.editor.geom.getClosest(new goog.vec.Ray(e0, u), ray);
 
-    if (goog.vec.Vec3.distance(c.p0, c.p1) >= 0.10 || c.s <= 0 || c.s >= 1) {
+    if (goog.vec.Vec3.distance(c.p0, c.p1) >= 0.01 || c.s <= 0 || c.s >= 1) {
       return null;
     }
 
@@ -389,6 +396,7 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
   var v = goog.object.filter(goog.object.map(this.faces, function(face) {
     var t = face.getVertexPositions_();
     var i = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
+    var ed;
 
     if (!i) {
       return null;
@@ -397,6 +405,40 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
     // Convert the intersection point to world space.
     var p = goog.vec.Vec3.createFloat32();
     goog.vec.Mat4.multVec3(face.object.model_, i, p);
+
+    // Determines if the point is close enough to the edge e.
+    var edgeDist = function(e) {
+      var d = shapy.editor.geom.getDistance(
+        p,
+        face.object.vertices[face.edges[e].start].position,
+        face.object.vertices[face.edges[e].end].position
+      );
+
+      if (d < shapy.editor.Object.EDGE_DIST_TRESHOLD) {
+        return {
+          item: face.edges[e],
+          point: p
+        }
+      }
+
+      return null;
+    };
+
+    // Determine if the intersection point is close to an edge.
+    ed = edgeDist(0);
+    if (ed) {
+      return ed;
+    }
+
+    ed = edgeDist(1);
+    if (ed) {
+      return ed;
+    }
+
+    ed = edgeDist(2);
+    if (ed) {
+      return ed;
+    }
 
     return {
       item: face,
