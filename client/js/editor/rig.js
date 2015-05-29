@@ -245,5 +245,6 @@ shapy.editor.Rig.prototype.mouseEnter = function(ray) {
 shapy.editor.Rig.Type = {
   TRANSLATE: 'translate',
   ROTATE: 'rotate',
-  SCALE: 'scale'
+  SCALE: 'scale',
+  CUT: 'cut'
 };
