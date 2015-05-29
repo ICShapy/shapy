@@ -433,6 +433,7 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
 shapy.editor.Editor.prototype.select = function(object) {
   if (!object) {
     this.selected_ = null;
+    this.hover_ = null;
     this.rig(null);
     return;
   }
@@ -479,6 +480,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 68: {
       if (this.selected_) {
         this.selected_.delete();
+        this.select(null);
         break;
       }
     }
