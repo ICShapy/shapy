@@ -233,6 +233,8 @@ shapy.editor.Object.prototype.pick = function(ray) {
 /**
  * Finds all vertices that intersect a ray.
  *
+ * @private
+ *
  * @param {!goog.vec.Ray} ray Ray converted to model space.
  *
  * @return {!Array<shapy.editor.Editable>}
@@ -299,7 +301,7 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
  * Finds all faces that intersect a ray.
  *
  * @param {!goog.vec.Ray} ray Ray converted to model space.
- *
+ * 
  * @return {!Array<shapy.editor.Editable>}
  *
  * @private
@@ -548,6 +550,14 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
 };
 
 
+/**
+ * Retrives the vertices forming this vertex (pretty trivial)
+ */
+shapy.editor.Object.Vertex.prototype.getVertices = function() {
+  return [this];
+};
+
+
 
 /**
  * Edge of an object.
@@ -616,6 +626,17 @@ shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
 };
 
 
+/**
+ * Retrives the vertices forming an edge.
+ */
+shapy.editor.Object.Edge.prototype.getVertices = function() {
+  return [
+    this.object.vertices[this.start],
+    this.object.vertices[this.end]
+  ];
+};
+
+
 
 /**
  * Face of an object.
@@ -645,10 +666,8 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
 
 /**
  * Retrives the vertices forming a face.
- *
- * @private
  */
-shapy.editor.Object.Face.prototype.getVertices_ = function() {
+shapy.editor.Object.Face.prototype.getVertices = function() {
   var p0 = this.edges[0].start;
   var p1 = this.edges[0].end;
   var p2 = this.edges[1].start;
@@ -669,11 +688,9 @@ shapy.editor.Object.Face.prototype.getVertices_ = function() {
  * Retrives the positions of vertices forming a face.
  *
  * @private
- *
- * @param {!Array<shapy.editor.Object.Edge>}
  */
 shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
-  var vertices = this.getVertices_();
+  var vertices = this.getVertices();
   return [
       vertices[0].position,
       vertices[1].position,

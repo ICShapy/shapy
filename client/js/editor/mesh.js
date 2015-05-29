@@ -60,7 +60,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var f = new Float32Array(this.faceCount_ * 48);
   goog.array.forEach(this.object_.faces, function(face) {
-    var faceVertices = face.getVertices_();
+    var faceVertices = face.getVertices();
 
     if (face.selected) {
       r = 1.0; g = 1.0; b = 0.0;

@@ -65,6 +65,12 @@ shapy.editor.Editable.prototype.rotate = function() { };
 shapy.editor.Editable.prototype.translate = function() { };
 
 
+/**
+ * Retrives the vertices forming this editable.
+ */
+shapy.editor.Editable.prototype.getVertices = function() { return []; };
+
+
 
 /**
  * Collection of editable objects
@@ -123,7 +129,30 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
-  goog.object.forEach(this.editables_, function(editable) {
-    editable.translate(x, y, z);
+  var mid = this.getPosition();
+
+  // Apply translation to each vertex
+  goog.object.forEach(this.getVertices(), function(vertex) {
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, mid, delta);
+    goog.vec.Vec3.add(delta, vertex.getPosition(), delta);
+    vertex.translate(delta[0], delta[1], delta[2]);
   }, this);
+};
+
+
+/**
+ * Retrives the vertices forming this group.
+ */
+shapy.editor.Editable.prototype.getVertices = function() {
+  // Gather all the vertices
+  var vertices = [];
+  goog.object.forEach(this.editables_, function(editable) {
+    vertices = vertices.concat(editable.getVertices());
+  }, this);
+
+  // Remove duplicates
+  return vertices.filter(function(value, index, self) {
+    return self.indexOf(value) === index;
+  });
 };
