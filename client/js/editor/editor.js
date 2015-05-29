@@ -431,6 +431,9 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
  * @param {!shapy.editor.Editable} object
  */
 shapy.editor.Editor.prototype.select = function(object) {
+  if (this.selected_) {
+    this.selected_.setSelected(false);
+  }
   if (!object) {
     this.selected_ = null;
     this.hover_ = null;
@@ -439,6 +442,7 @@ shapy.editor.Editor.prototype.select = function(object) {
   }
 
   this.selected_ = object;
+  this.selected_.setSelected(true);
   if (this.rig_) {
     this.rig_.object = object;
   }
