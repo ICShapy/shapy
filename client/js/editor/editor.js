@@ -476,6 +476,12 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 84: this.rig(this.rigTranslate_); break;
     case 82: this.rig(this.rigRotate_); break;
     case 83: this.rig(this.rigScale_); break;
+    case 68: {
+      if (this.selected_) {
+        this.selected_.delete();
+        break;
+      }
+    }
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);
