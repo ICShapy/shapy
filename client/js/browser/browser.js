@@ -49,7 +49,15 @@ shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
   this.public = false;
 
   /**
-   * Home dir.
+   * Public home dir.
+   *
+   * @public {!shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.homePublic = this.shBrowser_.homePublic;
+
+  /**
+   * Private home dir.
    *
    * @public {!shapy.browser.Asset.Dir}
    * @const
@@ -148,8 +156,8 @@ shapy.browser.BrowserController.prototype.createDir = function(name) {
  */
 shapy.browser.BrowserController.prototype.publicEnter = function() {
   this.public = true;
-  this.currentDir = this.home;
-  this.displayDir(this.home);
+  this.currentDir = this.homePublic;
+  this.displayDir(this.homePublic);
 };
 
 /**

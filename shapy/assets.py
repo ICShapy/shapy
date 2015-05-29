@@ -26,12 +26,12 @@ class DirectoryHandler(APIHandler):
     public = bool(int(publicSpace))
 
     # Check if public space queried correctly
-    if public and assetNumber != '0':
+    if public and assetNumber != '-1':
       raise HTTPError(400, 'There are no subdirs in public space.')
 
-    # Check if request is valid - can only browse home ('0')
+    # Check if private dir request is valid - can only browse home ('0')
     # or existing dir.
-    if assetNumber != '0':
+    if not public and assetNumber != '0':
       cursor = yield momoko.Op(self.db.execute,
           '''SELECT 1
              FROM assets

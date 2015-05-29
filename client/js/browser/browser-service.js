@@ -26,12 +26,20 @@ shapy.browser.BrowserService = function($http, $q) {
   this.q_ = $q;
 
   /**
-   * Home dir.
+   * Private home dir.
    *
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
    this.home = new shapy.browser.Asset.Dir(0, 'home', null);
+
+  /**
+   * Public home dir.
+   *
+   * @public {!shapy.browser.Asset.Dir}
+   * @const
+   */
+   this.homePublic = new shapy.browser.Asset.Dir(-1, 'homePublic', null);
 
 
   /**
