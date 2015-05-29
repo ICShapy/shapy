@@ -448,34 +448,6 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
 
 
 /**
- * Build a polygon object
- *
- * @param {number} n Number of sides
- * @param {number} radius Radius of each vertex
- *
- * @return {!shapy.editor.Object}
- */
-shapy.editor.Object.createPolygon = function(n, radius) {
-  // A polygon is a circle divided into 'n'
-  var vertices = [];
-  var edges = [];
-  var face = [];
-  for (var i = 0; i < n; i++) {
-    // Let the polygon lie on the XY plane
-    // TODO: Put it on the XZ plane instead?
-    var angle = (2 * Math.PI / n) * i;
-    vertices.push(radius * Math.sin(angle));
-    vertices.push(radius * Math.cos(angle));
-    vertices.push(0);
-    edges.push([i, (i + 1) % n]);
-    face.push(i);
-  }
-
-  return new shapy.editor.Object(vertices, edges, [face]);
-};
-
-
-/**
  * Build an cube object from triangles.
  *
  * @param {string} id
