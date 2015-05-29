@@ -18,8 +18,9 @@ goog.provide('shapy.browser.Asset.Texture');
  * @param {string} type  Type of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
+ * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset = function(id, name, type, image) {
+shapy.browser.Asset = function(id, name, type, image, parent) {
   /**
    * Id of the asset.
    * @public {number}
@@ -47,6 +48,13 @@ shapy.browser.Asset = function(id, name, type, image) {
    * @const
    */
   this.image = image;
+
+  /**
+   * Parent directory of this directory.
+   * @public {shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.parent = parent;
 };
 
 
@@ -61,21 +69,26 @@ shapy.browser.Asset = function(id, name, type, image) {
  * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
 shapy.browser.Asset.Dir = function(id, name, parent) {
-  shapy.browser.Asset.call(this, id, name, 'dir', '/img/folder.png');
+  shapy.browser.Asset.call(this, id, name, 'dir', '/img/folder.png', parent);
 
-  /**
-   * Parent directory of this directory.
-   * @public {shapy.browser.Asset.Dir}
-   * @const
-   */
-  this.parent = parent;
 
   /**
    * Subdirectories of this directory.
    * @public {Array.<shapy.browser.Asset.Dir>}
-   * @const
    */
   this.subdirs = [];
+
+  /**
+   * Not-dir assets of this directory.
+   * @public {Array.<shapy.browser.Asset>}
+   */
+  this.otherAssets = [];
+
+  /**
+   * Flag showing whether assets (subdirs and other) already loaded from database.
+   * @public{boolean}
+   */
+  this.loaded = false;
 
   // Update parent's subdir
   if (parent !== null) {
@@ -95,9 +108,13 @@ goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
+ * @param {Array.<!shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset.Scene = function(id, name, image) {
-  shapy.browser.Asset.call(this, id, name, 'scene', image);
+shapy.browser.Asset.Scene = function(id, name, image, parent) {
+  shapy.browser.Asset.call(this, id, name, 'scene', image, parent);
+
+  // Update parent's non-dir assets
+  parent.otherAssets.push(this);
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 
@@ -112,9 +129,13 @@ goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
+ * @param {Array.<!shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset.Texture = function(id, name, image) {
+shapy.browser.Asset.Texture = function(id, name, image, parent) {
   shapy.browser.Asset.call(this, id, name, 'texture', image);
+
+  // Update parent's non-dir assets
+  parent.otherAssets.push(this);
 };
 goog.inherits(shapy.browser.Asset.Texture, shapy.browser.Asset);
 

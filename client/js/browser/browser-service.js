@@ -95,11 +95,11 @@ shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
               break;
             case 'scene':
               assets.push(new shapy.browser.Asset.Scene(
-                  item['id'], item['name']), item['preview']);
+                  item['id'], item['name']), item['preview'], dir);
               break;
             case 'texture':
               assets.push(new shapy.browser.Asset.Texture(
-                  item['id'], item['name']), item['preview']);
+                  item['id'], item['name']), item['preview'], dir);
               break;
             default:
               console.log('Wrong type in database!');
@@ -107,6 +107,9 @@ shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
           }
 
         });
+
+        // Note that loading done.
+        dir.loaded = true;
 
         return assets;
       });

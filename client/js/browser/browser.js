@@ -116,12 +116,16 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
     this.shBrowser_.path.push(dir);
   }
 
-  // Query database for the contents
-  var promise = this.shBrowser_.queryDir(dir, this.public);
-  // Update assets with answer from database.
-  promise.then(goog.bind(function(assets) {
-    this.assets = assets;
-  }, this));
+  if (dir.loaded) {
+    this.assets = dir.subdirs.concat(dir.otherAssets);
+  } else {
+    // Query database for the contents
+    var promise = this.shBrowser_.queryDir(dir, this.public);
+    // Update assets with answer from database.
+    promise.then(goog.bind(function(assets) {
+      this.assets = assets;
+    }, this));
+  }
 };
 
 /**
@@ -170,6 +174,18 @@ shapy.browser.BrowserController.prototype.enterFromTree = function(dir) {
   this.assetEnter(dir);
 };
 
+/**
+ * Updates subdirectories of provided directory.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir which subdirs we update.
+ */
+shapy.browser.BrowserController.prototype.subdirs = function(dir) {
+  if (!dir.loaded) {
+    // Query database for the contents - causes automatic update
+    var promise = this.shBrowser_.queryDir(dir, this.public);
+  }
+
+};
 
 
 /**
