@@ -56,10 +56,13 @@ shapy.editor.Mesh.prototype.build_ = function() {
   };
 
   // Create mesh for rendering all the faces.
-  this.faceCount_ = this.object_.faces.length * 3;
+  this.faceCount_ = 0;
+  goog.object.forEach(this.object_.faces, function() {
+      this.faceCount_ += 3;
+  }, this);
   k = 0;
   var f = new Float32Array(this.faceCount_ * 48);
-  goog.array.forEach(this.object_.faces, function(face) {
+  goog.object.forEach(this.object_.faces, function(face) {
     var faceVertices = face.getVertices();
 
     if (face.selected) {
@@ -78,10 +81,13 @@ shapy.editor.Mesh.prototype.build_ = function() {
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
 
   // Create mesh for rendering all the edges.
-  this.edgeCount_ = this.object_.edges.length * 2;
+  this.edgeCount_ = 0;
+  goog.object.forEach(this.object_.edges, function() {
+      this.edgeCount_ += 2;
+  }, this);
   k = 0;
   var e = new Float32Array(this.edgeCount_ * 48);
-  goog.array.forEach(this.object_.edges, function(edge) {
+  goog.object.forEach(this.object_.edges, function(edge) {
     if (edge.selected) {
       r = 1.0; g = 1.0; b = 0.0;
     } else if (edge.hover) {
@@ -90,17 +96,20 @@ shapy.editor.Mesh.prototype.build_ = function() {
       r = 1.0; g = 1.0; b = 1.0;
     }
 
-    add(e, this.object_.vertices[edge.start].position);
-    add(e, this.object_.vertices[edge.end].position);
+    add(e, this.object_.verts[edge.start].position);
+    add(e, this.object_.verts[edge.end].position);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
 
   // Create mesh for rendering all the edges.
-  this.vertCount_ = this.object_.vertices.length * 2;
+  this.vertCount_ = 0;
+  goog.object.forEach(this.object_.verts, function() {
+      this.vertCount_ += 1;
+  }, this);
   k = 0;
   var v = new Float32Array(this.vertCount_ * 48);
-  goog.array.forEach(this.object_.vertices, function(vert) {
+  goog.object.forEach(this.object_.verts, function(vert) {
     if (vert.selected) {
       r = 1.0; g = 1.0; b = 0.0;
     } else if (vert.hover) {

@@ -208,7 +208,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
-  this.scene_.createSphere(2.5, 8, 8);
+  this.scene_.createSphere(0.5, 16, 16);
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
 };
@@ -440,6 +440,7 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
  */
 shapy.editor.Editor.prototype.selectObject_ = function(object) {
   this.selected_ = object;
+  this.selected_.setSelected(true);
   if (this.rig_) {
     this.rig_.object = object;
   }
@@ -521,6 +522,13 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 84: this.rig(this.rigTranslate_); break; // t
     case 82: this.rig(this.rigRotate_); break;    // r
     case 83: this.rig(this.rigScale_); break;     // s
+    case 68: {                                    // d
+      if (this.selected_) {
+        this.selected_.delete();
+        this.select(null);
+        break;
+      }
+    }
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);
