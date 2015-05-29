@@ -237,9 +237,9 @@ shapy.browser.files = function() {
       };
 
       $(window).resize(adjustWidth);
-      $scope.$watch('browserCtrl.assets', function() {
+      $scope.$watchCollection('browserCtrl.assets', function() {
         adjustWidth();
-      }, true);
+      });
     }
   };
 };
