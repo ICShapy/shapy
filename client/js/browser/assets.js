@@ -58,9 +58,25 @@ shapy.browser.Asset = function(id, name, type, image) {
  *
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
+ * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset.Dir = function(id, name) {
+shapy.browser.Asset.Dir = function(id, name, parent) {
   shapy.browser.Asset.call(this, id, name, 'dir', '/img/folder.png');
+
+  /**
+   * Parent directory of this directory.
+   * @public {shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.parent = parent;
+
+  /**
+   * Subdirectories of this directory.
+   * @public {Array.<shapy.browser.Asset.Dir>}
+   * @const
+   */
+  this.subdirs = [];
+
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
 

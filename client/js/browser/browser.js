@@ -131,7 +131,7 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
  */
 shapy.browser.BrowserController.prototype.createDir = function(name) {
   // Request addding new dir in database
-  var promise = this.shBrowser_.createDir(name, this.public, this.currentDir.id);
+  var promise = this.shBrowser_.createDir(name, this.public, this.currentDir);
   // Update contents of current dir.
   promise.then(goog.bind(function(dir) {
     this.assets.push(dir);

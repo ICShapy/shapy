@@ -31,7 +31,7 @@ shapy.browser.BrowserService = function($http, $q) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-   this.home = new shapy.browser.Asset.Dir(0, 'home');
+   this.home = new shapy.browser.Asset.Dir(0, 'home', null);
 
 
   /**
@@ -45,9 +45,9 @@ shapy.browser.BrowserService = function($http, $q) {
 /**
  * Injects new dir into databse and returns a promise with response.
  *
- * @param {string} name      Name of the directory
- * @param {boolean} public   Flag showing whether dir is publicly accessible
- * @param {Asset.Dir} parent Parent directory
+ * @param {string} name      Name of the directory.
+ * @param {boolean} public   Flag showing whether dir is publicly accessible.
+ * @param {!shapy.browser.Asset.Dir} parent Parent directory.
  */
 shapy.browser.BrowserService.prototype.createDir = function(name, public, parent) {
   var def = this.q_.defer();
@@ -59,10 +59,12 @@ shapy.browser.BrowserService.prototype.createDir = function(name, public, parent
     name: name,
     type: 'dir',
     public: public,
-    parent: parent
+    parent: parent.id
   })
   .success(function(response) {
-    def.resolve(new shapy.browser.Asset.Dir(response['id'], name));
+    var newDir = new shapy.browser.Asset.Dir(response['id'], name, parent);
+    parent.subdirs.push(newDir);
+    def.resolve(newDir);
   })
   .error(function() {
     def.reject();
@@ -90,8 +92,10 @@ shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
         goog.array.forEach(response.data, function(item) {
           switch (item['type']) {
             case 'dir':
-              assets.push(new shapy.browser.Asset.Dir(
-                  item['id'], item['name']));
+              var newDir = new shapy.browser.Asset.Dir(
+                  item['id'], item['name'], dir);
+              dir.subdirs.push(newDir);
+              assets.push(newDir);
               break;
             case 'scene':
               assets.push(new shapy.browser.Asset.Scene(
