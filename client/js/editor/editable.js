@@ -81,6 +81,13 @@ shapy.editor.Editable.prototype.delete = function() { };
 shapy.editor.Editable.prototype.getVertices = function() { return []; };
 
 
+/**
+ * Retrieves the object edited.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.Editable.prototype.getObject = function() { return null; };
+
 
 /**
  * Collection of editable objects
@@ -188,3 +195,22 @@ shapy.editor.EditableGroup.prototype.getVertices = function() {
   goog.array.removeDuplicates(verts);
   return verts;
 };
+
+
+/**
+ * Returns the object if all selected editables are from the same object.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.EditableGroup.prototype.getObject = function() {
+  if (goog.array.isEmpty(this.editables_)) {
+    return null;
+  }
+  var object = this.editables_[0].object;
+  var same = goog.array.every(this.editables_, function(e) {
+      return e.object == object;
+  });
+
+  return same ? object : null;
+};
+

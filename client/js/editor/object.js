@@ -449,6 +449,60 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
 
 
 /**
+ * Connects vertices and edges in order to create new edges or faces.
+ *
+ * @param {!Array<shapy.editor.Object.Vertex>} verts Vertices to connect.
+ */
+shapy.editor.Object.prototype.connect = function(verts) {
+  var pairs;
+  if (verts.length == 2) {
+    pairs = [
+      [verts[0].id, verts[1].id]
+    ];
+  } else {
+    pairs = [
+      [verts[0].id, verts[1].id],
+      [verts[1].id, verts[2].id],
+      [verts[2].id, verts[0].id]
+    ];
+  }
+
+  var e = goog.array.map(pairs, function(v) {
+    for (var id in this.edges) {
+      var e = this.edges[id];
+      if ((e.start == v[0] && e.end == v[1]) ||
+          (e.start == v[1] && e.end == v[0]))
+      {
+        return id;
+      }
+    }
+
+    var edgeID = this.nextEdge_++;
+    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+        v[0], v[1]);
+    this.dirtyMesh = true;
+    return edgeID;
+  }, this);
+
+  if (verts.length == 3) {
+    e.sort();
+    var exists = goog.object.some(this.faces, function(f) {
+      var v = [f.e0, f.e1, f.e2];
+      v.sort();
+      return v[0] == e[0] && v[1] == e[1] && v[2] == e[2];
+    });
+    if (exists) {
+      return;
+    }
+    var faceID = this.nextFace_++;
+    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+        e[0], e[1], e[2]);
+    this.dirtyMesh = true;
+  }
+};
+
+
+/**
  * Build a polygon object
  *
  * @param {number} n Number of sides

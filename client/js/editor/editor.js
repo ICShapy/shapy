@@ -519,6 +519,8 @@ shapy.editor.Editor.prototype.rig = function(rig) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
+  var object;
+
   switch (e.keyCode) {
     case 17: this.ctrlDown_ = true; break;        // control
     case 68: {                                    // d
@@ -529,19 +531,22 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         break;
       }
     }
-    case 77: {
-      if (!this.selected_) {
+    case 70: {
+      if (!this.selected_ || !(object = this.selected_.getObject())) {
         return;
       }
       var verts = this.selected_.getVertices();
-      if (goog.array.isEmpty(verts)) {
+      if (verts.length != 3 && verts.length != 2) {
         return;
       }
-      var object = verts[0].object;
-      if (!goog.array.every(verts, function(v) { return v.object == object })) {
+      object.connect(verts);
+      break;
+    }
+    case 77: {
+      if (!this.selected_ || !(object = this.selected_.getObject())) {
         return;
       }
-      object.mergeVertices(verts);
+      object.mergeVertices(this.selected_.getVertices());
       this.select(null);
       this.rig(null);
       break;
