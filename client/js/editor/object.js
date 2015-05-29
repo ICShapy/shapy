@@ -21,7 +21,13 @@ goog.require('shapy.editor.geom');
  *
  * @constructor
  */
-shapy.editor.Editable = function() {
+shapy.editor.Editable = function(type) {
+  /**
+   * @public {shapy.editor.Editable.Type}
+   * @const
+   */
+  this.type = type;
+
   /** @public {!boolean} */
   this.hover = false;
   /** @public {!boolean} */
@@ -73,6 +79,19 @@ shapy.editor.Editable.prototype.translate = function() { };
 
 
 /**
+ * List of editable types.
+ * @enum {string}
+ */
+shapy.editor.Editable.Type = {
+  OBJECT: 'object',
+  VERTEX: 'vertex',
+  EDGE: 'edge',
+  FACE: 'face'
+};
+
+
+
+/**
  * Abstract object metadata.
  *
  * Properties:
@@ -84,6 +103,7 @@ shapy.editor.Editable.prototype.translate = function() { };
  * matrix of the object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {string} id
  * @param {!Array<Object>} vertices
@@ -91,7 +111,7 @@ shapy.editor.Editable.prototype.translate = function() { };
  * @param {!Array<Object>} faces
  */
 shapy.editor.Object = function(id, vertices, edges, faces) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT);
 
   /** @public {string} */
   this.id = id;
@@ -596,6 +616,7 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
  * Vertex of an object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {!shapy.editor.Object} object
  * @param {number} x
@@ -603,7 +624,7 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
  * @param {number} z
  */
 shapy.editor.Object.Vertex = function(object, x, y, z) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.VERTEX);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
@@ -654,13 +675,14 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
  * Edge of an object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {!shapy.editor.Object} object
  * @param {number}               start
  * @param {number}               end
  */
 shapy.editor.Object.Edge = function(object, start, end) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDGE);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
@@ -722,12 +744,13 @@ shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
  * Face of an object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {!shapy.editor.Object}             object
  * @param {!Array<shapy.editor.Object.Edge>} edges
  */
 shapy.editor.Object.Face = function(object, edges) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.FACE);
 
   /**
    * @public {!shapy.editor.Object}

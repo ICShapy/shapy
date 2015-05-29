@@ -15,14 +15,23 @@ shapy.editor.Rig.Cut = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.CUT);
 
   /**
-   * @private {goog.vec.Vec3.Type}
+   * @private {!Array<goog.vec.Vec3.Type>} ps_ Points forming the cut plane.
    */
-  this.startPoint_ = goog.vec.Vec3.createFloat32();
+  this.ps_ = [
+      goog.vec.Vec3.createFloat32(),
+      goog.vec.Vec3.createFloat32(),
+      goog.vec.Vec3.createFloat32()
+  ];
 
   /**
-   * @private {goog.vec.Vec3.Type}
+   * @private {number} turn_ Cut point to be updated.
    */
-  this.endPoint_ = goog.vec.Vec3.createFloat32();
+  this.turn_ = 0;
+
+  /**
+   * @private {goog.vec.Vec3.Type} norm_ Normal of the cut plane.
+   */
+  this.norm_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Cut, shapy.editor.Rig);
 
@@ -33,7 +42,7 @@ goog.inherits(shapy.editor.Rig.Cut, shapy.editor.Rig);
  * @param {!WebGLContext}        gl WebGL context.
  * @param {!shapy.editor.Shader} sh Current shader.
  */
-shapy.editor.Rig.Cut.prototype.render = fucntion(gl, sh) {
+shapy.editor.Rig.Cut.prototype.render = function(gl, sh) {
 
 };
 
@@ -43,8 +52,8 @@ shapy.editor.Rig.Cut.prototype.render = fucntion(gl, sh) {
  *
  * @param {!goog.vec.Ray} ray
  */
-shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
-
+shapy.editor.Rig.Cut.prototype.mouseMove = function(ray) {
+  //console.log(this.ps_);
 };
 
 
@@ -54,7 +63,31 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
+  var hits = goog.array.flatten(this.object.pick(ray));
 
+  if (goog.array.isEmpty(hits)) {
+    return null;
+  }
+
+  goog.array.sort(hits, function(a, b) {
+    var da = goog.vec.Vec3.distance(ray.origin, a.point);
+    var db = goog.vec.Vec3.distance(ray.origin, b.point);
+    return da - db;
+  }, this);
+
+  var i = hits[0].point;
+
+  // Record the point.
+  goog.vec.Vec3.setFromValues(this.ps_[this.turn_], i[0], i[1], i[2]);
+  this.turn_ = (this.turn_ + 1) % this.ps_.length;
+
+  // Re-calculate the normal of the cut plane.
+  var v10 = goog.vec.Vec3.createFloat32();
+  var v20 = goog.vec.Vec3.createFloat32();
+
+  goog.vec.Vec3.subtract(this.ps_[1], this.ps_[0], v10);
+  goog.vec.Vec3.subtract(this.ps_[2], this.ps_[0], v20);
+  goog.vec.Vec3.cross(v10, v20, this.norm_);
 };
 
 
@@ -64,13 +97,13 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Cut.prototype.mouseUp = function(ray) {
-
+  //console.log(this.ps_);
 };
 
 
 /**
  * Handles mouse leave event.
  */
-shapy.editor.Rig.Cut.mouseLeave = function() {
+shapy.editor.Rig.Cut.prototype.mouseLeave = function() {
 
 };

@@ -17,6 +17,7 @@ goog.require('shapy.editor.Layout.Quad');
 goog.require('shapy.editor.Layout.Single');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Rig');
+goog.require('shapy.editor.Rig.Cut');
 goog.require('shapy.editor.Rig.Rotate');
 goog.require('shapy.editor.Rig.Scale');
 goog.require('shapy.editor.Rig.Translate');
@@ -60,6 +61,8 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.rigRotate_ = new shapy.editor.Rig.Rotate();
   /** @private {!shapy.editor.Rig} @const */
   this.rigScale_ = new shapy.editor.Rig.Scale();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigCut_ = new shapy.editor.Rig.Cut();
 
   /** @private {!angular.$location} @const */
   this.location_ = $location;
@@ -337,6 +340,7 @@ shapy.editor.Editor.prototype.destroy = function() {
   this.rigTranslate_.destroy();
   this.rigRotate_.destroy();
   this.rigScale_.destroy();
+  this.rigCut_.destroy();
   this.rig_ = null;
 };
 
@@ -437,6 +441,12 @@ shapy.editor.Editor.prototype.select = function(object) {
     return;
   }
 
+  // Cut rig should not be attached to anything other than objects.
+  if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT &&
+      object.type != shapy.editor.Editable.Type.OBJECT) {
+    return;
+  }
+
   this.selected_ = object;
   if (this.rig_) {
     this.rig_.object = object;
@@ -458,6 +468,12 @@ shapy.editor.Editor.prototype.rig = function(rig) {
     return;
   }
 
+  // Cut rig should not be attached to anything other than objects.
+  //if (rig.type == shapy.editor.Rig.Type.CUT &&
+  //    this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
+  //  return;
+  //}
+
   this.rig_ = rig;
   this.rig_.object = this.selected_;
   if (this.layout_) {
@@ -473,9 +489,10 @@ shapy.editor.Editor.prototype.rig = function(rig) {
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
   switch (e.keyCode) {
+    case 67: this.rig(this.rigCut_);       break;
+    case 82: this.rig(this.rigRotate_);    break;
+    case 83: this.rig(this.rigScale_);     break;
     case 84: this.rig(this.rigTranslate_); break;
-    case 82: this.rig(this.rigRotate_); break;
-    case 83: this.rig(this.rigScale_); break;
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);
