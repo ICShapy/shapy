@@ -766,7 +766,7 @@ shapy.editor.Object.Edge.prototype.getPosition = function() {
  */
 shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
   var a = this.object.verts[this.start].position;
-  var b = this.object.vertices[this.end].position;
+  var b = this.object.verts[this.end].position;
 
   var t = goog.vec.Vec3.createFloat32();
   var s = goog.vec.Vec3.createFloat32();
