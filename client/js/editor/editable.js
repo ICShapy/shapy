@@ -66,7 +66,15 @@ shapy.editor.Editable.prototype.translate = function() { };
 
 
 /**
+ * Delete the editable from the mesh
+ */
+shapy.editor.Editable.prototype.delete = function() { };
+
+
+/**
  * Retrives the vertices forming this editable.
+ *
+ * @return {!Array<!shapy.editor.Object.Vertex>}
  */
 shapy.editor.Editable.prototype.getVertices = function() { return []; };
 
@@ -142,9 +150,20 @@ shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
 
 
 /**
+ * Delete the editable from the mesh
+ */
+shapy.editor.EditableGroup.prototype.delete = function() {
+  goog.object.forEach(this.editables_, function(editable) {
+    editable.delete();
+  }, this);
+  this.editables_ = null;
+};
+
+
+/**
  * Retrives the vertices forming this group.
  */
-shapy.editor.Editable.prototype.getVertices = function() {
+shapy.editor.EditableGroup.prototype.getVertices = function() {
   // Gather all the vertices
   var vertices = [];
   goog.object.forEach(this.editables_, function(editable) {
