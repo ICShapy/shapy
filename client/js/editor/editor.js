@@ -435,7 +435,7 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
  * Set the currently selected object in the editor/rig/etc
  *
  * @private
- * 
+ *
  * @param {!shapy.editor.Editable} object
  */
 shapy.editor.Editor.prototype.selectObject_ = function(object) {
@@ -453,7 +453,7 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
  * @param {!shapy.editor.Editable} object
  */
 shapy.editor.Editor.prototype.select = function(object) {
-  if (this.ctrlDown_) {
+  if (this.ctrlDown_ && this.selected_) {
     // Add to the selection group
     if (this.selected_.constructor == shapy.editor.EditableGroup) {
       // Add to an existing group
@@ -519,9 +519,6 @@ shapy.editor.Editor.prototype.rig = function(rig) {
 shapy.editor.Editor.prototype.keyDown = function(e) {
   switch (e.keyCode) {
     case 17: this.ctrlDown_ = true; break;        // control
-    case 84: this.rig(this.rigTranslate_); break; // t
-    case 82: this.rig(this.rigRotate_); break;    // r
-    case 83: this.rig(this.rigScale_); break;     // s
     case 68: {                                    // d
       if (this.selected_) {
         this.selected_.delete();
@@ -529,6 +526,25 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         break;
       }
     }
+    case 77: {
+      if (!this.selected_) {
+        return;
+      }
+      var verts = this.selected_.getVertices();
+      if (goog.array.isEmpty(verts)) {
+        return;
+      }
+      var object = verts[0].object;
+      if (!goog.array.every(verts, function(v) { return v.object == object })) {
+        return;
+      }
+      object.mergeVertices(verts);
+      this.select(null);
+      break;
+    }
+    case 84: this.rig(this.rigTranslate_); break; // t
+    case 82: this.rig(this.rigRotate_); break;    // r
+    case 83: this.rig(this.rigScale_); break;     // s
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);

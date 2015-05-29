@@ -14,8 +14,10 @@ goog.provide('shapy.editor.Editable');
  * This is just an interface - objects must implement individual methods.
  *
  * @constructor
+ *
+ * @param {string} type Type of the editable.
  */
-shapy.editor.Editable = function() {
+shapy.editor.Editable = function(type) {
   /** @public {!boolean} */
   this.hover = false;
   /** @public {!boolean} */
@@ -86,6 +88,8 @@ shapy.editor.Editable.prototype.getVertices = function() { return []; };
  * @constructor
  */
 shapy.editor.EditableGroup = function() {
+  shapy.editor.Editable.call(this, shapy.editor.Editable.GROUP);
+
   /** @private {!Array<shapy.editor.Editable>} List of editables to control */
   this.editables_ = [];
 };
@@ -162,16 +166,13 @@ shapy.editor.EditableGroup.prototype.delete = function() {
 
 /**
  * Retrives the vertices forming this group.
+ *
+ * @return {!Array<!shapy.editor.Object.Vertex>}
  */
 shapy.editor.EditableGroup.prototype.getVertices = function() {
-  // Gather all the vertices
-  var vertices = [];
-  goog.object.forEach(this.editables_, function(editable) {
-    vertices = vertices.concat(editable.getVertices());
-  }, this);
-
-  // Remove duplicates
-  return vertices.filter(function(value, index, self) {
-    return self.indexOf(value) === index;
-  });
+  var verts = goog.array.flatten(goog.array.map(this.editables_, function(e) {
+    return e.getVertices();
+  }, this));
+  goog.array.removeDuplicates(verts);
+  return verts;
 };

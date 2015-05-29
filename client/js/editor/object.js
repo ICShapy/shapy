@@ -92,7 +92,7 @@ shapy.editor.Object = function(id, verts, edges, faces) {
   this.verts = {};
   this.nextVert_ = 0;
   goog.array.forEach(verts, function(v, i) {
-    this.nextVert_ = Math.max(this.nextVert, i);
+    this.nextVert_ = Math.max(this.nextVert_, i);
     this.verts[i] = new shapy.editor.Object.Vertex(this, i, v[0], v[1], v[2]);
   }, this);
 
@@ -384,6 +384,71 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
 
 
 /**
+ * Merges a set of points into a single point.
+ *
+ * @param {!Array<shapy.editor.Object.Vertex>} verts
+ */
+shapy.editor.Object.prototype.mergeVertices = function(verts) {
+  var center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
+  var vertID = this.nextVert_;
+  this.nextVert_++;
+
+  var vertIDs = goog.array.map(verts, function(vert) {
+    goog.vec.Vec3.add(center, vert.position, center);
+    return vert.id;
+  });
+  goog.vec.Vec3.scale(center, 1.0 / verts.length, center);
+
+  // Remove all affected vertices & add the new vertex.
+  this.verts = goog.object.filter(this.verts, function(v) {
+    return !goog.array.contains(vertIDs, v.id);
+  }, this);
+  this.verts[vertID] = new shapy.editor.Object.Vertex(
+      this, vertID, center[0], center[1], center[2]);
+
+  // Remove all edges & convert some to vertices.
+  var faceIDs = [], edge = {}, map = {};
+  this.edges = goog.object.filter(this.edges, function(e) {
+    e.start = goog.array.contains(vertIDs, e.start) ? vertID : e.start;
+    e.end = goog.array.contains(vertIDs, e.end) ? vertID : e.end;
+
+    // If both endpoints were removed, dump the edge.
+    if (e.start == e.end) {
+      return false;
+    }
+
+    // If an identical or an inverse edge was formed, get rid of edge
+    if ((edge[e.start] || {})[e.end]) {
+      map[e.id] = edge[e.start][e.end];
+      return false;
+    }
+    if ((edge[e.end] || {})[e.start]) {
+      map[e.id] = edge[e.end][e.start];
+      return false;
+    }
+
+    map[e.id] = e.id;
+    edge[e.start] = edge[e.start] || {};
+    edge[e.start][e.end] = e.id;
+    faceIDs.push(e.id);
+    return true;
+  }, this);
+
+  // Remove faces that had any edges removed.
+  this.faces = goog.object.filter(this.faces, function(f) {
+    f.e0 = map[f.e0]; f.e1 = map[f.e1]; f.e2 = map[f.e2];
+    var e0 = goog.array.contains(faceIDs, f.e0);
+    var e1 = goog.array.contains(faceIDs, f.e1);
+    var e2 = goog.array.contains(faceIDs, f.e2);
+
+    return e0 && e1 && e2;
+  }, this);
+
+  this.dirtyMesh = true;
+};
+
+
+/**
  * Build a polygon object
  *
  * @param {number} n Number of sides
@@ -626,7 +691,9 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
 
 
 /**
- * Retrives the vertices forming this vertex (pretty trivial)
+ * Retrives the vertices forming this vertex (pretty trivial).
+ *
+ * @return {!Array<shapy.editor.Object.Vertex>}
  */
 shapy.editor.Object.Vertex.prototype.getVertices = function() {
   return [this];
@@ -785,19 +852,19 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
  * @return {!Array<!shapy.editor.Object.Vertex>}
  */
 shapy.editor.Object.Face.prototype.getVertices = function() {
-  var p0 = this.object.edges[this.e0].start;
-  var p1 = this.object.edges[this.e0].end;
-  var p2 = this.object.edges[this.e1].start;
-
-  if (p0 == p2 || p1 == p2) {
-    p2 = this.object.edges[this.e1].end;
-  }
-
-  return [
-      this.object.verts[p0],
-      this.object.verts[p1],
-      this.object.verts[p2]
+  var e0 = this.object.edges[this.e0];
+  var e1 = this.object.edges[this.e1];
+  var e2 = this.object.edges[this.e2];
+  var verts = [
+    e0.start, e0.end,
+    e1.start, e1.end,
+    e2.start, e2.end
   ];
+
+  goog.array.removeDuplicates(verts);
+  return goog.array.map(verts, function(v) {
+    return this.object.verts[v];
+  }, this);
 };
 
 
@@ -824,7 +891,7 @@ shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Face.prototype.getPosition = function() {
-  var t  = this.getVertexPositions_();
+  var t = this.getVertexPositions_();
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
   goog.vec.Mat4.multVec3(this.object.model_, c, c);
   return c;
