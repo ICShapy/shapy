@@ -404,38 +404,38 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
 
     // Convert the intersection point to world space.
     var p = goog.vec.Vec3.createFloat32();
-    goog.vec.Mat4.multVec3(face.object.model_, i, p);
+    goog.vec.Mat4.multVec3(this.model_, i, p);
 
     // Determines if the point is close enough to the edge e.
-    var edgeDist = function(e) {
+    var edgeDist = goog.bind(function(e) {
       var d = shapy.editor.geom.getDistance(
         p,
-        face.object.vertices[face.edges[e].start].position,
-        face.object.vertices[face.edges[e].end].position
+        this.verts[this.edges[e].start].position,
+        this.verts[this.edges[e].end].position
       );
 
       if (d < shapy.editor.Object.EDGE_DIST_TRESHOLD) {
         return {
-          item: face.edges[e],
+          item: this.edges[e],
           point: p
-        }
+        };
       }
 
       return null;
-    };
+    }, this);
 
     // Determine if the intersection point is close to an edge.
-    ed = edgeDist(0);
+    ed = edgeDist(face.e0);
     if (ed) {
       return ed;
     }
 
-    ed = edgeDist(1);
+    ed = edgeDist(face.e1);
     if (ed) {
       return ed;
     }
 
-    ed = edgeDist(2);
+    ed = edgeDist(face.e2);
     if (ed) {
       return ed;
     }
@@ -444,7 +444,7 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
       item: face,
       point: p
     };
-  }, this), goog.isDefAndNotNull);
+  }, this), goog.isDefAndNotNull, this);
   return goog.object.getValues(v);
 };
 
