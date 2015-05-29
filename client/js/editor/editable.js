@@ -89,15 +89,28 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
 
 
 /**
+ * Selects the editable.
+ *
+ * @param {boolean} selected
+ */
+shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
+  goog.object.forEach(this.editables_, function(editable) {
+    editable.setSelected(selected);
+  }, this);
+};
+
+
+/**
  * Retrieves the group average position
  *
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.EditableGroup.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32();
-  goog.forEach(this.editables_, function(editable) {
+  goog.object.forEach(this.editables_, function(editable) {
     goog.vec.Vec3.add(position, editable.getPosition(), position);
   }, this);
+  goog.vec.Vec3.scale(position, 1 / this.editables_.length, position);
   return position;
 };
 
@@ -110,7 +123,7 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
-  goog.forEach(this.editables_, function(editable) {
+  goog.object.forEach(this.editables_, function(editable) {
     editable.translate(x, y, z);
   }, this);
 };
