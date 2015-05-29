@@ -1,77 +1,13 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Editable');
+goog.provide('shapy.editor.Object');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
 goog.require('shapy.editor.geom');
-
-
-
-/**
- * Editable provides a way to manipulat properties of vertices, edges and faces.
- *
- * - scale
- * - rotate
- * - translate
- *
- * This is just an interface - objects must implement individual methods.
- *
- * @constructor
- */
-shapy.editor.Editable = function() {
-};
-
-
-/**
- * Hovers over the editable.
- *
- * @param {boolean} hover
- */
-shapy.editor.Editable.prototype.setHover = function(hover) {
-  this.hover = hover;
-  // TODO: do this properly.
-  this.object.dirtyMesh = true;
-};
-
-
-/**
- * Selects the editable.
- *
- * @param {boolean} selected
- */
-shapy.editor.Editable.prototype.setSelected = function(selected) {
-  this.selected = selected;
-  // TODO: do this properly.
-  this.object.dirtyMesh = true;
-};
-
-
-/**
- * Scales the editable.
- */
-shapy.editor.Editable.prototype.scale = function() { };
-
-
-/**
- * Rotates the editable.
- */
-shapy.editor.Editable.prototype.rotate = function() { };
-
-
-/**
- * Translate the editable.
- */
-shapy.editor.Editable.prototype.translate = function() { };
-
-
-/**
- * Deletes the editable.
- */
-shapy.editor.Editable.prototype.delete = function() { };
-
+goog.require('shapy.editor.Editable');
 
 /**
  * Abstract object metadata.
@@ -350,6 +286,8 @@ shapy.editor.Object.prototype.pickVertices_ = function(ray) {
  * @param {!goog.vec.Ray} ray Ray converted to model space.
  *
  * @return {!Array<shapy.editor.Editable>}
+ *
+ * @private
  */
 shapy.editor.Object.prototype.pickEdges_ = function(ray) {
   var u = goog.vec.Vec3.createFloat32();
@@ -646,11 +584,6 @@ shapy.editor.Object.Vertex = function(object, id, x, y, z) {
   /** @public {!number} @const */
   this.id = id;
 
-  /** @public {!boolean} */
-  this.hover = false;
-  /** @public {!boolean} */
-  this.selected = false;
-
   /**
    * Position of the vertex.
    * @public {!goog.vec.Vec3.Type} @const
@@ -689,6 +622,14 @@ shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.position, x, y, z);
   goog.vec.Mat4.multVec3(this.object.invModel_, this.position, this.position);
   this.object.dirtyMesh = true;
+};
+
+
+/**
+ * Retrives the vertices forming this vertex (pretty trivial)
+ */
+shapy.editor.Object.Vertex.prototype.getVertices = function() {
+  return [this];
 };
 
 
@@ -785,6 +726,17 @@ shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
 
 
 /**
+ * Retrives the vertices forming an edge.
+ */
+shapy.editor.Object.Edge.prototype.getVertices = function() {
+  return [
+    this.object.verts[this.start],
+    this.object.verts[this.end]
+  ];
+};
+
+
+/**
  * Deletes the edge and all faces that use it.
  */
 shapy.editor.Object.Edge.prototype.delete = function() {
@@ -830,11 +782,9 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
 /**
  * Retrives the vertices forming a face.
  *
- * @private
- *
  * @return {!Array<!shapy.editor.Object.Vertex>}
  */
-shapy.editor.Object.Face.prototype.getVertices_ = function() {
+shapy.editor.Object.Face.prototype.getVertices = function() {
   var p0 = this.object.edges[this.e0].start;
   var p1 = this.object.edges[this.e0].end;
   var p2 = this.object.edges[this.e1].start;
@@ -859,7 +809,7 @@ shapy.editor.Object.Face.prototype.getVertices_ = function() {
  * @param {!Array<shapy.editor.Object.Edge>}
  */
 shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
-  var verts = this.getVertices_();
+  var verts = this.getVertices();
   return [
       verts[0].position,
       verts[1].position,

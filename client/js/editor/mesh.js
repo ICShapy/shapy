@@ -22,11 +22,6 @@ shapy.editor.Mesh = function(gl, object) {
   this.object_ = object;
 
   /** @private {!WebGLBuffer} @const */
-  this.verts_ = this.gl_.createBuffer();
-  /** @private {number} @const */
-  this.vertCount_ = 0;
-
-  /** @private {!WebGLBuffer} @const */
   this.faces_ = this.gl_.createBuffer();
   /** @private {number} @const */
   this.faceCount_ = 0;
@@ -35,6 +30,11 @@ shapy.editor.Mesh = function(gl, object) {
   this.edges_ = this.gl_.createBuffer();
   /** @private {number} @const */
   this.edgeCount_ = 0;
+
+  /** @private {!WebGLBuffer} @const */
+  this.verts_ = this.gl_.createBuffer();
+  /** @private {number} @const */
+  this.vertCount_ = 0;
 
   this.build_();
 };
@@ -52,7 +52,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
     d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
     d[k++] = 0; d[k++] = 0;                               // UV.
-    d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1.0;     // Diffuse.
+    d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1;       // Diffuse.
   };
 
   // Create mesh for rendering all the edges.
@@ -64,11 +64,11 @@ shapy.editor.Mesh.prototype.build_ = function() {
   var v = new Float32Array(this.vertCount_ * 48);
   goog.object.forEach(this.object_.verts, function(vert) {
     if (vert.selected) {
-      r = 1.0; g = 1.0; b = 0.0; a = 1.0;
+      r = 1.0; g = 1.0; b = 0.0;
     } else if (vert.hover) {
-      r = 0.8; g = 0.4; b = 0.0; a = 1.0;
+      r = 0.8; g = 0.4; b = 0.0;
     } else {
-      r = 0.0; g = 0.0; b = 1.0; a = -3.0;
+      r = 0.0; g = 0.0; b = 1.0;
     }
 
     add(v, vert.position);
@@ -84,24 +84,23 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var e = new Float32Array(this.edgeCount_ * 48);
   goog.object.forEach(this.object_.edges, function(edge) {
-    var v0 = this.object_.verts[edge.start];
-    var v1 = this.object_.verts[edge.end];
-    if (edge.selected || v0.selected) {
+    var v = edge.getVertices();
+    if (edge.selected || v[0].selected) {
       r = 1.0; g = 1.0; b = 0.0;
     } else if (edge.hover) {
       r = 0.8; g = 0.4; b = 0.0;
     } else {
       r = 1.0; g = 1.0; b = 1.0;
     }
-    add(e, v0.position);
-    if (edge.selected || v1.selected) {
+    add(e, v[0].position);
+    if (edge.selected || v[1].selected) {
       r = 1.0; g = 1.0; b = 0.0;
     } else if (edge.hover) {
       r = 0.8; g = 0.4; b = 0.0;
     } else {
       r = 1.0; g = 1.0; b = 1.0;
     }
-    add(e, v1.position);
+    add(e, v[1].position);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
@@ -114,7 +113,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var f = new Float32Array(this.faceCount_ * 48);
   goog.object.forEach(this.object_.faces, function(face) {
-    var v = face.getVertices_();
+    var v = face.getVertices();
     if (face.selected) {
       r = 1.0; g = 1.0; b = 0.0;
     } else if (face.hover) {

@@ -67,6 +67,12 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.rootScope_ = $rootScope;
 
   /**
+   * Is the ctrl modifier key pressed?
+   * @private {boolean}
+   */
+  this.ctrlDown_ = false;
+
+  /**
    * Canvas.
    * @private {!HTMLCanvasElement}
    */
@@ -426,25 +432,59 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
 
 
 /**
+ * Set the currently selected object in the editor/rig/etc
+ *
+ * @private
+ * 
+ * @param {!shapy.editor.Editable} object
+ */
+shapy.editor.Editor.prototype.selectObject_ = function(object) {
+  this.selected_ = object;
+  this.selected_.setSelected(true);
+  if (this.rig_) {
+    this.rig_.object = object;
+  }
+};
+
+
+/**
  * Selects an object.
  *
  * @param {!shapy.editor.Editable} object
  */
 shapy.editor.Editor.prototype.select = function(object) {
-  if (this.selected_) {
-    this.selected_.setSelected(false);
-  }
-  if (!object) {
-    this.selected_ = null;
-    this.hover_ = null;
-    this.rig(null);
-    return;
-  }
+  if (this.ctrlDown_) {
+    // Add to the selection group
+    if (this.selected_.constructor == shapy.editor.EditableGroup) {
+      // Add to an existing group
+      if (object) {
+        object.setSelected(true);
+        this.selected_.add(object);
+      }
+    } else {
+      // Start a new group
+      var newGroup = new shapy.editor.EditableGroup();
+      newGroup.add(this.selected_);
+      newGroup.add(object);
+      this.selectObject_(newGroup);
+      object.setSelected(true);
+    }
+  } else {
+    // Unselect the previous object
+    if (this.selected_) {
+      this.selected_.setSelected(false);
+    }
 
-  this.selected_ = object;
-  this.selected_.setSelected(true);
-  if (this.rig_) {
-    this.rig_.object = object;
+    // If the object is null, remove the rig
+    if (!object) {
+      this.selected_ = null;
+      this.rig(null);
+      return;
+    }
+
+    // Mark the object as selected
+    object.setSelected(true);
+    this.selectObject_(object);
   }
 };
 
@@ -472,16 +512,17 @@ shapy.editor.Editor.prototype.rig = function(rig) {
 
 
 /**
- * Handles a key press.
+ * Handles a key down event.
  *
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
   switch (e.keyCode) {
-    case 84: this.rig(this.rigTranslate_); break;
-    case 82: this.rig(this.rigRotate_); break;
-    case 83: this.rig(this.rigScale_); break;
-    case 68: {
+    case 17: this.ctrlDown_ = true; break;        // control
+    case 84: this.rig(this.rigTranslate_); break; // t
+    case 82: this.rig(this.rigRotate_); break;    // r
+    case 83: this.rig(this.rigScale_); break;     // s
+    case 68: {                                    // d
       if (this.selected_) {
         this.selected_.delete();
         this.select(null);
@@ -494,6 +535,20 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       }
       break;
     }
+  }
+};
+
+
+/**
+ * Handles a key up event.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.keyUp = function(e) {
+  switch (e.keyCode) {
+    case 17: this.ctrlDown_ = false; break;        // control
+    default:
+      break;
   }
 };
 
