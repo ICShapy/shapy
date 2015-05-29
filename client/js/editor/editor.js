@@ -459,7 +459,9 @@ shapy.editor.Editor.prototype.select = function(object) {
       // Add to an existing group
       if (object) {
         object.setSelected(true);
-        this.selected_.add(object);
+        if (!this.selected_.add(object)) {
+          this.select(null);
+        }
       }
     } else {
       // Start a new group
@@ -523,6 +525,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (this.selected_) {
         this.selected_.delete();
         this.select(null);
+        this.rig(null);
         break;
       }
     }
@@ -540,6 +543,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       }
       object.mergeVertices(verts);
       this.select(null);
+      this.rig(null);
       break;
     }
     case 84: this.rig(this.rigTranslate_); break; // t

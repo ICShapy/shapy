@@ -99,10 +99,18 @@ goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
 /**
  * Add an editable
  *
- * @param {shapy.editor.Editable} editable Editable object to add
+ * @param {shapy.editor.Editable} editable Editable object to add.
+ *
+ * @return {boolean} True if group is not empty.
  */
 shapy.editor.EditableGroup.prototype.add = function(editable) {
-  this.editables_.push(editable);
+  if (goog.array.contains(this.editables_, editable)) {
+    editable.setSelected(false);
+    goog.array.remove(this.editables_, editable);
+  } else {
+    this.editables_.push(editable);
+  }
+  return this.editables_.length != 0;
 };
 
 
@@ -124,7 +132,11 @@ shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.EditableGroup.prototype.getPosition = function() {
-  var position = goog.vec.Vec3.createFloat32();
+  var position = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
+  if (this.editables_.length <= 0) {
+    return position;
+  }
+
   goog.object.forEach(this.editables_, function(editable) {
     goog.vec.Vec3.add(position, editable.getPosition(), position);
   }, this);
