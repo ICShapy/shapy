@@ -64,7 +64,7 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
 
   // Construct the cube on the origin.
   this.buildCube_(d, k, 0.05);
-  k+= 108;
+  k += 108;
 
   // Line through the rig.
   d[k++] = -1000.0; d[k++] = 0.0; d[k++] = 0.0;
@@ -119,7 +119,7 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
 
   // Box on X.
   goog.vec.Mat4.makeTranslate(
-      this.model_, pos[0] + this.scale_[0], pos[1], pos[2]);
+      this.model_, pos[0] + this.scale_[0] * this.size_, pos[1], pos[2]);
   goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
   sh.uniformMat4x4('u_model', this.model_);
   gl.drawArrays(
@@ -151,7 +151,7 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
 
   // Box on Y.
   goog.vec.Mat4.makeTranslate(
-      this.model_, pos[0], pos[1] + this.scale_[1], pos[2]);
+      this.model_, pos[0], pos[1] + this.scale_[1] * this.size_, pos[2]);
   goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
   sh.uniformMat4x4('u_model', this.model_);
   gl.drawArrays(
@@ -183,7 +183,7 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
 
   // Box on Z.
   goog.vec.Mat4.makeTranslate(
-      this.model_, pos[0], pos[1], pos[2] + this.scale_[2]);
+      this.model_, pos[0], pos[1], pos[2] + this.scale_[2] * this.size_);
   goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
   sh.uniformMat4x4('u_model', this.model_);
   gl.drawArrays(

@@ -806,7 +806,7 @@ shapy.editor.Object.Face.prototype.getVertices = function() {
  *
  * @private
  *
- * @param {!Array<shapy.editor.Object.Edge>}
+ * @return {!Array<shapy.editor.Object.Edge>}
  */
 shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
   var verts = this.getVertices();
