@@ -77,6 +77,10 @@ shapy.browser.Asset.Dir = function(id, name, parent) {
    */
   this.subdirs = [];
 
+  // Update parent's subdir
+  if (parent !== null) {
+    parent.subdirs.push(this);
+  }
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
 

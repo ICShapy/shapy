@@ -62,9 +62,7 @@ shapy.browser.BrowserService.prototype.createDir = function(name, public, parent
     parent: parent.id
   })
   .success(function(response) {
-    var newDir = new shapy.browser.Asset.Dir(response['id'], name, parent);
-    parent.subdirs.push(newDir);
-    def.resolve(newDir);
+    def.resolve(new shapy.browser.Asset.Dir(response['id'], name, parent));
   })
   .error(function() {
     def.reject();
@@ -92,10 +90,8 @@ shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
         goog.array.forEach(response.data, function(item) {
           switch (item['type']) {
             case 'dir':
-              var newDir = new shapy.browser.Asset.Dir(
-                  item['id'], item['name'], dir);
-              dir.subdirs.push(newDir);
-              assets.push(newDir);
+              assets.push(new shapy.browser.Asset.Dir(
+                  item['id'], item['name'], dir));
               break;
             case 'scene':
               assets.push(new shapy.browser.Asset.Scene(
