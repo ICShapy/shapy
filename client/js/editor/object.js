@@ -22,10 +22,6 @@ goog.require('shapy.editor.geom');
  * @constructor
  */
 shapy.editor.Editable = function() {
-  /** @public {!boolean} */
-  this.hover = false;
-  /** @public {!boolean} */
-  this.selected = false;
 };
 
 
@@ -649,6 +645,11 @@ shapy.editor.Object.Vertex = function(object, id, x, y, z) {
   this.object = object;
   /** @public {!number} @const */
   this.id = id;
+
+  /** @public {!boolean} */
+  this.hover = false;
+  /** @public {!boolean} */
+  this.selected = false;
 
   /**
    * Position of the vertex.

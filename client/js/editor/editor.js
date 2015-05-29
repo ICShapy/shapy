@@ -536,9 +536,15 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   var pick, ray;
 
   if (!(ray = this.layout_.mouseMove(e))) {
+    if (this.hover_) {
+      this.hover_.setHover(false);
+    }
     return;
   }
   if (!(pick = this.scene_.pick(ray))) {
+    if (this.hover_) {
+      this.hover_.setHover(false);
+    }
     return;
   }
 
