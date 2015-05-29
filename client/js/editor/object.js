@@ -1,76 +1,13 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Editable');
+goog.provide('shapy.editor.Object');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
 goog.require('shapy.editor.geom');
-
-
-
-/**
- * Editable provides a way to manipulat properties of vertices, edges and faces.
- *
- * - scale
- * - rotate
- * - translate
- *
- * This is just an interface - objects must implement individual methods.
- *
- * @constructor
- */
-shapy.editor.Editable = function() {
-  /** @public {!boolean} */
-  this.hover = false;
-  /** @public {!boolean} */
-  this.selected = false;
-};
-
-
-/**
- * Hovers over the editable.
- *
- * @param {boolean} hover
- */
-shapy.editor.Editable.prototype.setHover = function(hover) {
-  this.hover = hover;
-  // TODO: do this properly.
-  this.object.dirtyMesh = true;
-};
-
-
-/**
- * Selects the editable.
- *
- * @param {boolean} selected
- */
-shapy.editor.Editable.prototype.setSelected = function(selected) {
-  this.selected = selected;
-  // TODO: do this properly.
-  this.object.dirtyMesh = true;
-};
-
-
-/**
- * Scales the editable.
- */
-shapy.editor.Editable.prototype.scale = function() { };
-
-
-/**
- * Rotates the editable.
- */
-shapy.editor.Editable.prototype.rotate = function() { };
-
-
-/**
- * Translate the editable.
- */
-shapy.editor.Editable.prototype.translate = function() { };
-
-
+goog.require('shapy.editor.Editable');
 
 /**
  * Abstract object metadata.
@@ -329,6 +266,8 @@ shapy.editor.Object.prototype.pickVertices_ = function(ray) {
  * @param {!goog.vec.Ray} ray Ray converted to model space.
  *
  * @return {!Array<shapy.editor.Editable>}
+ *
+ * @private
  */
 shapy.editor.Object.prototype.pickEdges_ = function(ray) {
   var u = goog.vec.Vec3.createFloat32();
@@ -362,6 +301,8 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
  * @param {!goog.vec.Ray} ray Ray converted to model space.
  *
  * @return {!Array<shapy.editor.Editable>}
+ *
+ * @private
  */
 shapy.editor.Object.prototype.pickFaces_ = function(ray) {
   // Find all intersecting faces.
