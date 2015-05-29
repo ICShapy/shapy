@@ -550,7 +550,7 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
  * @return {!shapy.editor.Object}
  */
 shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
-  var verts = [], edges = [], faces = [], k = 0;
+  var verts = [], edges = [], faces = [];
 
   // Create all verts.
   var dPhi = Math.PI / stacks, dTheta = 2 * Math.PI / slices;
@@ -568,19 +568,21 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
   }
   verts.push([0, -r, 0]);
 
-  for (var j = 0; j < slices; ++j, k += 3) {
+  for (var j = 0; j < slices; ++j) {
     var v00 = 0;
     var v01 = 1 + j;
     var v10 = 1 + (j + 1) % slices;
 
     edges.push([v00, v01]);
-    edges.push([v01, v10]);
-    edges.push([v10, v00]);
-    faces.push([k + 0, k + 1, k + 2]);
+    faces.push([
+        (j + 0) % slices,
+        slices + j * 3 + 0,
+        (j + 1) % slices
+    ]);
   }
 
   for (var i = 1; i < stacks - 1; ++i) {
-    for (var j = 0; j < slices; ++j, k += 6) {
+    for (var j = 0; j < slices; ++j) {
       var v00 = 1 + (i - 1) * slices + (j + 0) % slices;
       var v01 = 1 + (i - 1) * slices + (j + 1) % slices;
       var v10 = 1 + (i - 0) * slices + (j + 0) % slices;
@@ -589,24 +591,39 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
       edges.push([v00, v01]);
       edges.push([v01, v11]);
       edges.push([v11, v00]);
-      edges.push([v00, v11]);
-      edges.push([v11, v10]);
-      edges.push([v10, v00]);
-
-      faces.push([k + 0, k + 1, k + 2]);
-      faces.push([k + 3, k + 4, k + 5]);
+      faces.push([
+          slices + (i - 1) * 3 * slices + j * 3 + 0,
+          slices + (i - 1) * 3 * slices + j * 3 + 1,
+          slices + (i - 1) * 3 * slices + j * 3 + 2
+      ]);
+      if (i < stacks - 2) {
+        faces.push([
+            slices + (i - 0) * 3 * slices + (j + 1) % slices * 3 + 0,
+            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 1,
+            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 2,
+        ]);
+      } else {
+        faces.push([
+            slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 0,
+            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 1,
+            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 2,
+        ]);
+      }
     }
   }
 
-  for (var j = 0; j < slices; ++j, k += 3) {
+  for (var j = 0; j < slices; ++j) {
     var v00 = 1 + (stacks - 1) * slices;
     var v01 = 1 + (stacks - 2) * slices + j;
     var v10 = 1 + (stacks - 2) * slices + (j + 1) % slices;
 
-    edges.push([v00, v01]);
     edges.push([v01, v10]);
-    edges.push([v10, v00]);
-    faces.push([k + 0, k + 1, k + 2]);
+    edges.push([v00, v01]);
+    faces.push([
+      slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 0,
+      slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 1,
+      slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 1,
+    ]);
   }
 
   return new shapy.editor.Object(id, verts, edges, faces);
