@@ -1,11 +1,32 @@
 <div>
-  <input id="browse-search" type="text" placeholder="Browse" ng-model="browserCtrl.query">
-  <sh-path>
-    <div ng-repeat="asset in browserCtrl.path() track by asset.id">
-      <sh-path-asset ng-click="browserCtrl.assetReturnTo(asset)">
-        {{asset.name}}
-        <img src="/img/arrow.svg" ng-if="!$last"/>
-      </sh-path-asset>
+  <div id="browser-search" ng-init="open=false">
+    <input
+        id="browser-search-input"
+        type="text"
+        placeholder="Search assets"
+        ng-model="browserCtrl.query">
+    <img
+        id="browser-search-settings"
+        src="/img/settings.svg"
+        ng-click="open=!open"/>
+    <div
+        ng-show="open"
+        id="browser-search-panel"
+        ng-click="open=false">
+      <div class="title"> Filter </div>
+      <span> Scenes </span>
+      <span> Textures </span>
+      <span
+        ng-style="(browserCtrl.public) ? {'background-color':'red'} : null"
+        ng-click="browserCtrl.publicEnter()">
+          Public
+      </span>
     </div>
-  </sh-path>
+  </div>
+  <sh-path-asset
+      ng-repeat="asset in browserCtrl.path() track by asset.id"
+      ng-click="browserCtrl.assetReturnTo(asset)">
+    {{asset.name}}
+    <img src="/img/arrow.svg" ng-if="!$last"/>
+  </sh-path-asset>
 </div>

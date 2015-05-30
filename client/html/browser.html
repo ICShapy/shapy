@@ -58,16 +58,6 @@
           src="'directory.html'"
           ng-init="directories=[browserCtrl.home]"/>
     </sh-sidebar-folders>
-
-    <sh-sidebar-all>
-      <div><h1> All your scenes </h1> </div>
-      <div><h1> All your textures </h1></div>
-      <div
-        ng-style="(browserCtrl.public) ? {'background-color':'red'} : null"
-        ng-click="browserCtrl.publicEnter()">
-        <h1> All public files </h1>
-      </div>
-    </sh-sidebar-all>
   </sh-sidebar>
   <sh-files>
     <div ng-repeat="
