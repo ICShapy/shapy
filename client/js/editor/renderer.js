@@ -127,7 +127,7 @@ shapy.editor.GROUND_FS =
   '  float a5x = alpha(a5.x, 0.02);\n' +
   '  float a5z = alpha(a5.y, 0.02);\n' +
 
-  '  vec4 colour = vec4(0.2, 0.2, 0.2, 0.5);\n' +
+  '  vec4 colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
   '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
