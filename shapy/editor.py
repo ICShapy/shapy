@@ -147,7 +147,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Scene.put(self.redis, scene)
 
     # Leave the scene (of the crime).
-    yield self.to_channel({
+    self.to_channel({
         'type': 'leave',
         'user': self.user.id
     })
