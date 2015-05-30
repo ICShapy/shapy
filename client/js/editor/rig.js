@@ -101,10 +101,27 @@ shapy.editor.Rig.prototype.destroy = function() {
 /**
  * Sets the scale of the rig and recomputes the scale matrix
  *
- * @param {number} distance Distance of the camera from it's focus point
+ * @param {!shapy.editor.Camera} camera Camera which is being used for rendering
  */
-shapy.editor.Rig.prototype.setScale = function(distance) {
-  this.size_ = distance / 8;
+shapy.editor.Rig.prototype.setScale = function(camera) {
+  var height = 0.4;
+
+  // Get position as a 4D vector with w set to 1
+  var p = this.getPosition();
+  var position = goog.vec.Vec4.createFloat32FromValues(p[0], p[1], p[2], 1);
+
+  // Transform into view space
+  goog.vec.Mat4.multVec4(camera.view, position, position);
+
+  // Project, add height and unproject
+  var before = goog.vec.Vec4.createFloat32FromArray(position);
+  goog.vec.Mat4.multVec4(camera.proj, position, position);
+  position[1] += height * position[3];
+  goog.vec.Mat4.multVec4(camera.invProj, position, position);
+
+  this.size_ = goog.vec.Vec3.distance(
+    goog.vec.Vec3.createFloat32FromArray(before),
+    goog.vec.Vec3.createFloat32FromArray(position));
 };
 
 
@@ -210,6 +227,18 @@ shapy.editor.Rig.prototype.getClosest_ = function(ray) {
   return shapy.editor.geom.getClosest(
       new goog.vec.Ray(this.object.getPosition(), u), ray).p0;
 };
+
+
+/**
+ * Gets the position of the rig
+ */
+shapy.editor.Rig.prototype.getPosition = function() {
+  if (this.object) {
+    return this.object.getPosition();
+  } else {
+    return goog.vec.Vec3.creatFloat32FromValues(0, 0, 0);
+  }
+}
 
 
 /**
