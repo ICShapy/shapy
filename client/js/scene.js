@@ -98,12 +98,10 @@ shapy.Scene.prototype.setUsers = function(users) {
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.Scene.prototype.pick = function(ray) {
-  var hits;
-
+shapy.Scene.prototype.pickRay = function(ray) {
   // Find all the editable parts that intersect the ray.
-  hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
-    return obj.pick(ray);
+  var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
+    return obj.pickRay(ray);
   });
   hits = goog.array.flatten(hits);
 
@@ -117,14 +115,23 @@ shapy.Scene.prototype.pick = function(ray) {
     return da - db;
   }, this);
 
-  //var ds = goog.array.map(hits, function(a) {
-  //  return goog.vec.Vec3.distance(ray.origin, a.point);
-  //});
-
-  //console.log(hits);
-  //console.log(ds);
-
   return hits[0].item;
+};
+
+
+/**
+ * Picks a group of objects intersection a frustum.
+ *
+ * @param {!Array<Object>} frustum
+ *
+ * @return {!shapy.editor.Editable}
+ */
+shapy.Scene.prototype.pickFrustum = function(frustum) {
+  var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
+    return obj.pickFrustum(frustum);
+  });
+  hits = goog.array.flatten(hits);
+  return goog.array.isEmpty(hits) ? null : new shapy.editor.EditableGroup(hits);
 };
 
 

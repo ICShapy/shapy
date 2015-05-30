@@ -26,7 +26,10 @@
           'shapy.editor.Camera'
       ], []);
       goog.addDependency('../browser/assets.js', [
-          'shapy.browser.AssetsService'
+          'shapy.browser.Asset',
+          'shapy.browser.Asset.Dir',
+          'shapy.browser.Asset.Scene',
+          'shapy.browser.Asset.Texture',
       ], []);
       goog.addDependency('../browser/browser.js', [
           'shapy.browser.BrowserController',
@@ -36,8 +39,14 @@
           'shapy.browser.file'
       ], [
       ]);
+      goog.addDependency('../browser/browser-service.js', [
+          'shapy.browser.BrowserService'
+      ], []);
       goog.addDependency('../editor/canvas.js', [
           'shapy.editor.canvas'
+      ], []);
+      goog.addDependency('../editor/editable.js', [
+          'shapy.editor.Editable'
       ], []);
       goog.addDependency('../editor/editor.js', [
           'shapy.editor.EditorController',
@@ -69,7 +78,8 @@
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
       ], [
-          'shapy.editor.geom'
+          'shapy.editor.geom',
+          'shapy.editor.Editable'
       ]);
       goog.addDependency('../editor/renderer.js', [
           'shapy.editor.Renderer'
@@ -130,8 +140,8 @@
           'shapy.module'
       ], [
           'shapy.AuthService',
-          'shapy.browser.AssetsService',
           'shapy.browser.BrowserController',
+          'shapy.browser.BrowserService',
           'shapy.browser.BrowserToolbarController',
           'shapy.browser.sidebar',
           'shapy.browser.files',

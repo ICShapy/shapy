@@ -13,21 +13,26 @@
       <div ng-repeat="dir in directories track by dir.id" class="directory">
         <span
             ng-init="open=false"
-            ng-click="open=!open"
             ng-class="{open: open}"
             class="name" >
           <img
               class="down"
+              ng-click="open=!open"
               ng-show="open"
               src="/img/arrow-down.svg" />
           <img
               class="right"
+              ng-click="open=!open; browserCtrl.subdirs(dir)"
               ng-show="!open"
               src="/img/arrow-right.svg" />
-          {{ dir.name }}
+          <span ng-click="browserCtrl.enterFromTree(dir)"> {{ dir.name }} </span>
         </span>
         <div ng-show="open">
-          Subdirectories go here
+          <sh-sidebar-folders>
+            <ng-include
+                src="'directory.html'"
+                ng-init="directories=dir.subdirs"/>
+          </sh-sidebar-folders>
         </div>
       </div>
     </script>

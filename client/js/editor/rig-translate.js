@@ -33,6 +33,13 @@ shapy.editor.Rig.Translate.CIRCLE = 16;
 
 
 /**
+ * Size of the arrow head
+ * @type {number} @const
+ */
+shapy.editor.Rig.Translate.ARROW_RADIUS = shapy.editor.Rig.AXIS_RADIUS * 2;
+
+
+/**
  * Creates the mesh for the rig.
  *
  * @private
@@ -47,15 +54,17 @@ shapy.editor.Rig.Translate.prototype.build_ = function(gl) {
 
   // Construct the tube.
   this.buildTube_(
-      d, k, shapy.editor.Rig.Translate.CIRCLE, 1.0, 0.02, [0.0, 0.0, 0.0]);
+      d, k, shapy.editor.Rig.Translate.CIRCLE,
+      shapy.editor.Rig.AXIS_LENGTH,
+      shapy.editor.Rig.AXIS_RADIUS, [0.0, 0.0, 0.0]);
   k += shapy.editor.Rig.Translate.CIRCLE * 18;
 
   // Construct the arrowhead.
   for (var i = 0; i < shapy.editor.Rig.Translate.CIRCLE; i++) {
-    var py = 0.05 * Math.sin(i * angle);
-    var pz = 0.05 * Math.cos(i * angle);
-    var cy = 0.05 * Math.sin((i + 1) * angle);
-    var cz = 0.05 * Math.cos((i + 1) * angle);
+    var py = shapy.editor.Rig.Translate.ARROW_RADIUS * Math.sin(i * angle);
+    var pz = shapy.editor.Rig.Translate.ARROW_RADIUS * Math.cos(i * angle);
+    var cy = shapy.editor.Rig.Translate.ARROW_RADIUS * Math.sin((i + 1) * angle);
+    var cz = shapy.editor.Rig.Translate.ARROW_RADIUS * Math.cos((i + 1) * angle);
 
     d[k++] = 1.000; d[k++] = py;  d[k++] = pz;
     d[k++] = 1.000; d[k++] = 0.0; d[k++] = 0.0;
@@ -191,30 +200,31 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     this.lastPos_ = currPos;
 
     // Update the position.
-    this.object.translate(
-        pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
+    this.object.translate(pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
     return true;
   }
 
   var c = goog.vec.Vec3.createFloat32();
 
   // Find intersection with X arrow.
+  var centre = shapy.editor.Rig.AXIS_LENGTH +
+               shapy.editor.Rig.Translate.ARROW_RADIUS * 2;
   goog.vec.Vec3.setFromValues(
-    c, pos[0] + 1.1 * this.size_, pos[1], pos[2]);
+    c, pos[0] + centre * this.size_, pos[1], pos[2]);
   this.hover_.x = shapy.editor.geom.intersectSphere(
-    ray, c, 0.1 * this.size_);
+    ray, c, shapy.editor.Rig.Translate.ARROW_RADIUS * 2 * this.size_);
 
   // Find intersection with Y arrow.
   goog.vec.Vec3.setFromValues(
-    c, pos[0], pos[1] + 1.1 * this.size_, pos[2]);
+    c, pos[0], pos[1] + centre * this.size_, pos[2]);
   this.hover_.y = shapy.editor.geom.intersectSphere(
-    ray, c, 0.1 * this.size_);
+    ray, c, shapy.editor.Rig.Translate.ARROW_RADIUS * 2 * this.size_);
 
   // Find intersection with Z arrow.
   goog.vec.Vec3.setFromValues(
-    c, pos[0], pos[1], pos[2] + 1.1 * this.size_);
+    c, pos[0], pos[1], pos[2] + centre * this.size_);
   this.hover_.z = shapy.editor.geom.intersectSphere(
-    ray, c, 0.1 * this.size_);
+    ray, c, shapy.editor.Rig.Translate.ARROW_RADIUS * 2 * this.size_);
 
   return this.hover_.x || this.hover_.y || this.hover_.z;
 };
@@ -224,12 +234,16 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
  * Handles mouse down event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean} True if event captured.
  */
 shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
   this.select_.x = this.hover_.x;
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
   this.lastPos_ = this.getClosest_(ray);
+
+  return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
 

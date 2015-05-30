@@ -5,104 +5,7 @@ goog.provide('shapy.browser.Asset');
 goog.provide('shapy.browser.Asset.Dir');
 goog.provide('shapy.browser.Asset.Scene');
 goog.provide('shapy.browser.Asset.Texture');
-goog.provide('shapy.browser.AssetsService');
 
-
-
-/**
- * Service that handles asset browsing.
- *
- * @constructor
- * @ngInject
- *
- * @param {!angular.$http} $http The angular http service.
- * @param {!angular.$q}    $q    The angular promise service.
- */
-shapy.browser.AssetsService = function($http, $q) {
-  /** @private {!angular.$http} @const */
-  this.http_ = $http;
-  /** @private {!angular.$q} @const */
-  this.q_ = $q;
-
-  /**
-   * Home dir.
-   *
-   * @public {!shapy.browser.Asset.Dir}
-   * @const
-   */
-   this.home = new shapy.browser.Asset.Dir(0, 'home');
-};
-
-/**
- * Injects new dir into databse and returns a promise with response.
- *
- * @param {string} name      Name of the directory
- * @param {boolean} public   Flag showing whether dir is publicly accessible
- * @param {Asset.Dir} parent Parent directory
- */
-shapy.browser.AssetsService.prototype.createDir = function(name, public, parent) {
-  var def = this.q_.defer();
-
-  // TODO: check if name unique in this dir
-
-  // Inject into database, obtain id
-  this.http_.post('/api/assets/create', {
-    name: name,
-    type: 'dir',
-    public: public,
-    parent: parent
-  })
-  .success(function(response) {
-    def.resolve(new shapy.browser.Asset.Dir(response['id'], name));
-  })
-  .error(function() {
-    def.reject();
-  });
-
-  return def.promise;
-};
-
-/**
- * Sends request to server to query database for contents of given dir.
- * Returns array of assets.
- *
- * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
- * @param {boolean} public Type of directory to query.
- *
- * @
- */
-shapy.browser.AssetsService.prototype.queryDir = function(dir, public) {
-  var publicSpace = (public) ? 1 : 0;
-  return this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
-      .then(function(response) {
-        var assets = [];
-
-        // Iterate over responses, convert into assets.
-        goog.array.forEach(response.data, function(item) {
-          switch (item['type']) {
-            case 'dir':
-              assets.push(new shapy.browser.Asset.Dir(
-                  item['id'], item['name']));
-              break;
-            case 'scene':
-              assets.push(new shapy.browser.Asset.Scene(
-                  item['id'], item['name']), item['preview']);
-              break;
-            case 'texture':
-              assets.push(new shapy.browser.Asset.Texture(
-                  item['id'], item['name']), item['preview']);
-              break;
-            default:
-              console.log('Wrong type in database!');
-              break;
-          }
-
-        });
-
-        return assets;
-      });
-
-};
 
 
 
@@ -115,8 +18,9 @@ shapy.browser.AssetsService.prototype.queryDir = function(dir, public) {
  * @param {string} type  Type of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
+ * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset = function(id, name, type, image) {
+shapy.browser.Asset = function(id, name, type, image, parent) {
   /**
    * Id of the asset.
    * @public {number}
@@ -144,6 +48,13 @@ shapy.browser.Asset = function(id, name, type, image) {
    * @const
    */
   this.image = image;
+
+  /**
+   * Parent directory of this directory.
+   * @public {shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.parent = parent;
 };
 
 
@@ -155,9 +66,34 @@ shapy.browser.Asset = function(id, name, type, image) {
  *
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
+ * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset.Dir = function(id, name) {
-  shapy.browser.Asset.call(this, id, name, 'dir', '/img/folder.png');
+shapy.browser.Asset.Dir = function(id, name, parent) {
+  shapy.browser.Asset.call(this, id, name, 'dir', '/img/folder.png', parent);
+
+
+  /**
+   * Subdirectories of this directory.
+   * @public {Array.<shapy.browser.Asset.Dir>}
+   */
+  this.subdirs = [];
+
+  /**
+   * Not-dir assets of this directory.
+   * @public {Array.<shapy.browser.Asset>}
+   */
+  this.otherAssets = [];
+
+  /**
+   * Flag showing whether assets (subdirs and other) already loaded from database.
+   * @public{boolean}
+   */
+  this.loaded = false;
+
+  // Update parent's subdir
+  if (parent !== null) {
+    parent.subdirs.push(this);
+  }
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
 
@@ -172,9 +108,13 @@ goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
+ * @param {Array.<!shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset.Scene = function(id, name, image) {
-  shapy.browser.Asset.call(this, id, name, 'scene', image);
+shapy.browser.Asset.Scene = function(id, name, image, parent) {
+  shapy.browser.Asset.call(this, id, name, 'scene', image, parent);
+
+  // Update parent's non-dir assets
+  parent.otherAssets.push(this);
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 
@@ -189,9 +129,13 @@ goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
  * @param {number} id    Id of the asset.
  * @param {string} name  Name of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
+ * @param {Array.<!shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
-shapy.browser.Asset.Texture = function(id, name, image) {
+shapy.browser.Asset.Texture = function(id, name, image, parent) {
   shapy.browser.Asset.call(this, id, name, 'texture', image);
+
+  // Update parent's non-dir assets
+  parent.otherAssets.push(this);
 };
 goog.inherits(shapy.browser.Asset.Texture, shapy.browser.Asset);
 

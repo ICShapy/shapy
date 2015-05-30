@@ -70,6 +70,12 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.rootScope_ = $rootScope;
 
   /**
+   * Is the ctrl modifier key pressed?
+   * @private {boolean}
+   */
+  this.ctrlDown_ = false;
+
+  /**
    * Canvas.
    * @private {!HTMLCanvasElement}
    */
@@ -204,8 +210,8 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Single();
-  //this.scene_.createSphere(0.5, 16, 16);
+  this.layout_ = new shapy.editor.Layout.Double();
+  this.scene_.createSphere(0.5, 16, 16);
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
 };
@@ -292,8 +298,8 @@ shapy.editor.Editor.prototype.render = function() {
     vp.camCube.compute();
     this.renderer_.renderObjects(vp);
     this.renderer_.renderGround(vp);
-    this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);
+    this.renderer_.renderOverlay(vp);
   }, this);
 
   // Second pass - render rigs.
@@ -430,26 +436,61 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
 
 
 /**
+ * Set the currently selected object in the editor/rig/etc
+ *
+ * @private
+ *
+ * @param {!shapy.editor.Editable} object
+ */
+shapy.editor.Editor.prototype.selectObject_ = function(object) {
+  this.selected_ = object;
+  this.selected_.setSelected(true);
+  if (this.rig_) {
+    this.rig_.object = object;
+  }
+};
+
+
+/**
  * Selects an object.
  *
  * @param {!shapy.editor.Editable} object
  */
 shapy.editor.Editor.prototype.select = function(object) {
-  if (!object) {
-    this.selected_ = null;
-    this.rig(null);
-    return;
-  }
+  if (this.ctrlDown_ && this.selected_) {
+    // Add to the selection group
+    if (this.selected_.constructor == shapy.editor.EditableGroup) {
+      // Add to an existing group
+      if (object) {
+        object.setSelected(true);
+        if (!this.selected_.add(object)) {
+          this.select(null);
+        }
+      }
+    } else {
+      // Start a new group
+      var newGroup = new shapy.editor.EditableGroup();
+      newGroup.add(this.selected_);
+      newGroup.add(object);
+      this.selectObject_(newGroup);
+      object.setSelected(true);
+    }
+  } else {
+    // Unselect the previous object
+    if (this.selected_) {
+      this.selected_.setSelected(false);
+    }
 
-  // Cut rig should not be attached to anything other than objects.
-  if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT &&
-      object.type != shapy.editor.Editable.Type.OBJECT) {
-    return;
-  }
+    // If the object is null, remove the rig
+    if (!object) {
+      this.selected_ = null;
+      this.rig(null);
+      return;
+    }
 
-  this.selected_ = object;
-  if (this.rig_) {
-    this.rig_.object = object;
+    // Mark the object as selected
+    object.setSelected(true);
+    this.selectObject_(object);
   }
 };
 
@@ -469,6 +510,11 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   }
 
   // Cut rig should not be attached to anything other than objects.
+  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT &&
+  //    object.type != shapy.editor.Editable.Type.OBJECT) {
+  //  return;
+  //}
+  // Cut rig should not be attached to anything other than objects.
   //if (rig.type == shapy.editor.Rig.Type.CUT &&
   //    this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
   //  return;
@@ -487,22 +533,67 @@ shapy.editor.Editor.prototype.rig = function(rig) {
 
 
 /**
- * Handles a key press.
+ * Handles a key down event.
  *
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
+  var object;
+
   switch (e.keyCode) {
-    case 67: this.rig(this.rigCut_);       break;
-    case 82: this.rig(this.rigRotate_);    break;
-    case 83: this.rig(this.rigScale_);     break;
-    case 84: this.rig(this.rigTranslate_); break;
+    case 17: this.ctrlDown_ = true; break;        // control
+    case 68: {                                    // d
+      if (this.selected_) {
+        this.selected_.delete();
+        this.select(null);
+        this.rig(null);
+        break;
+      }
+    }
+    case 70: {
+      if (!this.selected_ || !(object = this.selected_.getObject())) {
+        return;
+      }
+      var verts = this.selected_.getVertices();
+      if (verts.length != 3 && verts.length != 2) {
+        return;
+      }
+      object.connect(verts);
+      break;
+    }
+    case 77: {
+      if (!this.selected_ || !(object = this.selected_.getObject())) {
+        return;
+      }
+      object.mergeVertices(this.selected_.getVertices());
+      this.select(null);
+      this.rig(null);
+      break;
+    }
+    case 84: this.rig(this.rigTranslate_); break; // t
+    case 82: this.rig(this.rigRotate_); break;    // r
+    case 83: this.rig(this.rigScale_); break;     // s
+    case 67: this.rig(this.rigCut_); break;       // c
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);
       }
       break;
     }
+  }
+};
+
+
+/**
+ * Handles a key up event.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.keyUp = function(e) {
+  switch (e.keyCode) {
+    case 17: this.ctrlDown_ = false; break;        // control
+    default:
+      break;
   }
 };
 
@@ -523,15 +614,22 @@ shapy.editor.Editor.prototype.mouseDown = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
-  var ray, pick;
+  var ray, pick, group = this.layout_.active.group;
 
   // If viewports want the event, give up.
   if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
     return;
   }
 
-  if (pick = this.scene_.pick(ray)) {
-    this.select(pick);
+  if (group && group.width > 3 && group.height > 3) {
+    var frustum = this.layout_.active.groupcast(group);
+    if (pick = this.scene_.pickFrustum(frustum)) {
+      this.select(pick);
+    }
+  } else {
+    if (pick = this.scene_.pickRay(ray)) {
+      this.select(pick);
+    }
   }
 };
 
@@ -542,12 +640,23 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, ray;
+  var pick, ray, group = this.layout_.active.group;
 
   if (!(ray = this.layout_.mouseMove(e))) {
-    return;
+    if (group) {
+      pick = this.scene_.pickFrustum(this.layout_.active.groupcast(group));
+    }
+    if (!pick) {
+      if (this.hover_) {
+        this.hover_.setHover(false);
+      }
+      return;
+    }
+  } else {
+    pick = this.scene_.pickRay(ray);
   }
-  if (!(pick = this.scene_.pick(ray))) {
+  if (!pick && this.hover_) {
+    this.hover_.setHover(false);
     return;
   }
 
