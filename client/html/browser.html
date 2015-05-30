@@ -30,17 +30,16 @@
       <div ng-repeat="dir in directories track by dir.id" class="directory">
         <span
             ng-init="open=false"
-            ng-class="{open: open}"
             class="name" >
           <img
               class="down"
               ng-click="open=!open"
-              ng-show="open"
+              ng-show="open&&dir.hasSubdirs()"
               src="/img/arrow-down.svg" />
           <img
               class="right"
               ng-click="open=!open; browserCtrl.subdirs(dir)"
-              ng-show="!open"
+              ng-show="!open&&dir.hasSubdirs()"
               src="/img/arrow-right.svg" />
           <span ng-click="browserCtrl.enterFromTree(dir)"> {{ dir.name }} </span>
         </span>

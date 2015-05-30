@@ -102,6 +102,9 @@ shapy.browser.Asset.Dir = function(shBrowser, id, name, parent) {
       '/img/folder.png',
       parent);
 
+  // TODO: merge these to array, on the frontend try using a filter that
+  // only loops through subdirectories, textures or images.
+
   /**
    * Subdirectories of this directory.
    * @public {Array.<shapy.browser.Asset.Dir>}
@@ -120,12 +123,25 @@ shapy.browser.Asset.Dir = function(shBrowser, id, name, parent) {
    */
   this.loaded = false;
 
+  // TODO: have the browser service manage this field.
+
   // Update parent's subdir.
   if (parent !== null) {
     parent.subdirs.push(this);
   }
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
+
+
+/**
+ * Checks if the directory has subdirectories.
+ *
+ * @return {boolean} True if folder has subdirectories.
+ */
+shapy.browser.Asset.Dir.prototype.hasSubdirs = function() {
+  return !this.loaded || !goog.array.isEmpty(this.subdirs);
+};
+
 
 
 /**

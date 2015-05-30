@@ -64,6 +64,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
 
   /**
    * Assets in current directory.
+   * TODO: get rid of this, redundant, use currentDir instead everywhere.
    * @type Array
    * @public
    * @export
@@ -81,6 +82,7 @@ shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
    */
   this.query = 'file';
 
+  // TODO: use service, get rid of message passing.
   $rootScope.$on('browser', goog.bind(function(name, data) {
     switch (data['type']) {
       case 'query': {
@@ -127,6 +129,7 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
   if (dir.loaded) {
     this.assets = dir.subdirs.concat(dir.otherAssets);
   } else {
+    // TODO: name not necesary, use return this.queryDir.then(function{..})
     // Query database for the contents
     var promise = this.shBrowser_.queryDir(dir, this.public);
     // Update assets with answer from database.

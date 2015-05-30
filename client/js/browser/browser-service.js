@@ -13,6 +13,8 @@ goog.require('shapy.browser.Asset.Texture');
 /**
  * Service that handles asset browsing.
  *
+ * // TODO: rename this shapy.browser.Service, a bit shorter and nicer.
+ *
  * @constructor
  * @ngInject
  *
@@ -80,6 +82,8 @@ shapy.browser.BrowserService.prototype.createDir = function(
     public,
     parent)
 {
+  // TODO: read the public flag on the backend, don't trust the
+  // frontend to pass a correct one!
   return this.http_.post('/api/assets/dir/create', {
     public: public,
     parent: parent.id
