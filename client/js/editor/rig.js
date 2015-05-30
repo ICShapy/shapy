@@ -76,6 +76,20 @@ shapy.editor.Rig = function(type) {
 
 
 /**
+ * Length of the axis tube
+ * @type {number} @const
+ */
+shapy.editor.Rig.AXIS_LENGTH = 1;
+
+
+/**
+ * Radius of the axis tube
+ * @type {number} @const
+ */
+shapy.editor.Rig.AXIS_RADIUS = 0.025;
+
+
+/**
  * Clears up resources used by the rig.
  */
 shapy.editor.Rig.prototype.destroy = function() {

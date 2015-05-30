@@ -84,6 +84,18 @@ shapy.editor.Viewport = function(name) {
    * @public {shapy.editor.Rig}
    */
   this.rig = null;
+
+  /**
+   * Group select rectangle.
+   * @public {goog.math.Rect}
+   */
+  this.group = null;
+
+  /**
+   * Last mouse click position.
+   * @private {!goog.math.Vec2}
+   */
+  this.lastClick_ = new goog.math.Vec2(0, 0);
 };
 
 
@@ -99,6 +111,22 @@ shapy.editor.Viewport = function(name) {
  */
 shapy.editor.Viewport.prototype.raycast_ = function(x, y) {
   return this.camera.raycast(2 * x / this.rect.w - 1, 2 * y / this.rect.h - 1);
+};
+
+
+/**
+ * Returns the frustum that corresponds to a group selection.
+ *
+ * @param {!goog.math.Rect} rect Selection rectangle.
+ *
+ * @return {!goog.vec.Ray.Type} Ray passing through point.
+ */
+shapy.editor.Viewport.prototype.groupcast = function(rect) {
+  return this.camera.groupcast(
+      2 * rect.left / this.rect.w - 1,
+      2 * rect.top / this.rect.h - 1,
+      2 * (rect.left + rect.width) / this.rect.w - 1,
+      2 * (rect.top + rect.height) / this.rect.h - 1);
 };
 
 
@@ -125,6 +153,8 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
+ *
+ * @return {goog.vec.Ray}
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   this.currMousePos_.x = x;
@@ -146,6 +176,25 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   if (this.rig && this.rig.mouseMove(ray)) {
     return null;
   }
+  if (this.group) {
+    if (x > this.lastClick_.x) {
+      this.group.width = x - this.lastClick_.x;
+    } else {
+      this.group.width = this.lastClick_.x - x;
+      this.group.left = x;
+    }
+
+    if (y > this.lastClick_.y) {
+      this.group.height = y - this.lastClick_.y;
+    } else {
+      this.group.height = this.lastClick_.y - y;
+      this.group.top = y;
+    }
+
+    if (this.group.width > 3 && this.group.height > 3) {
+      return null;
+    }
+  }
   return ray;
 };
 
@@ -157,6 +206,7 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
  * @param {number} y Mouse Y coordinate.
  */
 shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
+  this.group = null;
   if (this.rig) {
     this.rig.mouseEnter(this.raycast_(x, y));
   }
@@ -167,6 +217,7 @@ shapy.editor.Viewport.prototype.mouseEnter = function(x, y) {
  * Handles a mouse leave event.
  */
 shapy.editor.Viewport.prototype.mouseLeave = function() {
+  this.group = null;
   if (!this.isRotating_ && !this.isPanning_ && this.rig) {
     this.rig.mouseLeave();
   }
@@ -185,6 +236,9 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @return {goog.vec.Ray}
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
+  var ray = this.raycast_(x, y);
+  this.lastClick_.x = x;
+  this.lastClick_.y = y;
   this.currMousePos_.x = x;
   this.currMousePos_.y = y;
   this.lastMousePos_.x = x;
@@ -196,9 +250,11 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
 
   switch (button) {
     case 1: {
-      if (this.rig) {
-        this.rig.mouseDown(this.raycast_(x, y));
+      if (this.rig && this.rig.mouseDown(ray)) {
         return null;
+      } else {
+        this.group = new goog.math.Rect(x, y, 0, 0);
+        return ray;
       }
       break;
     }
@@ -221,6 +277,8 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
 shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
   var ray = this.raycast_(x, y);
 
+  this.group = null;
+  this.group = null;
   if (this.camCube.mouseUp(x, y)) {
     return null;
   }
