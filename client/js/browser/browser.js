@@ -203,10 +203,17 @@ shapy.browser.BrowserController.prototype.subdirs = function(dir) {
  *
  * @constructor
  *
+ * @param {!angular.$scope} $rootScope The root scope.
  * @param {!angular.$scope} $scope The toolbar's scope.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
-shapy.browser.BrowserToolbarController = function($scope, shBrowser) {
+shapy.browser.BrowserToolbarController = function(
+    $rootScope,
+    $scope,
+    shBrowser)
+{
+  /** @private {!agular.$scope} @const */
+  this.rootScope_ = $rootScope;
   /** @private {!shapy.browser.BrowserService} @const */
   this.shBrowser_ = shBrowser;
   /** @public {string} @const @export */
@@ -214,7 +221,7 @@ shapy.browser.BrowserToolbarController = function($scope, shBrowser) {
 
   // If query changed, message BrowserController that new filtering is needed.
   $scope.$watch('browserCtrl.query', goog.bind(function() {
-    $scope.$emit('browser', {
+    $rootScope.$emit('browser', {
       type: 'query',
       query: this.query
     });
@@ -246,7 +253,7 @@ shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
 
   // Message BrowserController that user requested returning to
   // given asset from path.
-  this.rootscope_.$emit('browser', {
+  this.rootScope_.$emit('browser', {
       type: 'pathAsset',
       asset: asset
   });
