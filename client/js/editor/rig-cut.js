@@ -33,8 +33,10 @@ shapy.editor.Rig.Cut = function() {
    */
   this.norm_ = goog.vec.Vec3.createFloat32();
 
-  // TODO: handle properly.
-  this.canCut = false;
+  /**
+   * @private {boolean} renderCutPlane_ Flag for rendering the cut plane.
+   */
+  this.renderCutPlane_ = false;
 };
 goog.inherits(shapy.editor.Rig.Cut, shapy.editor.Rig);
 
@@ -62,14 +64,11 @@ shapy.editor.Rig.Cut.prototype.build_ = function(gl) {
 
 
 /**
- * Computes rotation between the plane at the origin and the cut plane.
+ * Computes the translation and rotaion matrix for rendering the cut plane.
  *
  * @private
- *
- * @param {goog.vec.Vec3.Type} v Normal unit vector of the plane to be rotated.
  */
 shapy.editor.Rig.Cut.prototype.computeRotTrans_ = function() {
-  var p = this.object.getPosition();
   var v = goog.vec.Vec3.createFloat32FromValues(0, 1, 0);
   var r = goog.vec.Mat4.createFloat32();
   var q = goog.vec.Quaternion.createFloat32();
@@ -102,7 +101,7 @@ shapy.editor.Rig.Cut.prototype.computeRotTrans_ = function() {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Cut.prototype.render = function(gl, sh) {
-  if (!this.canCut) {
+  if (!this.renderCutPlane_) {
     return;
   }
 
@@ -140,6 +139,8 @@ shapy.editor.Rig.Cut.prototype.mouseMove = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
+  // TODO(Ilija): Refactor hits after merging with object.
+  // hits
   var hits = goog.array.flatten(this.object.pick(ray));
 
   if (goog.array.isEmpty(hits)) {
@@ -153,14 +154,19 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
   }, this);
 
   var i = hits[0].point;
+  // hits
 
-  if (this.turn_ == 2) {
-    this.canCut = true;
+  // Update the render flag & turn.
+  if (this.turn_ == this.ps_.length) {
+    this.renderCutPlane_ = false;
+    this.turn_ = 0;
+  } else if (this.turn_ == (this.ps_.length - 1)) {
+    this.renderCutPlane_ = true;
   }
 
   // Record the point.
   goog.vec.Vec3.setFromValues(this.ps_[this.turn_], i[0], i[1], i[2]);
-  this.turn_ = (this.turn_ + 1) % this.ps_.length;
+  this.turn_ = this.turn_ + 1;
 
   // Re-calculate the normal of the cut plane.
   var v10 = goog.vec.Vec3.createFloat32();
