@@ -594,15 +594,22 @@ shapy.editor.Editor.prototype.mouseDown = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
-  var ray, pick;
+  var ray, pick, group = this.layout_.active.group;
 
   // If viewports want the event, give up.
   if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
     return;
   }
 
-  if (pick = this.scene_.pick(ray)) {
-    this.select(pick);
+  if (group && group.width > 3 && group.height > 3) {
+    var frustum = this.layout_.active.groupcast(group);
+    if (pick = this.scene_.pickFrustum(frustum)) {
+      this.select(pick);
+    }
+  } else {
+    if (pick = this.scene_.pickRay(ray)) {
+      this.select(pick);
+    }
   }
 };
 
@@ -613,18 +620,23 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, ray;
+  var pick, ray, group = this.layout_.active.group;
 
   if (!(ray = this.layout_.mouseMove(e))) {
-    if (this.hover_) {
-      this.hover_.setHover(false);
+    if (group) {
+      pick = this.scene_.pickFrustum(this.layout_.active.groupcast(group));
     }
-    return;
+    if (!pick) {
+      if (this.hover_) {
+        this.hover_.setHover(false);
+      }
+      return;
+    }
+  } else {
+    pick = this.scene_.pickRay(ray);
   }
-  if (!(pick = this.scene_.pick(ray))) {
-    if (this.hover_) {
-      this.hover_.setHover(false);
-    }
+  if (!pick && this.hover_) {
+    this.hover_.setHover(false);
     return;
   }
 

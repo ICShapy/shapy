@@ -228,7 +228,7 @@ shapy.editor.Object.prototype.getRotation = function() {
  *
  * @return {!Array<shapy.editor.Editable>}
  */
-shapy.editor.Object.prototype.pick = function(ray) {
+shapy.editor.Object.prototype.pickRay = function(ray) {
   var q = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
 
@@ -241,6 +241,30 @@ shapy.editor.Object.prototype.pick = function(ray) {
       this.pickVertices_(r),
       this.pickEdges_(r),
       this.pickFaces_(r)
+  ];
+};
+
+
+/**
+ * Finds all parts that are inside a frustum.
+ *
+ * @param {!Array<Object>} frustum
+ *
+ * @return {!Array<shapy.editor.Editable>}
+ */
+shapy.editor.Object.prototype.pickFrustum = function(frustum) {
+  var v = goog.object.filter(this.verts, function(v) {
+    var outside = 0;
+    goog.array.forEach(frustum, function(plane) {
+      var d = goog.vec.Vec3.dot(v.position, plane.n) + plane.d;
+      if (d < 0) {
+        outside++;
+      }
+    }, this);
+    return outside == 0;
+  }, this);
+  return [
+      goog.object.getValues(v)
   ];
 };
 

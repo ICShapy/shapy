@@ -90,6 +90,12 @@ shapy.editor.Viewport = function(name) {
    * @public {goog.math.Rect}
    */
   this.group = null;
+
+  /**
+   * Last mouse click position.
+   * @private {!goog.math.Vec2}
+   */
+  this.lastClick_ = new goog.math.Vec2(0, 0);
 };
 
 
@@ -105,6 +111,22 @@ shapy.editor.Viewport = function(name) {
  */
 shapy.editor.Viewport.prototype.raycast_ = function(x, y) {
   return this.camera.raycast(2 * x / this.rect.w - 1, 2 * y / this.rect.h - 1);
+};
+
+
+/**
+ * Returns the frustum that corresponds to a group selection.
+ *
+ * @param {!goog.math.Rect} rect Selection rectangle.
+ *
+ * @return {!goog.vec.Ray.Type} Ray passing through point.
+ */
+shapy.editor.Viewport.prototype.groupcast = function(rect) {
+  return this.camera.groupcast(
+      2 * rect.left / this.rect.w - 1,
+      2 * rect.top / this.rect.h - 1,
+      2 * (rect.left + rect.width) / this.rect.w - 1,
+      2 * (rect.top + rect.height) / this.rect.h - 1);
 };
 
 
@@ -155,17 +177,17 @@ shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
     return null;
   }
   if (this.group) {
-    if (x > this.group.left) {
-      this.group.width = x - this.group.left;
+    if (x > this.lastClick_.x) {
+      this.group.width = x - this.lastClick_.x;
     } else {
-      this.group.width = this.group.left + this.group.width - x;
+      this.group.width = this.lastClick_.x - x;
       this.group.left = x;
     }
 
-    if (y > this.group.top) {
-      this.group.height = y - this.group.top;
+    if (y > this.lastClick_.y) {
+      this.group.height = y - this.lastClick_.y;
     } else {
-      this.group.height = this.group.top + this.group.height - y;
+      this.group.height = this.lastClick_.y - y;
       this.group.top = y;
     }
 
@@ -215,6 +237,8 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
   var ray = this.raycast_(x, y);
+  this.lastClick_.x = x;
+  this.lastClick_.y = y;
   this.currMousePos_.x = x;
   this.currMousePos_.y = y;
   this.lastMousePos_.x = x;

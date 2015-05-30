@@ -92,13 +92,15 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
 /**
  * Collection of editable objects
  *
+ * @param {=Array<shapy.editor.Editable>} opt_editables
+ *
  * @constructor
  */
-shapy.editor.EditableGroup = function() {
+shapy.editor.EditableGroup = function(opt_editables) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.GROUP);
 
   /** @private {!Array<shapy.editor.Editable>} List of editables to control */
-  this.editables_ = [];
+  this.editables_ = opt_editables || [];
 };
 goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
 
@@ -119,6 +121,18 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
   }
   return this.editables_.length != 0;
 };
+
+/**
+ * Hovers the editable.
+ *
+ * @param {boolean} hover
+ */
+shapy.editor.EditableGroup.prototype.setHover = function(hover) {
+  goog.object.forEach(this.editables_, function(editable) {
+    editable.setHover(hover);
+  }, this);
+};
+
 
 
 /**

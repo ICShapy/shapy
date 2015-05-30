@@ -38,26 +38,27 @@ shapy.editor.Camera = function() {
 
 /**
  * Recomputes the matrices.
- *
- * @public
  */
 shapy.editor.Camera.prototype.compute = goog.abstractMethod;
 
 
 /**
  * Resize the camera, usually affects aspect ratio of perspective cameras.
- *
- * @public
  */
 shapy.editor.Camera.prototype.resize = goog.abstractMethod;
 
 
 /**
  * Returns the ray that corresponds to a screen coordinate.
- *
- * @public
  */
 shapy.editor.Camera.prototype.raycast = goog.abstractMethod;
+
+
+/**
+ * Returns the frustum that corresponds to a selection group.
+ */
+shapy.editor.Camera.prototype.groupcast = goog.abstractMethod;
+
 
 /**
  * Maximum zoom level.
@@ -155,6 +156,53 @@ shapy.editor.Camera.Persp.prototype.raycast = function(x, y) {
 };
 
 
+/**
+ * Returns the frustum that corresponds to a selection group.
+ *
+ * @param {number} x0
+ * @param {number} y0
+ * @param {number} x1
+ * @param {number} y1
+ *
+ * @return {!Object}
+ */
+shapy.editor.Camera.prototype.groupcast = function(x0, y0, x1, y1) {
+  var corners = goog.array.map([
+    goog.vec.Vec3.createFloat32FromValues(x0, y0, -1, 1),
+    goog.vec.Vec3.createFloat32FromValues(x0, y1, -1, 1),
+    goog.vec.Vec3.createFloat32FromValues(x1, y1, -1, 1),
+    goog.vec.Vec3.createFloat32FromValues(x1, y0, -1, 1),
+  ], function(v) {
+    goog.vec.Mat4.multVec3(this.invProj, v, v);
+    goog.vec.Mat4.multVec3(this.invView, v, v);
+    return v;
+  }, this);
+
+  var e0 = goog.vec.Vec3.createFloat32();
+  var e1 = goog.vec.Vec3.createFloat32();
+  var buildPlane = function(a, b, c) {
+    goog.vec.Vec3.subtract(a, c, e0);
+    goog.vec.Vec3.subtract(b, c, e1);
+    goog.vec.Vec3.cross(e0, e1, e0);
+    goog.vec.Vec3.normalize(e0, e0, e0);
+
+    return {
+      n: e0,
+      d: -goog.vec.Vec3.dot(e0, c)
+    };
+  };
+
+  var planes = [
+    buildPlane(corners[0], corners[1], this.eye),
+    buildPlane(corners[1], corners[2], this.eye),
+    buildPlane(corners[2], corners[3], this.eye),
+    buildPlane(corners[3], corners[0], this.eye),
+  ];
+
+  return planes;
+};
+
+
 
 /**
  * Ortho camera.
@@ -198,17 +246,4 @@ shapy.editor.Camera.Ortho.prototype.compute = function() {
  * @param {number} h
  */
 shapy.editor.Camera.Ortho.prototype.resize = function(w, h) {
-};
-
-
-/**
- * Creates a ray out of normalized device coordinates.
- *
- * @param {number} x
- * @param {number} y
- *
- * @return {goog.vec.Ray.Type}
- */
-shapy.editor.Camera.Ortho.prototype.raycast = function(x, y) {
-  return new goog.vec.Ray();
 };
