@@ -71,14 +71,20 @@
     </sh-sidebar-all>
   </sh-sidebar>
   <sh-files>
-    <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query track by asset.id ">
+    <div ng-repeat="
+          asset in browserCtrl.assets
+        | shFileMatch:browserCtrl.query
+        | orderBy:'+name'
+        track by asset.id ">
       <sh-file>
         <div ng-click="browserCtrl.assetEnter(asset)">
           <img ng-src="{{asset.image}}">
         </div>
         <sh-editable
+            ng-init="name=asset.name"
             class="name"
-            ng-model="asset.name">
+            ng-blur="asset.rename(name);"
+            ng-model="name">
         </sh-editable>
       </sh-file>
     </div>

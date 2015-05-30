@@ -117,3 +117,40 @@ class DirCreateHandler(APIHandler):
     }))
     self.finish()
 
+
+
+class DeleteHandler(APIHandler):
+  """Handles requests to the REST API."""
+
+  @session
+  @coroutine
+  @asynchronous
+  def post(self, user):
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+
+    self.finish()
+
+
+class RenameHandler(APIHandler):
+  """Handles requests to the REST API."""
+
+  @session
+  @coroutine
+  @asynchronous
+  def post(self, user):
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+
+    req = json.loads(self.request.body)
+    id = req['id'] if 'id' in req else None
+    name = req['name'] if 'name' in req else None
+
+    if not id or not name:
+      raise HTTPError(400, 'Missing argument')
+
+    # TODO: permission check
+    yield momoko.Op(self.db.execute,
+        '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
+    )
+    self.finish()

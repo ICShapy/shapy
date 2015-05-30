@@ -42,6 +42,9 @@ def main(args):
     (r'/api/assets/dir/(-?[0-9]+)/([0-1])',   shapy.assets.DirFetchHandler),
     (r'/api/assets/dir/create',               shapy.assets.DirCreateHandler),
 
+    (r'/api/assets/delete',                   shapy.assets.DeleteHandler),
+    (r'/api/assets/rename',                   shapy.assets.RenameHandler),
+
     (r'/api/user/auth/fb',                    shapy.user.FacebookHandler),
     (r'/api/user/auth/gp',                    shapy.user.GoogleHandler),
     (r'/api/user/check/([^/]+)',              shapy.user.CheckHandler),
