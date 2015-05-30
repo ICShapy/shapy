@@ -275,7 +275,6 @@ shapy.editor.Object.prototype.pickFrustum = function(frustum) {
         return goog.vec.Vec3.dot(v.position, plane.n) + plane.d >= 0;
       });
     });
-    return inside == frustum.length;
   }, this));
 };
 
