@@ -189,7 +189,7 @@ shapy.editor.Camera.prototype.groupcast = function(x0, y0, x1, y1) {
 
     return {
       n: n,
-      d: -goog.vec.Vec3.dot(n, c)
+      o: goog.vec.Vec3.cloneFloat32(c)
     };
   };
 

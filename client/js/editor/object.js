@@ -253,9 +253,20 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
  * @return {!Array<shapy.editor.Editable>}
  */
 shapy.editor.Object.prototype.pickFrustum = function(frustum) {
+  var planes = goog.array.map(frustum, function(plane) {
+    var n = goog.vec.Vec3.cloneFloat32(plane.n);
+    var o = goog.vec.Vec3.cloneFloat32(plane.o);
+    goog.vec.Mat4.multVec3(this.invModel_, o, o);
+    goog.vec.Mat4.multVec3NoTranslate(this.invModel_, n, n);
+    return {
+      n: n,
+      d: -goog.vec.Vec3.dot(o, n)
+    };
+  }, this);
+
   return goog.object.getValues(goog.object.filter(this.verts, function(v) {
     var inside = 0;
-    goog.array.forEach(frustum, function(plane) {
+    goog.array.forEach(planes, function(plane) {
       var d = goog.vec.Vec3.dot(v.position, plane.n) + plane.d;
       if (d >= 0) {
         inside++;
