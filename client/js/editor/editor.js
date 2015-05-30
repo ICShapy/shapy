@@ -15,6 +15,7 @@ goog.require('shapy.editor.Layout');
 goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
 goog.require('shapy.editor.Layout.Single');
+goog.require('shapy.editor.Mode');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Rig');
 goog.require('shapy.editor.Rig.Cut');
@@ -159,6 +160,12 @@ shapy.editor.Editor = function($location, $rootScope) {
    */
   this.vp_ = new goog.math.Size(0, 0);
 
+  /**
+   * Edit mode.
+   * @public {!shapy.editor.Mode} @const
+   */
+  this.mode = new shapy.editor.Mode();
+
   // Watch for changes in the name.
   $rootScope.$watch(goog.bind(function() {
     return this.scene_ && this.scene_.name;
@@ -242,34 +249,6 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   this.select(this.selected_);
   this.rig(this.rig_);
   this.vp_.width = this.vp_.height = 0;
-};
-
-
-/**
- * Sets the selection mode.
- *
- * @param {string} mode Selection mode.
- */
-shapy.editor.Editor.prototype.setMode = function(mode) {
-  switch (mode) {
-    case 'object': {
-      console.log("object");
-      break;
-    }
-    case 'face': {
-      console.log("face");
-      break;
-    }
-    case 'edge': {
-      console.log("edge");
-      break;
-    }
-    case 'vertex': {
-      console.log("edge");
-      break;
-    }
-    default: throw new Error('Invalid mode "' + mode + '"');
-  }
 };
 
 

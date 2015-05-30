@@ -2,6 +2,9 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.editor.Editable');
+goog.provide('shapy.editor.Mode');
+
+
 
 /**
  * Editable provides a way to manipulate properties of vertices, edges and
@@ -247,4 +250,61 @@ shapy.editor.Editable.Type = {
   VERTEX: 'vertex',
   EDGE: 'edge',
   FACE: 'face'
+};
+
+
+
+/**
+ * Selection mode.
+ *
+ * @constructor
+ */
+shapy.editor.Mode = function() {
+  this.object = true;
+  this.vertex = false;
+  this.edge = false;
+  this.face = false;
+};
+
+
+/**
+ * Toggle object mode.
+ */
+shapy.editor.Mode.prototype.toggleObject = function() {
+  if (this.object) {
+    this.object = false;
+    this.vertex = this.edge = this.face = true;
+  } else {
+    this.object = true;
+    this.vertex = false;
+    this.edge = false;
+    this.face = false;
+  }
+};
+
+
+/**
+ * Toggle face mode.
+ */
+shapy.editor.Mode.prototype.toggleFace = function() {
+  this.face = !this.face;
+  this.object = !(this.face || this.edge || this.vertex);
+};
+
+
+/**
+ * Toggle edge mode.
+ */
+shapy.editor.Mode.prototype.toggleEdge = function() {
+  this.edge = !this.edge;
+  this.object = !(this.face || this.edge || this.vertex);
+};
+
+
+/**
+ * Toggle vertex mode.
+ */
+shapy.editor.Mode.prototype.toggleVertex = function() {
+  this.vertex = !this.vertex;
+  this.object = !(this.face || this.edge || this.vertex);
 };

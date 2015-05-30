@@ -40,28 +40,32 @@
   <div>
     <span> Mode </span>
     <ul>
-      <li>
+      <li ng-click="editorCtrl.mode.toggleObject()">
         <input
             type="checkbox"
-            ng-click="editorCtrl.mode('object')" />
+            disabled
+            ng-checked="editorCtrl.mode.object"/>
         Object
       </li>
-      <li>
+      <li ng-click="editorCtrl.mode.toggleFace()">
         <input
             type="checkbox"
-            ng-click="editorCtrl.mode('face')" />
+            disabled
+            ng-checked="editorCtrl.mode.face"/>
         Face
       </li>
-      <li>
+      <li ng-click="editorCtrl.mode.toggleEdge()">
         <input
             type="checkbox"
-            ng-click="editorCtrl.mode('edge')" />
+            disabled
+            ng-checked="editorCtrl.mode.edge"/>
         Edge
       </li>
-      <li>
+      <li ng-click="editorCtrl.mode.toggleVertex()">
         <input
             type="checkbox"
-            ng-click="editorCtrl.mode('vertex')" />
+            disabled
+            ng-checked="editorCtrl.mode.vertex"/>
         Vertex
       </li>
     </ul>

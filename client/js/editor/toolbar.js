@@ -34,6 +34,8 @@ shapy.editor.ToolbarController = function(
   this.scene = scene;
   /** @public {!Array<!shapy.User>} */
   this.users = [];
+  /** @public {!shapy.editor.Mode} */
+  this.mode = shEditor.mode;
 
   // Watch for changes in the user ID list & fetch user objects periodically.
   $scope.$watch(goog.bind(function() {
@@ -64,15 +66,4 @@ shapy.editor.ToolbarController.prototype.layout = function(name) {
  */
 shapy.editor.ToolbarController.prototype.addObject = function(name) {
   this.shEditor_.create(name);
-};
-
-
-/**
- * Called whe the selection mode has to be changed.
- *
- *
- * @param {string} name Name of the mode.
- */
-shapy.editor.ToolbarController.prototype.mode = function(name) {
-  this.shEditor_.setMode(name);
 };
