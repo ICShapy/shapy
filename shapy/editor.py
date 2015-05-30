@@ -153,7 +153,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     })
 
     # Terminate the redis connection.
-    self.chan.unsubscribe(self.chan_id)
+    yield Task(self.chan.unsubscribe, self.chan_id)
     self.chan.disconnect()
 
   @coroutine
