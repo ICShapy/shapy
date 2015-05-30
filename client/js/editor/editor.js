@@ -240,6 +240,34 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
 
 
 /**
+ * Sets the selection mode.
+ *
+ * @param {string} mode Selection mode.
+ */
+shapy.editor.Editor.prototype.setMode = function(mode) {
+  switch (mode) {
+    case 'object': {
+      console.log("object");
+      break;
+    }
+    case 'face': {
+      console.log("face");
+      break;
+    }
+    case 'edge': {
+      console.log("edge");
+      break;
+    }
+    case 'vertex': {
+      console.log("edge");
+      break;
+    }
+    default: throw new Error('Invalid mode "' + mode + '"');
+  }
+};
+
+
+/**
  * Creates a new object, adding it to the scene.
  *
  * @param {string} type Type of the object.

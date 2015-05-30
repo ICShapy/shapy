@@ -65,3 +65,14 @@ shapy.editor.ToolbarController.prototype.layout = function(name) {
 shapy.editor.ToolbarController.prototype.addObject = function(name) {
   this.shEditor_.create(name);
 };
+
+
+/**
+ * Called whe the selection mode has to be changed.
+ *
+ *
+ * @param {string} name Name of the mode.
+ */
+shapy.editor.ToolbarController.prototype.mode = function(name) {
+  this.shEditor_.setMode(name);
+};
