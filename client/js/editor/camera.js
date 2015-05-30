@@ -181,14 +181,15 @@ shapy.editor.Camera.prototype.groupcast = function(x0, y0, x1, y1) {
   var e0 = goog.vec.Vec3.createFloat32();
   var e1 = goog.vec.Vec3.createFloat32();
   var buildPlane = function(a, b, c) {
+    var n = goog.vec.Vec3.createFloat32();
     goog.vec.Vec3.subtract(a, c, e0);
     goog.vec.Vec3.subtract(b, c, e1);
-    goog.vec.Vec3.cross(e0, e1, e0);
-    goog.vec.Vec3.normalize(e0, e0, e0);
+    goog.vec.Vec3.cross(e0, e1, n);
+    goog.vec.Vec3.normalize(n, n);
 
     return {
-      n: e0,
-      d: -goog.vec.Vec3.dot(e0, c)
+      n: n,
+      d: -goog.vec.Vec3.dot(n, c)
     };
   };
 
