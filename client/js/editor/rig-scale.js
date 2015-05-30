@@ -253,6 +253,8 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
  * Handles mouse down event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean} True if event captured.
  */
 shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.select_.x = this.hover_.x;
@@ -261,6 +263,7 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.lastPos_ = this.getClosest_(ray);
   goog.vec.Vec3.setFromArray(
     this.scaleRelativeTo_, this.object.getScale());
+  return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
 

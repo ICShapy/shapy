@@ -224,12 +224,16 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
  * Handles mouse down event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean} True if event captured.
  */
 shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
   this.select_.x = this.hover_.x;
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
   this.lastPos_ = this.getClosest_(ray);
+
+  return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
 

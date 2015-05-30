@@ -207,7 +207,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Single();
+  this.layout_ = new shapy.editor.Layout.Double();
   this.scene_.createSphere(0.5, 16, 16);
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
@@ -295,8 +295,8 @@ shapy.editor.Editor.prototype.render = function() {
     vp.camCube.compute();
     this.renderer_.renderObjects(vp);
     this.renderer_.renderGround(vp);
-    this.renderer_.renderBorder(vp);
     this.renderer_.renderCamCube(vp);
+    this.renderer_.renderOverlay(vp);
   }, this);
 
   // Second pass - render rigs.

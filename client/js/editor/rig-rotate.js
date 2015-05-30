@@ -367,6 +367,8 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
  * Handles mouse down event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean} True if event captured.
  */
 shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   var pos = this.object.getPosition();
@@ -374,7 +376,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   var dx, dy, angle;
 
   if (!hit) {
-    return;
+    return false;
   }
 
   this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
@@ -385,18 +387,19 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   if (this.hover_.x) {
     this.initialAngle_ = angle[0];
     this.select_.x = true;
-    return;
+    return true;
   }
   if (this.hover_.y) {
     this.initialAngle_ = angle[1];
     this.select_.y = true;
-    return;
+    return true;
   }
   if (this.hover_.z) {
     this.initialAngle_ = angle[2];
     this.select_.z = true;
-    return;
+    return true;
   }
+  return true;
 };
 
 
