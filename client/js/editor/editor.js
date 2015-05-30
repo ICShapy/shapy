@@ -376,6 +376,23 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
         this.scene_.removeUser(data['user']);
         break;
       }
+      case 'create': {
+        switch (data['object']) {
+          case 'cube': {
+            this.scene_.createCube(0.5, 0.5, 0.5);
+            break;
+          }
+          case 'sphere': {
+            this.scene_.createSphere(0.5, 16, 16);
+            break;
+          }
+          default: {
+            console.error('Invalid object type "' + data['object'] + "'");
+            break;
+          }
+        }
+        break;
+      }
       case 'edit': {
         switch (data['tool']) {
           case 'translate': {
