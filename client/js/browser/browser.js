@@ -22,7 +22,7 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @param {!angular.$scope} $rootScope The Angular root scope.
  * @param {!angular.$http} $http The angular $http service.
- * @param {!shapy.browser.BrowserService} shBrowser The browser management service.
+ * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
 shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
   /** @private {!angular.$scope} @const */
@@ -85,12 +85,14 @@ shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
 
   $rootScope.$on('browser', goog.bind(function(name, data) {
     switch (data['type']) {
-      case 'query':
+      case 'query': {
         this.query = data['query'];
         break;
-      case 'pathAsset':
+      }
+      case 'pathAsset': {
         this.assetEnter(data['asset']);
         break;
+      }
     }
   }, this));
 };
@@ -202,9 +204,14 @@ shapy.browser.BrowserController.prototype.subdirs = function(dir) {
  * @constructor
  *
  * @param {!angular.$scope} $rootScope The Angular root scope.
- * @param {!shapy.browser.BrowserService} shBrowser The browser management service.
+ * @param {!angular.$scope} $scope The toolbar's scope.
+ * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
-shapy.browser.BrowserToolbarController = function($rootScope, $scope, shBrowser) {
+shapy.browser.BrowserToolbarController = function(
+    $rootScope,
+    $scope,
+    shBrowser)
+{
   /** @private {!angular.$scope} @const */
   this.rootscope_ = $rootScope;
   /** @private {!shapy.browser.BrowserService} @const */
@@ -225,23 +232,28 @@ shapy.browser.BrowserToolbarController = function($rootScope, $scope, shBrowser)
 /**
  * Returns path to currently browsed directory.
  *
+ * @return {string}
  */
 shapy.browser.BrowserToolbarController.prototype.path = function() {
   return this.shBrowser_.path;
 };
 
+
 /**
  * Returns to given asset(dir).
  *
- * @param {!shapy.browser.Asset.Dir} asset Asset (dir) from path to which are returning.
+ * @param {!shapy.browser.Asset.Dir} asset Asset to which to return.
  */
-shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset) {
+shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
+{
   // Drop redundant tail of path.
   var poppedAsset;
   do {
     poppedAsset = this.shBrowser_.path.pop();
   } while (poppedAsset.id != asset.id);
-  // Message BrowserController that user requested returning to given asset from path.
+
+  // Message BrowserController that user requested returning to
+  // given asset from path.
   this.rootscope_.$emit('browser', {
       type: 'pathAsset',
       asset: asset
@@ -308,7 +320,7 @@ shapy.browser.file = function() {
 /**
  * Checks if asset name contains search query.
  *
- * @param {!shapy.browser.Asset} asset Asset to check.
+ * @return {Function}
  */
 shapy.browser.fileMatch = function() {
   return function(files, pattern) {

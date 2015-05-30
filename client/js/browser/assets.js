@@ -15,44 +15,39 @@ goog.provide('shapy.browser.Asset.Texture');
  * @constructor
  *
  * @param {number} id    Id of the asset.
- * @param {string} type  Type of the asset.
  * @param {string} name  Name of the asset.
+ * @param {string} type  Type of the asset.
  * @param {string} image Path to image to be displayed for asset in browser.
  * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
 shapy.browser.Asset = function(id, name, type, image, parent) {
   /**
    * Id of the asset.
-   * @public {number}
-   * @const
+   * @public {number} @const
    */
   this.id = id;
 
   /**
    * Name of the asset.
-   * @public {string}
-   * @const
+   * @public {string} @const
    */
   this.name = name;
 
   /**
    * Type of the asset.
-   * @public {string}
-   * @const
+   * @public {string} @const
    */
   this.type = type;
 
   /**
    * Path to image to be displayed for asset in browser.
-   * @public {string}
-   * @const
+   * @public {string} @const
    */
   this.image = image;
 
   /**
    * Parent directory of this directory.
-   * @public {shapy.browser.Asset.Dir}
-   * @const
+   * @public {shapy.browser.Asset.Dir} @const
    */
   this.parent = parent;
 };
@@ -71,7 +66,6 @@ shapy.browser.Asset = function(id, name, type, image, parent) {
 shapy.browser.Asset.Dir = function(id, name, parent) {
   shapy.browser.Asset.call(this, id, name, 'dir', '/img/folder.png', parent);
 
-
   /**
    * Subdirectories of this directory.
    * @public {Array.<shapy.browser.Asset.Dir>}
@@ -85,18 +79,17 @@ shapy.browser.Asset.Dir = function(id, name, parent) {
   this.otherAssets = [];
 
   /**
-   * Flag showing whether assets (subdirs and other) already loaded from database.
-   * @public{boolean}
+   * Flag showing whether the asset data was loaded.
+   * @public {boolean}
    */
   this.loaded = false;
 
-  // Update parent's subdir
+  // Update parent's subdir.
   if (parent !== null) {
     parent.subdirs.push(this);
   }
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
-
 
 
 /**

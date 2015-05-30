@@ -50,17 +50,22 @@ shapy.browser.BrowserService = function($http, $q) {
   this.path = [];
 };
 
+
 /**
  * Injects new dir into databse and returns a promise with response.
  *
  * @param {string} name      Name of the directory.
  * @param {boolean} public   Flag showing whether dir is publicly accessible.
  * @param {!shapy.browser.Asset.Dir} parent Parent directory.
+ *
+ * @return {!shapy.browser.Asset.Dir}
  */
-shapy.browser.BrowserService.prototype.createDir = function(name, public, parent) {
+shapy.browser.BrowserService.prototype.createDir = function(
+    name,
+    public,
+    parent)
+{
   var def = this.q_.defer();
-
-  // TODO: check if name unique in this dir
 
   // Inject into database, obtain id
   this.http_.post('/api/assets/create', {
@@ -79,6 +84,7 @@ shapy.browser.BrowserService.prototype.createDir = function(name, public, parent
   return def.promise;
 };
 
+
 /**
  * Sends request to server to query database for contents of given dir.
  * Returns array of assets.
@@ -86,7 +92,7 @@ shapy.browser.BrowserService.prototype.createDir = function(name, public, parent
  * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
  * @param {boolean} public Type of directory to query.
  *
- * @
+ * @return {!angular.$q}
  */
 shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
   var publicSpace = (public) ? 1 : 0;
@@ -121,5 +127,4 @@ shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
 
         return assets;
       });
-
 };
