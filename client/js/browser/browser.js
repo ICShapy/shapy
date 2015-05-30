@@ -20,13 +20,11 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @constructor
  *
- * @param {!angular.$scope} $rootScope The Angular root scope.
- * @param {!angular.$http} $http The angular $http service.
+ * @param {!angular.$scope}               $rootScope Root scope.s
+ * @param {!angular.$http}                $http The angular $http service.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
 shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
-  /** @private {!angular.$scope} @const */
-  this.rootscope_ = $rootScope;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!shapy.browser.BrowserService} @const */
@@ -141,15 +139,13 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
 /**
  * Creates new subdir in current dir.
  *
- * @param {string} name Name od directory to create,
+ * @return {!angular.$q}
  */
-shapy.browser.BrowserController.prototype.createDir = function(name) {
-  // Request addding new dir in database
-  var promise = this.shBrowser_.createDir(name, this.public, this.currentDir);
-  // Update contents of current dir.
-  promise.then(goog.bind(function(dir) {
-    this.assets.push(dir);
-  }, this));
+shapy.browser.BrowserController.prototype.createDir = function() {
+  return this.shBrowser_.createDir(this.public, this.currentDir)
+      .then(goog.bind(function(dir) {
+        this.assets.push(dir);
+      }, this));
 };
 
 /**
@@ -198,22 +194,16 @@ shapy.browser.BrowserController.prototype.subdirs = function(dir) {
 };
 
 
+
 /**
  * Controller for the asset browser toolbar.
  *
  * @constructor
  *
- * @param {!angular.$scope} $rootScope The Angular root scope.
  * @param {!angular.$scope} $scope The toolbar's scope.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
-shapy.browser.BrowserToolbarController = function(
-    $rootScope,
-    $scope,
-    shBrowser)
-{
-  /** @private {!angular.$scope} @const */
-  this.rootscope_ = $rootScope;
+shapy.browser.BrowserToolbarController = function($scope, shBrowser) {
   /** @private {!shapy.browser.BrowserService} @const */
   this.shBrowser_ = shBrowser;
   /** @public {string} @const @export */
@@ -221,12 +211,11 @@ shapy.browser.BrowserToolbarController = function(
 
   // If query changed, message BrowserController that new filtering is needed.
   $scope.$watch('browserCtrl.query', goog.bind(function() {
-    $rootScope.$emit('browser', {
+    $scope.$emit('browser', {
       type: 'query',
       query: this.query
     });
   }, this));
-
 };
 
 /**

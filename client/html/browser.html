@@ -1,12 +1,29 @@
 <div>
   <sh-sidebar>
     <div class="create" ng-init="show=false">
-      <button class="left">NEW SCENE</button>
-      <button class="right" ng-click="show=!show"><img src="/img/arrow-right.svg"/></button>
+      <button
+          class="left"
+          ng-click="browserCtrl.createScene()">
+        NEW SCENE
+      </button>
+      <button
+          class="right"
+          ng-click="show=!show">
+        <img src="/img/arrow-right.svg"/>
+      </button>
       <ul class="menu" ng-show="show">
-        <li ng-click="show=false;" >Scene</li>
-        <li ng-click="show=false;" >Folder</li>
-        <li ng-click="show=false;" >Image</li>
+        <li
+            ng-click="show=false;browserCtrl.createScene();">
+          Scene
+        </li>
+        <li
+            ng-click="show=false;browserCtrl.createDir();">
+          Folder
+        </li>
+        <li
+            ng-click="show=false;browserCtrl.createImage();">
+          Image
+        </li>
       </ul>
     </div>
     <script type="text/ng-template" id="directory.html">
@@ -46,21 +63,12 @@
     <sh-sidebar-all>
       <div><h1> All your scenes </h1> </div>
       <div><h1> All your textures </h1></div>
-      <div 
+      <div
         ng-style="(browserCtrl.public) ? {'background-color':'red'} : null"
         ng-click="browserCtrl.publicEnter()">
         <h1> All public files </h1>
       </div>
     </sh-sidebar-all>
-    <sh-sidebar-options>
-      <div><input type="text" placeholder="Name" ng-model="browserCtrl.name"/></div>
-      <div>
-        <input type="button" value="New Folder" ng-click="browserCtrl.createDir(browserCtrl.name)"/>
-        <input type="button" value="New Scene" ng-click=""/>
-      </div>
-      </br>
-      <input type="button" value="Upload Texture" ng-click=""/>
-    <sh-sidebar-options>
   </sh-sidebar>
   <sh-files>
     <div ng-repeat="asset in browserCtrl.assets | shFileMatch:browserCtrl.query track by asset.id ">

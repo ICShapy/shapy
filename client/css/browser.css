@@ -153,7 +153,7 @@ sh-sidebar-folder {
 
 sh-sidebar-all {
   position: absolute;
-  top: 311px; bottom: 0; left: 0; right: 0;
+  height: 311px; bottom: 0; left: 0; right: 0;
   height: 80px;
   border-bottom: 1px dashed #cccccc;
   margin-left: 10px;
@@ -167,24 +167,6 @@ sh-sidebar-all > div > h1 {
 
 sh-sidebar-all > div > h1:hover {
   cursor: pointer;
-}
-
-sh-sidebar-options {
-  position: absolute;
-  top: 400px;
-  margin-left: 10px;
-}
-
-sh-sidebar-options > div > input[type="text"] {
-  width: 195px;
-}
-
-sh-sidebar-options > div > input[type="button"] {
-  width: 98px;
-}
-
-sh-sidebar-options > input[type="button"] {
-  width: 200px;
 }
 
 /**

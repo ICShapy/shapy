@@ -12,7 +12,7 @@ from tornado.web import HTTPError, asynchronous
 from shapy.common import APIHandler, session
 
 
-class DirectoryHandler(APIHandler):
+class DirFetchHandler(APIHandler):
   """Handles requests to the REST API."""
 
   @session
@@ -68,7 +68,7 @@ class DirectoryHandler(APIHandler):
 
 
 
-class AssetCreationHandler(APIHandler):
+class DirCreateHandler(APIHandler):
   """Handles requests to the REST API."""
 
   @session
@@ -80,15 +80,13 @@ class AssetCreationHandler(APIHandler):
 
     # Retrieve asset data.
     req     = json.loads(self.request.body)
-    name    = req['name'] if 'name' in req else None
-    type    = req['type'] if 'type' in req else None
     data    = req['data'] if 'data' in req else None
     preview = req['preview'] if 'preview' in req else None
     public  = req['public'] if 'public' in req else None
     parent  = req['parent'] if 'parent' in req else None
 
     # Check if required data specified
-    if not name or not type or public is None or parent is None:
+    if public is None or parent is None:
       raise HTTPError(400, 'Missing asset data, cannot create asset.')
 
     # Create new account - store in database
@@ -96,12 +94,12 @@ class AssetCreationHandler(APIHandler):
         '''INSERT INTO assets (id, name, type, data, preview, public, owner, parent)
            VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s)
            RETURNING id''', (
-           name, 
-           type, 
-           data, 
-           preview, 
-           public, 
-           user.id, 
+           'New Folder',
+           'dir',
+           data,
+           preview,
+           public,
+           user.id,
            parent
     ))
 
@@ -111,6 +109,11 @@ class AssetCreationHandler(APIHandler):
       raise HTTPError(400, 'Asset creation failed.')
 
     #return id
-    self.write(json.dumps({ 'id' : asset[0]}))
+    self.write(json.dumps({
+        'id': asset[0],
+        'name': 'New Folder',
+        'type': 'dir',
+        'preview': ''
+    }))
     self.finish()
 

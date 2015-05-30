@@ -37,18 +37,22 @@ def main(args):
   # Set up URL routes.
   app = tornado.web.Application([
     # API handlers.
-    (r'/api/user/auth',             shapy.user.AuthHandler),
-    (r'/api/assets/dir/(-?[0-9]+)/([0-1])',   shapy.assets.DirectoryHandler),
-    (r'/api/assets/create',         shapy.assets.AssetCreationHandler),
-    (r'/api/user/auth/fb',          shapy.user.FacebookHandler),
-    (r'/api/user/auth/gp',          shapy.user.GoogleHandler),
-    (r'/api/user/check/([^/]+)',    shapy.user.CheckHandler),
-    (r'/api/user/login',            shapy.user.LoginHandler),
-    (r'/api/user/logout',           shapy.user.LogoutHandler),
-    (r'/api/user/register',         shapy.user.RegisterHandler),
-    (r'/api/user/([0-9]+)',         shapy.user.InfoHandler),
-    (r'/api/edit/([0-9]+@[0-9]+)',  shapy.editor.WSHandler),
-    (r'/api/scene/([0-9]+@[0-9]+)', shapy.editor.SceneHandler),
+    (r'/api/user/auth',                       shapy.user.AuthHandler),
+
+    (r'/api/assets/dir/(-?[0-9]+)/([0-1])',   shapy.assets.DirFetchHandler),
+    (r'/api/assets/dir/create',               shapy.assets.DirCreateHandler),
+
+    (r'/api/user/auth/fb',                    shapy.user.FacebookHandler),
+    (r'/api/user/auth/gp',                    shapy.user.GoogleHandler),
+    (r'/api/user/check/([^/]+)',              shapy.user.CheckHandler),
+    (r'/api/user/login',                      shapy.user.LoginHandler),
+    (r'/api/user/logout',                     shapy.user.LogoutHandler),
+    (r'/api/user/register',                   shapy.user.RegisterHandler),
+    (r'/api/user/([0-9]+)',                   shapy.user.InfoHandler),
+
+    (r'/api/edit/([0-9]+@[0-9]+)',            shapy.editor.WSHandler),
+
+    (r'/api/scene/([0-9]+@[0-9]+)',           shapy.editor.SceneHandler),
 
     # Static files.
     (r'/css/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/css' }),

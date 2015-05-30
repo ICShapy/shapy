@@ -31,7 +31,7 @@ shapy.browser.BrowserService = function($http, $q) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-   this.home = new shapy.browser.Asset.Dir(0, 'home', null);
+  this.home = new shapy.browser.Asset.Dir(0, 'home', null);
 
   /**
    * Public home dir.
@@ -39,8 +39,7 @@ shapy.browser.BrowserService = function($http, $q) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-   this.homePublic = new shapy.browser.Asset.Dir(-1, 'homePublic', null);
-
+  this.homePublic = new shapy.browser.Asset.Dir(-1, 'homePublic', null);
 
   /**
    * Path to current folder
@@ -54,34 +53,26 @@ shapy.browser.BrowserService = function($http, $q) {
 /**
  * Injects new dir into databse and returns a promise with response.
  *
- * @param {string} name      Name of the directory.
  * @param {boolean} public   Flag showing whether dir is publicly accessible.
  * @param {!shapy.browser.Asset.Dir} parent Parent directory.
  *
  * @return {!shapy.browser.Asset.Dir}
  */
 shapy.browser.BrowserService.prototype.createDir = function(
-    name,
     public,
     parent)
 {
-  var def = this.q_.defer();
-
-  // Inject into database, obtain id
-  this.http_.post('/api/assets/create', {
-    name: name,
-    type: 'dir',
+  return this.http_.post('/api/assets/dir/create', {
     public: public,
     parent: parent.id
   })
-  .success(function(response) {
-    def.resolve(new shapy.browser.Asset.Dir(response['id'], name, parent));
-  })
-  .error(function() {
-    def.reject();
+  .then(function(response) {
+    return new shapy.browser.Asset.Dir(
+        response.data['id'],
+        response.data['name'],
+        parent
+    );
   });
-
-  return def.promise;
 };
 
 
