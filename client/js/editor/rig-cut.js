@@ -77,9 +77,8 @@ shapy.editor.Rig.Cut.prototype.computeRotTrans_ = function() {
   var t = goog.vec.Vec3.createFloat32();
 
   // Compute the translation.
-  goog.vec.Vec3.subtract(this.norm_, v, t);
-  goog.vec.Mat4.makeTranslate(
-      this.model_, p[0] + t[0], p[1] + t[1], p[2] + t[2]);
+  var t = shapy.editor.geom.getCentroid(this.ps_[0], this.ps_[1], this.ps_[2]);
+  goog.vec.Mat4.makeTranslate(this.model_, t[0], t[1], t[2]);
 
   // Compute the rotation quaternion.
   goog.vec.Vec3.cross(v, this.norm_, c);
@@ -93,7 +92,7 @@ shapy.editor.Rig.Cut.prototype.computeRotTrans_ = function() {
 
   // Compute and apply the rotaion matrix.
   goog.vec.Quaternion.toRotationMatrix4(q, r);
-  goog.vec.Mat4.multMat(r, this.model_, this.model_);
+  goog.vec.Mat4.multMat(this.model_, r, this.model_);
 };
 
 /**
