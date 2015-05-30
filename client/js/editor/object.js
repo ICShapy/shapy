@@ -264,14 +264,17 @@ shapy.editor.Object.prototype.pickFrustum = function(frustum) {
     };
   }, this);
 
-  return goog.object.getValues(goog.object.filter(this.verts, function(v) {
-    var inside = 0;
-    goog.array.forEach(planes, function(plane) {
-      var d = goog.vec.Vec3.dot(v.position, plane.n) + plane.d;
-      if (d >= 0) {
-        inside++;
-      }
-    }, this);
+  var all = goog.array.flatten(goog.array.map([
+      this.verts,
+      this.edges,
+      this.faces
+  ], goog.object.getValues));
+  return goog.object.getValues(goog.object.filter(all, function(elem) {
+    return goog.array.some(elem.getVertices(), function(v) {
+      return goog.array.every(planes, function(plane) {
+        return goog.vec.Vec3.dot(v.position, plane.n) + plane.d >= 0;
+      });
+    });
     return inside == frustum.length;
   }, this));
 };
