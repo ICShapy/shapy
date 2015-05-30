@@ -186,13 +186,23 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
 shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
   var mid = this.getPosition();
 
-  // Apply translation to each vertex
-  goog.object.forEach(this.getVertices(), function(vertex) {
-    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-    goog.vec.Vec3.subtract(delta, mid, delta);
-    goog.vec.Vec3.add(delta, vertex.getPosition(), delta);
-    vertex.translate(delta[0], delta[1], delta[2]);
-  }, this);
+  if (this.wholeObjects()) {
+    // Apply translation to each object
+    goog.object.forEach(this.editables_, function(e) {
+      var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+      goog.vec.Vec3.subtract(delta, mid, delta);
+      goog.vec.Vec3.add(delta, e.getPosition(), delta);
+      e.translate(delta[0], delta[1], delta[2]);    
+    });
+  } else {
+    // Apply translation to each vertex
+    goog.object.forEach(this.getVertices(), function(vertex) {
+      var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+      goog.vec.Vec3.subtract(delta, mid, delta);
+      goog.vec.Vec3.add(delta, vertex.getPosition(), delta);
+      vertex.translate(delta[0], delta[1], delta[2]);
+    }, this);
+  }
 };
 
 
@@ -214,7 +224,6 @@ shapy.editor.EditableGroup.prototype.delete = function() {
  */
 shapy.editor.EditableGroup.prototype.getVertices = function() {
   var verts = goog.array.flatten(goog.array.map(this.editables_, function(e) {
-    console.log(e.getVertices());
     return e.getVertices();
   }, this));
   goog.array.removeDuplicates(verts);
@@ -237,6 +246,18 @@ shapy.editor.EditableGroup.prototype.getObject = function() {
   });
 
   return same ? object : null;
+};
+
+
+/**
+ * Determines if all the editables are whole objects.
+ */
+shapy.editor.EditableGroup.prototype.wholeObjects = function() {
+  var edits = goog.array.filter(this.editables_, function(e) {
+    return e.type == shapy.editor.Editable.Type.OBJECT;
+  });
+
+  return edits.length == this.editables_.length;
 };
 
 
