@@ -228,7 +228,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   switch (layout) {
     case 'single': this.layout_ = new shapy.editor.Layout.Single(); break;
     case 'double': this.layout_ = new shapy.editor.Layout.Double(); break;
-    case 'quad': this.layout_ = new shapy.editor.Layout.Quad(); break;
+    case 'quad':   this.layout_ = new shapy.editor.Layout.Quad();   break;
     default: throw Error('Invalid layout "' + layout + "'");
   }
 
@@ -473,6 +473,10 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   //    this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
   //  return;
   //}
+
+  if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
+    this.rig_.reset();
+  }
 
   this.rig_ = rig;
   this.rig_.object = this.selected_;

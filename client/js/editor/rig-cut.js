@@ -94,6 +94,7 @@ shapy.editor.Rig.Cut.prototype.computeRotTrans_ = function() {
   goog.vec.Mat4.multMat(this.model_, r, this.model_);
 };
 
+
 /**
  * Renders the cut rig.
  *
@@ -158,24 +159,25 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
 
   // Update the render flag & turn.
   if (this.turn_ == this.ps_.length) {
-    this.renderCutPlane_ = false;
-    this.turn_ = 0;
-  } else if (this.turn_ == (this.ps_.length - 1)) {
-    this.renderCutPlane_ = true;
+    this.reset();
   }
 
   // Record the point.
   goog.vec.Vec3.setFromValues(this.ps_[this.turn_], i[0], i[1], i[2]);
   this.turn_ = this.turn_ + 1;
 
-  // Re-calculate the normal of the cut plane.
-  var v10 = goog.vec.Vec3.createFloat32();
-  var v20 = goog.vec.Vec3.createFloat32();
+  if (this.turn_ == this.ps_.length) {
+    // Calculate the normal of the cut plane.
+    var v10 = goog.vec.Vec3.createFloat32();
+    var v20 = goog.vec.Vec3.createFloat32();
 
-  goog.vec.Vec3.subtract(this.ps_[1], this.ps_[0], v10);
-  goog.vec.Vec3.subtract(this.ps_[2], this.ps_[0], v20);
-  goog.vec.Vec3.cross(v10, v20, this.norm_);
-  goog.vec.Vec3.normalize(this.norm_, this.norm_);
+    goog.vec.Vec3.subtract(this.ps_[1], this.ps_[0], v10);
+    goog.vec.Vec3.subtract(this.ps_[2], this.ps_[0], v20);
+    goog.vec.Vec3.cross(v10, v20, this.norm_);
+    goog.vec.Vec3.normalize(this.norm_, this.norm_);
+
+    this.renderCutPlane_ = true;
+  }
 };
 
 
@@ -193,5 +195,15 @@ shapy.editor.Rig.Cut.prototype.mouseUp = function(ray) {
  * Handles mouse leave event.
  */
 shapy.editor.Rig.Cut.prototype.mouseLeave = function() {
-
 };
+
+
+/**
+ * Resets the cut plane.
+ */
+shapy.editor.Rig.Cut.prototype.reset = function() {
+  this.renderCutPlane_ = false;
+  this.turn_ = 0;
+};
+
+
