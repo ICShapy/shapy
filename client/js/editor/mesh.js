@@ -64,7 +64,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   var v = new Float32Array(this.vertCount_ * 48);
   goog.object.forEach(this.object_.verts, function(vert) {
     if (vert.selected) {
-      r = 1.0; g = 1.0; b = 0.0;
+      r = 0.9; g = 0.9; b = 0.0;
     } else if (vert.hover) {
       r = 0.8; g = 0.4; b = 0.0;
     } else {
@@ -86,7 +86,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   goog.object.forEach(this.object_.edges, function(edge) {
     var v = edge.getVertices();
     if (edge.selected || v[0].selected) {
-      r = 1.0; g = 1.0; b = 0.0;
+      r = 0.9; g = 0.9; b = 0.0;
     } else if (edge.hover) {
       r = 0.8; g = 0.4; b = 0.0;
     } else {
@@ -94,7 +94,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
     }
     add(e, v[0].position);
     if (edge.selected || v[1].selected) {
-      r = 1.0; g = 1.0; b = 0.0;
+      r = 0.9; g = 0.9; b = 0.0;
     } else if (edge.hover) {
       r = 0.8; g = 0.4; b = 0.0;
     } else {
