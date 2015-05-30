@@ -731,6 +731,16 @@ shapy.editor.Object.Vertex.prototype.getPosition = function() {
 
 
 /**
+ * Retrieves the object edited.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.Object.Vertex.prototype.getObject = function() {
+  return this.object;
+};
+
+
+/**
  * Translate the Vertex.
  *
  * @param {number} x
@@ -816,6 +826,16 @@ shapy.editor.Object.Edge.prototype.getPosition = function() {
   goog.vec.Mat4.multVec3(this.object.model_, t, t);
 
   return t;
+};
+
+
+/**
+ * Retrieves the object edited.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.Object.Edge.prototype.getObject = function() {
+  return this.object;
 };
 
 
@@ -919,6 +939,16 @@ shapy.editor.Object.Face.prototype.getVertices = function() {
   return goog.array.map(verts, function(v) {
     return this.object.verts[v];
   }, this);
+};
+
+
+/**
+ * Retrieves the object edited.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.Object.Face.prototype.getObject = function() {
+  return this.object;
 };
 
 
