@@ -241,5 +241,25 @@ shapy.editor.geom.getClosest = function(r0, r1) {
     s: s,
     t: t
   };
-}; 
+};
+
+
+/**
+ * Computes the closest distance between a point and a line.
+ *
+ * @param {!goog.vec.Vec3.Type} p0 Point whose distance is to be computed.
+ * @param {!goog.vec.Vec3.Type} p1 Point on the line.
+ * @param {!goog.vec.Vec3.Type} p2 Point on the line.
+ */
+shapy.editor.geom.getDistance = function(p0, p1, p2) {
+  var v21 = goog.vec.Vec3.createFloat32();
+  var v10 = goog.vec.Vec3.createFloat32();
+  var c   = goog.vec.Vec3.createFloat32();
+
+  goog.vec.Vec3.subtract(p2, p1, v21);
+  goog.vec.Vec3.subtract(p1, p0, v10);
+  goog.vec.Vec3.cross(v21, v10, c);
+
+  return goog.vec.Vec3.magnitude(c) / goog.vec.Vec3.magnitude(v21);
+};
 

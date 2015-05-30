@@ -46,6 +46,7 @@ shapy.editor.canvas = function(shScene, shEditor) {
       // Listen to key press events.
       $elem
         .bind('contextmenu', function(e) { return false; })
+        .bind('selectstart', function(e) { return false; })
         .bind('mousewheel', wrap(shEditor.mouseWheel))
         .mouseenter(wrap(shEditor.mouseEnter))
         .mouseleave(wrap(shEditor.mouseLeave))
@@ -58,6 +59,12 @@ shapy.editor.canvas = function(shScene, shEditor) {
             return;
           }
           shEditor.keyDown(e);
+        }))
+        .keyup(wrap(function(e) {
+          if (e.target.tagName != 'BODY') {
+            return;
+          }
+          shEditor.keyUp(e);
         }));
     }
   };
