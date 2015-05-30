@@ -13,6 +13,8 @@ goog.require('shapy.browser.Asset.Texture');
 /**
  * Service that handles asset browsing.
  *
+ * // TODO: rename this shapy.browser.Service, a bit shorter and nicer.
+ *
  * @constructor
  * @ngInject
  *
@@ -26,13 +28,20 @@ shapy.browser.BrowserService = function($http, $q) {
   this.q_ = $q;
 
   /**
-   * Home dir.
+   * Private home dir.
    *
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-   this.home = new shapy.browser.Asset.Dir(0, 'home', null);
+  this.home = new shapy.browser.Asset.Dir(this, 0, 'home', null);
 
+  /**
+   * Public home dir.
+   *
+   * @public {!shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.homePublic = new shapy.browser.Asset.Dir(this, -1, 'homePublic', null);
 
   /**
    * Path to current folder
@@ -42,34 +51,53 @@ shapy.browser.BrowserService = function($http, $q) {
   this.path = [];
 };
 
+
+/**
+ * Renames an asset.
+ *
+ * @param {shapy.browser.Asset} asset Asset to be renamed.
+ * @param {string}              name  New name of the asset.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.BrowserService.prototype.rename = function(asset, name) {
+  return this.http_.post('/api/assets/rename', {
+      id: asset.id,
+      name: name
+  }).then(goog.bind(function() {
+    asset.name = name;
+  }, this));
+};
+
+
 /**
  * Injects new dir into databse and returns a promise with response.
  *
- * @param {string} name      Name of the directory.
  * @param {boolean} public   Flag showing whether dir is publicly accessible.
  * @param {!shapy.browser.Asset.Dir} parent Parent directory.
+ *
+ * @return {!shapy.browser.Asset.Dir}
  */
-shapy.browser.BrowserService.prototype.createDir = function(name, public, parent) {
-  var def = this.q_.defer();
-
-  // TODO: check if name unique in this dir
-
-  // Inject into database, obtain id
-  this.http_.post('/api/assets/create', {
-    name: name,
-    type: 'dir',
+shapy.browser.BrowserService.prototype.createDir = function(
+    public,
+    parent)
+{
+  // TODO: read the public flag on the backend, don't trust the
+  // frontend to pass a correct one!
+  return this.http_.post('/api/assets/dir/create', {
     public: public,
     parent: parent.id
   })
-  .success(function(response) {
-    def.resolve(new shapy.browser.Asset.Dir(response['id'], name, parent));
-  })
-  .error(function() {
-    def.reject();
-  });
-
-  return def.promise;
+  .then(goog.bind(function(response) {
+    return new shapy.browser.Asset.Dir(
+        this,
+        response.data['id'],
+        response.data['name'],
+        parent
+    );
+  }, this));
 };
+
 
 /**
  * Sends request to server to query database for contents of given dir.
@@ -78,12 +106,12 @@ shapy.browser.BrowserService.prototype.createDir = function(name, public, parent
  * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
  * @param {boolean} public Type of directory to query.
  *
- * @
+ * @return {!angular.$q}
  */
 shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
   var publicSpace = (public) ? 1 : 0;
   return this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
-      .then(function(response) {
+      .then(goog.bind(function(response) {
         var assets = [];
 
         // Iterate over responses, convert into assets.
@@ -91,27 +119,25 @@ shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
           switch (item['type']) {
             case 'dir':
               assets.push(new shapy.browser.Asset.Dir(
-                  item['id'], item['name'], dir));
+                  this, item['id'], item['name'], dir));
               break;
             case 'scene':
               assets.push(new shapy.browser.Asset.Scene(
-                  item['id'], item['name']), item['preview'], dir);
+                  this, item['id'], item['name']), item['preview'], dir);
               break;
             case 'texture':
               assets.push(new shapy.browser.Asset.Texture(
-                  item['id'], item['name']), item['preview'], dir);
+                  this, item['id'], item['name']), item['preview'], dir);
               break;
             default:
               console.log('Wrong type in database!');
               break;
           }
-
-        });
+        }, this);
 
         // Note that loading done.
         dir.loaded = true;
 
         return assets;
-      });
-
+      }, this));
 };
