@@ -214,6 +214,7 @@ shapy.editor.EditableGroup.prototype.delete = function() {
  */
 shapy.editor.EditableGroup.prototype.getVertices = function() {
   var verts = goog.array.flatten(goog.array.map(this.editables_, function(e) {
+    console.log(e.getVertices());
     return e.getVertices();
   }, this));
   goog.array.removeDuplicates(verts);

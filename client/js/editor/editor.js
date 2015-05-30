@@ -217,8 +217,9 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Double();
-  this.scene_.createSphere(0.5, 16, 16);
+  //this.layout_ = new shapy.editor.Layout.Double();
+  //this.scene_.createSphere(0.5, 16, 16);
+  this.layout_ = new shapy.editor.Layout.Single();
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
 };
@@ -630,11 +631,11 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   if (group && group.width > 3 && group.height > 3) {
     var frustum = this.layout_.active.groupcast(group);
-    if (pick = this.scene_.pickFrustum(frustum)) {
+    if (pick = this.scene_.pickFrustum(frustum, this.mode)) {
       this.select(pick);
     }
   } else {
-    if (pick = this.scene_.pickRay(ray)) {
+    if (pick = this.scene_.pickRay(ray, this.mode)) {
       this.select(pick);
     }
   }
@@ -651,7 +652,8 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
 
   if (!(ray = this.layout_.mouseMove(e))) {
     if (group) {
-      pick = this.scene_.pickFrustum(this.layout_.active.groupcast(group));
+      pick = this.scene_.pickFrustum(
+          this.layout_.active.groupcast(group), this.mode);
     }
     if (!pick) {
       if (this.hover_) {
@@ -660,7 +662,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
       return;
     }
   } else {
-    pick = this.scene_.pickRay(ray);
+    pick = this.scene_.pickRay(ray, this.mode);
   }
   if (!pick && this.hover_) {
     this.hover_.setHover(false);

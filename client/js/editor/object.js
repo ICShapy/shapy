@@ -234,16 +234,30 @@ shapy.editor.Object.prototype.getRotation = function() {
 shapy.editor.Object.prototype.pickRay = function(ray) {
   var q = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
+  var obj = [];
 
   // Move the ray to model space.
   goog.vec.Mat4.multVec3(this.invModel_, ray.origin, q);
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
   var r = new goog.vec.Ray(q, v);
 
+  var faces = this.pickFaces_(r);
+  
+  // Include the object if the ray intersects it.
+  if (!goog.array.isEmpty(faces)) {
+    obj = [ 
+      { 
+        item: this, 
+        point: this.position_
+      } 
+    ];
+  }
+
   return [
+      obj,
       this.pickVertices_(r),
       this.pickEdges_(r),
-      this.pickFaces_(r)
+      faces
   ];
 };
 
