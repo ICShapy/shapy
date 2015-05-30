@@ -92,7 +92,7 @@ shapy.editor.Object = function(id, verts, edges, faces) {
   this.verts = {};
   this.nextVert_ = 0;
   goog.array.forEach(verts, function(v, i) {
-    this.nextVert_ = Math.max(this.nextVert_, i);
+    this.nextVert_ = Math.max(this.nextVert_, i + 1);
     this.verts[i] = new shapy.editor.Object.Vertex(this, i, v[0], v[1], v[2]);
   }, this);
 
@@ -104,7 +104,7 @@ shapy.editor.Object = function(id, verts, edges, faces) {
   this.edges = {};
   this.nextEdge_ = 0;
   goog.array.forEach(edges, function(e, i) {
-    this.nextEdge_ = Math.max(this.nextEdge_, i);
+    this.nextEdge_ = Math.max(this.nextEdge_, i + 1);
     this.edges[i] = new shapy.editor.Object.Edge(this, i, e[0], e[1]);
   }, this);
 
@@ -117,7 +117,7 @@ shapy.editor.Object = function(id, verts, edges, faces) {
    this.faces = {};
    this.nextFace_ = 0;
    goog.array.forEach(faces, function(f, i) {
-    this.nextFace_ = Math.max(this.nextFace_, i);
+    this.nextFace_ = Math.max(this.nextFace_, i + 1);
     this.faces[i] = new shapy.editor.Object.Face(this, i, f[0], f[1], f[2]);
    }, this);
 };
