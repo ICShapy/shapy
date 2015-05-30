@@ -242,14 +242,14 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
   var r = new goog.vec.Ray(q, v);
 
   var faces = this.pickFaces_(r);
-  
+
   // Include the object if the ray intersects it.
   if (!goog.array.isEmpty(faces)) {
-    obj = [ 
-      { 
-        item: this, 
+    obj = [
+      {
+        item: this,
         point: this.position_
-      } 
+      }
     ];
   }
 
