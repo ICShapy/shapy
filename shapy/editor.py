@@ -22,17 +22,20 @@ class Scene(object):
   @coroutine
   def get(cls, redis, scene_id):
     """Returns an object by reading data from postgres and redis."""
-    data = yield Task(redis.get, 'scene_%s' % scene_id)
-    raise Return(Scene(scene_id, json.loads(data) if data else {}))
+    data = yield Task(redis.hmget, 'scene:%s' % scene_id, [
+        'name',
+        'users'
+    ])
+    raise Return(Scene(scene_id, data if data else {}))
 
 
   @classmethod
   @coroutine
   def put(cls, redis, scene):
-    yield Task(redis.set, scene.key, json.dumps({
+    yield Task(redis.hmset, 'scene:%s' % scene.id, {
         'name': scene.name,
-        'users': scene.users
-    }))
+        'users': json.dumps(scene.users)
+    })
     raise Return(None)
 
 
@@ -40,12 +43,13 @@ class Scene(object):
     """Creates a new scene object."""
 
     def arg(key, default):
-      return data[key] if key in data else default
+      val = data[key] if key in data else default
+      return val or default
 
-    self.key = 'scene_%s' % scene_id
+    self.id = scene_id
     self.scene_id = scene_id
     self.name = arg('name', 'Untitled Scene')
-    self.users = arg('users', [])
+    self.users = json.loads(arg('users', '[]'))
 
   def add_user(self, user):
     """Adds a user to the scene."""
@@ -99,10 +103,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'name': scene.name,
         'users': scene.users
     }))
-    self.redis.publish(self.chan_id, json.dumps({
-        'type': 'join',
-        'user': self.user.id
-    }))
+    yield self.to_channel({
+      'type': 'join',
+      'user': self.user.id
+    })
 
   @coroutine
   def on_message(self, message):
@@ -112,12 +116,13 @@ class WSHandler(WebSocketHandler, BaseHandler):
       return
     data = json.loads(message)
 
+    # Update database with changes.
     if data['type'] == 'name':
       def update_name(scene):
         scene.name = data['value']
       yield self.update_scene_(update_name)
 
-    self.redis.publish(self.chan_id, message)
+    yield self.to_channel(data)
 
 
   @coroutine
@@ -142,10 +147,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Scene.put(self.redis, scene)
 
     # Leave the scene (of the crime).
-    self.redis.publish(self.chan_id, json.dumps({
+    yield self.to_channel({
         'type': 'leave',
         'user': self.user.id
-    }))
+    })
 
     # Terminate the redis connection.
     self.chan.unsubscribe(self.chan_id)
@@ -161,6 +166,16 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Scene.put(self.redis, scene)
     yield Task(self.lock.release)
     raise Return(scene)
+
+  @coroutine
+  def to_channel(self, data):
+    """Puts a message into the channel, tagging it with a seqnum."""
+
+    seq = yield Task(self.redis.hincrby, 'scene:%s' % self.scene_id, 'seq', 1)
+    data['seq'] = seq
+
+    self.redis.publish(self.chan_id, json.dumps(data))
+
 
 
 class SceneHandler(APIHandler):

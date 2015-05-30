@@ -248,19 +248,10 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
  * @param {string} type Type of the object.
  */
 shapy.editor.Editor.prototype.create = function(type) {
-  var id, object;
-
-  switch (type) {
-    case 'cube': {
-      this.select(this.scene_.createCube(0.5, 0.5, 0.5));
-      break;
-    }
-    case 'sphere': {
-      this.select(this.scene_.createSphere(0.5, 16, 16));
-      break;
-    }
-    default: throw new Error('Invalid object type "' + type + "'");
-  }
+  this.sendCommand({
+    type: 'create',
+    object: type
+  });
 };
 
 
