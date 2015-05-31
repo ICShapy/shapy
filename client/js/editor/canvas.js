@@ -11,12 +11,11 @@ goog.provide('shapy.editor.canvas');
  * It is responsible for setting up the WebGL context and delegating all events
  * to the controller.
  *
- * @param {!shapy.SceneService}  shScene  The Scene service.
  * @param {!shapy.editor.Editor} shEditor The editor service.
  *
  * @return {!angular.directive}
  */
-shapy.editor.canvas = function(shScene, shEditor) {
+shapy.editor.canvas = function(shEditor) {
   return {
     restrict: 'A',
     link: function($scope, $elem, $attrs, canvasCtrl) {

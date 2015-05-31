@@ -8,7 +8,7 @@ goog.require('shapy.RegisterController');
 goog.require('shapy.SceneService');
 goog.require('shapy.UserService');
 goog.require('shapy.browser.BrowserController');
-goog.require('shapy.browser.BrowserService');
+goog.require('shapy.browser.Service');
 goog.require('shapy.browser.BrowserToolbarController');
 goog.require('shapy.browser.file');
 goog.require('shapy.browser.fileMatch');
@@ -94,15 +94,12 @@ shapy.configStates_ = function(
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {
-        scene: function(user, shScene, $stateParams) {
-          // Generate a user-specific unique ID.
-          var time = (new Date()).getTime();
-          var name = user ? user.id : 0;
-
-          // Retrieve the scene.
-          //return shScene.get($stateParams['sceneID'] || (name + '@' + time));
-          // Hardcoded for testing:
-          return shScene.get('1');
+        scene: function(user, shBrowser, $stateParams) {
+          if (goog.object.containsKey($stateParams, 'sceneID')) {
+            return shBrowser.getScene($stateParams['sceneID']);
+          } else {
+            return shBrowser.createScene();
+          }
         }
       },
       views: {
@@ -203,8 +200,7 @@ shapy.module = angular
   ])
 
   .service('shAuth', shapy.AuthService)
-  .service('shBrowser', shapy.browser.BrowserService)
-  .service('shScene', shapy.SceneService)
+  .service('shBrowser', shapy.browser.Service)
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
   .service('shEditor', shapy.editor.Editor)

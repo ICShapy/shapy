@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.browser.BrowserService');
+goog.provide('shapy.browser.Service');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Asset.Dir');
@@ -21,7 +21,7 @@ goog.require('shapy.browser.Asset.Texture');
  * @param {!angular.$http} $http The angular http service.
  * @param {!angular.$q}    $q    The angular promise service.
  */
-shapy.browser.BrowserService = function($http, $q) {
+shapy.browser.Service = function($http, $q) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!angular.$q} @const */
@@ -49,6 +49,12 @@ shapy.browser.BrowserService = function($http, $q) {
    * @export
    */
   this.path = [];
+
+  /**
+   * Cached scenes.
+   * @private {!Object<string, shapy.Scene>} @const
+   */
+  this.scenes_ = {};
 };
 
 
@@ -60,7 +66,7 @@ shapy.browser.BrowserService = function($http, $q) {
  *
  * @return {!angular.$q}
  */
-shapy.browser.BrowserService.prototype.rename = function(asset, name) {
+shapy.browser.Service.prototype.rename = function(asset, name) {
   return this.http_.post('/api/assets/rename', {
       id: asset.id,
       name: name
@@ -78,7 +84,7 @@ shapy.browser.BrowserService.prototype.rename = function(asset, name) {
  *
  * @return {!shapy.browser.Asset.Dir}
  */
-shapy.browser.BrowserService.prototype.createDir = function(
+shapy.browser.Service.prototype.createDir = function(
     public,
     parent)
 {
@@ -108,7 +114,7 @@ shapy.browser.BrowserService.prototype.createDir = function(
  *
  * @return {!angular.$q}
  */
-shapy.browser.BrowserService.prototype.queryDir = function(dir) {
+shapy.browser.Service.prototype.queryDir = function(dir) {
   return this.http_.get('/api/assets/dir', {params: { id: dir.id }})
     .then(goog.bind(function(response) {
       console.log(response);
@@ -136,4 +142,46 @@ shapy.browser.BrowserService.prototype.queryDir = function(dir) {
         return null;
       }, this), goog.isDefAndNotNull);
     }, this));
+};
+
+
+
+/**
+ * Fetches a scene from the server or from local storage.
+ *
+ * @param {string} sceneID ID of the scene.
+ *
+ * @return {!angular.$q} Promise to return the scene.
+ */
+shapy.browser.Service.prototype.getScene = function(sceneID) {
+  var defer = this.q_.defer();
+
+  if (!sceneID) {
+    defer.reject({ error: 'Invalid scene ID'});
+    return defer.promise;
+  }
+
+  if (goog.object.containsKey(this.scenes_, sceneID)) {
+    defer.resolve(this.scenes_[sceneID]);
+    return defer.promise;
+  }
+
+  this.http_.get('/api/scene/' + sceneID).success(goog.bind(function(data) {
+    this.scenes_[sceneID] = new shapy.Scene(sceneID, data);
+    defer.resolve(this.scenes_[sceneID]);
+  }, this));
+
+  return defer.promise;
+};
+
+
+/**
+ * Creates a new scene.
+ *
+ * @return {!angular.$q} Promise to return a new scene.
+ */
+shapy.browser.Service.prototype.createScene = function() {
+  var defer = this.q_.defer();
+  defer.reject();
+  return defer.promise;
 };
