@@ -196,6 +196,25 @@ shapy.editor.EditableGroup.prototype.getScale = function() {
 }
 
 
+/**
+ * Retrieves the group average rotation.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.EditableGroup.prototype.getRotation = function() {
+  var rotation = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
+  if (goog.array.isEmpty(this.editables_)) {
+    return rotation;
+  }
+
+  goog.object.forEach(this.editables_, function(editable) {
+    goog.vec.Vec3.add(rotation, editable.getRotation(), rotation);
+  }, this);
+  goog.vec.Vec3.scale(rotation, 1 / this.editables_.length, rotation);
+  return rotation;
+}
+
+
 
 /**
  * Collection of object parts.
@@ -235,7 +254,7 @@ shapy.editor.PartsGroup.prototype.translate = function(x, y, z) {
 /**
  * Delete the parts from the mesh
  */
-shapy.editor.EditableGroup.prototype.delete = function() {
+shapy.editor.PartsGroup.prototype.delete = function() {
   goog.object.forEach(this.editables_, function(editable) {
     editable.delete();
   }, this);
@@ -327,6 +346,26 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
     goog.vec.Vec3.subtract(delta, scale, delta);
     goog.vec.Vec3.add(delta, object.getScale(), delta);
     object.scale(delta[0], delta[1], delta[2]);
+  });
+};
+
+
+/**
+ * Rotate the group
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z) {
+  var rotation = this.getRotation();
+
+  // Apply translation to each object
+  goog.object.forEach(this.editables_, function(object) {
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, rotation, delta);
+    goog.vec.Vec3.add(delta, object.getRotation(), delta);
+    object.rotate(delta[0], delta[1], delta[2]);
   });
 };
 
