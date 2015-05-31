@@ -99,7 +99,7 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
 
 
 /**
- * Collection of editable objects
+ * Collection of editable parts of an object.
  *
  * @param {=Array<shapy.editor.Editable>} opt_editables
  *
@@ -107,7 +107,7 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
  * @extends {shapy.editor.Editable}
  */
 shapy.editor.EditableGroup = function(opt_editables) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.GROUP);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.EDITABLE_GROUP);
 
   /** @private {!Array<shapy.editor.Editable>} List of editables to control */
   this.editables_ = opt_editables || [];
@@ -132,6 +132,7 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
   return this.editables_.length != 0;
 };
 
+
 /**
  * Hovers the editable.
  *
@@ -142,7 +143,6 @@ shapy.editor.EditableGroup.prototype.setHover = function(hover) {
     editable.setHover(hover);
   }, this);
 };
-
 
 
 /**
@@ -252,11 +252,114 @@ shapy.editor.EditableGroup.prototype.getObject = function() {
 
 
 /**
+ * Collection of object.
+ *
+ * @param {!Array<shapy.editor.Editable>} objects
+ *
+ * @constructor
+ * @extends {shapy.editor.Editable}
+ */
+shapy.editor.ObjectGroup = function(objects) {
+  shapy.editor.Editable.call(this, shapy.editor.Editable.OBJECT_GROUP);
+
+  /**
+   * @private
+   * {!Array<shapy.editor.Editable>} objects_ List of group members.
+   */
+  this.objects_ = objects || [];
+};
+goog.inherits(shapy.editor.ObjectGroup, shapy.editor.Editable);
+
+
+/**
+ * Add an object to the group.
+ *
+ * @param {shapy.editor.Editable} editable Editable object to add.
+ *
+ * @return {boolean} True if group is not empty.
+ */
+shapy.editor.ObjectGroup.prototype.add = function(object) {
+  if (goog.array.contains(this.objects_, object)) {
+    object.setSelected(false);
+    goog.array.remove(this.objects_, object);
+  } else {
+    this.objects_.push(object);
+  }
+  return !goog.array.isEmpty(this.objects_);
+};
+
+
+/**
+ * Hovers the object group.
+ *
+ * @param {boolean} hover
+ */
+shapy.editor.ObjectGroup.prototype.setHover = function(hover) {
+  goog.object.forEach(this.objects_, function(object) {
+    object.setHover(hover);
+  }, this);
+};
+
+
+/**
+ * Selects the objects.
+ *
+ * @param {boolean} selected
+ */
+shapy.editor.ObjectGroup.prototype.setSelected = function(selected) {
+  goog.object.forEach(this.objects_, function(object) {
+    object.setSelected(selected);
+  }, this);
+};
+
+
+/**
+ * Retrieves the group average position
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.EditableGroup.prototype.getPosition = function() {
+  var position = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
+  if (goog.array.isEmpty(this.objects_)) {
+    return position;
+  }
+
+  goog.object.forEach(this.objects_, function(object) {
+    goog.vec.Vec3.add(position, object.getPosition(), position);
+  }, this);
+  goog.vec.Vec3.scale(position, 1 / this.objects_.length, position);
+  return position;
+};
+
+
+/**
+ * Translate the group
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
+
+};
+
+
+/**
+ * Delete the objects.
+ */
+shapy.editor.EditableGroup.prototype.delete = function() {
+  
+};
+
+
+
+/**
  * List of editable types.
  * @enum {string}
  */
 shapy.editor.Editable.Type = {
-  GROUP: 'group',
+  OBJECT_GROUP: 'objectGroup',
+  EDITABLE_GROUP: 'editableGroup',
   OBJECT: 'object',
   VERTEX: 'vertex',
   EDGE: 'edge',
