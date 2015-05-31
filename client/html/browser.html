@@ -72,7 +72,7 @@
         <sh-editable
             ng-init="name=asset.name"
             class="name"
-            ng-blur="asset.rename(name);"
+            ng-blur="browserCtrl.rename(asset, name);"
             ng-model="name">
         </sh-editable>
       </sh-file>

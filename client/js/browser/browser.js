@@ -196,6 +196,17 @@ shapy.browser.BrowserController.prototype.subdirs = function(dir) {
 
 };
 
+/**
+ * Renames the asset with provided name.
+ *
+ * @param {!shapy.browser.Asset} asset Asset to rename.
+ * @param {string} name Name to which we change current name.
+ * @return {!angular.$q}
+ */
+shapy.browser.BrowserController.prototype.rename = function (asset, name) {
+  return this.shBrowser_.rename(asset, name);
+};
+
 
 
 /**
