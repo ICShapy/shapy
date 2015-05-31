@@ -77,6 +77,11 @@ shapy.configStates_ = function(
     })
     .state('main.browser', {
       url: 'browser',
+      resolve: {
+        home: function(shBrowser) {
+          return shBrowser.getDir(0);
+        }
+      },
       views: {
         'body@': {
           templateUrl: '/html/browser.html',
@@ -195,9 +200,12 @@ shapy.configHttp_ = function($httpProvider) {
 shapy.configError_ = function($rootScope, $state, shNotify) {
   $rootScope.$on('$stateChangeError', function(evt, ts, tp, fs, fp, error) {
     shNotify.error({
-      text: error['error'] || 'Unknown error',
+      text: error.error || error.message,
       dismiss: 3000
     });
+    if (error.stack) {
+      console.error(error.stack);
+    }
     $state.go(fs.name ? fs.name : 'main');
   });
 };

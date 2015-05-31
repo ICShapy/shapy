@@ -1,5 +1,6 @@
 <div>
   <sh-sidebar>
+    <!-- Top bar -->
     <div class="create" ng-init="show=false">
       <button
           class="left"
@@ -26,6 +27,8 @@
         </li>
       </ul>
     </div>
+
+    <!-- Directory tree. -->
     <script type="text/ng-template" id="directory.html">
       <div ng-repeat="dir in directories track by dir.id" class="directory">
         <span
@@ -38,16 +41,16 @@
               src="/img/arrow-down.svg" />
           <img
               class="right"
-              ng-click="open=!open; browserCtrl.subdirs(dir)"
+              ng-click="open=!open; browserCtrl.select(dir)"
               ng-show="!open&&dir.hasSubdirs()"
               src="/img/arrow-right.svg" />
-          <span ng-click="browserCtrl.enterFromTree(dir)"> {{ dir.name }} </span>
+          <span ng-click="browserCtrl.select(dir)"> {{ dir.name }} </span>
         </span>
         <div ng-show="open">
           <sh-sidebar-folders>
             <ng-include
                 src="'directory.html'"
-                ng-init="directories=dir.subdirs"/>
+                ng-init="directories=dir.children"/>
           </sh-sidebar-folders>
         </div>
       </div>
@@ -56,23 +59,24 @@
     <sh-sidebar-folders>
       <ng-include
           src="'directory.html'"
-          ng-init="directories=[browserCtrl.home]"/>
+          ng-init="directories=browserCtrl.home.children"/>
     </sh-sidebar-folders>
   </sh-sidebar>
+
+  <!-- Main navigator view. -->
   <sh-files>
     <div ng-repeat="
-          asset in browserCtrl.assets
-        | shFileMatch:browserCtrl.query()
-        | orderBy:'+name'
-        track by asset.id ">
+        asset in browserCtrl.current().children |
+        shFileMatch:browserCtrl.query() |
+        orderBy:'+name'">
       <sh-file>
-        <div ng-click="browserCtrl.assetEnter(asset)">
+        <div ng-click="browserCtrl.select(asset)">
           <img ng-src="{{asset.image}}">
         </div>
         <sh-editable
             ng-init="name=asset.name"
             class="name"
-            ng-blur="browserCtrl.rename(asset, name);"
+            ng-blur="asset.save()"
             ng-model="name">
         </sh-editable>
       </sh-file>

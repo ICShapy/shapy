@@ -14,30 +14,22 @@ goog.provide('shapy.browser.Asset.Texture');
  *
  * @constructor
  *
- * @param {number} id    Id of the asset.
- * @param {string} name  Name of the asset.
- * @param {string} type  Type of the asset.
- * @param {string} image Path to image to be displayed for asset in browser.
- * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
+ * @param {!shapy.browser.Service}    shBrowser Browser service.
+ * @param {number}                    id        ID of the asset.
+ * @param {!shapy.browser.Asset.Type} type      Type of the asset.
+ * @param {=Object}                   opt_data  Source data.
  */
-shapy.browser.Asset = function(id, name, type, image, parent) {
-  /**
-   * True if the asset's data was loaded.
-   * @public {boolean} @const
-   */
-  this.loaded = false;
+shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
+  var data = opt_data || {};
+
+  /** @private {!shapy.browser.Service} @const */
+  this.shBrowser_ = shBrowser;
 
   /**
-   * Id of the asset.
+   * ID of the asset.
    * @public {number} @const
    */
   this.id = id;
-
-  /**
-   * Name of the asset.
-   * @public {string} @const
-   */
-  this.name = name;
 
   /**
    * Type of the asset.
@@ -46,17 +38,35 @@ shapy.browser.Asset = function(id, name, type, image, parent) {
   this.type = type;
 
   /**
+   * Promise resolved when the asset is loaded.
+   * @public {!angular.$q}
+   */
+  this.ready = null;
+
+  /**
+   * Name of the asset.
+   * @public {string} @const
+   */
+  this.name = data['name'] || '';
+
+  /**
    * Path to image to be displayed for asset in browser.
    * @public {string} @const
    */
-  this.image = image;
+  this.image = data['image'] || '';
 
   /**
    * Parent directory of this directory.
    * @public {shapy.browser.Asset.Dir} @const
    */
-  this.parent = parent;
+  this.parent = null;
 };
+
+
+/**
+ * Saves an asset on the server.
+ */
+shapy.browser.Asset.prototype.saves = goog.abstractMethod;
 
 
 /**
@@ -64,7 +74,7 @@ shapy.browser.Asset = function(id, name, type, image, parent) {
  * @enum {string}
  */
 shapy.browser.Asset.Type = {
-  DIR: 'dir',
+  DIRECTORY: 'dir',
   SCENE: 'scene',
   TEXTURE: 'texture'
 };
@@ -77,46 +87,26 @@ shapy.browser.Asset.Type = {
  * @constructor
  * @extends {shapy.browser.Asset}
  *
- * @param {number} id    Id of the asset.
- * @param {string} name  Name of the asset.
- * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
+ * @param {!shapy.browser.Service} shBrowser Browser service.
+ * @param {number}                 id        ID of the directory.
+ * @param {=Object}                opt_data  Source data.
  */
-shapy.browser.Asset.Dir = function(id, name, parent) {
+shapy.browser.Asset.Dir = function(shBrowser, id, opt_data) {
   shapy.browser.Asset.call(
       this,
+      shBrowser,
       id,
-      name,
-      shapy.browser.Asset.Type.DIR,
-      '/img/folder.png',
-      parent);
-
-  // TODO: merge these to array, on the frontend try using a filter that
-  // only loops through subdirectories, textures or images.
+      shapy.browser.Asset.Type.DIRECTORY,
+      opt_data);
 
   /**
-   * Subdirectories of this directory.
-   * @public {Array.<shapy.browser.Asset.Dir>}
+   * Child assets of this directory.
+   * @public {!Array<!shapy.browser.Asset>}
    */
-  this.subdirs = [];
+  this.children = [];
 
-  /**
-   * Not-dir assets of this directory.
-   * @public {Array.<shapy.browser.Asset>}
-   */
-  this.otherAssets = [];
-
-  /**
-   * Flag showing whether the asset data was loaded.
-   * @public {boolean}
-   */
-  this.loaded = false;
-
-  // TODO: have the browser service manage this field.
-
-  // Update parent's subdir.
-  if (parent !== null) {
-    parent.subdirs.push(this);
-  }
+  // Hardcoded image for directories.
+  this.image = '/img/folder.png';
 };
 goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
 
@@ -127,32 +117,41 @@ goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
  * @return {boolean} True if folder has subdirectories.
  */
 shapy.browser.Asset.Dir.prototype.hasSubdirs = function() {
-  return !this.loaded || !goog.array.isEmpty(this.subdirs);
+  return !this.loaded || goog.array.some(this.children, function(child) {
+    return child.type == shapy.browser.Asset.Type.DIRECTORY;
+  }, this);
 };
-
 
 
 /**
- * Creates an asset representing a texture.
+ * Loads the directory data.
  *
- * @constructor
- * @extends {shapy.browser.Texture}
- *
- * @param {number} id    Id of the asset.
- * @param {string} name  Name of the asset.
- * @param {string} image Path to image to be displayed for asset in browser.
- * @param {Array.<!shapy.browser.Asset.Dir>} parent Parent dir of this dir.
+ * @param {!Object} data Data from the server.
  */
-shapy.browser.Asset.Texture = function(id, name, image, parent) {
-  shapy.browser.Asset.call(
-      this,
-      id,
-      name,
-      shapy.browser.Asset.Type.TEXTURE,
-      image);
+shapy.browser.Asset.Dir.prototype.load = function(data) {
+  // Fill in the name if uknown.
+  this.name = data.name || 'Untitled Directory';
 
-  // Update parent's non-dir assets
-  parent.otherAssets.push(this);
+  // Fill in child directories.
+  this.children = goog.array.map(data['data'], function(c) {
+    var asset;
+
+    switch (c['type']) {
+      case shapy.browser.Asset.Type.DIRECTORY: {
+        asset = new shapy.browser.Asset.Dir(this.shBrowser_, c.id, c);
+        this.shBrowser_.dirs_[c.id] = asset;
+        return asset;
+      }
+      case shapy.browser.Asset.Type.SCENE: {
+        asset = new shapy.browser.Asset.Scene(this.shBrowser_, c.id, c);
+        this.shBrowser_.scenes_[c.id] = asset;
+        return asset;
+      }
+      case shapy.browser.Asset.Type.TEXTURE: {
+        asset = new shapy.browser.Asset.Texture(this.shBrowser_, c.id, c);
+        this.shBrowser_.textures_[c.id] = asset;
+        return asset;
+      }
+    }
+  }, this);
 };
-goog.inherits(shapy.browser.Asset.Texture, shapy.browser.Asset);
-

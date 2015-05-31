@@ -23,12 +23,21 @@ goog.require('shapy.browser.Asset.Texture');
  * @param {!angular.$scope}               $scope The browser scope.
  * @param {!angular.$http}                $http The angular $http service.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
+ * @param {!shapy.browser.Asset.Dir}      home The home directory.
  */
-shapy.browser.BrowserController = function($scope, $http, shBrowser) {
+shapy.browser.BrowserController = function($scope, $http, shBrowser, home) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!shapy.browser.BrowserService} @const */
   this.shBrowser_ = shBrowser;
+
+  /**
+   * Private home dir.
+   *
+   * @public {!shapy.browser.Asset.Dir}
+   * @const
+   */
+  this.home = this.shBrowser_.home = this.shBrowser_.current = home;
 
   /**
    * Type of current directory.
@@ -45,72 +54,37 @@ shapy.browser.BrowserController = function($scope, $http, shBrowser) {
    * @const
    */
   this.homePublic = this.shBrowser_.homePublic;
-
-  /**
-   * Private home dir.
-   *
-   * @public {!shapy.browser.Asset.Dir}
-   * @const
-   */
-  this.home = this.shBrowser_.home;
-
-  /**
-   * Assets in current directory.
-   * TODO: get rid of this, redundant, use currentDir instead everywhere.
-   * @type Array
-   * @public
-   * @export
-   */
-  this.assets = [];
-
-  // Enter home folder.
-  this.shBrowser_.path = [];
-  this.assetEnter(this.home);
-
-  $scope.$watch(goog.bind(function() {
-    return this.shBrowser_.currentDir;
-  }, this), goog.bind(function() {
-      this.displayDir(this.shBrowser_.currentDir);
-  }, this));
 };
+
+
+/**
+ * Returns the current directory.
+ *
+ * @return {!shapy.browser.Asset.Dir}
+ */
+shapy.browser.BrowserController.prototype.current = function() {
+  return this.shBrowser_.current;
+};
+
 
 /**
  * Performs action associated with clicking on given asset.
  *
  * @param {!shapy.browser.Asset} asset Asset that is to be entered.
  */
-shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
+shapy.browser.BrowserController.prototype.select = function(asset) {
   switch (asset.type) {
-    case 'dir' :
-      this.public = false;
-      this.shBrowser_.currentDir = asset;
+    case shapy.browser.Asset.Type.DIRECTORY: {
+      this.shBrowser_.getDir(asset.id).then(goog.bind(function(asset) {
+        this.shBrowser_.current = asset;
+      }, this));
       break;
+    }
     default :
       console.log('assetEnter - unimplemented case!');
   }
 };
 
-/**
- * Displays content of given dir.
- *
- * @param {!shapy.browser.Asset.Dir} dir Dir to display.
- */
-shapy.browser.BrowserController.prototype.displayDir = function(dir) {
-  // Update path with dir.
-  // Do not update if we entered public space.
-  if (!this.public) {
-    this.shBrowser_.path.push(dir);
-  }
-
-  if (dir.loaded) {
-    this.assets = dir.subdirs.concat(dir.otherAssets);
-  } else {
-    // Query database for the contents and update assets.
-    this.shBrowser_.queryDir(dir, this.public).then(goog.bind(function(assets) {
-      this.assets = assets;
-    }, this));
-  }
-};
 
 /**
  * Creates new subdir in current dir.
@@ -166,17 +140,6 @@ shapy.browser.BrowserController.prototype.subdirs = function(dir) {
     this.shBrowser_.queryDir(dir, this.public);
   }
 
-};
-
-/**
- * Renames the asset with provided name.
- *
- * @param {!shapy.browser.Asset} asset Asset to rename.
- * @param {string} name Name to which we change current name.
- * @return {!angular.$q}
- */
-shapy.browser.BrowserController.prototype.rename = function (asset, name) {
-  return this.shBrowser_.rename(asset, name);
 };
 
 /**
