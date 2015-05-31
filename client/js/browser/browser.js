@@ -20,23 +20,15 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @constructor
  *
- * @param {!angular.$scope}               $rootScope Root scope.s
+ * @param {!angular.$scope}               $scope The browser scope.
  * @param {!angular.$http}                $http The angular $http service.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
-shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
+shapy.browser.BrowserController = function($scope, $http, shBrowser) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!shapy.browser.BrowserService} @const */
   this.shBrowser_ = shBrowser;
-
-  /**
-   * Current directory.
-   * @type {shapy.browser.Asset.Dir}
-   * @public
-   * @export
-   */
-  this.currentDir = null;
 
   /**
    * Type of current directory.
@@ -75,25 +67,10 @@ shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
   this.shBrowser_.path = [];
   this.assetEnter(this.home);
 
-  /**
-   * Query from user filtering results.
-   * @public {string}
-   * @export
-   */
-  this.query = 'file';
-
-  // TODO: use service, get rid of message passing.
-  $rootScope.$on('browser', goog.bind(function(name, data) {
-    switch (data['type']) {
-      case 'query': {
-        this.query = data['query'];
-        break;
-      }
-      case 'pathAsset': {
-        this.assetEnter(data['asset']);
-        break;
-      }
-    }
+  $scope.$watch(goog.bind(function() {
+    return this.shBrowser_.currentDir;
+  }, this), goog.bind(function() {
+      this.displayDir(this.shBrowser_.currentDir);
   }, this));
 };
 
@@ -106,8 +83,7 @@ shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
   switch (asset.type) {
     case 'dir' :
       this.public = false;
-      this.currentDir = asset;
-      this.displayDir(asset);
+      this.shBrowser_.currentDir = asset;
       break;
     default :
       console.log('assetEnter - unimplemented case!');
@@ -142,7 +118,7 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
  * @return {!angular.$q}
  */
 shapy.browser.BrowserController.prototype.createDir = function() {
-  return this.shBrowser_.createDir(this.public, this.currentDir)
+  return this.shBrowser_.createDir(this.public, this.shBrowser_.currentDir)
       .then(goog.bind(function(dir) {
         this.assets.push(dir);
       }, this));
@@ -154,8 +130,7 @@ shapy.browser.BrowserController.prototype.createDir = function() {
  */
 shapy.browser.BrowserController.prototype.publicEnter = function() {
   this.public = true;
-  this.currentDir = this.homePublic;
-  this.displayDir(this.homePublic);
+  this.shBrowser_.currentDir = this.homePublic;
 };
 
 /**
@@ -187,8 +162,8 @@ shapy.browser.BrowserController.prototype.enterFromTree = function(dir) {
  */
 shapy.browser.BrowserController.prototype.subdirs = function(dir) {
   if (!dir.loaded) {
-    // Query database for the contents - causes automatic update
-    var promise = this.shBrowser_.queryDir(dir, this.public);
+    // Query database for the contents - causes automatic update.
+    this.shBrowser_.queryDir(dir, this.public);
   }
 
 };
@@ -204,6 +179,15 @@ shapy.browser.BrowserController.prototype.rename = function (asset, name) {
   return this.shBrowser_.rename(asset, name);
 };
 
+/**
+ * Returns query for filtering assets.
+ *
+ * @return {string}
+ */
+shapy.browser.BrowserController.prototype.query = function() {
+  return this.shBrowser_.query;
+};
+
 
 
 /**
@@ -211,17 +195,13 @@ shapy.browser.BrowserController.prototype.rename = function (asset, name) {
  *
  * @constructor
  *
- * @param {!angular.$scope} $rootScope The root scope.
  * @param {!angular.$scope} $scope The toolbar's scope.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
 shapy.browser.BrowserToolbarController = function(
-    $rootScope,
     $scope,
     shBrowser)
 {
-  /** @private {!agular.$scope} @const */
-  this.rootScope_ = $rootScope;
   /** @private {!shapy.browser.BrowserService} @const */
   this.shBrowser_ = shBrowser;
   /** @public {string} @const @export */
@@ -229,10 +209,7 @@ shapy.browser.BrowserToolbarController = function(
 
   // If query changed, message BrowserController that new filtering is needed.
   $scope.$watch('browserCtrl.query', goog.bind(function() {
-    $rootScope.$emit('browser', {
-      type: 'query',
-      query: this.query
-    });
+    this.shBrowser_.query = this.query;
   }, this));
 };
 
@@ -261,10 +238,7 @@ shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
 
   // Message BrowserController that user requested returning to
   // given asset from path.
-  this.rootScope_.$emit('browser', {
-      type: 'pathAsset',
-      asset: asset
-  });
+  this.shBrowser_.currentDir = asset;
 };
 
 

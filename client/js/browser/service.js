@@ -44,6 +44,14 @@ shapy.browser.Service = function($http, $q) {
   this.homePublic = new shapy.browser.Asset.Dir(-1, 'homePublic', null);
 
   /**
+   * Current directory.
+   * @type {shapy.browser.Asset.Dir}
+   * @public
+   * @export
+   */
+  this.currentDir = null;
+
+  /**
    * Path to current folder
    * @public {Array.<shapy.browser.Asset.Dir>}
    * @export
@@ -51,6 +59,13 @@ shapy.browser.Service = function($http, $q) {
   this.path = [];
 
   /**
+   * Query from user filtering assets.
+   * @public {string}
+   * @export
+   */
+  this.query = '';
+
+  /*
    * Cached scenes.
    * @private {!Object<string, shapy.Scene>} @const
    */
