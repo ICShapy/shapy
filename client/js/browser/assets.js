@@ -105,6 +105,12 @@ shapy.browser.Asset.Dir = function(shBrowser, id, opt_data) {
    */
   this.children = [];
 
+  // If data provides child list, resolve promise.
+  if (opt_data && opt_data.data) {
+    this.load(opt_data);
+    this.ready = this.shBrowser_.q_.when(this);
+  }
+
   // Hardcoded image for directories.
   this.image = '/img/folder.png';
 };
@@ -117,7 +123,7 @@ goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
  * @return {boolean} True if folder has subdirectories.
  */
 shapy.browser.Asset.Dir.prototype.hasSubdirs = function() {
-  return !this.loaded || goog.array.some(this.children, function(child) {
+  return !this.ready || goog.array.some(this.children, function(child) {
     return child.type == shapy.browser.Asset.Type.DIRECTORY;
   }, this);
 };

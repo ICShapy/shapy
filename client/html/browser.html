@@ -30,7 +30,7 @@
 
     <!-- Directory tree. -->
     <script type="text/ng-template" id="directory.html">
-      <div ng-repeat="dir in directories track by dir.id" class="directory">
+      <div ng-repeat="dir in directories | shDirectories" class="directory">
         <span
             ng-init="open=false"
             class="name" >

@@ -66,7 +66,8 @@ class APIHandler(BaseHandler):
     """Read request json into arguments dict."""
 
     if self.request.body:
-      self.request.aruguments.update(json.loads(self.request.body))
+      for key, value in json.loads(self.request.body).items():
+        self.request.arguments[key] = str(value)
 
   def set_default_headers(self):
     """Set the JSON headers."""

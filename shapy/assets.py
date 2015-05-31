@@ -81,22 +81,21 @@ class DirHandler(APIHandler):
     """Creates a new directory."""
 
     # Validate arguments.
-    id = self.get_argument('id')
     parent = self.get_argument('parent')
     if not user:
       raise HTTPError(401, 'User not logged in.')
 
     # Create new account - store in database
     cursor = yield momoko.Op(self.db.execute,
-      '''INSERT INTO assets (name, type, owner, parent)
-         VALUES (%s, %s, %s, %s)
+      '''INSERT INTO assets (name, type, owner, parent, public)
+         VALUES (%s, %s, %s, %s, %s)
          RETURNING id, name
       ''', (
       'New Folder',
       'dir',
-      preview,
       user.id,
-      parent
+      parent,
+      False
     ))
 
     # Check if the directory was created successfully.
@@ -106,8 +105,9 @@ class DirHandler(APIHandler):
 
     # Return the asset data.
     self.write(json.dumps({
-        'id': asset[0],
-        'name': asset[1]
+        'id': data[0],
+        'name': data[1],
+        'data': []
     }))
     self.finish()
 

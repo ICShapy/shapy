@@ -84,13 +84,13 @@ shapy.browser.Service = function($http, $q) {
  * @return {!shapy.browser.Asset.Dir}
  */
 shapy.browser.Service.prototype.createDir = function() {
-  return this.http_.post('/api/assets/dir', { parent: this.currentDir.id })
+  var parent = this.current;
+  return this.http_.post('/api/assets/dir', { parent: parent.id })
       .then(goog.bind(function(response) {
-        return new shapy.browser.Asset.Dir(
-            response.data['id'],
-            response.data['name'],
-            this.currentDir.id
-        );
+        var dir = new shapy.browser.Asset.Dir(
+            this, response.data.id, response.data);
+        this.dirs_[dir.id] = dir;
+        parent.children.push(dir);
       }, this));
 };
 

@@ -3,6 +3,7 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.browser.BrowserController');
 goog.provide('shapy.browser.BrowserToolbarController');
+goog.provide('shapy.browser.directories');
 goog.provide('shapy.browser.file');
 goog.provide('shapy.browser.fileMatch');
 goog.provide('shapy.browser.files');
@@ -92,10 +93,7 @@ shapy.browser.BrowserController.prototype.select = function(asset) {
  * @return {!angular.$q}
  */
 shapy.browser.BrowserController.prototype.createDir = function() {
-  return this.shBrowser_.createDir(this.public, this.shBrowser_.currentDir)
-      .then(goog.bind(function(dir) {
-        this.assets.push(dir);
-      }, this));
+  return this.shBrowser_.createDir();
 };
 
 /**
@@ -273,3 +271,18 @@ shapy.browser.fileMatch = function() {
     });
   };
 };
+
+
+/**
+ * Filters out the directories.
+ *
+ * @return {Function}
+ */
+shapy.browser.directories = function() {
+  return function(files) {
+    return goog.array.filter(files, function(asset) {
+      return asset.type == shapy.browser.Asset.Type.DIRECTORY;
+    });
+  };
+};
+
