@@ -186,17 +186,6 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
 shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
   var mid = this.getPosition();
 
-  // Apply translation to each object
-  goog.object.forEach(this.editables_, function(e) {
-    if (e.type != shapy.editor.Editable.Type.OBJECT) {
-      return;
-    }
-    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-    goog.vec.Vec3.subtract(delta, mid, delta);
-    goog.vec.Vec3.add(delta, e.getPosition(), delta);
-    e.translate(delta[0], delta[1], delta[2]);
-  });
-
   // Apply translation to each vertex
   goog.object.forEach(this.getVertices(), function(vertex) {
     var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
@@ -340,7 +329,15 @@ shapy.editor.ObjectGroup.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
+  var mid = this.getPosition();
 
+  // Apply translation to each object
+  goog.object.forEach(this.objects_, function(object) {
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, mid, delta);
+    goog.vec.Vec3.add(delta, object.getPosition(), delta);
+    object.translate(delta[0], delta[1], delta[2]);
+  });
 };
 
 
