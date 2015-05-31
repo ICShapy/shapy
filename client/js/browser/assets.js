@@ -21,6 +21,11 @@ goog.provide('shapy.browser.Asset.Texture');
  * @param {Array.<shapy.browser.Asset.Dir>} parent Parent dir of this dir.
  */
 shapy.browser.Asset = function(id, name, type, image, parent) {
+  /**
+   * True if the asset's data was loaded.
+   * @public {boolean} @const
+   */
+  this.loaded = false;
 
   /**
    * Id of the asset.

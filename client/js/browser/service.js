@@ -134,7 +134,6 @@ shapy.browser.Service.prototype.createScene = function() {
 shapy.browser.Service.prototype.queryDir = function(dir) {
   return this.http_.get('/api/assets/dir', {params: { id: dir.id }})
     .then(goog.bind(function(response) {
-      console.log(response);
       dir.loaded = true;
       return goog.array.filter(goog.array.map(response['data'], function(item) {
         switch (item['type']) {

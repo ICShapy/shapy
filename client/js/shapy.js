@@ -5,7 +5,6 @@ goog.require('shapy.AuthService');
 goog.require('shapy.HeaderController');
 goog.require('shapy.LoginController');
 goog.require('shapy.RegisterController');
-goog.require('shapy.SceneService');
 goog.require('shapy.UserService');
 goog.require('shapy.browser.BrowserController');
 goog.require('shapy.browser.BrowserToolbarController');
