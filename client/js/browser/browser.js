@@ -106,12 +106,22 @@ shapy.browser.BrowserController.prototype.createDir = function() {
 
 
 /**
- * Creates new subdir in current dir.
+ * Creates new scene in current dir.
  *
  * @return {!angular.$q}
  */
 shapy.browser.BrowserController.prototype.createScene = function() {
   return this.shBrowser_.createScene();
+};
+
+
+/**
+ * Creates new texture in current dir.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.BrowserController.prototype.createTexture = function() {
+  return this.shBrowser_.createTexture();
 };
 
 
