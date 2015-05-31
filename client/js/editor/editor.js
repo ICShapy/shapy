@@ -15,8 +15,10 @@ goog.require('shapy.editor.Layout');
 goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
 goog.require('shapy.editor.Layout.Single');
+goog.require('shapy.editor.Mode');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Rig');
+goog.require('shapy.editor.Rig.Cut');
 goog.require('shapy.editor.Rig.Rotate');
 goog.require('shapy.editor.Rig.Scale');
 goog.require('shapy.editor.Rig.Translate');
@@ -60,6 +62,8 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.rigRotate_ = new shapy.editor.Rig.Rotate();
   /** @private {!shapy.editor.Rig} @const */
   this.rigScale_ = new shapy.editor.Rig.Scale();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigCut_ = new shapy.editor.Rig.Cut();
 
   /** @private {!angular.$location} @const */
   this.location_ = $location;
@@ -156,6 +160,12 @@ shapy.editor.Editor = function($location, $rootScope) {
    */
   this.vp_ = new goog.math.Size(0, 0);
 
+  /**
+   * Edit mode.
+   * @public {!shapy.editor.Mode} @const
+   */
+  this.mode = new shapy.editor.Mode();
+
   // Watch for changes in the name.
   $rootScope.$watch(goog.bind(function() {
     return this.scene_ && this.scene_.name;
@@ -207,8 +217,9 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Double();
-  this.scene_.createSphere(0.5, 16, 16);
+  //this.layout_ = new shapy.editor.Layout.Double();
+  //this.scene_.createSphere(0.5, 16, 16);
+  this.layout_ = new shapy.editor.Layout.Single();
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
 };
@@ -231,7 +242,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   switch (layout) {
     case 'single': this.layout_ = new shapy.editor.Layout.Single(); break;
     case 'double': this.layout_ = new shapy.editor.Layout.Double(); break;
-    case 'quad': this.layout_ = new shapy.editor.Layout.Quad(); break;
+    case 'quad':   this.layout_ = new shapy.editor.Layout.Quad();   break;
     default: throw Error('Invalid layout "' + layout + "'");
   }
 
@@ -334,6 +345,7 @@ shapy.editor.Editor.prototype.destroy = function() {
   this.rigTranslate_.destroy();
   this.rigRotate_.destroy();
   this.rigScale_.destroy();
+  this.rigCut_.destroy();
   this.rig_ = null;
 };
 
@@ -513,6 +525,21 @@ shapy.editor.Editor.prototype.rig = function(rig) {
     return;
   }
 
+  // Cut rig should not be attached to anything other than objects.
+  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT &&
+  //    object.type != shapy.editor.Editable.Type.OBJECT) {
+  //  return;
+  //}
+  // Cut rig should not be attached to anything other than objects.
+  //if (rig.type == shapy.editor.Rig.Type.CUT &&
+  //    this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
+  //  return;
+  //}
+
+  if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
+    this.rig_.reset();
+  }
+
   this.rig_ = rig;
   this.rig_.object = this.selected_;
   if (this.layout_) {
@@ -562,6 +589,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 84: this.rig(this.rigTranslate_); break; // t
     case 82: this.rig(this.rigRotate_); break;    // r
     case 83: this.rig(this.rigScale_); break;     // s
+    case 67: this.rig(this.rigCut_); break;       // c
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);
@@ -611,11 +639,11 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   if (group && group.width > 3 && group.height > 3) {
     var frustum = this.layout_.active.groupcast(group);
-    if (pick = this.scene_.pickFrustum(frustum)) {
+    if (pick = this.scene_.pickFrustum(frustum, this.mode)) {
       this.select(pick);
     }
   } else {
-    if (pick = this.scene_.pickRay(ray)) {
+    if (pick = this.scene_.pickRay(ray, this.mode)) {
       this.select(pick);
     }
   }
@@ -632,7 +660,8 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
 
   if (!(ray = this.layout_.mouseMove(e))) {
     if (group) {
-      pick = this.scene_.pickFrustum(this.layout_.active.groupcast(group));
+      pick = this.scene_.pickFrustum(
+          this.layout_.active.groupcast(group), this.mode);
     }
     if (!pick) {
       if (this.hover_) {
@@ -641,7 +670,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
       return;
     }
   } else {
-    pick = this.scene_.pickRay(ray);
+    pick = this.scene_.pickRay(ray, this.mode);
   }
   if (!pick && this.hover_) {
     this.hover_.setHover(false);

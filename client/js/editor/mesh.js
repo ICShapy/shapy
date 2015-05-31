@@ -119,7 +119,11 @@ shapy.editor.Mesh.prototype.build_ = function() {
     } else if (face.hover) {
       r = 0.9; g = 0.5; b = 0.0;
     } else {
-      r = 0.6; g = 0.6; b = 0.6;
+      if (this.object_.selected) {
+        r = 0.7; g = 0.7; b = 0.7;
+      } else {
+        r = 0.4; g = 0.4; b = 0.4;
+      }
     }
     add(f, v[0].position);
     add(f, v[1].position);

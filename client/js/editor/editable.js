@@ -2,6 +2,9 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.editor.Editable');
+goog.provide('shapy.editor.Mode');
+
+
 
 /**
  * Editable provides a way to manipulate properties of vertices, edges and
@@ -18,6 +21,12 @@ goog.provide('shapy.editor.Editable');
  * @param {string} type Type of the editable.
  */
 shapy.editor.Editable = function(type) {
+  /**
+   * @public {shapy.editor.Editable.Type}
+   * @const
+   */
+  this.type = type;
+
   /** @public {!boolean} */
   this.hover = false;
   /** @public {!boolean} */
@@ -95,6 +104,7 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
  * @param {=Array<shapy.editor.Editable>} opt_editables
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  */
 shapy.editor.EditableGroup = function(opt_editables) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.GROUP);
@@ -176,6 +186,17 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
 shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
   var mid = this.getPosition();
 
+  // Apply translation to each object
+  goog.object.forEach(this.editables_, function(e) {
+    if (e.type != shapy.editor.Editable.Type.OBJECT) {
+      return;
+    }
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, mid, delta);
+    goog.vec.Vec3.add(delta, e.getPosition(), delta);
+    e.translate(delta[0], delta[1], delta[2]);
+  });
+
   // Apply translation to each vertex
   goog.object.forEach(this.getVertices(), function(vertex) {
     var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
@@ -228,3 +249,73 @@ shapy.editor.EditableGroup.prototype.getObject = function() {
   return same ? object : null;
 };
 
+
+
+/**
+ * List of editable types.
+ * @enum {string}
+ */
+shapy.editor.Editable.Type = {
+  GROUP: 'group',
+  OBJECT: 'object',
+  VERTEX: 'vertex',
+  EDGE: 'edge',
+  FACE: 'face'
+};
+
+
+
+/**
+ * Selection mode.
+ *
+ * @constructor
+ */
+shapy.editor.Mode = function() {
+  this.object = true;
+  this.vertex = false;
+  this.edge = false;
+  this.face = false;
+};
+
+
+/**
+ * Toggle object mode.
+ */
+shapy.editor.Mode.prototype.toggleObject = function() {
+  if (this.object) {
+    this.object = false;
+    this.vertex = this.edge = this.face = true;
+  } else {
+    this.object = true;
+    this.vertex = false;
+    this.edge = false;
+    this.face = false;
+  }
+};
+
+
+/**
+ * Toggle face mode.
+ */
+shapy.editor.Mode.prototype.toggleFace = function() {
+  this.face = !this.face;
+  this.object = !(this.face || this.edge || this.vertex);
+};
+
+
+/**
+ * Toggle edge mode.
+ */
+shapy.editor.Mode.prototype.toggleEdge = function() {
+  this.edge = !this.edge;
+  this.object = !(this.face || this.edge || this.vertex);
+};
+
+
+/**
+ * Toggle vertex mode.
+ */
+shapy.editor.Mode.prototype.toggleVertex = function() {
+  this.vertex = !this.vertex;
+  this.object = !(this.face || this.edge || this.vertex);
+};

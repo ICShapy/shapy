@@ -6,8 +6,10 @@ goog.provide('shapy.editor.Object');
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
-goog.require('shapy.editor.geom');
 goog.require('shapy.editor.Editable');
+goog.require('shapy.editor.geom');
+
+
 
 /**
  * Abstract object metadata.
@@ -21,6 +23,7 @@ goog.require('shapy.editor.Editable');
  * matrix of the object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {string} id
  * @param {!Array<Object>} verts
@@ -28,7 +31,7 @@ goog.require('shapy.editor.Editable');
  * @param {!Array<Object>} faces
  */
 shapy.editor.Object = function(id, verts, edges, faces) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT);
 
   /** @public {string} */
   this.id = id;
@@ -231,16 +234,30 @@ shapy.editor.Object.prototype.getRotation = function() {
 shapy.editor.Object.prototype.pickRay = function(ray) {
   var q = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
+  var obj = [];
 
   // Move the ray to model space.
   goog.vec.Mat4.multVec3(this.invModel_, ray.origin, q);
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
   var r = new goog.vec.Ray(q, v);
 
+  var faces = this.pickFaces_(r);
+
+  // Include the object if the ray intersects it.
+  if (!goog.array.isEmpty(faces)) {
+    obj = [
+      {
+        item: this,
+        point: this.position_
+      }
+    ];
+  }
+
   return [
+      obj,
       this.pickVertices_(r),
       this.pickEdges_(r),
-      this.pickFaces_(r)
+      faces
   ];
 };
 
@@ -537,34 +554,6 @@ shapy.editor.Object.prototype.connect = function(verts) {
 
 
 /**
- * Build a polygon object
- *
- * @param {number} n Number of sides
- * @param {number} radius Radius of each vertex
- *
- * @return {!shapy.editor.Object}
- */
-shapy.editor.Object.createPolygon = function(n, radius) {
-  // A polygon is a circle divided into 'n'
-  var verts = [];
-  var edges = [];
-  var face = [];
-  for (var i = 0; i < n; i++) {
-    // Let the polygon lie on the XY plane
-    // TODO: Put it on the XZ plane instead?
-    var angle = (2 * Math.PI / n) * i;
-    verts.push(radius * Math.sin(angle));
-    verts.push(radius * Math.cos(angle));
-    verts.push(0);
-    edges.push([i, (i + 1) % n]);
-    face.push(i);
-  }
-
-  return new shapy.editor.Object(verts, edges, [face]);
-};
-
-
-/**
  * Build an cube object from triangles.
  *
  * @param {string} id
@@ -722,6 +711,7 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
  * Vertex of an object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {!shapy.editor.Object} object
  * @param {number} id
@@ -730,7 +720,7 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
  * @param {number} z
  */
 shapy.editor.Object.Vertex = function(object, id, x, y, z) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.VERTEX);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
@@ -824,6 +814,7 @@ shapy.editor.Object.Vertex.prototype.delete = function() {
  * Edge of an object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {!shapy.editor.Object} object
  * @param {number}               id
@@ -831,7 +822,7 @@ shapy.editor.Object.Vertex.prototype.delete = function() {
  * @param {number}               end
  */
 shapy.editor.Object.Edge = function(object, id, start, end) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDGE);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
@@ -931,6 +922,7 @@ shapy.editor.Object.Edge.prototype.delete = function() {
  * Face of an object.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
  * @param {!shapy.editor.Object} object
  * @param {number}               id
@@ -939,7 +931,8 @@ shapy.editor.Object.Edge.prototype.delete = function() {
  * @param {number}               e2
  */
 shapy.editor.Object.Face = function(object, id, e0, e1, e2) {
-  shapy.editor.Editable.call(this);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.FACE);
+
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
   /** @public {!number} @const */

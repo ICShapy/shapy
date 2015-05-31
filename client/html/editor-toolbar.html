@@ -35,4 +35,40 @@
       <li ng-click="editorCtrl.addObject('sphere')">Sphere</li>
     </ul>
   </div>
+
+  <!-- Menu for selection modes -->
+  <div>
+    <span> Mode </span>
+    <ul>
+      <li ng-click="editorCtrl.mode.toggleObject()">
+        <input
+            type="checkbox"
+            disabled
+            ng-checked="editorCtrl.mode.object"/>
+        Object
+      </li>
+      <li ng-click="editorCtrl.mode.toggleFace()">
+        <input
+            type="checkbox"
+            disabled
+            ng-checked="editorCtrl.mode.face"/>
+        Face
+      </li>
+      <li ng-click="editorCtrl.mode.toggleEdge()">
+        <input
+            type="checkbox"
+            disabled
+            ng-checked="editorCtrl.mode.edge"/>
+        Edge
+      </li>
+      <li ng-click="editorCtrl.mode.toggleVertex()">
+        <input
+            type="checkbox"
+            disabled
+            ng-checked="editorCtrl.mode.vertex"/>
+        Vertex
+      </li>
+    </ul>
+  </div>
+
 </sh-menu>
