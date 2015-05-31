@@ -128,12 +128,13 @@ shapy.Scene.prototype.pickRay = function(ray, mode) {
 /**
  * Picks a group of objects intersection a frustum.
  *
- * @param {!Array<Object>} frustum
- * @param {!shapy.editor.Mode} mode
+ * @param {!Array<Object>}         frustum  Frostrum.
+ * @param {!shapy.editor.Editable} selected Currently selected editable.
+ * @param {!shapy.editor.Mode}     mode     Current selection mode.
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.Scene.prototype.pickFrustum = function(frustum, mode) {
+shapy.Scene.prototype.pickFrustum = function(frustum, selected, mode) {
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
     var ps = obj.pickFrustum(frustum);
     if (!goog.array.isEmpty(ps)) {
@@ -148,7 +149,22 @@ shapy.Scene.prototype.pickFrustum = function(frustum, mode) {
     return mode[hit.type];
   });
 
-  return goog.array.isEmpty(hits) ? null : new shapy.editor.EditableGroup(hits);
+  // Allow selecting multiple parts of the currently selected object only.
+  if (!mode[shapy.editor.Editable.Type.OBJECT]) {
+    if (!selected) {
+      return null;
+    }
+
+    hits = goog.array.filter(hits, function(hit) {
+      return hit.object == selected;
+    });
+
+    return goog.array.isEmpty(hits) ? null : 
+                                      new shapy.editor.EditableGroup(hits);
+  }
+
+  return goog.array.isEmpty(hits) ? null : 
+                                    new shapy.editor.ObjectGroup(hits);
 };
 
 

@@ -528,9 +528,9 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   //  return;
   //}
 
-  if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
-    this.rig_.reset();
-  }
+  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
+  //  this.rig_.reset();
+  //}
 
   this.rig_ = rig;
   this.rig_.object = this.selected_;
@@ -631,7 +631,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   if (group && group.width > 3 && group.height > 3) {
     var frustum = this.layout_.active.groupcast(group);
-    if (pick = this.scene_.pickFrustum(frustum, this.mode)) {
+    if (pick = this.scene_.pickFrustum(frustum, this.selected_, this.mode)) {
       this.select(pick);
     }
   } else {
@@ -653,7 +653,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   if (!(ray = this.layout_.mouseMove(e))) {
     if (group) {
       pick = this.scene_.pickFrustum(
-          this.layout_.active.groupcast(group), this.mode);
+          this.layout_.active.groupcast(group), this.selected_, this.mode);
     }
     if (!pick) {
       if (this.hover_) {

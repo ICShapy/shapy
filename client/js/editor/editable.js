@@ -318,7 +318,7 @@ shapy.editor.ObjectGroup.prototype.setSelected = function(selected) {
  *
  * @return {!goog.vec.Vec3.Type}
  */
-shapy.editor.EditableGroup.prototype.getPosition = function() {
+shapy.editor.ObjectGroup.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
   if (goog.array.isEmpty(this.objects_)) {
     return position;
