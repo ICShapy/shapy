@@ -112,6 +112,7 @@ class DirHandler(APIHandler):
     self.finish()
 
   @session
+  @coroutine
   @asynchronous
   def delete(self, user):
     """Deletes a directory resource."""
@@ -136,6 +137,7 @@ class DirHandler(APIHandler):
     self.finish()
 
   @session
+  @coroutine
   @asynchronous
   def put(self, user):
     """Updates a directory resource."""

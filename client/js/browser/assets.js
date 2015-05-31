@@ -66,7 +66,7 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
 /**
  * Saves an asset on the server.
  */
-shapy.browser.Asset.prototype.saves = goog.abstractMethod;
+shapy.browser.Asset.prototype.save = goog.abstractMethod;
 
 
 /**
@@ -175,4 +175,16 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
     asset.parent = this;
     this.children.push(asset);
   }, this);
+};
+
+
+/**
+ * Saves a directory.
+ */
+shapy.browser.Asset.prototype.rename = function(name) {
+  this.name = name;
+  this.shBrowser_.http_.put('/api/assets/dir', {
+    id: this.id,
+    name: name
+  });
 };
