@@ -151,20 +151,14 @@ shapy.Scene.prototype.pickFrustum = function(frustum, selected, mode) {
 
   // Allow selecting multiple parts of the currently selected object only.
   if (!mode[shapy.editor.Editable.Type.OBJECT]) {
-    if (!selected) {
-      return null;
-    }
-
     hits = goog.array.filter(hits, function(hit) {
       return hit.object == selected;
     });
 
-    return goog.array.isEmpty(hits) ? null : 
-                                      new shapy.editor.PartsGroup(hits);
+    return goog.array.isEmpty(hits) ? null : new shapy.editor.PartsGroup(hits);
   }
 
-  return goog.array.isEmpty(hits) ? null : 
-                                    new shapy.editor.ObjectGroup(hits);
+  return goog.array.isEmpty(hits) ? null : new shapy.editor.ObjectGroup(hits);
 };
 
 

@@ -130,7 +130,7 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
   } else {
     this.editables_.push(editable);
   }
-  return this.editables_.length != 0;
+  return !goog.array.isEmpty(this.editables_);
 };
 
 
@@ -165,7 +165,7 @@ shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
  */
 shapy.editor.EditableGroup.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
-  if (this.editables_.length <= 0) {
+  if (goog.array.isEmpty(this.editables_)) {
     return position;
   }
 
