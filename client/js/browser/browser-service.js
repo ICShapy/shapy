@@ -101,43 +101,39 @@ shapy.browser.BrowserService.prototype.createDir = function(
 
 /**
  * Sends request to server to query database for contents of given dir.
+ *
  * Returns array of assets.
  *
  * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
- * @param {boolean} public Type of directory to query.
  *
  * @return {!angular.$q}
  */
-shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
-  var publicSpace = (public) ? 1 : 0;
-  return this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
-      .then(goog.bind(function(response) {
-        var assets = [];
-
-        // Iterate over responses, convert into assets.
-        goog.array.forEach(response.data, function(item) {
-          switch (item['type']) {
-            case 'dir':
-              assets.push(new shapy.browser.Asset.Dir(
-                  this, item['id'], item['name'], dir));
-              break;
-            case 'scene':
-              assets.push(new shapy.browser.Asset.Scene(
-                  this, item['id'], item['name']), item['preview'], dir);
-              break;
-            case 'texture':
-              assets.push(new shapy.browser.Asset.Texture(
-                  this, item['id'], item['name']), item['preview'], dir);
-              break;
-            default:
-              console.log('Wrong type in database!');
-              break;
+shapy.browser.BrowserService.prototype.queryDir = function(dir) {
+  return this.http_.get('/api/assets/dir', {params: { id: dir.id }})
+    .then(goog.bind(function(response) {
+      console.log(response);
+      dir.loaded = true;
+      return goog.array.filter(goog.array.map(response['data'], function(item) {
+        switch (item['type']) {
+          case 'dir': {
+            return new new shapy.browser.Asset.Dir(
+                this, item['id'], item['name'], dir
+            );
           }
-        }, this);
+          case 'scene': {
+            return new shapy.browser.Asset.Scene(
+                this, item['id'], item['name'], dir
+            );
+          }
+          case 'texture': {
+            return new shapy.browser.Asset.Texture(
+                this, item['id'], item['name'], dir
+            );
+          }
+        }
 
-        // Note that loading done.
-        dir.loaded = true;
-
-        return assets;
-      }, this));
+        console.error('Invalid asset type: "' + item['type'] + '"');
+        return null;
+      }, this), goog.isDefAndNotNull);
+    }, this));
 };
