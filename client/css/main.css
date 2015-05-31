@@ -56,6 +56,10 @@ html {
   float: right;
 }
 
+#header .select {
+  background-color: #cc3300;
+}
+
 #body {
   position: fixed;
   top: 31px;

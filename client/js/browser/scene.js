@@ -138,8 +138,9 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
 /**
  * Picks a group of objects intersection a frustum.
  *
- * @param {!Array<Object>} frustum
- * @param {!shapy.editor.Mode} mode
+ * @param {!Array<Object>}         frustum  Frostrum.
+ * @param {!shapy.editor.Editable} selected Currently selected editable.
+ * @param {!shapy.editor.Mode}     mode     Current selection mode.
  *
  * @return {!shapy.editor.Editable}
  */
@@ -158,7 +159,16 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
     return mode[hit.type];
   });
 
-  return goog.array.isEmpty(hits) ? null : new shapy.editor.EditableGroup(hits);
+  // Allow selecting multiple parts of the currently selected object only.
+  if (!mode[shapy.editor.Editable.Type.OBJECT]) {
+    hits = goog.array.filter(hits, function(hit) {
+      return hit.object == selected;
+    });
+
+    return goog.array.isEmpty(hits) ? null : new shapy.editor.PartsGroup(hits);
+  }
+
+  return goog.array.isEmpty(hits) ? null : new shapy.editor.ObjectGroup(hits);
 };
 
 
@@ -173,7 +183,7 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
  */
 shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createCube(id, w, h, d);
+  var object = shapy.editor.Object.createCube(id, this, w, h, d);
   this.objects[id] = object;
   return object;
 };
@@ -190,7 +200,7 @@ shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
  */
 shapy.browser.Asset.Scene.prototype.createSphere = function(r, slices, stacks) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createSphere(id, r, slices, stacks);
+  var object = shapy.editor.Object.createSphere(id, this, r, slices, stacks);
   this.objects[id] = object;
   return object;
 };

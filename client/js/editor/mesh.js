@@ -137,7 +137,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
 /**
  * Destroys a mesh.
  */
-shapy.editor.Mesh.prototype.free = function() {
+shapy.editor.Mesh.prototype.destroy = function() {
   if (this.faces_) {
     this.gl_.deleteBuffer(this.faces_);
     this.faces_ = null;

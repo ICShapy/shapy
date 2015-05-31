@@ -30,19 +30,26 @@ goog.require('shapy.editor.geom');
  * @param {!Array<Object>} edges
  * @param {!Array<Object>} faces
  */
-shapy.editor.Object = function(id, verts, edges, faces) {
+shapy.editor.Object = function(id, scene, verts, edges, faces) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT);
 
   /** @public {string} */
   this.id = id;
   /** @public {!shapy.editor.Object} */
   this.object = this;
+  /** @public {!shapy.Scene} */
+  this.scene = scene;
 
   /**
    * True if the mesh is dirty, needing to be rebuilt.
    * @public {boolean}
    */
   this.dirtyMesh = true;
+
+  /**
+   * True if the object was deleted.
+   */
+  this.deleted = false;
 
   /**
    * @private {goog.vec.Vec3}
@@ -221,6 +228,15 @@ shapy.editor.Object.prototype.rotate = function(x, y, z) {
  */
 shapy.editor.Object.prototype.getRotation = function() {
   return this.rotate_;
+};
+
+
+/**
+ * Deletes the object.
+ */
+shapy.editor.Object.prototype.delete = function() {
+  goog.object.remove(this.scene.objects, this.id);
+  this.deleted = true;
 };
 
 
@@ -556,14 +572,15 @@ shapy.editor.Object.prototype.connect = function(verts) {
 /**
  * Build an cube object from triangles.
  *
- * @param {string} id
- * @param {number} w
- * @param {number} h
- * @param {number} d
+ * @param {string}      id
+ * @param {shapy.Scene} scene
+ * @param {number}      w
+ * @param {number}      h
+ * @param {number}      d
  *
  * @return {!shapy.editor.Object}
  */
-shapy.editor.Object.createCube = function(id, w, h, d) {
+shapy.editor.Object.createCube = function(id, scene, w, h, d) {
   // Vertex layout:
   //   4-----5
   //  /     /|
@@ -611,21 +628,22 @@ shapy.editor.Object.createCube = function(id, w, h, d) {
     [2, 10, 17], [6, 11, 17]    // -Y
   ];
 
-  return new shapy.editor.Object(id, vertices, edges, faces);
+  return new shapy.editor.Object(id, scene, vertices, edges, faces);
 };
 
 
 /**
  * Builds an sphere object from triangles.
  *
- * @param {string} id
- * @param {number} r
- * @param {number} slices
- * @param {number} stacks
+ * @param {string}      id
+ * @param {shapy.Scene} scene
+ * @param {number}      r
+ * @param {number}      slices
+ * @param {number}      stacks
  *
  * @return {!shapy.editor.Object}
  */
-shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
+shapy.editor.Object.createSphere = function(id, scene, r, slices, stacks) {
   var verts = [], edges = [], faces = [];
 
   // Create all verts.
@@ -702,7 +720,7 @@ shapy.editor.Object.createSphere = function(id, r, slices, stacks) {
     ]);
   }
 
-  return new shapy.editor.Object(id, verts, edges, faces);
+  return new shapy.editor.Object(id, scene, verts, edges, faces);
 };
 
 
