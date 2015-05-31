@@ -172,6 +172,7 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
       }
     }
 
+    asset.parent = this;
     this.children.push(asset);
   }, this);
 };

@@ -91,6 +91,7 @@ shapy.browser.Service.prototype.createDir = function() {
             this, response.data.id, response.data);
         this.dirs_[dir.id] = dir;
         parent.children.push(dir);
+        dir.parent = parent;
       }, this));
 };
 
