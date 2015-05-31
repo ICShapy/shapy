@@ -21,12 +21,14 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @constructor
  *
- * @param {!angular.$scope}               $scope The browser scope.
- * @param {!angular.$http}                $http The angular $http service.
+ * @param {!angular.$state}               $state    The angular state service.
+ * @param {!angular.$http}                $http     The angular $http service.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
- * @param {!shapy.browser.Asset.Dir}      home The home directory.
+ * @param {!shapy.browser.Asset.Dir}      home      The home directory.
  */
-shapy.browser.BrowserController = function($scope, $http, shBrowser, home) {
+shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
+  /** @private {!angular.$state} @const */
+  this.state_ = $state;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!shapy.browser.BrowserService} @const */
@@ -78,6 +80,12 @@ shapy.browser.BrowserController.prototype.select = function(asset) {
     case shapy.browser.Asset.Type.DIRECTORY: {
       this.shBrowser_.getDir(asset.id).then(goog.bind(function(asset) {
         this.shBrowser_.current = asset;
+      }, this));
+      break;
+    }
+    case shapy.browser.Asset.Type.SCENE: {
+      this.shBrowser_.getScene(asset.id).then(goog.bind(function(asset) {
+        this.state_.go('main.editor', { sceneID: asset.id });
       }, this));
       break;
     }

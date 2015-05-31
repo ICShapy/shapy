@@ -14,17 +14,18 @@ goog.require('shapy.editor.Object');
  * @constructor
  * @extends {shapy.browser.Asset}
  *
- * @param {string} id ID of the scene.
- * @param {Object} data Data from the server.
+ * @param {!shapy.browser.Service} shBrowser The browser service.
+ * @param {string}                 id        ID of the scene.
+ * @param {=Object}                opt_data  Data from the server.
  */
-shapy.browser.Asset.Scene = function(id, data) {
+shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
   shapy.browser.Asset.call(
       this,
+      shBrowser,
       id,
-      data['name'],
       shapy.browser.Asset.Type.SCENE,
-      null,
-      null); // TODO: fix this.
+      opt_data);
+  var data = opt_data || {};
 
   /**
    * ID of the scene.
@@ -36,7 +37,7 @@ shapy.browser.Asset.Scene = function(id, data) {
    * Name of the scene.
    * @public {string}
    */
-  this.name = data['name'] || 'Untitled';
+  this.name = data['name'] || 'Untitled Scene';
 
   /**
    * List of users editing the scene.
@@ -55,8 +56,21 @@ shapy.browser.Asset.Scene = function(id, data) {
    * @private {string}
    */
   this.nextID_ = 0;
+
+  // Preview image.
+  this.image = data['preview'] || '/img/scene.svg';
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
+
+
+/**
+ * Loads the asset data.
+ *
+ * @param {Object} data
+ */
+shapy.browser.Asset.Scene.prototype.load = function(data) {
+  this.loaded = true;
+};
 
 
 /**

@@ -171,6 +171,45 @@ class SceneHandler(APIHandler):
     self.finish()
 
 
+  @session
+  @coroutine
+  @asynchronous
+  def post(self, user=None):
+    """Creates a new scene."""
+
+    # Validate arguments.
+    parent = self.get_argument('parent')
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+
+    # Create new account - store in database
+    cursor = yield momoko.Op(self.db.execute,
+      '''INSERT INTO assets (name, type, data, owner, parent, public)
+         VALUES (%s, %s, %s, %s, %s, %s)
+         RETURNING id, name, data
+      ''', (
+      'New Scene',
+      'scene',
+      '{}',
+      user.id,
+      parent,
+      False
+    ))
+
+    # Check if the directory was created successfully.
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(400, 'Asset creation failed.')
+
+    # Return the asset data.
+    self.write(json.dumps({
+        'id': data[0],
+        'name': data[1],
+        'data': data[2]
+    }))
+    self.finish()
+
+
 class TextureHandler(APIHandler):
   """Handles requests to a texture asset."""
 

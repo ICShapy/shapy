@@ -69,6 +69,11 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
 
 
 /**
+ * Loads the asset data.
+ */
+shapy.browser.Asset.prototype.load = goog.abstractMethod;
+
+/**
  * Saves an asset on the server.
  */
 shapy.browser.Asset.prototype.save = goog.abstractMethod;
