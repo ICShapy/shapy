@@ -111,7 +111,6 @@ shapy.browser.Service.prototype.createDir = function(
   })
   .then(goog.bind(function(response) {
     return new shapy.browser.Asset.Dir(
-        this,
         response.data['id'],
         response.data['name'],
         parent
@@ -132,23 +131,22 @@ shapy.browser.Service.prototype.createDir = function(
 shapy.browser.Service.prototype.queryDir = function(dir) {
   return this.http_.get('/api/assets/dir', {params: { id: dir.id }})
     .then(goog.bind(function(response) {
-      console.log(response);
       dir.loaded = true;
-      return goog.array.filter(goog.array.map(response['data'], function(item) {
+      return goog.array.filter(goog.array.map(response.data['data'], function(item) {
         switch (item['type']) {
           case 'dir': {
-            return new new shapy.browser.Asset.Dir(
-                this, item['id'], item['name'], dir
+            return new shapy.browser.Asset.Dir(
+                item['id'], item['name'], dir
             );
           }
           case 'scene': {
             return new shapy.browser.Asset.Scene(
-                this, item['id'], item['name'], dir
+                item['id'], item['name'], dir
             );
           }
           case 'texture': {
             return new shapy.browser.Asset.Texture(
-                this, item['id'], item['name'], dir
+                item['id'], item['name'], dir
             );
           }
         }
