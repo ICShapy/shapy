@@ -94,28 +94,30 @@ shapy.browser.Service.prototype.rename = function(asset, name) {
 /**
  * Injects new dir into databse and returns a promise with response.
  *
- * @param {boolean} public   Flag showing whether dir is publicly accessible.
- * @param {!shapy.browser.Asset.Dir} parent Parent directory.
- *
  * @return {!shapy.browser.Asset.Dir}
  */
-shapy.browser.Service.prototype.createDir = function(
-    public,
-    parent)
-{
-  // TODO: read the public flag on the backend, don't trust the
-  // frontend to pass a correct one!
-  return this.http_.post('/api/assets/dir/create', {
-    public: public,
-    parent: parent.id
-  })
-  .then(goog.bind(function(response) {
-    return new shapy.browser.Asset.Dir(
-        response.data['id'],
-        response.data['name'],
-        parent
-    );
-  }, this));
+shapy.browser.Service.prototype.createDir = function() {
+  return this.http_.post('/api/assets/dir', { parent: this.currentDir.id })
+      .then(goog.bind(function(response) {
+        return new shapy.browser.Asset.Dir(
+            response.data['id'],
+            response.data['name'],
+            this.currentDir.id
+        );
+      }, this));
+};
+
+
+/**
+ * Creates a new scene.
+ *
+ * @return {!angular.$q} Promise to return a new scene.
+ */
+shapy.browser.Service.prototype.createScene = function() {
+  return this.http_.post('/api/assets/scene', { parent: this.currentDir.id })
+      .then(goog.bind(function(response) {
+        console.log('x');
+      }, this));
 };
 
 
@@ -170,7 +172,7 @@ shapy.browser.Service.prototype.getScene = function(sceneID) {
   var defer = this.q_.defer();
 
   if (!sceneID) {
-    defer.reject({ error: 'Invalid scene ID'});
+    defer.reject({ error: 'Invalid scene ID.' });
     return defer.promise;
   }
 
@@ -184,17 +186,5 @@ shapy.browser.Service.prototype.getScene = function(sceneID) {
     defer.resolve(this.scenes_[sceneID]);
   }, this));
 
-  return defer.promise;
-};
-
-
-/**
- * Creates a new scene.
- *
- * @return {!angular.$q} Promise to return a new scene.
- */
-shapy.browser.Service.prototype.createScene = function() {
-  var defer = this.q_.defer();
-  defer.reject();
   return defer.promise;
 };

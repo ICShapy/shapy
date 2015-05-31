@@ -4,6 +4,7 @@
 goog.provide('shapy.Scene');
 goog.provide('shapy.SceneService');
 
+goog.provide('shapy.browser.Asset');
 goog.require('shapy.editor.Object');
 
 
@@ -12,11 +13,20 @@ goog.require('shapy.editor.Object');
  * Class encapsulating all information about a scene.
  *
  * @constructor
+ * @extends {shapy.browser.Asset}
  *
  * @param {string} id ID of the scene.
  * @param {Object} data Data from the server.
  */
 shapy.Scene = function(id, data) {
+  shapy.browser.Asset.call(
+      this,
+      id,
+      data['name'],
+      shapy.browser.Asset.Type.SCENE,
+      null,
+      null); // TODO: fix this.
+
   /**
    * ID of the scene.
    * @public {string} @const
@@ -47,6 +57,7 @@ shapy.Scene = function(id, data) {
    */
   this.nextID_ = 0;
 };
+goog.inherits(shapy.Scene, shapy.browser.Asset);
 
 
 /**

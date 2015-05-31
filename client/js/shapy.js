@@ -8,8 +8,8 @@ goog.require('shapy.RegisterController');
 goog.require('shapy.SceneService');
 goog.require('shapy.UserService');
 goog.require('shapy.browser.BrowserController');
-goog.require('shapy.browser.Service');
 goog.require('shapy.browser.BrowserToolbarController');
+goog.require('shapy.browser.Service');
 goog.require('shapy.browser.file');
 goog.require('shapy.browser.fileMatch');
 goog.require('shapy.browser.files');
@@ -94,12 +94,8 @@ shapy.configStates_ = function(
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {
-        scene: function(user, shBrowser, $stateParams) {
-          if (goog.object.containsKey($stateParams, 'sceneID')) {
-            return shBrowser.getScene($stateParams['sceneID']);
-          } else {
-            return shBrowser.createScene();
-          }
+        scene: function(shBrowser, $stateParams) {
+          return shBrowser.getScene($stateParams['sceneID']);
         }
       },
       views: {
@@ -175,7 +171,7 @@ shapy.HttpInterceptor = function($q, shNotify) {
 
 
 /**
- * Ses up the http interceptor.
+ * Sets up the http interceptor.
  *
  * @private
  * @ngInject
@@ -184,6 +180,27 @@ shapy.HttpInterceptor = function($q, shNotify) {
  */
 shapy.configHttp_ = function($httpProvider) {
   $httpProvider.interceptors.push('shHttp');
+};
+
+
+/**
+ * Sets up the error page.
+ *
+ * @private
+ * @ngInject
+ *
+ * @param {!angular.$scope} $rootScope The Angular root scope.
+ * @param {!angular.$state} $state The angular state service.
+ * @param {!shapy.notification.Service} shNotify The shapy notification service.
+ */
+shapy.configError_ = function($rootScope, $state, shNotify) {
+  $rootScope.$on('$stateChangeError', function(evt, ts, tp, fs, fp, error) {
+    shNotify.error({
+      text: error['error'] || 'Unknown error',
+      dismiss: 3000
+    });
+    $state.go(fs.name ? fs.name : 'main');
+  });
 };
 
 
@@ -221,4 +238,6 @@ shapy.module = angular
   .filter('shFileMatch', shapy.browser.fileMatch)
 
   .config(shapy.configStates_)
-  .config(shapy.configHttp_);
+  .config(shapy.configHttp_)
+
+  .run(shapy.configError_);

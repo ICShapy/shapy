@@ -128,33 +128,6 @@ shapy.browser.Asset.Dir.prototype.hasSubdirs = function() {
 
 
 /**
- * Creates an asset representing a scene.
- *
- * @constructor
- * @extends {shapy.browser.Asset}
- *
- * @param {number} id    Id of the asset.
- * @param {string} name  Name of the asset.
- * @param {string} image Path to image to be displayed for asset in browser.
- * @param {Array.<!shapy.browser.Asset.Dir>} parent Parent dir of this dir.
- */
-shapy.browser.Asset.Scene = function(id, name, image, parent) {
-  shapy.browser.Asset.call(
-      this,
-      id,
-      name,
-      shapy.browser.Asset.Type.SCENE,
-      image,
-      parent);
-
-  // Update parent's non-dir assets
-  parent.otherAssets.push(this);
-};
-goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
-
-
-
-/**
  * Creates an asset representing a texture.
  *
  * @constructor
