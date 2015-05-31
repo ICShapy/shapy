@@ -129,11 +129,8 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
   if (dir.loaded) {
     this.assets = dir.subdirs.concat(dir.otherAssets);
   } else {
-    // TODO: name not necesary, use return this.queryDir.then(function{..})
-    // Query database for the contents
-    var promise = this.shBrowser_.queryDir(dir, this.public);
-    // Update assets with answer from database.
-    promise.then(goog.bind(function(assets) {
+    // Query database for the contents and update assets.
+    this.shBrowser_.queryDir(dir, this.public).then(goog.bind(function(assets) {
       this.assets = assets;
     }, this));
   }
