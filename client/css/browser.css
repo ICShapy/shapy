@@ -30,6 +30,7 @@ sh-sidebar ul.menu {
   border: 1px solid #222222;
   box-shadow: 1px 1px 1px #777777;
   background-color: #eeeeee;
+  z-index: 2000;
 }
 
 sh-sidebar ul.menu {
@@ -61,6 +62,7 @@ sh-sidebar .create > button {
   background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
   border: none;
   cursor: pointer;
+  z-index: 5000;
 }
 
 sh-sidebar .create > button.left {

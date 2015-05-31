@@ -96,6 +96,17 @@ shapy.browser.BrowserController.prototype.createDir = function() {
   return this.shBrowser_.createDir();
 };
 
+
+/**
+ * Creates new subdir in current dir.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.BrowserController.prototype.createScene = function() {
+  return this.shBrowser_.createScene();
+};
+
+
 /**
  * Enters public assets space.
  *
