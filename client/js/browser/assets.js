@@ -133,25 +133,39 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
   this.name = data.name || 'Untitled Directory';
 
   // Fill in child directories.
-  this.children = goog.array.map(data['data'], function(c) {
+  goog.array.forEach(data['data'], function(c) {
     var asset;
 
     switch (c['type']) {
       case shapy.browser.Asset.Type.DIRECTORY: {
-        asset = new shapy.browser.Asset.Dir(this.shBrowser_, c.id, c);
-        this.shBrowser_.dirs_[c.id] = asset;
-        return asset;
+        if (goog.object.containsKey(this.shBrowser_.dirs_, c.id)) {
+          asset = this.shBrowser_.dirs_[c.id];
+        } else {
+          asset = new shapy.browser.Asset.Dir(this.shBrowser_, c.id, c);
+          this.shBrowser_.dirs_[c.id] = asset;
+        }
+        break;
       }
       case shapy.browser.Asset.Type.SCENE: {
-        asset = new shapy.browser.Asset.Scene(this.shBrowser_, c.id, c);
-        this.shBrowser_.scenes_[c.id] = asset;
-        return asset;
+        if (goog.object.containsKey(this.shBrowser_.scenes_, c.id)) {
+          asset = this.shBrowser_.scenes_[c.id];
+        } else {
+          asset = new shapy.browser.Asset.Scene(this.shBrowser_, c.id, c);
+          this.shBrowser_.scenes_[c.id] = asset;
+        }
+        break;
       }
       case shapy.browser.Asset.Type.TEXTURE: {
-        asset = new shapy.browser.Asset.Texture(this.shBrowser_, c.id, c);
-        this.shBrowser_.textures_[c.id] = asset;
-        return asset;
+        if (goog.object.containsKey(this.shBrowser_.textures_, c.id)) {
+          asset = this.shBrowser_.textures_[c.id];
+        } else {
+          asset = new shapy.browser.Asset.Texture(this.shBrowser_, c.id, c);
+          this.shBrowser_.textures_[c.id] = asset;
+        }
+        break;
       }
     }
+
+    this.children.push(asset);
   }, this);
 };
