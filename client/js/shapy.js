@@ -200,12 +200,14 @@ shapy.configHttp_ = function($httpProvider) {
  */
 shapy.configError_ = function($rootScope, $state, shNotify) {
   $rootScope.$on('$stateChangeError', function(evt, ts, tp, fs, fp, error) {
-    shNotify.error({
-      text: error.error || error.message,
-      dismiss: 3000
-    });
-    if (error.stack) {
-      console.error(error.stack);
+    if (error) {
+      shNotify.error({
+        text: error.error || error.message,
+        dismiss: 3000
+      });
+      if (error && error.stack) {
+        console.error(error.stack);
+      }
     }
     $state.go(fs.name ? fs.name : 'main');
   });

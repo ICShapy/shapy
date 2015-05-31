@@ -164,7 +164,9 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
     .then(goog.bind(function(response) {
       asset.load(response.data);
       asset.ready.resolve(asset);
-    }, this));
+    }, this), function() {
+      asset.ready.reject();
+    });
 
   return asset.ready.promise;
 };

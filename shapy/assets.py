@@ -164,9 +164,28 @@ class SceneHandler(APIHandler):
   def get(self, user):
     """Retrieves a scene from the database."""
 
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+    id = int(self.get_argument('id'))
+
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name
+         FROM assets
+         WHERE id = %s
+           AND type = %s
+      ''', (
+      id,
+      'scene'
+    ))
+
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(404, 'Scene not found.')
+
     self.write(json.dumps({
-        'name': 'Untitled Scene',
-        'users': []
+        'id': data[0],
+        'name': data[1],
     }))
     self.finish()
 
@@ -205,7 +224,7 @@ class SceneHandler(APIHandler):
     self.write(json.dumps({
         'id': data[0],
         'name': data[1],
-        'data': data[2]
+        'data': []
     }))
     self.finish()
 
