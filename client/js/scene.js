@@ -160,7 +160,7 @@ shapy.Scene.prototype.pickFrustum = function(frustum, selected, mode) {
     });
 
     return goog.array.isEmpty(hits) ? null : 
-                                      new shapy.editor.EditableGroup(hits);
+                                      new shapy.editor.PartsGroup(hits);
   }
 
   return goog.array.isEmpty(hits) ? null : 

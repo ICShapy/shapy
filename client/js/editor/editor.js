@@ -473,7 +473,7 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
  * @private
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
-  // Makes sure the object is not disselceted when switching from object
+  // Makes sure the object is not disselected when switching from object
   // mode to face/edge/vertex mode in order to allow for group selection.
   if (this.selected_ && !this.mode[this.selected_.type] &&
       this.selected_.type != shapy.editor.Editable.Type.OBJECT) {

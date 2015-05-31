@@ -102,12 +102,13 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
  * Collection of editable parts of an object.
  *
  * @param {=Array<shapy.editor.Editable>} opt_editables
+ * @param {shapy.editor.Editable.Type}
  *
  * @constructor
  * @extends {shapy.editor.Editable}
  */
-shapy.editor.EditableGroup = function(opt_editables) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDITABLE_GROUP);
+shapy.editor.EditableGroup = function(opt_editables, type) {
+  shapy.editor.Editable.call(this, type);
 
   /** @private {!Array<shapy.editor.Editable>} List of editables to control */
   this.editables_ = opt_editables || [];
@@ -176,6 +177,22 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
 };
 
 
+
+/**
+ * Collection of object parts.
+ *
+ * @param {!Array<shapy.editor.Editable>} parts
+ *
+ * @constructor
+ * @extends {shapy.editor.Editable}
+ */
+shapy.editor.PartsGroup = function(parts) {
+  shapy.editor.EditableGroup.call(
+      this, parts, shapy.editor.Editable.Type.PARTS_GROUP);
+};
+goog.inherits(shapy.editor.PartsGroup, shapy.editor.EditableGroup);
+
+
 /**
  * Translate the group
  *
@@ -183,7 +200,7 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
+shapy.editor.PartsGroup.prototype.translate = function(x, y, z) {
   var mid = this.getPosition();
 
   // Apply translation to each vertex
@@ -197,7 +214,7 @@ shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
 
 
 /**
- * Delete the editable from the mesh
+ * Delete the parts from the mesh
  */
 shapy.editor.EditableGroup.prototype.delete = function() {
   goog.object.forEach(this.editables_, function(editable) {
@@ -208,25 +225,11 @@ shapy.editor.EditableGroup.prototype.delete = function() {
 
 
 /**
- * Retrives the vertices forming this group.
- *
- * @return {!Array<!shapy.editor.Object.Vertex>}
- */
-shapy.editor.EditableGroup.prototype.getVertices = function() {
-  var verts = goog.array.flatten(goog.array.map(this.editables_, function(e) {
-    return e.getVertices();
-  }, this));
-  goog.array.removeDuplicates(verts);
-  return verts;
-};
-
-
-/**
- * Returns the object if all selected editables are from the same object.
+ * Returns the object if all selected parts are from the same object.
  *
  * @return {shapy.editor.Object}
  */
-shapy.editor.EditableGroup.prototype.getObject = function() {
+shapy.editor.PartsGroup.prototype.getObject = function() {
   if (goog.array.isEmpty(this.editables_)) {
     return null;
   }
@@ -239,9 +242,23 @@ shapy.editor.EditableGroup.prototype.getObject = function() {
 };
 
 
+/**
+ * Retrives the vertices forming this group.
+ *
+ * @return {!Array<!shapy.editor.Object.Vertex>}
+ */
+shapy.editor.PartsGroup.prototype.getVertices = function() {
+  var verts = goog.array.flatten(goog.array.map(this.editables_, function(e) {
+    return e.getVertices();
+  }, this));
+  goog.array.removeDuplicates(verts);
+  return verts;
+};
+
+
 
 /**
- * Collection of object.
+ * Collection of objects.
  *
  * @param {!Array<shapy.editor.Editable>} objects
  *
@@ -249,76 +266,10 @@ shapy.editor.EditableGroup.prototype.getObject = function() {
  * @extends {shapy.editor.Editable}
  */
 shapy.editor.ObjectGroup = function(objects) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT_GROUP);
-
-  /**
-   * @private
-   * {!Array<shapy.editor.Editable>} objects_ List of group members.
-   */
-  this.objects_ = objects || [];
+  shapy.editor.EditableGroup.call(
+      this, objects, shapy.editor.Editable.Type.OBJECT_GROUP);
 };
-goog.inherits(shapy.editor.ObjectGroup, shapy.editor.Editable);
-
-
-/**
- * Add an object to the group.
- *
- * @param {shapy.editor.Editable} editable Editable object to add.
- *
- * @return {boolean} True if group is not empty.
- */
-shapy.editor.ObjectGroup.prototype.add = function(object) {
-  if (goog.array.contains(this.objects_, object)) {
-    object.setSelected(false);
-    goog.array.remove(this.objects_, object);
-  } else {
-    this.objects_.push(object);
-  }
-  return !goog.array.isEmpty(this.objects_);
-};
-
-
-/**
- * Hovers the object group.
- *
- * @param {boolean} hover
- */
-shapy.editor.ObjectGroup.prototype.setHover = function(hover) {
-  goog.object.forEach(this.objects_, function(object) {
-    object.setHover(hover);
-  }, this);
-};
-
-
-/**
- * Selects the objects.
- *
- * @param {boolean} selected
- */
-shapy.editor.ObjectGroup.prototype.setSelected = function(selected) {
-  goog.object.forEach(this.objects_, function(object) {
-    object.setSelected(selected);
-  }, this);
-};
-
-
-/**
- * Retrieves the group average position
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.ObjectGroup.prototype.getPosition = function() {
-  var position = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
-  if (goog.array.isEmpty(this.objects_)) {
-    return position;
-  }
-
-  goog.object.forEach(this.objects_, function(object) {
-    goog.vec.Vec3.add(position, object.getPosition(), position);
-  }, this);
-  goog.vec.Vec3.scale(position, 1 / this.objects_.length, position);
-  return position;
-};
+goog.inherits(shapy.editor.ObjectGroup, shapy.editor.EditableGroup);
 
 
 /**
@@ -332,7 +283,7 @@ shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
   var mid = this.getPosition();
 
   // Apply translation to each object
-  goog.object.forEach(this.objects_, function(object) {
+  goog.object.forEach(this.editables_, function(object) {
     var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
     goog.vec.Vec3.subtract(delta, mid, delta);
     goog.vec.Vec3.add(delta, object.getPosition(), delta);
@@ -345,7 +296,7 @@ shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
  * Delete the objects.
  */
 shapy.editor.EditableGroup.prototype.delete = function() {
-  
+
 };
 
 
@@ -356,7 +307,7 @@ shapy.editor.EditableGroup.prototype.delete = function() {
  */
 shapy.editor.Editable.Type = {
   OBJECT_GROUP: 'objectGroup',
-  EDITABLE_GROUP: 'editableGroup',
+  PARTS_GROUP: 'partsGroup',
   OBJECT: 'object',
   VERTEX: 'vertex',
   EDGE: 'edge',
@@ -375,7 +326,7 @@ shapy.editor.Mode = function() {
   this.vertex = false;
   this.edge = false;
   this.face = false;
-  this.editableGroup = false;
+  this.partsGroup = false;
   this.objectGroup = true;
 };
 
@@ -386,13 +337,13 @@ shapy.editor.Mode = function() {
 shapy.editor.Mode.prototype.toggleObject = function() {
   if (this.object) {
     this.object = this.objectGroup = false;
-    this.vertex = this.edge = this.face = this.editableGroup = true;
+    this.vertex = this.edge = this.face = this.partsGroup = true;
   } else {
     this.object = this.objectGroup = true;
     this.vertex = false;
     this.edge = false;
     this.face = false;
-    this.editableGroup = false;
+    this.partsGroup = false;
   }
 };
 
@@ -402,8 +353,8 @@ shapy.editor.Mode.prototype.toggleObject = function() {
  */
 shapy.editor.Mode.prototype.toggleFace = function() {
   this.face = !this.face;
-  this.editableGroup = this.face || this.edge || this.vertex;  
-  this.object = this.objectGroup = !this.editableGroup;
+  this.partsGroup = this.face || this.edge || this.vertex;  
+  this.object = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -412,8 +363,8 @@ shapy.editor.Mode.prototype.toggleFace = function() {
  */
 shapy.editor.Mode.prototype.toggleEdge = function() {
   this.edge = !this.edge;
-  this.editableGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.editableGroup;
+  this.partsGroup = this.face || this.edge || this.vertex;
+  this.object = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -422,6 +373,6 @@ shapy.editor.Mode.prototype.toggleEdge = function() {
  */
 shapy.editor.Mode.prototype.toggleVertex = function() {
   this.vertex = !this.vertex;
-  this.editableGroup = this.face || this.edge || this.vertex;  
-  this.object = this.objectGroup = !this.editableGroup;
+  this.partsGroup = this.face || this.edge || this.vertex;  
+  this.object = this.objectGroup = !this.partsGroup;
 };
