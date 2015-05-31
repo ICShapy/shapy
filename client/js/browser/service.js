@@ -157,7 +157,7 @@ shapy.browser.Service.prototype.getScene = function(sceneID) {
   var defer = this.q_.defer();
 
   if (!sceneID) {
-    defer.reject({ error: 'Invalid scene ID'});
+    defer.reject({ error: 'Invalid scene ID.' });
     return defer.promise;
   }
 
