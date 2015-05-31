@@ -55,54 +55,16 @@ shapy.editor.Mesh.prototype.build_ = function() {
     d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1;       // Diffuse.
   };
 
-  // Create mesh for rendering all the faces.
-  this.faceCount_ = this.object_.faces.length * 3;
-  k = 0;
-  var f = new Float32Array(this.faceCount_ * 48);
-  goog.array.forEach(this.object_.faces, function(face) {
-    var faceVertices = face.getVertices_();
-
-    if (face.selected) {
-      r = 1.0; g = 1.0; b = 0.0;
-    } else if (face.hover) {
-      r = 0.8; g = 0.4; b = 0.0;
-    } else {
-      r = 0.2; g = 0.2; b = 0.2;
-    }
-
-    add(f, faceVertices[0].position);
-    add(f, faceVertices[1].position);
-    add(f, faceVertices[2].position);
-  }, this);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
-  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
-
   // Create mesh for rendering all the edges.
-  this.edgeCount_ = this.object_.edges.length * 2;
-  k = 0;
-  var e = new Float32Array(this.edgeCount_ * 48);
-  goog.array.forEach(this.object_.edges, function(edge) {
-    if (edge.selected) {
-      r = 1.0; g = 1.0; b = 0.0;
-    } else if (edge.hover) {
-      r = 0.8; g = 0.4; b = 0.0;
-    } else {
-      r = 1.0; g = 1.0; b = 1.0;
-    }
-
-    add(e, this.object_.vertices[edge.start].position);
-    add(e, this.object_.vertices[edge.end].position);
+  this.vertCount_ = 0;
+  goog.object.forEach(this.object_.verts, function() {
+      this.vertCount_ += 1;
   }, this);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
-  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
-
-  // Create mesh for rendering all the edges.
-  this.vertCount_ = this.object_.vertices.length * 2;
   k = 0;
   var v = new Float32Array(this.vertCount_ * 48);
-  goog.array.forEach(this.object_.vertices, function(vert) {
+  goog.object.forEach(this.object_.verts, function(vert) {
     if (vert.selected) {
-      r = 1.0; g = 1.0; b = 0.0;
+      r = 0.9; g = 0.9; b = 0.0;
     } else if (vert.hover) {
       r = 0.8; g = 0.4; b = 0.0;
     } else {
@@ -113,6 +75,62 @@ shapy.editor.Mesh.prototype.build_ = function() {
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, v, goog.webgl.STATIC_DRAW);
+
+  // Create mesh for rendering all the edges.
+  this.edgeCount_ = 0;
+  goog.object.forEach(this.object_.edges, function() {
+      this.edgeCount_ += 2;
+  }, this);
+  k = 0;
+  var e = new Float32Array(this.edgeCount_ * 48);
+  goog.object.forEach(this.object_.edges, function(edge) {
+    var v = edge.getVertices();
+    if (edge.selected || v[0].selected) {
+      r = 0.9; g = 0.9; b = 0.0;
+    } else if (edge.hover) {
+      r = 0.8; g = 0.4; b = 0.0;
+    } else {
+      r = 1.0; g = 1.0; b = 1.0;
+    }
+    add(e, v[0].position);
+    if (edge.selected || v[1].selected) {
+      r = 0.9; g = 0.9; b = 0.0;
+    } else if (edge.hover) {
+      r = 0.8; g = 0.4; b = 0.0;
+    } else {
+      r = 1.0; g = 1.0; b = 1.0;
+    }
+    add(e, v[1].position);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
+
+  // Create mesh for rendering all the faces.
+  this.faceCount_ = 0;
+  goog.object.forEach(this.object_.faces, function() {
+      this.faceCount_ += 3;
+  }, this);
+  k = 0;
+  var f = new Float32Array(this.faceCount_ * 48);
+  goog.object.forEach(this.object_.faces, function(face) {
+    var v = face.getVertices();
+    if (face.selected) {
+      r = 1.0; g = 1.0; b = 0.0;
+    } else if (face.hover) {
+      r = 0.9; g = 0.5; b = 0.0;
+    } else {
+      if (this.object_.selected) {
+        r = 0.7; g = 0.7; b = 0.7;
+      } else {
+        r = 0.4; g = 0.4; b = 0.4;
+      }
+    }
+    add(f, v[0].position);
+    add(f, v[1].position);
+    add(f, v[2].position);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
 };
 
 
@@ -128,9 +146,9 @@ shapy.editor.Mesh.prototype.free = function() {
     this.gl_.deleteBuffer(this.edges_);
     this.edges_ = null;
   }
-  if (this.verts_) {
-    this.gl_.deleteBuffer(this.verts_);
-    this.verts_ = null;
+  if (this.vertices_) {
+    this.gl_.deleteBuffer(this.vertices_);
+    this.vertices_ = null;
   }
 };
 
@@ -144,10 +162,10 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.enableVertexAttribArray(0);
   this.gl_.enableVertexAttribArray(3);
 
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
   this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 48, 0);
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
-  this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.faceCount_);
+  this.gl_.drawArrays(goog.webgl.POINTS, 0, this.vertCount_);
 
   this.gl_.lineWidth(2.0);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
@@ -155,10 +173,10 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
   this.gl_.drawArrays(goog.webgl.LINES, 0, this.edgeCount_);
 
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 48, 0);
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
-  this.gl_.drawArrays(goog.webgl.POINTS, 0, this.vertCount_);
+  this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.faceCount_);
 
   this.gl_.disableVertexAttribArray(3);
   this.gl_.disableVertexAttribArray(0);

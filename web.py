@@ -36,15 +36,13 @@ def main(args):
 
   # Set up URL routes.
   app = tornado.web.Application([
-    # API handlers.
+    # API for accessing assets.
+    (r'/api/assets/dir$',                     shapy.assets.DirHandler),
+    (r'/api/assets/scene$',                   shapy.assets.SceneHandler),
+    (r'/api/assets/texture$',                 shapy.assets.TextureHandler),
+
+    # Authentication.
     (r'/api/user/auth',                       shapy.user.AuthHandler),
-
-    (r'/api/assets/dir/(-?[0-9]+)/([0-1])',   shapy.assets.DirFetchHandler),
-    (r'/api/assets/dir/create',               shapy.assets.DirCreateHandler),
-
-    (r'/api/assets/delete',                   shapy.assets.DeleteHandler),
-    (r'/api/assets/rename',                   shapy.assets.RenameHandler),
-
     (r'/api/user/auth/fb',                    shapy.user.FacebookHandler),
     (r'/api/user/auth/gp',                    shapy.user.GoogleHandler),
     (r'/api/user/check/([^/]+)',              shapy.user.CheckHandler),
@@ -53,9 +51,8 @@ def main(args):
     (r'/api/user/register',                   shapy.user.RegisterHandler),
     (r'/api/user/([0-9]+)',                   shapy.user.InfoHandler),
 
-    (r'/api/edit/([0-9]+@[0-9]+)',            shapy.editor.WSHandler),
-
-    (r'/api/scene/([0-9]+@[0-9]+)',           shapy.editor.SceneHandler),
+    # WebSocket handler.
+    (r'/api/edit/([0-9]+)',                   shapy.editor.WSHandler),
 
     # Static files.
     (r'/css/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/css' }),

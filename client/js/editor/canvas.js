@@ -11,12 +11,11 @@ goog.provide('shapy.editor.canvas');
  * It is responsible for setting up the WebGL context and delegating all events
  * to the controller.
  *
- * @param {!shapy.SceneService}  shScene  The Scene service.
  * @param {!shapy.editor.Editor} shEditor The editor service.
  *
  * @return {!angular.directive}
  */
-shapy.editor.canvas = function(shScene, shEditor) {
+shapy.editor.canvas = function(shEditor) {
   return {
     restrict: 'A',
     link: function($scope, $elem, $attrs, canvasCtrl) {
@@ -46,6 +45,7 @@ shapy.editor.canvas = function(shScene, shEditor) {
       // Listen to key press events.
       $elem
         .bind('contextmenu', function(e) { return false; })
+        .bind('selectstart', function(e) { return false; })
         .bind('mousewheel', wrap(shEditor.mouseWheel))
         .mouseenter(wrap(shEditor.mouseEnter))
         .mouseleave(wrap(shEditor.mouseLeave))
@@ -58,6 +58,12 @@ shapy.editor.canvas = function(shScene, shEditor) {
             return;
           }
           shEditor.keyDown(e);
+        }))
+        .keyup(wrap(function(e) {
+          if (e.target.tagName != 'BODY') {
+            return;
+          }
+          shEditor.keyUp(e);
         }));
     }
   };

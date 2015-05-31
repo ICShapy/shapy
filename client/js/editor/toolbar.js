@@ -34,6 +34,8 @@ shapy.editor.ToolbarController = function(
   this.scene = scene;
   /** @public {!Array<!shapy.User>} */
   this.users = [];
+  /** @public {!shapy.editor.Mode} */
+  this.mode = shEditor.mode;
 
   // Watch for changes in the user ID list & fetch user objects periodically.
   $scope.$watch(goog.bind(function() {

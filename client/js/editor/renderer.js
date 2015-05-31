@@ -43,16 +43,20 @@ shapy.editor.OBJECT_FS =
 
 
 /** @type {string} @const */
-shapy.editor.BORDER_VS =
+shapy.editor.OVERLAY_VS =
   'attribute vec2 a_vertex;                                           \n' +
   'uniform vec2 u_size;                                               \n' +
+  'uniform vec2 u_pos;\n' +
+  'uniform vec2 u_dim;\n' +
   'void main() {                                                      \n' +
-  '  gl_Position = vec4(a_vertex * (1.0 - 0.5 / u_size), 0.0, 1.0);   \n' +
+  '  vec2 pos = u_pos + a_vertex * u_dim;                             \n' +
+  '  pos = 2.0 * pos / u_size - 1.0;                                    \n' +
+  '  gl_Position = vec4(pos * (1.0 - 0.5 / u_size), 0.0, 1.0);   \n' +
   '}                                                                  \n';
 
 
 /** @type {string} @const */
-shapy.editor.BORDER_FS =
+shapy.editor.OVERLAY_FS =
   'precision mediump float;                                           \n' +
   'uniform vec4 u_colour;                                             \n' +
   'void main() {                                                      \n' +
@@ -86,20 +90,20 @@ shapy.editor.CUBE_FS =
 /** @type {string} @const */
 shapy.editor.GROUND_VS =
   'attribute vec3 a_vertex;                                           \n' +
-  'uniform mat4 u_vp;\n' +
-  'uniform vec2 u_size;\n' +
-  'varying vec3 v_vertex;\n' +
+  'uniform mat4 u_vp;                                                 \n' +
+  'uniform vec2 u_size;                                               \n' +
+  'varying vec3 v_vertex;                                             \n' +
 
   'void main() {                                                      \n' +
-  '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);\n' +
-  '  v_vertex = vertex;\n' +
-  '  gl_Position = u_vp * vec4(vertex, 1.0);\n' +
+  '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);            \n' +
+  '  v_vertex = vertex;                                               \n' +
+  '  gl_Position = u_vp * vec4(vertex, 1.0);                          \n' +
   '}                                                                  \n';
 
 
 /** @type {string} @const */
 shapy.editor.GROUND_FS =
-  '#extension GL_OES_standard_derivatives : enable                         \n' +
+  '#extension GL_OES_standard_derivatives : enable                      \n' +
 
   'precision mediump float;                                             \n' +
 
@@ -123,7 +127,7 @@ shapy.editor.GROUND_FS =
   '  float a5x = alpha(a5.x, 0.02);\n' +
   '  float a5z = alpha(a5.y, 0.02);\n' +
 
-  '  vec4 colour = vec4(0.2, 0.2, 0.2, 0.5);\n' +
+  '  vec4 colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
   '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
@@ -194,10 +198,10 @@ shapy.editor.Renderer = function(gl) {
   this.shObject_.link();
 
   /** @private {!shapy.editor.Shader} @const */
-  this.shBorder_ = new shapy.editor.Shader(this.gl_);
-  this.shBorder_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.BORDER_VS);
-  this.shBorder_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.BORDER_FS);
-  this.shBorder_.link();
+  this.shOverlay_ = new shapy.editor.Shader(this.gl_);
+  this.shOverlay_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OVERLAY_VS);
+  this.shOverlay_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OVERLAY_FS);
+  this.shOverlay_.link();
 
   /** @private {!shapy.editor.Shader} @const */
   this.shGround_ = new shapy.editor.Shader(this.gl_);
@@ -224,7 +228,12 @@ shapy.editor.Renderer = function(gl) {
   this.bfRect_ = this.gl_.createBuffer();
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, new Float32Array([
-      -1, -1, 1, -1, 1, 1, -1, 1
+      0, 0, 1, 0, 1, 1, 0, 1
+  ]), goog.webgl.STATIC_DRAW);
+  this.bfQuad_ = this.gl_.createBuffer();
+  this.gl_.bindBuffer(goog.webgl.ELEMENT_ARRAY_BUFFER, this.bfQuad_);
+  this.gl_.bufferData(goog.webgl.ELEMENT_ARRAY_BUFFER, new Uint16Array([
+    0, 1, 2, 0, 2, 3
   ]), goog.webgl.STATIC_DRAW);
 
   /** @private {!WebGLBuffer} @const */
@@ -366,7 +375,7 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  // Renders the ground plane.
+  // Renders the border plane.
   this.gl_.enable(goog.webgl.BLEND);
   this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
   {
@@ -374,6 +383,7 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
     this.shGround_.uniformMat4x4('u_vp', vp.camera.vp);
     this.shGround_.uniform2f('u_size', 35, 35);
 
+    this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);
     this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfGround_);
     this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
@@ -385,28 +395,47 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
 
 
 /**
- * Renders the border.
+ * Renders the border & selection box.
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.
  */
-shapy.editor.Renderer.prototype.renderBorder = function(vp) {
+shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
   this.gl_.disable(goog.webgl.DEPTH_TEST);
+  this.gl_.enable(goog.webgl.BLEND);
+  this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
+  this.gl_.enableVertexAttribArray(0);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
+  this.gl_.bindBuffer(goog.webgl.ELEMENT_ARRAY_BUFFER, this.bfQuad_);
+  this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 8, 0);
   {
-    this.shBorder_.use();
-    this.shBorder_.uniform2f('u_size', vp.rect.w, vp.rect.h);
-    vp.active ?
-        this.shBorder_.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0) :
-        this.shBorder_.uniform4f('u_colour', 0.4, 0.4, 0.4, 1.0);
+    this.shOverlay_.use();
+    this.shOverlay_.uniform2f('u_size', vp.rect.w, vp.rect.h);
+    this.shOverlay_.uniform2f('u_pos', 0, 0);
+    this.shOverlay_.uniform2f('u_dim', vp.rect.w, vp.rect.h);
 
-    this.gl_.enableVertexAttribArray(0);
-    this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfRect_);
-    this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 8, 0);
+    // Border.
+    vp.active ?
+        this.shOverlay_.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0) :
+        this.shOverlay_.uniform4f('u_colour', 0.4, 0.4, 0.4, 1.0);
     this.gl_.drawArrays(goog.webgl.LINE_LOOP, 0, 4);
-    this.gl_.disableVertexAttribArray(0);
+
+    // Selection box.
+    if (vp.group) {
+      this.shOverlay_.uniform2f('u_pos', vp.group.left, vp.group.top);
+      this.shOverlay_.uniform2f('u_dim', vp.group.width, vp.group.height);
+
+      this.shOverlay_.uniform4f('u_colour', 0.4, 0.4, 0.4, 1.0);
+      this.gl_.drawArrays(goog.webgl.LINE_LOOP, 0, 4);
+      this.shOverlay_.uniform4f('u_colour', 0.2, 0.2, 0.2, 0.7);
+      this.gl_.drawElements(
+          goog.webgl.TRIANGLES, 6, goog.webgl.UNSIGNED_SHORT, 0);
+    }
   }
+  this.gl_.disableVertexAttribArray(0);
+  this.gl_.disable(goog.webgl.BLEND);
   this.gl_.enable(goog.webgl.DEPTH_TEST);
 };
 
@@ -452,7 +481,7 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
 
   // Compute distance from the centre and pass this to the rig
   if (rig) {
-    rig.setScale(goog.vec.Vec3.distance(vp.camera.eye, vp.camera.center));
+    rig.setScale(vp.camera);
   }
 
   this.gl_.enable(goog.webgl.STENCIL_TEST);

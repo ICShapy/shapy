@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.browser.BrowserService');
+goog.provide('shapy.browser.Service');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Asset.Dir');
@@ -21,7 +21,7 @@ goog.require('shapy.browser.Asset.Texture');
  * @param {!angular.$http} $http The angular http service.
  * @param {!angular.$q}    $q    The angular promise service.
  */
-shapy.browser.BrowserService = function($http, $q) {
+shapy.browser.Service = function($http, $q) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!angular.$q} @const */
@@ -64,6 +64,12 @@ shapy.browser.BrowserService = function($http, $q) {
    * @export
    */
   this.query = '';
+
+  /*
+   * Cached scenes.
+   * @private {!Object<string, shapy.Scene>} @const
+   */
+  this.scenes_ = {};
 };
 
 
@@ -75,7 +81,7 @@ shapy.browser.BrowserService = function($http, $q) {
  *
  * @return {!angular.$q}
  */
-shapy.browser.BrowserService.prototype.rename = function(asset, name) {
+shapy.browser.Service.prototype.rename = function(asset, name) {
   return this.http_.post('/api/assets/rename', {
       id: asset.id,
       name: name
@@ -93,7 +99,7 @@ shapy.browser.BrowserService.prototype.rename = function(asset, name) {
  *
  * @return {!shapy.browser.Asset.Dir}
  */
-shapy.browser.BrowserService.prototype.createDir = function(
+shapy.browser.Service.prototype.createDir = function(
     public,
     parent)
 {
@@ -105,6 +111,7 @@ shapy.browser.BrowserService.prototype.createDir = function(
   })
   .then(goog.bind(function(response) {
     return new shapy.browser.Asset.Dir(
+        this,
         response.data['id'],
         response.data['name'],
         parent
@@ -122,36 +129,74 @@ shapy.browser.BrowserService.prototype.createDir = function(
  *
  * @return {!angular.$q}
  */
-shapy.browser.BrowserService.prototype.queryDir = function(dir, public) {
-  var publicSpace = (public) ? 1 : 0;
-  return this.http_.get('/api/assets/dir/' + dir.id + '/' + publicSpace)
-      .then(function(response) {
-        var assets = [];
-
-        // Iterate over responses, convert into assets.
-        goog.array.forEach(response.data, function(item) {
-          switch (item['type']) {
-            case 'dir':
-              assets.push(new shapy.browser.Asset.Dir(
-                  item['id'], item['name'], dir));
-              break;
-            case 'scene':
-              assets.push(new shapy.browser.Asset.Scene(
-                  item['id'], item['name']), item['preview'], dir);
-              break;
-            case 'texture':
-              assets.push(new shapy.browser.Asset.Texture(
-                  item['id'], item['name']), item['preview'], dir);
-              break;
-            default:
-              console.log('Wrong type in database!');
-              break;
+shapy.browser.Service.prototype.queryDir = function(dir) {
+  return this.http_.get('/api/assets/dir', {params: { id: dir.id }})
+    .then(goog.bind(function(response) {
+      console.log(response);
+      dir.loaded = true;
+      return goog.array.filter(goog.array.map(response['data'], function(item) {
+        switch (item['type']) {
+          case 'dir': {
+            return new new shapy.browser.Asset.Dir(
+                this, item['id'], item['name'], dir
+            );
           }
-        });
+          case 'scene': {
+            return new shapy.browser.Asset.Scene(
+                this, item['id'], item['name'], dir
+            );
+          }
+          case 'texture': {
+            return new shapy.browser.Asset.Texture(
+                this, item['id'], item['name'], dir
+            );
+          }
+        }
 
-        // Note that loading done.
-        dir.loaded = true;
+        console.error('Invalid asset type: "' + item['type'] + '"');
+        return null;
+      }, this), goog.isDefAndNotNull);
+    }, this));
+};
 
-        return assets;
-      });
+
+
+/**
+ * Fetches a scene from the server or from local storage.
+ *
+ * @param {string} sceneID ID of the scene.
+ *
+ * @return {!angular.$q} Promise to return the scene.
+ */
+shapy.browser.Service.prototype.getScene = function(sceneID) {
+  var defer = this.q_.defer();
+
+  if (!sceneID) {
+    defer.reject({ error: 'Invalid scene ID'});
+    return defer.promise;
+  }
+
+  if (goog.object.containsKey(this.scenes_, sceneID)) {
+    defer.resolve(this.scenes_[sceneID]);
+    return defer.promise;
+  }
+
+  this.http_.get('/api/scene/' + sceneID).success(goog.bind(function(data) {
+    this.scenes_[sceneID] = new shapy.Scene(sceneID, data);
+    defer.resolve(this.scenes_[sceneID]);
+  }, this));
+
+  return defer.promise;
+};
+
+
+/**
+ * Creates a new scene.
+ *
+ * @return {!angular.$q} Promise to return a new scene.
+ */
+shapy.browser.Service.prototype.createScene = function() {
+  var defer = this.q_.defer();
+  defer.reject();
+  return defer.promise;
 };

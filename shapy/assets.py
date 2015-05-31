@@ -12,145 +12,151 @@ from tornado.web import HTTPError, asynchronous
 from shapy.common import APIHandler, session
 
 
-class DirFetchHandler(APIHandler):
-  """Handles requests to the REST API."""
+class DirHandler(APIHandler):
+  """Handles requests to a directory resource."""
 
   @session
   @coroutine
   @asynchronous
-  def get(self, assetNumber, publicSpace, user):
+  def get(self, user = None):
+    """Retrieves the specified directory."""
+
+    # Validate arguments.
+    id = int(self.get_argument('id'))
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      raise HTTPError(401, 'Not authorized.')
 
-    # Convert from binary
-    public = bool(int(publicSpace))
-
-    # Check if public space queried correctly
-    if public and assetNumber != '-1':
-      raise HTTPError(400, 'There are no subdirs in public space.')
-
-    # Check if private dir request is valid - can only browse home ('0')
-    # or existing dir.
-    if not public and assetNumber != '0':
+    if id:
+      # If ID is not 0, retrieve information about a directory.
       cursor = yield momoko.Op(self.db.execute,
-          '''SELECT 1
-             FROM assets
-             WHERE id = %s
-             AND owner = %s
-             AND public = %s
-             ''',
-          (assetNumber, user.id, public))
-      if not cursor.fetchone():
-        raise HTTPError(400, 'Illegal request for assets.')
-
-    # Fetch data from the database.
-    cursor = yield momoko.Op(self.db.execute,
-        '''SELECT id, name, type, preview
+        '''SELECT id, name
            FROM assets
-           WHERE parent = %s
-           AND owner = %s
-           AND public = %s
-           ''',
-       (assetNumber, user.id, public))
+           WHERE id = %s
+             AND type = %s
+        ''', (
+        id,
+        'dir'
+      ))
 
-    # Return json with answer
-    self.write(json.dumps([
-        {
-          'id': id,
-          'name' : name,
-          'type' : type,
-          'preview' : preview
-        }
-        for (id, name, type, preview) in cursor.fetchall()
-    ]))
+      # See if resource exists.
+      data = cursor.fetchone()
+      if not data:
+        raise HTTPError(404, 'Directory does not exist.')
+    else:
+      # Otherwise, fetch home directory.
+      data = (0, 'home')
 
-    self.finish()
-
-
-
-class DirCreateHandler(APIHandler):
-  """Handles requests to the REST API."""
-
-  @session
-  @coroutine
-  @asynchronous
-  def post(self, user):
-    if not user:
-      raise HTTPError(401, 'User not logged in.')
-
-    # Retrieve asset data.
-    req     = json.loads(self.request.body)
-    data    = req['data'] if 'data' in req else None
-    preview = req['preview'] if 'preview' in req else None
-    public  = req['public'] if 'public' in req else None
-    parent  = req['parent'] if 'parent' in req else None
-
-    # Check if required data specified
-    if public is None or parent is None:
-      raise HTTPError(400, 'Missing asset data, cannot create asset.')
-
-    # Create new account - store in database
+    # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-        '''INSERT INTO assets (id, name, type, data, preview, public, owner, parent)
-           VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s)
-           RETURNING id''', (
-           'New Folder',
-           'dir',
-           data,
-           preview,
-           public,
-           user.id,
-           parent
+      '''SELECT id, name, type, preview
+         FROM assets
+         WHERE parent = %s
+           AND owner = %s
+      ''', (
+      data[0],
+      user.id
     ))
 
-    # Check if the user was created successfully.
-    asset = cursor.fetchone()
-    if not asset:
-      raise HTTPError(400, 'Asset creation failed.')
-
-    #return id
+    # Return JSON answer.
     self.write(json.dumps({
-        'id': asset[0],
-        'name': 'New Folder',
-        'type': 'dir',
-        'preview': ''
+      'id': data[0],
+      'name': data[1],
+      'data': [
+        {
+          'id': item[0],
+          'name': item[1],
+          'type': item[2],
+          'preview': item[3]
+        }
+        for item in cursor.fetchall()
+      ]
     }))
     self.finish()
 
 
-
-class DeleteHandler(APIHandler):
-  """Handles requests to the REST API."""
-
   @session
   @coroutine
   @asynchronous
-  def post(self, user):
+  def post(self, user=None):
+    """Creates a new directory."""
+
+    # Validate arguments.
+    id = self.get_argument('id')
+    parent = self.get_argument('parent')
     if not user:
       raise HTTPError(401, 'User not logged in.')
+
+    # Create new account - store in database
+    cursor = yield momoko.Op(self.db.execute,
+      '''INSERT INTO assets (name, type, owner, parent)
+         VALUES (%s, %s, %s, %s)
+         RETURNING id, name
+      ''', (
+      'New Folder',
+      'dir',
+      preview,
+      user.id,
+      parent
+    ))
+
+    # Check if the directory was created successfully.
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(400, 'Asset creation failed.')
+
+    # Return the asset data.
+    self.write(json.dumps({
+        'id': asset[0],
+        'name': asset[1]
+    }))
+    self.finish()
+
+  @session
+  @asynchronous
+  def delete(self, user):
+    """Deletes a directory resource."""
+
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+    if not id:
+      raise HTTPError(404, 'Directory does not exist.')
+
+    # Delete folder entry.
+    yield momoko.Op(self.db.execute,
+      '''DELETE
+         FROM assets
+         WHERE id = %s
+           AND type = %s
+      ''', (
+      id,
+      'dir'
+    ))
 
     self.finish()
 
-
-class RenameHandler(APIHandler):
-  """Handles requests to the REST API."""
-
   @session
-  @coroutine
   @asynchronous
-  def post(self, user):
+  def put(self, user):
+    """Updates a directory resource."""
+
+    # Validate arguments.
     if not user:
       raise HTTPError(401, 'User not logged in.')
+    id = int(self.get_argument('id'))
+    name = self.get_argument('name')
 
-    req = json.loads(self.request.body)
-    id = req['id'] if 'id' in req else None
-    name = req['name'] if 'name' in req else None
-
-    if not id or not name:
-      raise HTTPError(400, 'Missing argument')
-
-    # TODO: permission check
+    # Update the name.
     yield momoko.Op(self.db.execute,
-        '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
+      '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
     )
     self.finish()
+
+
+class SceneHandler(APIHandler):
+  """Handles requests to a scene asset."""
+
+
+class TextureHandler(APIHandler):
+  """Handles requests to a texture asset."""
+

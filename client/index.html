@@ -39,11 +39,15 @@
           'shapy.browser.file'
       ], [
       ]);
-      goog.addDependency('../browser/browser-service.js', [
-          'shapy.browser.BrowserService'
+      goog.addDependency('../browser/service.js', [
+          'shapy.browser.Service'
       ], []);
       goog.addDependency('../editor/canvas.js', [
           'shapy.editor.canvas'
+      ], []);
+      goog.addDependency('../editor/editable.js', [
+          'shapy.editor.Editable',
+          'shapy.editor.Mode'
       ], []);
       goog.addDependency('../editor/editor.js', [
           'shapy.editor.EditorController',
@@ -55,9 +59,11 @@
           'shapy.editor.Renderer',
           'shapy.editor.Viewport',
           'shapy.editor.Rig',
+          'shapy.editor.Rig.Cut',
           'shapy.editor.Rig.Translate',
           'shapy.editor.Rig.Rotate',
-          'shapy.editor.Rig.Scale'
+          'shapy.editor.Rig.Scale',
+          'shapy.editor.Mode'
       ]);
       goog.addDependency('../editor/geom.js', [
           'shapy.editor.geom'
@@ -74,7 +80,8 @@
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
       ], [
-          'shapy.editor.geom'
+          'shapy.editor.geom',
+          'shapy.editor.Editable'
       ]);
       goog.addDependency('../editor/renderer.js', [
           'shapy.editor.Renderer'
@@ -98,6 +105,11 @@
           'shapy.editor.Rig.Translate'
       ], [
           'shapy.editor.geom',
+          'shapy.editor.Rig'
+      ]);
+      goog.addDependency('../editor/rig-cut.js', [
+          'shapy.editor.Rig.Cut'
+      ], [
           'shapy.editor.Rig'
       ]);
       goog.addDependency('../editor/shader.js', [
@@ -131,7 +143,7 @@
       ], [
           'shapy.AuthService',
           'shapy.browser.BrowserController',
-          'shapy.browser.BrowserService',
+          'shapy.browser.Service',
           'shapy.browser.BrowserToolbarController',
           'shapy.browser.sidebar',
           'shapy.browser.files',
