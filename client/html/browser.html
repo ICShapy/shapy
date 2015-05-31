@@ -62,7 +62,7 @@
   <sh-files>
     <div ng-repeat="
           asset in browserCtrl.assets
-        | shFileMatch:browserCtrl.query
+        | shFileMatch:browserCtrl.query()
         | orderBy:'+name'
         track by asset.id ">
       <sh-file>
