@@ -94,12 +94,8 @@ shapy.configStates_ = function(
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {
-        scene: function(user, shBrowser, $stateParams) {
-          if (goog.object.containsKey($stateParams, 'sceneID')) {
-            return shBrowser.getScene($stateParams['sceneID']);
-          } else {
-            return shBrowser.createScene();
-          }
+        scene: function(shBrowser, $stateParams) {
+          return shBrowser.getScene($stateParams['sceneID']);
         }
       },
       views: {
