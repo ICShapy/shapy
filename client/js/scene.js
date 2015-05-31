@@ -94,18 +94,22 @@ shapy.Scene.prototype.setUsers = function(users) {
 /**
  * Picks an object intersected by a ray.
  *
- * @param {!goog.vec.Ray} ray
+ * @param {!goog.vec.Ray}      ray
+ * @param {!shapy.editor.Mode} mode
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.Scene.prototype.pick = function(ray) {
-  var hits;
-
+shapy.Scene.prototype.pickRay = function(ray, mode) {
   // Find all the editable parts that intersect the ray.
-  hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
-    return obj.pick(ray);
+  var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
+    return obj.pickRay(ray);
   });
   hits = goog.array.flatten(hits);
+
+  // Find all allowed objects in the current mode.
+  hits = goog.array.filter(hits, function(hit) {
+    return mode[hit.item.type];
+  });
 
   if (goog.array.isEmpty(hits)) {
     return null;
@@ -118,6 +122,33 @@ shapy.Scene.prototype.pick = function(ray) {
   }, this);
 
   return hits[0].item;
+};
+
+
+/**
+ * Picks a group of objects intersection a frustum.
+ *
+ * @param {!Array<Object>} frustum
+ * @param {!shapy.editor.Mode} mode
+ *
+ * @return {!shapy.editor.Editable}
+ */
+shapy.Scene.prototype.pickFrustum = function(frustum, mode) {
+  var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
+    var ps = obj.pickFrustum(frustum);
+    if (!goog.array.isEmpty(ps)) {
+      ps = goog.array.concat(ps, obj);
+    }
+    return ps;
+  });
+  hits = goog.array.flatten(hits);
+
+  // Find all allowed objects in the current mode.
+  hits = goog.array.filter(hits, function(hit) {
+    return mode[hit.type];
+  });
+
+  return goog.array.isEmpty(hits) ? null : new shapy.editor.EditableGroup(hits);
 };
 
 

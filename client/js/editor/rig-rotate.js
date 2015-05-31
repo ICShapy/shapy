@@ -163,47 +163,47 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
     var data = new Float32Array(9 + (seg + 1) * 3);
     var k = 0;
 
-    data[k++] = pos[0];
-    data[k++] = pos[1];
-    data[k++] = pos[2];
+    data[k++] = 0.0;
+    data[k++] = 0.0;
+    data[k++] = 0.0;
 
     if (this.select_.x) {
-      data[k++] = pos[0] + 0.0;
-      data[k++] = pos[1] + r * Math.cos(this.startAngle_);
-      data[k++] = pos[2] + r * Math.sin(this.startAngle_);
+      data[k++] = 0.0;
+      data[k++] = r * Math.cos(this.startAngle_);
+      data[k++] = r * Math.sin(this.startAngle_);
     } else if (this.select_.y) {
-      data[k++] = pos[0] + r * Math.cos(this.startAngle_);
-      data[k++] = pos[1] + 0.0;
-      data[k++] = pos[2] + r * Math.sin(this.startAngle_);
+      data[k++] = r * Math.cos(this.startAngle_);
+      data[k++] = 0.0;
+      data[k++] = r * Math.sin(this.startAngle_);
     } else {
-      data[k++] = pos[0] + r * Math.cos(this.startAngle_);
-      data[k++] = pos[1] + r * Math.sin(this.startAngle_);
-      data[k++] = pos[2] + 0.0;
+      data[k++] = r * Math.cos(this.startAngle_);
+      data[k++] = r * Math.sin(this.startAngle_);
+      data[k++] = 0.0;
     }
 
-    data[k++] = pos[0];
-    data[k++] = pos[1];
-    data[k++] = pos[2];
+    data[k++] = 0.0;
+    data[k++] = 0.0;
+    data[k++] = 0.0;
 
     var dp = (this.currentAngle_ - this.startAngle_) / seg;
     for (var i = 0; i <= seg + 1; ++i) {
       var p = this.startAngle_ + i * dp;
       if (this.select_.x) {
-        data[k++] = pos[0] + 0.0;
-        data[k++] = pos[1] + r * Math.cos(p);
-        data[k++] = pos[2] + r * Math.sin(p);
+        data[k++] = 0.0;
+        data[k++] = r * Math.cos(p);
+        data[k++] = r * Math.sin(p);
       } else if (this.select_.y) {
-        data[k++] = pos[0] + r * Math.cos(p);
-        data[k++] = pos[1] + 0.0;
-        data[k++] = pos[2] + r * Math.sin(p);
+        data[k++] = r * Math.cos(p);
+        data[k++] = 0.0;
+        data[k++] = r * Math.sin(p);
       } else {
-        data[k++] = pos[0] + r * Math.cos(p);
-        data[k++] = pos[1] + r * Math.sin(p);
-        data[k++] = pos[2] + 0.0;
+        data[k++] = r * Math.cos(p);
+        data[k++] = r * Math.sin(p);
+        data[k++] = 0.0;
       }
     }
 
-    goog.vec.Mat4.makeIdentity(this.model_);
+    goog.vec.Mat4.makeTranslate(this.model_, pos[0], pos[1], pos[2]);
     goog.vec.Mat4.scale(this.model_, this.size_, this.size_, this.size_);
     sh.uniformMat4x4('u_model', this.model_);
     gl.bufferData(goog.webgl.ARRAY_BUFFER, data, goog.webgl.STREAM_DRAW);
@@ -367,6 +367,8 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
  * Handles mouse down event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean} True if event captured.
  */
 shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   var pos = this.object.getPosition();
@@ -374,7 +376,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   var dx, dy, angle;
 
   if (!hit) {
-    return;
+    return false;
   }
 
   this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
@@ -385,18 +387,19 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   if (this.hover_.x) {
     this.initialAngle_ = angle[0];
     this.select_.x = true;
-    return;
+    return true;
   }
   if (this.hover_.y) {
     this.initialAngle_ = angle[1];
     this.select_.y = true;
-    return;
+    return true;
   }
   if (this.hover_.z) {
     this.initialAngle_ = angle[2];
     this.select_.z = true;
-    return;
+    return true;
   }
+  return true;
 };
 
 
