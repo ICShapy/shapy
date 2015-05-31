@@ -177,6 +177,25 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
 };
 
 
+/**
+ * Retrieves the group average scale.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.EditableGroup.prototype.getScale = function() {
+  var scale = goog.vec.Vec3.createFloat32FromValues(1, 1, 1);
+  if (goog.array.isEmpty(this.editables_)) {
+    return scale;
+  }
+
+  goog.object.forEach(this.editables_, function(editable) {
+    goog.vec.Vec3.add(scale, editable.getScale(), scale);
+  }, this);
+  goog.vec.Vec3.scale(scale, 1 / this.editables_.length, scale);
+  return scale;    
+}
+
+
 
 /**
  * Collection of object parts.
@@ -235,7 +254,7 @@ shapy.editor.PartsGroup.prototype.getObject = function() {
   }
   var object = this.editables_[0].object;
   var same = goog.array.every(this.editables_, function(e) {
-      return e.object == object;
+    return e.object == object;
   });
 
   return same ? object : null;
@@ -288,6 +307,26 @@ shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
     goog.vec.Vec3.subtract(delta, mid, delta);
     goog.vec.Vec3.add(delta, object.getPosition(), delta);
     object.translate(delta[0], delta[1], delta[2]);
+  });
+};
+
+
+/**
+ * Scale the group
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
+  var scale = this.getScale();
+
+  // Apply translation to each object
+  goog.object.forEach(this.editables_, function(object) {
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, scale, delta);
+    goog.vec.Vec3.add(delta, object.getScale(), delta);
+    object.scale(delta[0], delta[1], delta[2]);
   });
 };
 
