@@ -173,7 +173,7 @@ shapy.Scene.prototype.pickFrustum = function(frustum, selected, mode) {
  */
 shapy.Scene.prototype.createCube = function(w, h, d) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createCube(id, w, h, d);
+  var object = shapy.editor.Object.createCube(id, this, w, h, d);
   this.objects[id] = object;
   return object;
 };
@@ -190,7 +190,7 @@ shapy.Scene.prototype.createCube = function(w, h, d) {
  */
 shapy.Scene.prototype.createSphere = function(r, slices, stacks) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createSphere(id, r, slices, stacks);
+  var object = shapy.editor.Object.createSphere(id, this, r, slices, stacks);
   this.objects[id] = object;
   return object;
 };

@@ -295,7 +295,7 @@ shapy.editor.Editor.prototype.render = function() {
     this.layout_.resize(width, height);
   }
 
-  // Synchronise meshes
+  // Synchronise meshes.
   goog.object.forEach(this.scene_.objects, function(object, name, objects) {
     object.computeModel();
     if (object.dirtyMesh) {
@@ -486,7 +486,7 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
 
 /**
  * Adds an editable to a selection group.
- *
+ * 
  * @private
  *
  * @param {!shapy.editor.Editable} editable

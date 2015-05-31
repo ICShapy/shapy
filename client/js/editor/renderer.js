@@ -324,7 +324,7 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
   if (goog.object.containsKey(this.objectCache_, object.id)) {
     this.objectCache_[object.id][0].free();
   }
-  this.objectCache_[object.id] = [mesh, object.model_];
+  this.objectCache_[object.id] = [mesh, object.model_, object];
 
   // Store this revision
   if (!(object.id in this.objectHistory_)) {
@@ -343,6 +343,14 @@ shapy.editor.Renderer.prototype.start = function() {
     goog.webgl.COLOR_BUFFER_BIT |
     goog.webgl.DEPTH_BUFFER_BIT |
     goog.webgl.STENCIL_BUFFER_BIT);
+
+  this.objectCache_ = goog.object.filter(this.objectCache_, function(obj) {
+    if (!obj[2].deleted) {
+      return true;
+    }
+    obj[0].free();
+    return false;
+  });
 };
 
 

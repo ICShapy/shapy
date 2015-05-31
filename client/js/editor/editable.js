@@ -373,8 +373,10 @@ shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z) {
 /**
  * Delete the objects.
  */
-shapy.editor.EditableGroup.prototype.delete = function() {
-
+shapy.editor.ObjectGroup.prototype.delete = function() {
+  goog.object.forEach(this.editables_, function(object) {
+    object.delete();
+  });
 };
 
 
