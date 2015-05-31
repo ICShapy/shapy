@@ -161,14 +161,3 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Scene.put(self.redis, scene)
     yield Task(self.lock.release)
     raise Return(scene)
-
-
-class SceneHandler(APIHandler):
-  """Retrieves information a specific scene."""
-
-  @coroutine
-  def get(self, id):
-    self.write(json.dumps({
-        'name': 'Untitled Scene',
-        'users': []
-    }))

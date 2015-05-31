@@ -93,11 +93,7 @@ sh-sidebar .create > button:active {
 
 
 sh-sidebar .directory {
-
-}
-
-sh-sidebar .directory > div {
-  padding-left: 14px;
+  position: relative;
 }
 
 sh-sidebar .directory img {
@@ -105,6 +101,16 @@ sh-sidebar .directory img {
   height: 8px;
   padding: 2px;
   cursor: pointer;
+}
+
+sh-sidebar .directory .name {
+  height: 20px;
+}
+
+sh-sidebar .directory .name > span {
+  position: absolute;
+  left: 15px;
+  height: 15px;
 }
 
 sh-sidebar .name {

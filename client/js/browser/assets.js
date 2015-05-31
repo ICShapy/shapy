@@ -44,6 +44,11 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
   this.ready = null;
 
   /**
+   * Flag set to true when loading finishes.
+   */
+  this.loaded = false;
+
+  /**
    * Name of the asset.
    * @public {string} @const
    */
@@ -123,7 +128,7 @@ goog.inherits(shapy.browser.Asset.Dir, shapy.browser.Asset);
  * @return {boolean} True if folder has subdirectories.
  */
 shapy.browser.Asset.Dir.prototype.hasSubdirs = function() {
-  return !this.ready || goog.array.some(this.children, function(child) {
+  return !this.loaded || goog.array.some(this.children, function(child) {
     return child.type == shapy.browser.Asset.Type.DIRECTORY;
   }, this);
 };
@@ -175,11 +180,15 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
     asset.parent = this;
     this.children.push(asset);
   }, this);
+
+  this.loaded = true;
 };
 
 
 /**
  * Saves a directory.
+ *
+ * @param {string} name New name.
  */
 shapy.browser.Asset.prototype.rename = function(name) {
   this.name = name;

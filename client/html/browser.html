@@ -31,7 +31,7 @@
     <!-- Directory tree. -->
     <script type="text/ng-template" id="directory.html">
       <div ng-repeat="dir in directories | shDirectories" class="directory">
-        <span
+        <div
             ng-init="open=false"
             class="name" >
           <img
@@ -44,9 +44,12 @@
               ng-click="open=!open; browserCtrl.select(dir)"
               ng-show="!open&&dir.hasSubdirs()"
               src="/img/arrow-right.svg" />
-          <span ng-click="browserCtrl.select(dir)"> {{ dir.name }} </span>
-        </span>
-        <div ng-show="open">
+          <span
+              ng-click="browserCtrl.select(dir)">
+            {{ dir.name }}
+          </span>
+        </div>
+        <div ng-show="open" style="padding-left: 14px">
           <sh-sidebar-folders>
             <ng-include
                 src="'directory.html'"

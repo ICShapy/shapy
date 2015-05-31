@@ -158,6 +158,18 @@ class DirHandler(APIHandler):
 class SceneHandler(APIHandler):
   """Handles requests to a scene asset."""
 
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Retrieves a scene from the database."""
+
+    self.write(json.dumps({
+        'name': 'Untitled Scene',
+        'users': []
+    }))
+    self.finish()
+
 
 class TextureHandler(APIHandler):
   """Handles requests to a texture asset."""
