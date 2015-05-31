@@ -33,7 +33,7 @@ shapy.browser.BrowserService = function($http, $q) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-  this.home = new shapy.browser.Asset.Dir(this, 0, 'home', null);
+  this.home = new shapy.browser.Asset.Dir(0, 'home', null);
 
   /**
    * Public home dir.
@@ -41,7 +41,7 @@ shapy.browser.BrowserService = function($http, $q) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-  this.homePublic = new shapy.browser.Asset.Dir(this, -1, 'homePublic', null);
+  this.homePublic = new shapy.browser.Asset.Dir(-1, 'homePublic', null);
 
   /**
    * Path to current folder
@@ -101,10 +101,10 @@ shapy.browser.BrowserService.prototype.createDir = function(
 
 /**
  * Sends request to server to query database for contents of given dir.
- *
  * Returns array of assets.
  *
  * @param {!shapy.browser.Asset.Dir} dir Directory that we want to be queried.
+ * @param {boolean} public Type of directory to query.
  *
  * @return {!angular.$q}
  */
