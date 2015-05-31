@@ -175,6 +175,13 @@ shapy.editor.Editor = function($location, $rootScope) {
     }
     this.sendCommand({ type: 'name', value: newName });
   }, this));
+
+  // Watch for changes in the mode.
+  this.rootScope_.$watch(goog.bind(function() {
+    return this.mode;
+  }, this), goog.bind(function(newMode, oldMode) {
+    this.modeChange_();
+  }, this), true);
 };
 
 
@@ -377,6 +384,7 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
   }
 
   this.rootScope_.$apply(goog.bind(function() {
+    console.log("receivinf:", data['type']);
     switch (data['type']) {
       case 'name': {
         if (this.scene_.name != data['value']) {
@@ -455,6 +463,23 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
   this.selected_.setSelected(true);
   if (this.rig_) {
     this.rig_.object = object;
+  }
+};
+
+
+/**
+ * Disselects the currently selected object(s) not allowed by the mode.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.modeChange_ = function() {
+  // Makes sure the object is not disselceted when switching from object
+  // mode to face/edge/vertex mode in order to allow for group selection.
+  if (this.selected_ && !this.mode[this.selected_.type] &&
+      this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
+    this.selected_.setSelected(false);
+    this.selected_ = null;
+    this.rig(null);
   }
 };
 
@@ -721,6 +746,6 @@ shapy.editor.Editor.prototype.sendCommand = function(data) {
     this.pending_.push(data);
     return;
   }
-
+  console.log(data);
   this.sock_.send(JSON.stringify(data));
 };

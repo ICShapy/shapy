@@ -107,7 +107,7 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
  * @extends {shapy.editor.Editable}
  */
 shapy.editor.EditableGroup = function(opt_editables) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.EDITABLE_GROUP);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDITABLE_GROUP);
 
   /** @private {!Array<shapy.editor.Editable>} List of editables to control */
   this.editables_ = opt_editables || [];
@@ -249,7 +249,7 @@ shapy.editor.EditableGroup.prototype.getObject = function() {
  * @extends {shapy.editor.Editable}
  */
 shapy.editor.ObjectGroup = function(objects) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.OBJECT_GROUP);
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT_GROUP);
 
   /**
    * @private
@@ -375,6 +375,8 @@ shapy.editor.Mode = function() {
   this.vertex = false;
   this.edge = false;
   this.face = false;
+  this.editableGroup = false;
+  this.objectGroup = true;
 };
 
 
@@ -383,13 +385,14 @@ shapy.editor.Mode = function() {
  */
 shapy.editor.Mode.prototype.toggleObject = function() {
   if (this.object) {
-    this.object = false;
-    this.vertex = this.edge = this.face = true;
+    this.object = this.objectGroup = false;
+    this.vertex = this.edge = this.face = this.editableGroup = true;
   } else {
-    this.object = true;
+    this.object = this.objectGroup = true;
     this.vertex = false;
     this.edge = false;
     this.face = false;
+    this.editableGroup = false;
   }
 };
 
@@ -399,7 +402,8 @@ shapy.editor.Mode.prototype.toggleObject = function() {
  */
 shapy.editor.Mode.prototype.toggleFace = function() {
   this.face = !this.face;
-  this.object = !(this.face || this.edge || this.vertex);
+  this.editableGroup = this.face || this.edge || this.vertex;  
+  this.object = this.objectGroup = !this.editableGroup;
 };
 
 
@@ -408,7 +412,8 @@ shapy.editor.Mode.prototype.toggleFace = function() {
  */
 shapy.editor.Mode.prototype.toggleEdge = function() {
   this.edge = !this.edge;
-  this.object = !(this.face || this.edge || this.vertex);
+  this.editableGroup = this.face || this.edge || this.vertex;
+  this.object = this.objectGroup = !this.editableGroup;
 };
 
 
@@ -417,5 +422,6 @@ shapy.editor.Mode.prototype.toggleEdge = function() {
  */
 shapy.editor.Mode.prototype.toggleVertex = function() {
   this.vertex = !this.vertex;
-  this.object = !(this.face || this.edge || this.vertex);
+  this.editableGroup = this.face || this.edge || this.vertex;  
+  this.object = this.objectGroup = !this.editableGroup;
 };
