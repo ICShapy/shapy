@@ -475,40 +475,42 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
  * @param {!shapy.editor.Editable} editable
  */
 shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
-  // Add to an existing group.
+  // Removing from the group.
+  if (editable.selected) {
+    this.selected_.remove(editable);
+
+    // Editable was the last member of the group.
+    if (this.selected_.isEmpty()) {
+      this.selected_ = null;
+      this.rig(null);
+    }
+    return;   
+  }
+
+  // Adding.
+  var group;
+  // The group already exists.
   if (this.selected_.type == shapy.editor.Editable.Type.OBJECT_GROUP ||
       this.selected_.type == shapy.editor.Editable.Type.PARTS_GROUP) {
-
-    // Disselecting
-    if (editable.selected) {
-      this.selected_.remove(editable);
-
-      if (this.selected_.isEmpty()) {
-        this.select(null);
-      }      
-    } else {
-      this.selected_.add(editable);
-    }
+    group = this.selected_;
   } else {
     // Start a new group.
-    var newGroup;
     if (this.selected_.type == shapy.editor.Editable.Type.OBJECT) {
-      newGroup = new shapy.editor.ObjectGroup();
+      group = new shapy.editor.ObjectGroup([this.selected_]);
     } else {
-      newGroup = new shapy.editor.PartsGroup();
+      group = new shapy.editor.PartsGroup([this.selected_]);
     }
-
-    // Add to the group.
-    newGroup.add(this.selected_);
-    newGroup.add(editable);
-    newGroup.setSelected(true);
-    this.selected_ = newGroup;
+    
+    group.setSelected(true);
+    this.selected_ = group;
 
     if (this.rig_) {
-      this.rig_.object = newGroup;
+      this.rig_.object = group;
     }
   }
-  console.log(editable);
+    
+  // Add to the group.
+  group.add(editable);
 };
 
 
@@ -526,16 +528,17 @@ shapy.editor.Editor.prototype.select = function(editable) {
   }
 
   if (this.selected_) {
-    // Selection group.
-    if (this.ctrlDown_) {
-      this.addToSelGroup_(editable);
-      return;
-    }    
-
     // Trying to select the same object has no effect.
     if (this.selected_ == editable) {
       return;
     }
+
+    // Selection group.
+    if (this.ctrlDown_) {
+      this.addToSelGroup_(editable);
+      return;
+    }
+
     this.selected_.setSelected(false);
   }
 

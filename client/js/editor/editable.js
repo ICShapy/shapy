@@ -123,7 +123,6 @@ goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
  */
 shapy.editor.EditableGroup.prototype.add = function(editable) {
   goog.array.insert(this.editables_, editable);
-  console.log(this.selected);
   editable.setSelected(this.selected);
 };
 
