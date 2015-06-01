@@ -188,7 +188,15 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(
     return goog.array.isEmpty(hits) ? null : new shapy.editor.PartsGroup(hits);
   }
 
-  return goog.array.isEmpty(hits) ? null : new shapy.editor.ObjectGroup(hits);
+  if (goog.array.isEmpty(hits)) {
+    return null;
+  }
+
+  if (hits.length == 1) {
+    return hits[0];
+  } else {
+    return new shapy.editor.ObjectGroup(hits);
+  }
 };
 
 
