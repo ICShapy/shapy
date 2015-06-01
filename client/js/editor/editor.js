@@ -468,23 +468,6 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
 
 
 /**
- * Set the currently selected object in the editor/rig/etc
- *
- * @private
- *
- * @param {!shapy.editor.Editable} object
- */
-shapy.editor.Editor.prototype.selectObject_ = function(object) {
-  this.selected_ = object;
-  this.selected_.setSelected(true);
-
-  if (this.rig_) {
-    this.rig_.object = object;
-  }
-};
-
-
-/**
  * Adds an editable to a selection group.
  * 
  * @private
@@ -495,11 +478,8 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
   // Add to an existing group.
   if (this.selected_.type == shapy.editor.Editable.Type.OBJECT_GROUP ||
       this.selected_.type == shapy.editor.Editable.Type.PARTS_GROUP) {
-    if (editable) {
-      editable.setSelected(true);
-      if (!this.selected_.add(editable)) {
-        this.select(null);
-      }
+    if (!this.selected_.add(editable)) {
+      his.select(null);
     }
   } else {
     // Start a new group.
@@ -513,9 +493,14 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
     // Add to the group.
     newGroup.add(this.selected_);
     newGroup.add(editable);
-    this.selectObject_(newGroup);
-    editable.setSelected(true);
+    this.selected_ = newGroup;
+    this.selected_.setSelected(true);
+
+    if (this.rig_) {
+      this.rig_.object = newGroup;
+    }
   }
+  editable.setSelected(true);
 };
 
 
@@ -525,24 +510,32 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
  * @param {!shapy.editor.Editable} editable
  */
 shapy.editor.Editor.prototype.select = function(editable) {
-  if (this.ctrlDown_ && this.selected_) {
-    this.addToSelGroup_(editable);
-  } else {
-    // Unselect the previous editable
-    if (this.selected_) {
-      this.selected_.setSelected(false);
-    }
+  // Disselecting/ deleting.
+  if (!editable) {
+    this.selected_ = null;
+    this.rig(null);
+    return;
+  }
 
-    // If the editable is null, remove the rig
-    if (!editable) {
-      this.selected_ = null;
-      this.rig(null);
+  if (this.selected_) {
+    // Selection group.
+    if (this.ctrlDown_) {
+      this.addToSelGroup_(editable);
+      return;
+    }    
+
+    // Trying to select the same object has no effect.
+    if (this.selected_ == editable) {
       return;
     }
+    this.selected_.setSelected(false);
+  }
 
-    // Mark the editable as selected
-    editable.setSelected(true);
-    this.selectObject_(editable);
+  editable.setSelected(true);
+  this.selected_ = editable;
+
+  if (this.rig_) {
+    this.rig_.object = editable;
   }
 };
 
