@@ -7,7 +7,6 @@ sh-sidebar {
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
   z-index: 1000;
-  overflow: hidden;
 }
 
 sh-sidebar .create img {
@@ -96,6 +95,7 @@ sh-sidebar .create > button:active {
 
 
 sh-sidebar .directory {
+  overflow: hidden;
   position: relative;
 }
 
