@@ -145,38 +145,38 @@ shapy.browser.Asset.Dir.prototype.hasSubdirs = function() {
  * @param {!Object} data Data from the server.
  */
 shapy.browser.Asset.Dir.prototype.load = function(data) {
-  // Fill in the name if uknown.
+  // Fill in the name if unknown.
   this.name = data.name || 'Untitled Directory';
 
   // Fill in child directories.
-  goog.array.forEach(data['data'], function(c) {
+  goog.array.forEach(data['data'], function(child) {
     var asset;
 
-    switch (c['type']) {
+    switch (child['type']) {
       case shapy.browser.Asset.Type.DIRECTORY: {
-        if (goog.object.containsKey(this.shBrowser_.dirs_, c.id)) {
-          asset = this.shBrowser_.dirs_[c.id];
+        if (goog.object.containsKey(this.shBrowser_.dirs_, child.id)) {
+          asset = this.shBrowser_.dirs_[child.id];
         } else {
-          asset = new shapy.browser.Asset.Dir(this.shBrowser_, c.id, c);
-          this.shBrowser_.dirs_[c.id] = asset;
+          asset = new shapy.browser.Asset.Dir(this.shBrowser_, child.id, child);
+          this.shBrowser_.dirs_[child.id] = asset;
         }
         break;
       }
       case shapy.browser.Asset.Type.SCENE: {
-        if (goog.object.containsKey(this.shBrowser_.scenes_, c.id)) {
-          asset = this.shBrowser_.scenes_[c.id];
+        if (goog.object.containsKey(this.shBrowser_.scenes_, child.id)) {
+          asset = this.shBrowser_.scenes_[child.id];
         } else {
-          asset = new shapy.browser.Asset.Scene(this.shBrowser_, c.id, c);
-          this.shBrowser_.scenes_[c.id] = asset;
+          asset = new shapy.browser.Asset.Scene(this.shBrowser_, child.id, child);
+          this.shBrowser_.scenes_[child.id] = asset;
         }
         break;
       }
       case shapy.browser.Asset.Type.TEXTURE: {
-        if (goog.object.containsKey(this.shBrowser_.textures_, c.id)) {
-          asset = this.shBrowser_.textures_[c.id];
+        if (goog.object.containsKey(this.shBrowser_.textures_, child.id)) {
+          asset = this.shBrowser_.textures_[child.id];
         } else {
-          asset = new shapy.browser.Asset.Texture(this.shBrowser_, c.id, c);
-          this.shBrowser_.textures_[c.id] = asset;
+          asset = new shapy.browser.Asset.Texture(this.shBrowser_, child.id, child);
+          this.shBrowser_.textures_[child.id] = asset;
         }
         break;
       }

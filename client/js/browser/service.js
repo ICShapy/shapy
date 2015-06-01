@@ -95,8 +95,10 @@ shapy.browser.Service = function($http, $q) {
  */
 shapy.browser.Service.prototype.create_ = function(url, cache, cons) {
   var parent = this.current;
+  // Request new asset from server.
   return this.http_.post(url, { parent: parent.id })
       .then(goog.bind(function(response) {
+        // Create asset representation, cache it, update parent/child refs.
         var asset = new cons(this, response.data.id, response.data);
         cache[asset.id] = asset;
         parent.children.push(asset);
@@ -161,16 +163,20 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
   }
 
   var asset;
+  // Check cache.
   if (goog.object.containsKey(cache, id)) {
     asset = cache[id];
+    // Return if asset loaded.
     if (asset.ready) {
       return asset.ready.promise;
     }
   } else {
+    // Construct (unloaded) asset.
     asset = new cons(this, id);
     cache[id] = asset;
   }
 
+  // Request asset data from server.
   asset.ready = this.q_.defer();
   this.http_.get(url, {params: { id: id }})
     .then(goog.bind(function(response) {
