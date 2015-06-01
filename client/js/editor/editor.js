@@ -468,6 +468,23 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
 
 
 /**
+ * Set the currently selected editable in the editor/rig/etc
+ *
+ * @private
+ *
+ * @param {!shapy.editor.Editable} editable
+ */
+shapy.editor.Editor.prototype.markSelected_ = function(editable) {
+  editable.setSelected(true);
+  this.selected_ = editable;
+
+  if (this.rig_) {
+    this.rig_.object = editable;
+  }
+};
+
+
+/**
  * Adds an editable to a selection group.
  * 
  * @private
@@ -501,12 +518,7 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
       group = new shapy.editor.PartsGroup([this.selected_]);
     }
     
-    group.setSelected(true);
-    this.selected_ = group;
-
-    if (this.rig_) {
-      this.rig_.object = group;
-    }
+    this.markSelected_(group); 
   }
     
   // Add to the group.
@@ -520,7 +532,7 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
  * @param {!shapy.editor.Editable} editable
  */
 shapy.editor.Editor.prototype.select = function(editable) {
-  // Disselecting/ deleting.
+  // Deselecting/ deleting.
   if (!editable) {
     this.selected_ = null;
     this.rig(null);
@@ -538,16 +550,11 @@ shapy.editor.Editor.prototype.select = function(editable) {
       this.addToSelGroup_(editable);
       return;
     }
-
+    // Deselect currently selected object.
     this.selected_.setSelected(false);
   }
 
-  editable.setSelected(true);
-  this.selected_ = editable;
-
-  if (this.rig_) {
-    this.rig_.object = editable;
-  }
+  this.markSelected_(editable);
 };
 
 
