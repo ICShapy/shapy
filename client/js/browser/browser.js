@@ -175,10 +175,9 @@ shapy.browser.BrowserToolbarController.prototype.public = function() {
  *
  */
 shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
-  var dir =
-      new shapy.browser.Asset.Dir(this.shBrowser_, -1, 'homePublic', null);
-  this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
-    this.shBrowser_.changeDirectory(dir);
+  this.shBrowser_.getPublic().then(goog.bind(function(dir) {
+    this.shBrowser_.public = true;
+    this.shBrowser_.current = dir;
   }, this));
 };
 
