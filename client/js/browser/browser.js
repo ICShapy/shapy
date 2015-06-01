@@ -4,8 +4,9 @@
 goog.provide('shapy.browser.BrowserController');
 goog.provide('shapy.browser.BrowserToolbarController');
 goog.provide('shapy.browser.directories');
+goog.provide('shapy.browser.assetMatch');
+goog.provide('shapy.browser.assetOrder');
 goog.provide('shapy.browser.file');
-goog.provide('shapy.browser.fileMatch');
 goog.provide('shapy.browser.files');
 goog.provide('shapy.browser.sidebar');
 
@@ -255,13 +256,52 @@ shapy.browser.file = function() {
  *
  * @return {Function}
  */
-shapy.browser.fileMatch = function() {
-  return function(files, pattern) {
-    return goog.array.filter(files, function(asset) {
+shapy.browser.assetMatch = function() {
+  return function(assets, pattern) {
+    return goog.array.filter(assets, function(asset) {
       return goog.string.contains(asset.name, pattern);
     });
   };
 };
+
+
+
+/**
+ * Orders asset by type and alphabetically within type.
+ *
+ * @return {Function}
+ */
+shapy.browser.assetOrder = function() {
+  return function(assets) {
+    return assets.sort(function (asset1, asset2) {
+      var comparison =
+          shapy.browser.typeToInt(asset1.type) -
+          shapy.browser.typeToInt(asset2.type);
+      if (comparison !== 0) {
+        return comparison;
+      } else {
+        return asset1.name.localeCompare(asset2.name);
+      }
+    });
+  };
+};
+
+
+
+/**
+ * Converts asset type to int.
+ *
+ * @param {shapy.browser.Asset.Type} type Type to convert.
+ */
+shapy.browser.typeToInt = function(type) {
+  switch (type) {
+    case shapy.browser.Asset.Type.DIRECTORY: return 1;
+    case shapy.browser.Asset.Type.SCENE:     return 2;
+    case shapy.browser.Asset.Type.TEXTURE:   return 3;
+    default:                                 return 0;
+  }
+};
+
 
 
 /**
@@ -270,8 +310,8 @@ shapy.browser.fileMatch = function() {
  * @return {Function}
  */
 shapy.browser.directories = function() {
-  return function(files) {
-    return goog.array.filter(files, function(asset) {
+  return function(assets) {
+    return goog.array.filter(assets, function(asset) {
       return asset.type == shapy.browser.Asset.Type.DIRECTORY;
     });
   };
