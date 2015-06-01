@@ -176,9 +176,13 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(
   });
 
   // Allow selecting multiple parts of the currently selected object only.
-  if (!mode[shapy.editor.Editable.Type.OBJECT]) {
+  if (selected && !mode[shapy.editor.Editable.Type.OBJECT]) {
+    var owner = selected;
+    if (selected.type == shapy.editor.Editable.Type.PARTS_GROUP) {
+      owner = selected.getObject();
+    }
     hits = goog.array.filter(hits, function(hit) {
-      return hit.object == selected;
+      return hit.object == owner;
     });
 
     return goog.array.isEmpty(hits) ? null : new shapy.editor.PartsGroup(hits);
