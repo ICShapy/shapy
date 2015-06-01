@@ -58,13 +58,14 @@ shapy.browser.Service = function($http, $q) {
    */
   this.current = null;
 
+
   /**
-   * Public home dir.
-   *
-   * @public {!shapy.browser.Asset.Dir}
-   * @const
+   * Type of current directory.
+   * @type {boolean}
+   * @public
+   * @export
    */
-  //this.homePublic = new shapy.browser.Asset.Dir(-1, 'homePublic', null);
+  this.public = false;
 
   /**
    * Path to current folder.
@@ -81,6 +82,31 @@ shapy.browser.Service = function($http, $q) {
   this.query = '';
 };
 
+/**
+ * Updates data regarding current directory.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir entered.
+ */
+shapy.browser.Service.prototype.updateCurrentDir = function(dir) {
+  // Update current dir and its type.
+  this.current = dir;
+  this.public = dir.id < 0;
+
+  // If entered private dir, update path.
+  if (!this.public) {
+    // Compose new path to current dir.
+    var newPath = [dir];
+    var current = dir;
+    while (current.parent !== null) {
+      current = current.parent;
+      newPath.push(current);
+    }
+    newPath.reverse();
+
+    this.path = newPath;
+  }
+
+};
 
 /**
  * Creates a new asset.

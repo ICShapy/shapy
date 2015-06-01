@@ -40,33 +40,10 @@ shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-  this.home = this.shBrowser_.home = this.shBrowser_.current = home;
+  this.home = this.shBrowser_.home = home;
 
-  /**
-   * Type of current directory.
-   * @type {boolean}
-   * @public
-   * @export
-   */
-  this.public = false;
-
-  /**
-   * Public home dir.
-   *
-   * @public {!shapy.browser.Asset.Dir}
-   * @const
-   */
-  this.homePublic = this.shBrowser_.homePublic;
-};
-
-
-/**
- * Returns the current directory.
- *
- * @return {!shapy.browser.Asset.Dir}
- */
-shapy.browser.BrowserController.prototype.current = function() {
-  return this.shBrowser_.current;
+  // Update current dir data.
+  this.shBrowser_.updateCurrentDir(this.home);
 };
 
 
@@ -79,7 +56,7 @@ shapy.browser.BrowserController.prototype.select = function(asset) {
   switch (asset.type) {
     case shapy.browser.Asset.Type.DIRECTORY: {
       this.shBrowser_.getDir(asset.id).then(goog.bind(function(asset) {
-        this.shBrowser_.current = asset;
+        this.shBrowser_.updateCurrentDir(asset);
       }, this));
       break;
     }
@@ -126,48 +103,14 @@ shapy.browser.BrowserController.prototype.createTexture = function() {
 
 
 /**
- * Enters public assets space.
+ * Returns the current directory.
  *
+ * @return {!shapy.browser.Asset.Dir}
  */
-shapy.browser.BrowserController.prototype.publicEnter = function() {
-  this.public = true;
-  this.shBrowser_.currentDir = this.homePublic;
+shapy.browser.BrowserController.prototype.current = function() {
+  return this.shBrowser_.current;
 };
 
-/**
- * Enters directory chosen from folder tree.
- *
- * @param {!shapy.browser.Asset.Dir} dir Dir to enter.
- */
-shapy.browser.BrowserController.prototype.enterFromTree = function(dir) {
-  // Compose new path to current dir.
-  var newPath = [];
-  var current = dir;
-  while (current.parent !== null) {
-    current = current.parent;
-    newPath.push(current);
-  }
-  newPath.reverse();
-
-  // Pass new path to toolbar.
-  this.shBrowser_.path = newPath;
-
-  // Enter the directory.
-  this.assetEnter(dir);
-};
-
-/**
- * Updates subdirectories of provided directory.
- *
- * @param {!shapy.browser.Asset.Dir} dir Dir which subdirs we update.
- */
-shapy.browser.BrowserController.prototype.subdirs = function(dir) {
-  if (!dir.loaded) {
-    // Query database for the contents - causes automatic update.
-    this.shBrowser_.queryDir(dir, this.public);
-  }
-
-};
 
 /**
  * Returns query for filtering assets.
@@ -203,6 +146,7 @@ shapy.browser.BrowserToolbarController = function(
   }, this));
 };
 
+
 /**
  * Returns path to currently browsed directory.
  *
@@ -214,21 +158,38 @@ shapy.browser.BrowserToolbarController.prototype.path = function() {
 
 
 /**
- * Returns to given asset(dir).
+ * Returns type of current directory.
  *
- * @param {!shapy.browser.Asset.Dir} asset Asset to which to return.
+ * @return {boolean}
  */
-shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
-{
-  // Drop redundant tail of path.
-  var poppedAsset;
-  do {
-    poppedAsset = this.shBrowser_.path.pop();
-  } while (poppedAsset.id != asset.id);
+shapy.browser.BrowserToolbarController.prototype.public = function() {
+  return this.shBrowser_.public;
+};
 
-  // Message BrowserController that user requested returning to
-  // given asset from path.
-  this.shBrowser_.currentDir = asset;
+
+/**
+ * Enters public assets space.
+ *
+ */
+shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
+  var dir =
+      new shapy.browser.Asset.Dir(this.shBrowser_, -1, 'homePublic', null);
+  this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
+    this.shBrowser_.updateCurrentDir(dir);
+  }, this));
+};
+
+
+/**
+ * Selects chosen dir from path.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir chosen by user.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir)
+{
+  this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
+    this.shBrowser_.updateCurrentDir(dir);
+  }, this));
 };
 
 
