@@ -196,6 +196,9 @@ sh-file > .name {
   font-size: 14px;
   padding: 0 10px 0 10px;
   cursor: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 sh-file > .name:focus {
@@ -212,6 +215,16 @@ sh-file > div {
 
 sh-file > div:hover {
   box-shadow: 2px 2px 2px #bbbbbb;
+}
+
+sh-file.selected > div {
+  background-color: #3399FF;
+  border: 1px solid #0066FF;
+  box-shadow: 1px 1px 1px #0066FF;
+}
+
+sh-file.selected > .name {
+  font-weight: bold;
 }
 
 /**

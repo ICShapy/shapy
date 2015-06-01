@@ -43,6 +43,14 @@ shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
   this.home = this.shBrowser_.home = this.shBrowser_.current = home;
 
   /**
+   * Currently selected asset.
+   *
+   * @public {!shapy.browser.Asset}
+   * @expose
+   */
+  this.selected = null;
+
+  /**
    * Type of current directory.
    * @type {boolean}
    * @public
