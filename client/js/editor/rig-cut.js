@@ -140,9 +140,7 @@ shapy.editor.Rig.Cut.prototype.mouseMove = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
-  // TODO(Ilija): Refactor hits after merging with object.
-  // hits
-  var hits = goog.array.flatten(this.object.pick(ray));
+  var hits = goog.array.flatten(this.object.pickRay(ray));
 
   if (goog.array.isEmpty(hits)) {
     return null;
@@ -153,9 +151,7 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
     var db = goog.vec.Vec3.distance(ray.origin, b.point);
     return da - db;
   }, this);
-
   var i = hits[0].point;
-  // hits
 
   // Update the render flag & turn.
   if (this.turn_ == this.ps_.length) {

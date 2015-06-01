@@ -227,8 +227,8 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   //this.layout_ = new shapy.editor.Layout.Double();
   //this.scene_.createSphere(0.5, 16, 16);
   this.layout_ = new shapy.editor.Layout.Single();
-  this.select(goog.object.getAnyValue(this.scene_.objects));
-  this.rig(this.rigTranslate_);
+  //this.select(goog.object.getAnyValue(this.scene_.objects));
+  //this.rig(this.rigTranslate_);
 };
 
 
@@ -375,7 +375,6 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
   }
 
   this.rootScope_.$apply(goog.bind(function() {
-    console.log("receivinf:", data['type']);
     switch (data['type']) {
       case 'name': {
         if (this.scene_.name != data['value']) {
@@ -486,6 +485,7 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
 shapy.editor.Editor.prototype.selectObject_ = function(object) {
   this.selected_ = object;
   this.selected_.setSelected(true);
+
   if (this.rig_) {
     this.rig_.object = object;
   }
@@ -500,7 +500,7 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
  * @param {!shapy.editor.Editable} editable
  */
 shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
-  // Add to an existing group
+  // Add to an existing group.
   if (this.selected_.type == shapy.editor.Editable.Type.OBJECT_GROUP ||
       this.selected_.type == shapy.editor.Editable.Type.PARTS_GROUP) {
     if (editable) {
@@ -510,7 +510,7 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
       }
     }
   } else {
-    // Start a new group
+    // Start a new group.
     var newGroup;
     if (this.selected_.type == shapy.editor.Editable.Type.OBJECT) {
       newGroup = new shapy.editor.ObjectGroup();
@@ -574,6 +574,7 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   //    object.type != shapy.editor.Editable.Type.OBJECT) {
   //  return;
   //}
+
   // Cut rig should not be attached to anything other than objects.
   //if (rig.type == shapy.editor.Rig.Type.CUT &&
   //    this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
@@ -773,6 +774,5 @@ shapy.editor.Editor.prototype.sendCommand = function(data) {
     this.pending_.push(data);
     return;
   }
-  console.log(data);
   this.sock_.send(JSON.stringify(data));
 };
