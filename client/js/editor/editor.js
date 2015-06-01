@@ -227,8 +227,8 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   //this.layout_ = new shapy.editor.Layout.Double();
   //this.scene_.createSphere(0.5, 16, 16);
   this.layout_ = new shapy.editor.Layout.Single();
-  //this.select(goog.object.getAnyValue(this.scene_.objects));
-  //this.rig(this.rigTranslate_);
+  this.select(goog.object.getAnyValue(this.scene_.objects));
+  this.rig_ = this.rigTranslate_;
 };
 
 
@@ -534,6 +534,9 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
 shapy.editor.Editor.prototype.select = function(editable) {
   // Deselecting/ deleting.
   if (!editable) {
+    if (this.selected_) {
+      this.selected_.setSelected(false);
+    }
     this.selected_ = null;
     this.rig(null);
     return;
@@ -687,14 +690,11 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   if (group && group.width > 3 && group.height > 3) {
     var frustum = this.layout_.active.groupcast(group);
-    if (pick = this.scene_.pickFrustum(frustum, this.selected_, this.mode)) {
-      this.select(pick);
-    }
+    pick = this.scene_.pickFrustum(frustum, this.selected_, this.mode);
   } else {
-    if (pick = this.scene_.pickRay(ray, this.mode)) {
-      this.select(pick);
-    }
+    pick = this.scene_.pickRay(ray, this.mode);
   }
+  this.select(pick);
 };
 
 
