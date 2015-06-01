@@ -3,6 +3,7 @@
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.browser.BrowserController');
 goog.provide('shapy.browser.BrowserToolbarController');
+goog.provide('shapy.browser.directories');
 goog.provide('shapy.browser.file');
 goog.provide('shapy.browser.fileMatch');
 goog.provide('shapy.browser.files');
@@ -20,39 +21,18 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @constructor
  *
- * @param {!angular.$scope}               $rootScope Root scope.s
- * @param {!angular.$http}                $http The angular $http service.
+ * @param {!angular.$state}               $state    The angular state service.
+ * @param {!angular.$http}                $http     The angular $http service.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
+ * @param {!shapy.browser.Asset.Dir}      home      The home directory.
  */
-shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
+shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
+  /** @private {!angular.$state} @const */
+  this.state_ = $state;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!shapy.browser.BrowserService} @const */
   this.shBrowser_ = shBrowser;
-
-  /**
-   * Current directory.
-   * @type {shapy.browser.Asset.Dir}
-   * @public
-   * @export
-   */
-  this.currentDir = null;
-
-  /**
-   * Type of current directory.
-   * @type {boolean}
-   * @public
-   * @export
-   */
-  this.public = false;
-
-  /**
-   * Public home dir.
-   *
-   * @public {!shapy.browser.Asset.Dir}
-   * @const
-   */
-  this.homePublic = this.shBrowser_.homePublic;
 
   /**
    * Private home dir.
@@ -60,84 +40,37 @@ shapy.browser.BrowserController = function($rootScope, $http, shBrowser) {
    * @public {!shapy.browser.Asset.Dir}
    * @const
    */
-  this.home = this.shBrowser_.home;
+  this.home = this.shBrowser_.home = home;
 
-  /**
-   * Assets in current directory.
-   * TODO: get rid of this, redundant, use currentDir instead everywhere.
-   * @type Array
-   * @public
-   * @export
-   */
-  this.assets = [];
-
-  // Enter home folder.
-  this.shBrowser_.path = [];
-  this.assetEnter(this.home);
-
-  /**
-   * Query from user filtering results.
-   * @public {string}
-   * @export
-   */
-  this.query = 'file';
-
-  // TODO: use service, get rid of message passing.
-  $rootScope.$on('browser', goog.bind(function(name, data) {
-    switch (data['type']) {
-      case 'query': {
-        this.query = data['query'];
-        break;
-      }
-      case 'pathAsset': {
-        this.assetEnter(data['asset']);
-        break;
-      }
-    }
-  }, this));
+  // Update current dir data.
+  this.shBrowser_.changeDirectory(this.home);
 };
+
 
 /**
  * Performs action associated with clicking on given asset.
  *
  * @param {!shapy.browser.Asset} asset Asset that is to be entered.
  */
-shapy.browser.BrowserController.prototype.assetEnter = function(asset) {
+shapy.browser.BrowserController.prototype.select = function(asset) {
   switch (asset.type) {
-    case 'dir' :
-      this.public = false;
-      this.currentDir = asset;
-      this.displayDir(asset);
+    case shapy.browser.Asset.Type.DIRECTORY: {
+      this.shBrowser_.getDir(asset.id).then(goog.bind(function(asset) {
+        this.shBrowser_.changeDirectory(asset);
+      }, this));
       break;
+    }
+    case shapy.browser.Asset.Type.SCENE: {
+      this.shBrowser_.getScene(asset.id).then(goog.bind(function(asset) {
+        this.state_.go('main.editor', { sceneID: asset.id });
+      }, this));
+      break;
+    }
     default :
       console.log('assetEnter - unimplemented case!');
   }
 };
 
-/**
- * Displays content of given dir.
- *
- * @param {!shapy.browser.Asset.Dir} dir Dir to display.
- */
-shapy.browser.BrowserController.prototype.displayDir = function(dir) {
-  // Update path with dir.
-  // Do not update if we entered public space.
-  if (!this.public) {
-    this.shBrowser_.path.push(dir);
-  }
-
-  if (dir.loaded) {
-    this.assets = dir.subdirs.concat(dir.otherAssets);
-  } else {
-    // TODO: name not necesary, use return this.queryDir.then(function{..})
-    // Query database for the contents
-    var promise = this.shBrowser_.queryDir(dir, this.public);
-    // Update assets with answer from database.
-    promise.then(goog.bind(function(assets) {
-      this.assets = assets;
-    }, this));
-  }
-};
 
 /**
  * Creates new subdir in current dir.
@@ -145,55 +78,47 @@ shapy.browser.BrowserController.prototype.displayDir = function(dir) {
  * @return {!angular.$q}
  */
 shapy.browser.BrowserController.prototype.createDir = function() {
-  return this.shBrowser_.createDir(this.public, this.currentDir)
-      .then(goog.bind(function(dir) {
-        this.assets.push(dir);
-      }, this));
+  return this.shBrowser_.createDir();
 };
 
+
 /**
- * Enters public assets space.
+ * Creates new scene in current dir.
  *
+ * @return {!angular.$q}
  */
-shapy.browser.BrowserController.prototype.publicEnter = function() {
-  this.public = true;
-  this.currentDir = this.homePublic;
-  this.displayDir(this.homePublic);
+shapy.browser.BrowserController.prototype.createScene = function() {
+  return this.shBrowser_.createScene();
 };
 
+
 /**
- * Enters directory chosen from folder tree.
+ * Creates new texture in current dir.
  *
- * @param {!shapy.browser.Asset.Dir} dir Dir to enter.
+ * @return {!angular.$q}
  */
-shapy.browser.BrowserController.prototype.enterFromTree = function(dir) {
-  // Compose new path to current dir.
-  var newPath = [];
-  var current = dir;
-  while (current.parent !== null) {
-    current = current.parent;
-    newPath.push(current);
-  }
-  newPath.reverse();
-
-  // Pass new path to toolbar.
-  this.shBrowser_.path = newPath;
-
-  // Enter the directory.
-  this.assetEnter(dir);
+shapy.browser.BrowserController.prototype.createTexture = function() {
+  return this.shBrowser_.createTexture();
 };
 
-/**
- * Updates subdirectories of provided directory.
- *
- * @param {!shapy.browser.Asset.Dir} dir Dir which subdirs we update.
- */
-shapy.browser.BrowserController.prototype.subdirs = function(dir) {
-  if (!dir.loaded) {
-    // Query database for the contents - causes automatic update
-    var promise = this.shBrowser_.queryDir(dir, this.public);
-  }
 
+/**
+ * Returns the current directory.
+ *
+ * @return {!shapy.browser.Asset.Dir}
+ */
+shapy.browser.BrowserController.prototype.current = function() {
+  return this.shBrowser_.current;
+};
+
+
+/**
+ * Returns query for filtering assets.
+ *
+ * @return {string}
+ */
+shapy.browser.BrowserController.prototype.query = function() {
+  return this.shBrowser_.query;
 };
 
 
@@ -203,17 +128,13 @@ shapy.browser.BrowserController.prototype.subdirs = function(dir) {
  *
  * @constructor
  *
- * @param {!angular.$scope} $rootScope The root scope.
  * @param {!angular.$scope} $scope The toolbar's scope.
  * @param {!shapy.browser.BrowserService} shBrowser The browser service.
  */
 shapy.browser.BrowserToolbarController = function(
-    $rootScope,
     $scope,
     shBrowser)
 {
-  /** @private {!agular.$scope} @const */
-  this.rootScope_ = $rootScope;
   /** @private {!shapy.browser.BrowserService} @const */
   this.shBrowser_ = shBrowser;
   /** @public {string} @const @export */
@@ -221,12 +142,10 @@ shapy.browser.BrowserToolbarController = function(
 
   // If query changed, message BrowserController that new filtering is needed.
   $scope.$watch('browserCtrl.query', goog.bind(function() {
-    $rootScope.$emit('browser', {
-      type: 'query',
-      query: this.query
-    });
+    this.shBrowser_.query = this.query;
   }, this));
 };
+
 
 /**
  * Returns path to currently browsed directory.
@@ -239,24 +158,38 @@ shapy.browser.BrowserToolbarController.prototype.path = function() {
 
 
 /**
- * Returns to given asset(dir).
+ * Returns type of current directory.
  *
- * @param {!shapy.browser.Asset.Dir} asset Asset to which to return.
+ * @return {boolean}
  */
-shapy.browser.BrowserToolbarController.prototype.assetReturnTo = function(asset)
-{
-  // Drop redundant tail of path.
-  var poppedAsset;
-  do {
-    poppedAsset = this.shBrowser_.path.pop();
-  } while (poppedAsset.id != asset.id);
+shapy.browser.BrowserToolbarController.prototype.public = function() {
+  return this.shBrowser_.public;
+};
 
-  // Message BrowserController that user requested returning to
-  // given asset from path.
-  this.rootScope_.$emit('browser', {
-      type: 'pathAsset',
-      asset: asset
-  });
+
+/**
+ * Enters public assets space.
+ *
+ */
+shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
+  var dir =
+      new shapy.browser.Asset.Dir(this.shBrowser_, -1, 'homePublic', null);
+  this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
+    this.shBrowser_.changeDirectory(dir);
+  }, this));
+};
+
+
+/**
+ * Selects chosen dir from path.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir chosen by user.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir)
+{
+  this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
+    this.shBrowser_.changeDirectory(dir);
+  }, this));
 };
 
 
@@ -328,3 +261,18 @@ shapy.browser.fileMatch = function() {
     });
   };
 };
+
+
+/**
+ * Filters out the directories.
+ *
+ * @return {Function}
+ */
+shapy.browser.directories = function() {
+  return function(files) {
+    return goog.array.filter(files, function(asset) {
+      return asset.type == shapy.browser.Asset.Type.DIRECTORY;
+    });
+  };
+};
+

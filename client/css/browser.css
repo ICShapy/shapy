@@ -7,6 +7,7 @@ sh-sidebar {
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
   z-index: 1000;
+  overflow: hidden;
 }
 
 sh-sidebar .create img {
@@ -30,6 +31,7 @@ sh-sidebar ul.menu {
   border: 1px solid #222222;
   box-shadow: 1px 1px 1px #777777;
   background-color: #eeeeee;
+  z-index: 2000;
 }
 
 sh-sidebar ul.menu {
@@ -61,6 +63,7 @@ sh-sidebar .create > button {
   background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
   border: none;
   cursor: pointer;
+  z-index: 5000;
 }
 
 sh-sidebar .create > button.left {
@@ -93,11 +96,7 @@ sh-sidebar .create > button:active {
 
 
 sh-sidebar .directory {
-
-}
-
-sh-sidebar .directory > div {
-  padding-left: 14px;
+  position: relative;
 }
 
 sh-sidebar .directory img {
@@ -105,6 +104,16 @@ sh-sidebar .directory img {
   height: 8px;
   padding: 2px;
   cursor: pointer;
+}
+
+sh-sidebar .directory .name {
+  height: 20px;
+}
+
+sh-sidebar .directory .name > span {
+  position: absolute;
+  left: 15px;
+  height: 15px;
 }
 
 sh-sidebar .name {
@@ -188,6 +197,9 @@ sh-file > .name {
   font-size: 14px;
   padding: 0 10px 0 10px;
   cursor: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 sh-file > .name:focus {
@@ -204,6 +216,16 @@ sh-file > div {
 
 sh-file > div:hover {
   box-shadow: 2px 2px 2px #bbbbbb;
+}
+
+sh-file.selected > div {
+  background-color: #3399FF;
+  border: 1px solid #0066FF;
+  box-shadow: 1px 1px 1px #0066FF;
+}
+
+sh-file.selected > .name {
+  font-weight: bold;
 }
 
 /**

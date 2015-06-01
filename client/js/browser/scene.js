@@ -1,9 +1,9 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.Scene');
-goog.provide('shapy.SceneService');
+goog.provide('shapy.browser.Asset.Scene');
 
+goog.require('shapy.browser.Asset');
 goog.require('shapy.editor.Object');
 
 
@@ -12,11 +12,21 @@ goog.require('shapy.editor.Object');
  * Class encapsulating all information about a scene.
  *
  * @constructor
+ * @extends {shapy.browser.Asset}
  *
- * @param {string} id ID of the scene.
- * @param {Object} data Data from the server.
+ * @param {!shapy.browser.Service} shBrowser The browser service.
+ * @param {string}                 id        ID of the scene.
+ * @param {=Object}                opt_data  Data from the server.
  */
-shapy.Scene = function(id, data) {
+shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
+  shapy.browser.Asset.call(
+      this,
+      shBrowser,
+      id,
+      shapy.browser.Asset.Type.SCENE,
+      opt_data);
+  var data = opt_data || {};
+
   /**
    * ID of the scene.
    * @public {string} @const
@@ -27,7 +37,7 @@ shapy.Scene = function(id, data) {
    * Name of the scene.
    * @public {string}
    */
-  this.name = data['name'] || 'Untitled';
+  this.name = data['name'] || 'Untitled Scene';
 
   /**
    * List of users editing the scene.
@@ -46,6 +56,20 @@ shapy.Scene = function(id, data) {
    * @private {string}
    */
   this.nextID_ = 0;
+
+  // Preview image.
+  this.image = data['preview'] || '/img/scene.svg';
+};
+goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
+
+
+/**
+ * Loads the asset data.
+ *
+ * @param {Object} data
+ */
+shapy.browser.Asset.Scene.prototype.load = function(data) {
+  this.loaded = true;
 };
 
 
@@ -54,7 +78,7 @@ shapy.Scene = function(id, data) {
  *
  * @return {string} Unique Object ID.
  */
-shapy.Scene.prototype.getNextID = function() {
+shapy.browser.Asset.Scene.prototype.getNextID = function() {
   var id = this.nextID_;
   this.nextID_++;
   return 'obj_' + id;
@@ -66,7 +90,7 @@ shapy.Scene.prototype.getNextID = function() {
  *
  * @param {string} user
  */
-shapy.Scene.prototype.addUser = function(user) {
+shapy.browser.Asset.Scene.prototype.addUser = function(user) {
   goog.array.insert(this.users, user);
 };
 
@@ -76,7 +100,7 @@ shapy.Scene.prototype.addUser = function(user) {
  *
  * @param {string} user
  */
-shapy.Scene.prototype.removeUser = function(user) {
+shapy.browser.Asset.Scene.prototype.removeUser = function(user) {
   goog.array.remove(this.users, user);
 };
 
@@ -86,7 +110,7 @@ shapy.Scene.prototype.removeUser = function(user) {
  *
  * @param {string} users
  */
-shapy.Scene.prototype.setUsers = function(users) {
+shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
   this.users = users;
 };
 
@@ -99,7 +123,7 @@ shapy.Scene.prototype.setUsers = function(users) {
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.Scene.prototype.pickRay = function(ray, mode) {
+shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
   // Find all the editable parts that intersect the ray.
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
     return obj.pickRay(ray);
@@ -128,12 +152,13 @@ shapy.Scene.prototype.pickRay = function(ray, mode) {
 /**
  * Picks a group of objects intersection a frustum.
  *
- * @param {!Array<Object>} frustum
- * @param {!shapy.editor.Mode} mode
+ * @param {!Array<Object>}         frustum  Frostrum.
+ * @param {!shapy.editor.Editable} selected Currently selected editable.
+ * @param {!shapy.editor.Mode}     mode     Current selection mode.
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.Scene.prototype.pickFrustum = function(frustum, mode) {
+shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
     var ps = obj.pickFrustum(frustum);
     if (!goog.array.isEmpty(ps)) {
@@ -148,7 +173,16 @@ shapy.Scene.prototype.pickFrustum = function(frustum, mode) {
     return mode[hit.type];
   });
 
-  return goog.array.isEmpty(hits) ? null : new shapy.editor.EditableGroup(hits);
+  // Allow selecting multiple parts of the currently selected object only.
+  if (!mode[shapy.editor.Editable.Type.OBJECT]) {
+    hits = goog.array.filter(hits, function(hit) {
+      return hit.object == selected;
+    });
+
+    return goog.array.isEmpty(hits) ? null : new shapy.editor.PartsGroup(hits);
+  }
+
+  return goog.array.isEmpty(hits) ? null : new shapy.editor.ObjectGroup(hits);
 };
 
 
@@ -161,9 +195,9 @@ shapy.Scene.prototype.pickFrustum = function(frustum, mode) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.Scene.prototype.createCube = function(w, h, d) {
+shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createCube(id, w, h, d);
+  var object = shapy.editor.Object.createCube(id, this, w, h, d);
   this.objects[id] = object;
   return object;
 };
@@ -178,57 +212,9 @@ shapy.Scene.prototype.createCube = function(w, h, d) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.Scene.prototype.createSphere = function(r, slices, stacks) {
+shapy.browser.Asset.Scene.prototype.createSphere = function(r, slices, stacks) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createSphere(id, r, slices, stacks);
+  var object = shapy.editor.Object.createSphere(id, this, r, slices, stacks);
   this.objects[id] = object;
   return object;
-};
-
-
-
-/**
- * Retrieves a scene object from cache or server.
- *
- * @constructor
- * @ngInject
- *
- * @param {!angular.$http} $http The Angular HTTP service.
- * @param {!angular.$q}    $q    The Angular promise service.
- */
-shapy.SceneService = function($http, $q) {
-  /** @private {!angular.$http} @const */
-  this.http_ = $http;
-  /** @private {!angular.$q} @const */
-  this.q_ = $q;
-  /** @private {!Object<string, shapy.Scene>} @const */
-  this.scenes_ = {};
-};
-
-
-/**
- * Fetches a scene from the server or from local storage.
- *
- * @param {string} sceneID ID of the scene.
- *
- * @return {!angular.$q} Scene wrapped in a promise.
- */
-shapy.SceneService.prototype.get = function(sceneID) {
-  if (!sceneID) {
-    throw new Error('Invalid scene ID');
-  }
-
-  var defer = this.q_.defer();
-
-  if (goog.object.containsKey(this.scenes_, sceneID)) {
-    defer.resolve(this.scenes_[sceneID]);
-    return defer.promise;
-  }
-
-  this.http_.get('/api/scene/' + sceneID).success(goog.bind(function(data) {
-    this.scenes_[sceneID] = new shapy.Scene(sceneID, data);
-    defer.resolve(this.scenes_[sceneID]);
-  }, this));
-
-  return defer.promise;
 };

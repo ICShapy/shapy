@@ -39,8 +39,13 @@
           'shapy.browser.file'
       ], [
       ]);
-      goog.addDependency('../browser/browser-service.js', [
-          'shapy.browser.BrowserService'
+      goog.addDependency('../browser/scene.js', [
+          'shapy.browser.Asset.Scene'
+      ], [
+          'shapy.browser.Asset'
+      ]);
+      goog.addDependency('../browser/service.js', [
+          'shapy.browser.Service'
       ], []);
       goog.addDependency('../editor/canvas.js', [
           'shapy.editor.canvas'
@@ -143,14 +148,13 @@
       ], [
           'shapy.AuthService',
           'shapy.browser.BrowserController',
-          'shapy.browser.BrowserService',
+          'shapy.browser.Service',
           'shapy.browser.BrowserToolbarController',
           'shapy.browser.sidebar',
           'shapy.browser.files',
           'shapy.browser.file',
           'shapy.equals',
           'shapy.highlight',
-          'shapy.SceneService',
           'shapy.UserService',
           'shapy.LoginController',
           'shapy.HeaderController',
@@ -167,10 +171,6 @@
           'shapy.equals',
           'shapy.email',
           'shapy.RegisterController'
-      ], []);
-      goog.addDependency('../scene.js', [
-          'shapy.Scene',
-          'shapy.SceneService'
       ], []);
       goog.addDependency('../users.js', [
           'shapy.User',

@@ -21,18 +21,18 @@ def session(method):
     # If the session token is not set, omit the user id.
     token = self.get_secure_cookie('session')
     if not token:
-      method(self, *args, user=None, **kwargs)
+      yield method(self, *args, user=None, **kwargs)
       raise Return()
 
     # Map the session ID to a user.
     user_id = yield Task(self.redis.hget, 'session:%s' % token, 'user_id')
     if not user_id:
-      method(self, *args, user=None, **kwargs)
+      yield method(self, *args, user=None, **kwargs)
       raise Return()
 
     # Fetch the user info from the database & pass it to the method.
     user = yield Account.get(self.db, user_id)
-    method(self, *args, user=user, **kwargs)
+    yield method(self, *args, user=user, **kwargs)
 
   return wrapper
 
@@ -62,6 +62,18 @@ class BaseHandler(RequestHandler):
 class APIHandler(BaseHandler):
   """Handles requests to the REST API."""
 
+  def prepare(self):
+    """Read request json into arguments dict."""
+
+    if self.request.body:
+      for key, value in json.loads(self.request.body).items():
+        self.request.arguments[key] = [str(value)]
+
+  def set_default_headers(self):
+    """Set the JSON headers."""
+
+    self.set_header('Content-Type', 'application/json')
+
   def write_error(self, status_code, **kwargs):
     """Handles error messages, outputting a properly formatted JSON message."""
 
@@ -72,4 +84,5 @@ class APIHandler(BaseHandler):
       msg = 'Unknown error.'
 
     self.write(json.dumps({ 'error': msg }))
+    self.finish()
 

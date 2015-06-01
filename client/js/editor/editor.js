@@ -175,6 +175,13 @@ shapy.editor.Editor = function($location, $rootScope) {
     }
     this.sendCommand({ type: 'name', value: newName });
   }, this));
+
+  // Watch for changes in the mode.
+  this.rootScope_.$watch(goog.bind(function() {
+    return this.mode;
+  }, this), goog.bind(function(newMode, oldMode) {
+    this.modeChange_();
+  }, this), true);
 };
 
 
@@ -279,7 +286,7 @@ shapy.editor.Editor.prototype.render = function() {
     this.layout_.resize(width, height);
   }
 
-  // Synchronise meshes
+  // Synchronise meshes.
   goog.object.forEach(this.scene_.objects, function(object, name, objects) {
     object.computeModel();
     if (object.dirtyMesh) {
@@ -368,6 +375,7 @@ shapy.editor.Editor.prototype.onMessage_ = function(evt) {
   }
 
   this.rootScope_.$apply(goog.bind(function() {
+    console.log("receivinf:", data['type']);
     switch (data['type']) {
       case 'name': {
         if (this.scene_.name != data['value']) {
@@ -452,6 +460,23 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
 
 
 /**
+ * Disselects the currently selected object(s) not allowed by the mode.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.modeChange_ = function() {
+  // Makes sure the object is not disselected when switching from object
+  // mode to face/edge/vertex mode in order to allow for group selection.
+  if (this.selected_ && !this.mode[this.selected_.type] &&
+      this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
+    this.selected_.setSelected(false);
+    this.selected_ = null;
+    this.rig(null);
+  }
+};
+
+
+/**
  * Set the currently selected object in the editor/rig/etc
  *
  * @private
@@ -468,45 +493,64 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
 
 
 /**
- * Selects an object.
+ * Adds an editable to a selection group.
+ * 
+ * @private
  *
- * @param {!shapy.editor.Editable} object
+ * @param {!shapy.editor.Editable} editable
  */
-shapy.editor.Editor.prototype.select = function(object) {
-  if (this.ctrlDown_ && this.selected_) {
-    // Add to the selection group
-    if (this.selected_.constructor == shapy.editor.EditableGroup) {
-      // Add to an existing group
-      if (object) {
-        object.setSelected(true);
-        if (!this.selected_.add(object)) {
-          this.select(null);
-        }
+shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
+  // Add to an existing group
+  if (this.selected_.type == shapy.editor.Editable.Type.OBJECT_GROUP ||
+      this.selected_.type == shapy.editor.Editable.Type.PARTS_GROUP) {
+    if (editable) {
+      editable.setSelected(true);
+      if (!this.selected_.add(editable)) {
+        this.select(null);
       }
-    } else {
-      // Start a new group
-      var newGroup = new shapy.editor.EditableGroup();
-      newGroup.add(this.selected_);
-      newGroup.add(object);
-      this.selectObject_(newGroup);
-      object.setSelected(true);
     }
   } else {
-    // Unselect the previous object
+    // Start a new group
+    var newGroup;
+    if (this.selected_.type == shapy.editor.Editable.Type.OBJECT) {
+      newGroup = new shapy.editor.ObjectGroup();
+    } else {
+      newGroup = new shapy.editor.PartsGroup();
+    }
+
+    // Add to the group.
+    newGroup.add(this.selected_);
+    newGroup.add(editable);
+    this.selectObject_(newGroup);
+    editable.setSelected(true);
+  }
+};
+
+
+/**
+ * Selects an editable.
+ *
+ * @param {!shapy.editor.Editable} editable
+ */
+shapy.editor.Editor.prototype.select = function(editable) {
+  if (this.ctrlDown_ && this.selected_) {
+    this.addToSelGroup_(editable);
+  } else {
+    // Unselect the previous editable
     if (this.selected_) {
       this.selected_.setSelected(false);
     }
 
-    // If the object is null, remove the rig
-    if (!object) {
+    // If the editable is null, remove the rig
+    if (!editable) {
       this.selected_ = null;
       this.rig(null);
       return;
     }
 
-    // Mark the object as selected
-    object.setSelected(true);
-    this.selectObject_(object);
+    // Mark the editable as selected
+    editable.setSelected(true);
+    this.selectObject_(editable);
   }
 };
 
@@ -536,9 +580,9 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   //  return;
   //}
 
-  if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
-    this.rig_.reset();
-  }
+  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
+  //  this.rig_.reset();
+  //}
 
   this.rig_ = rig;
   this.rig_.object = this.selected_;
@@ -639,7 +683,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   if (group && group.width > 3 && group.height > 3) {
     var frustum = this.layout_.active.groupcast(group);
-    if (pick = this.scene_.pickFrustum(frustum, this.mode)) {
+    if (pick = this.scene_.pickFrustum(frustum, this.selected_, this.mode)) {
       this.select(pick);
     }
   } else {
@@ -661,7 +705,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   if (!(ray = this.layout_.mouseMove(e))) {
     if (group) {
       pick = this.scene_.pickFrustum(
-          this.layout_.active.groupcast(group), this.mode);
+          this.layout_.active.groupcast(group), this.selected_, this.mode);
     }
     if (!pick) {
       if (this.hover_) {
@@ -729,6 +773,6 @@ shapy.editor.Editor.prototype.sendCommand = function(data) {
     this.pending_.push(data);
     return;
   }
-
+  console.log(data);
   this.sock_.send(JSON.stringify(data));
 };

@@ -1,5 +1,6 @@
 <div>
   <sh-sidebar>
+    <!-- Top bar -->
     <div class="create" ng-init="show=false">
       <button
           class="left"
@@ -21,14 +22,16 @@
           Folder
         </li>
         <li
-            ng-click="show=false;browserCtrl.createImage();">
-          Image
+            ng-click="show=false;browserCtrl.createTexture();">
+          Texture
         </li>
       </ul>
     </div>
+
+    <!-- Directory tree. -->
     <script type="text/ng-template" id="directory.html">
-      <div ng-repeat="dir in directories track by dir.id" class="directory">
-        <span
+      <div ng-repeat="dir in directories | shDirectories" class="directory">
+        <div
             ng-init="open=false"
             class="name" >
           <img
@@ -38,16 +41,19 @@
               src="/img/arrow-down.svg" />
           <img
               class="right"
-              ng-click="open=!open; browserCtrl.subdirs(dir)"
+              ng-click="open=!open; browserCtrl.select(dir)"
               ng-show="!open&&dir.hasSubdirs()"
               src="/img/arrow-right.svg" />
-          <span ng-click="browserCtrl.enterFromTree(dir)"> {{ dir.name }} </span>
-        </span>
-        <div ng-show="open">
+          <span
+              ng-click="browserCtrl.select(dir)">
+            {{ dir.name }}
+          </span>
+        </div>
+        <div ng-show="open" style="padding-left: 14px">
           <sh-sidebar-folders>
             <ng-include
                 src="'directory.html'"
-                ng-init="directories=dir.subdirs"/>
+                ng-init="directories=dir.children"/>
           </sh-sidebar-folders>
         </div>
       </div>
@@ -59,20 +65,24 @@
           ng-init="directories=[browserCtrl.home]"/>
     </sh-sidebar-folders>
   </sh-sidebar>
+
+  <!-- Main navigator view. -->
   <sh-files>
-    <div ng-repeat="
-          asset in browserCtrl.assets
-        | shFileMatch:browserCtrl.query
-        | orderBy:'+name'
-        track by asset.id ">
-      <sh-file>
-        <div ng-click="browserCtrl.assetEnter(asset)">
+    <div
+        ng-repeat="
+        asset in browserCtrl.current().children |
+        shFileMatch:browserCtrl.query() |
+        orderBy:'+name'">
+      <sh-file ng-class="{selected: browserCtrl.selected==asset}">
+        <div
+            ng-click="browserCtrl.selected=asset"
+            ng-dblclick="browserCtrl.select(asset)">
           <img ng-src="{{asset.image}}">
         </div>
         <sh-editable
             ng-init="name=asset.name"
             class="name"
-            ng-blur="asset.rename(name);"
+            ng-blur="asset.rename(name)"
             ng-model="name">
         </sh-editable>
       </sh-file>

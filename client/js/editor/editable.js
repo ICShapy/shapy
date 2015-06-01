@@ -99,15 +99,16 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
 
 
 /**
- * Collection of editable objects
+ * Collection of editable parts of an object.
  *
  * @param {=Array<shapy.editor.Editable>} opt_editables
+ * @param {shapy.editor.Editable.Type}
  *
  * @constructor
  * @extends {shapy.editor.Editable}
  */
-shapy.editor.EditableGroup = function(opt_editables) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.GROUP);
+shapy.editor.EditableGroup = function(opt_editables, type) {
+  shapy.editor.Editable.call(this, type);
 
   /** @private {!Array<shapy.editor.Editable>} List of editables to control */
   this.editables_ = opt_editables || [];
@@ -129,8 +130,9 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
   } else {
     this.editables_.push(editable);
   }
-  return this.editables_.length != 0;
+  return !goog.array.isEmpty(this.editables_);
 };
+
 
 /**
  * Hovers the editable.
@@ -142,7 +144,6 @@ shapy.editor.EditableGroup.prototype.setHover = function(hover) {
     editable.setHover(hover);
   }, this);
 };
-
 
 
 /**
@@ -164,7 +165,7 @@ shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
  */
 shapy.editor.EditableGroup.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
-  if (this.editables_.length <= 0) {
+  if (goog.array.isEmpty(this.editables_)) {
     return position;
   }
 
@@ -177,25 +178,68 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
 
 
 /**
+ * Retrieves the group average scale.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.EditableGroup.prototype.getScale = function() {
+  var scale = goog.vec.Vec3.createFloat32FromValues(1, 1, 1);
+  if (goog.array.isEmpty(this.editables_)) {
+    return scale;
+  }
+
+  goog.object.forEach(this.editables_, function(editable) {
+    goog.vec.Vec3.add(scale, editable.getScale(), scale);
+  }, this);
+  goog.vec.Vec3.scale(scale, 1 / this.editables_.length, scale);
+  return scale;    
+}
+
+
+/**
+ * Retrieves the group average rotation.
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.EditableGroup.prototype.getRotation = function() {
+  var rotation = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
+  if (goog.array.isEmpty(this.editables_)) {
+    return rotation;
+  }
+
+  goog.object.forEach(this.editables_, function(editable) {
+    goog.vec.Vec3.add(rotation, editable.getRotation(), rotation);
+  }, this);
+  goog.vec.Vec3.scale(rotation, 1 / this.editables_.length, rotation);
+  return rotation;
+}
+
+
+
+/**
+ * Collection of object parts.
+ *
+ * @param {!Array<shapy.editor.Editable>} parts
+ *
+ * @constructor
+ * @extends {shapy.editor.Editable}
+ */
+shapy.editor.PartsGroup = function(parts) {
+  shapy.editor.EditableGroup.call(
+      this, parts, shapy.editor.Editable.Type.PARTS_GROUP);
+};
+goog.inherits(shapy.editor.PartsGroup, shapy.editor.EditableGroup);
+
+
+/**
  * Translate the group
  *
  * @param {number} x
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
+shapy.editor.PartsGroup.prototype.translate = function(x, y, z) {
   var mid = this.getPosition();
-
-  // Apply translation to each object
-  goog.object.forEach(this.editables_, function(e) {
-    if (e.type != shapy.editor.Editable.Type.OBJECT) {
-      return;
-    }
-    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-    goog.vec.Vec3.subtract(delta, mid, delta);
-    goog.vec.Vec3.add(delta, e.getPosition(), delta);
-    e.translate(delta[0], delta[1], delta[2]);
-  });
 
   // Apply translation to each vertex
   goog.object.forEach(this.getVertices(), function(vertex) {
@@ -208,9 +252,9 @@ shapy.editor.EditableGroup.prototype.translate = function(x, y, z) {
 
 
 /**
- * Delete the editable from the mesh
+ * Delete the parts from the mesh
  */
-shapy.editor.EditableGroup.prototype.delete = function() {
+shapy.editor.PartsGroup.prototype.delete = function() {
   goog.object.forEach(this.editables_, function(editable) {
     editable.delete();
   }, this);
@@ -219,11 +263,29 @@ shapy.editor.EditableGroup.prototype.delete = function() {
 
 
 /**
+ * Returns the object if all selected parts are from the same object.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.PartsGroup.prototype.getObject = function() {
+  if (goog.array.isEmpty(this.editables_)) {
+    return null;
+  }
+  var object = this.editables_[0].object;
+  var same = goog.array.every(this.editables_, function(e) {
+    return e.object == object;
+  });
+
+  return same ? object : null;
+};
+
+
+/**
  * Retrives the vertices forming this group.
  *
  * @return {!Array<!shapy.editor.Object.Vertex>}
  */
-shapy.editor.EditableGroup.prototype.getVertices = function() {
+shapy.editor.PartsGroup.prototype.getVertices = function() {
   var verts = goog.array.flatten(goog.array.map(this.editables_, function(e) {
     return e.getVertices();
   }, this));
@@ -232,21 +294,89 @@ shapy.editor.EditableGroup.prototype.getVertices = function() {
 };
 
 
-/**
- * Returns the object if all selected editables are from the same object.
- *
- * @return {shapy.editor.Object}
- */
-shapy.editor.EditableGroup.prototype.getObject = function() {
-  if (goog.array.isEmpty(this.editables_)) {
-    return null;
-  }
-  var object = this.editables_[0].object;
-  var same = goog.array.every(this.editables_, function(e) {
-      return e.object == object;
-  });
 
-  return same ? object : null;
+/**
+ * Collection of objects.
+ *
+ * @param {!Array<shapy.editor.Editable>} objects
+ *
+ * @constructor
+ * @extends {shapy.editor.Editable}
+ */
+shapy.editor.ObjectGroup = function(objects) {
+  shapy.editor.EditableGroup.call(
+      this, objects, shapy.editor.Editable.Type.OBJECT_GROUP);
+};
+goog.inherits(shapy.editor.ObjectGroup, shapy.editor.EditableGroup);
+
+
+/**
+ * Translate the group
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
+  var mid = this.getPosition();
+
+  // Apply translation to each object
+  goog.object.forEach(this.editables_, function(object) {
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, mid, delta);
+    goog.vec.Vec3.add(delta, object.getPosition(), delta);
+    object.translate(delta[0], delta[1], delta[2]);
+  });
+};
+
+
+/**
+ * Scale the group
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
+  var scale = this.getScale();
+
+  // Apply translation to each object
+  goog.object.forEach(this.editables_, function(object) {
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, scale, delta);
+    goog.vec.Vec3.add(delta, object.getScale(), delta);
+    object.scale(delta[0], delta[1], delta[2]);
+  });
+};
+
+
+/**
+ * Rotate the group
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z) {
+  var rotation = this.getRotation();
+
+  // Apply translation to each object
+  goog.object.forEach(this.editables_, function(object) {
+    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
+    goog.vec.Vec3.subtract(delta, rotation, delta);
+    goog.vec.Vec3.add(delta, object.getRotation(), delta);
+    object.rotate(delta[0], delta[1], delta[2]);
+  });
+};
+
+
+/**
+ * Delete the objects.
+ */
+shapy.editor.ObjectGroup.prototype.delete = function() {
+  goog.object.forEach(this.editables_, function(object) {
+    object.delete();
+  });
 };
 
 
@@ -256,7 +386,8 @@ shapy.editor.EditableGroup.prototype.getObject = function() {
  * @enum {string}
  */
 shapy.editor.Editable.Type = {
-  GROUP: 'group',
+  OBJECT_GROUP: 'objectGroup',
+  PARTS_GROUP: 'partsGroup',
   OBJECT: 'object',
   VERTEX: 'vertex',
   EDGE: 'edge',
@@ -275,6 +406,8 @@ shapy.editor.Mode = function() {
   this.vertex = false;
   this.edge = false;
   this.face = false;
+  this.partsGroup = false;
+  this.objectGroup = true;
 };
 
 
@@ -283,13 +416,14 @@ shapy.editor.Mode = function() {
  */
 shapy.editor.Mode.prototype.toggleObject = function() {
   if (this.object) {
-    this.object = false;
-    this.vertex = this.edge = this.face = true;
+    this.object = this.objectGroup = false;
+    this.vertex = this.edge = this.face = this.partsGroup = true;
   } else {
-    this.object = true;
+    this.object = this.objectGroup = true;
     this.vertex = false;
     this.edge = false;
     this.face = false;
+    this.partsGroup = false;
   }
 };
 
@@ -299,7 +433,8 @@ shapy.editor.Mode.prototype.toggleObject = function() {
  */
 shapy.editor.Mode.prototype.toggleFace = function() {
   this.face = !this.face;
-  this.object = !(this.face || this.edge || this.vertex);
+  this.partsGroup = this.face || this.edge || this.vertex;  
+  this.object = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -308,7 +443,8 @@ shapy.editor.Mode.prototype.toggleFace = function() {
  */
 shapy.editor.Mode.prototype.toggleEdge = function() {
   this.edge = !this.edge;
-  this.object = !(this.face || this.edge || this.vertex);
+  this.partsGroup = this.face || this.edge || this.vertex;
+  this.object = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -317,5 +453,6 @@ shapy.editor.Mode.prototype.toggleEdge = function() {
  */
 shapy.editor.Mode.prototype.toggleVertex = function() {
   this.vertex = !this.vertex;
-  this.object = !(this.face || this.edge || this.vertex);
+  this.partsGroup = this.face || this.edge || this.vertex;  
+  this.object = this.objectGroup = !this.partsGroup;
 };
