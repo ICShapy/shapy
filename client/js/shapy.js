@@ -23,6 +23,8 @@ goog.require('shapy.email');
 goog.require('shapy.equals');
 goog.require('shapy.highlight');
 goog.require('shapy.menu');
+goog.require('shapy.modal.Service');
+goog.require('shapy.modal.root');
 goog.require('shapy.notification.Service');
 goog.require('shapy.notification.notifyBar');
 
@@ -231,6 +233,7 @@ shapy.module = angular
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
   .service('shEditor', shapy.editor.Editor)
+  .service('shModal', shapy.modal.Service)
 
   .directive('shSidebar', shapy.browser.sidebar)
   .directive('shFiles', shapy.browser.files)
@@ -242,6 +245,7 @@ shapy.module = angular
   .directive('shEmail', shapy.email)
   .directive('shMenu', shapy.menu)
   .directive('shEditable', shapy.editable)
+  .directive('shModalRoot', shapy.modal.root)
 
   .factory('shHttp', shapy.HttpInterceptor)
 

@@ -13,7 +13,7 @@ html {
   left: 0;
   right: 0;
   height: 30px;
-  background-color: #0A1E38;
+  background: linear-gradient(to bottom, #0a1e38 0%,#181f5b 100%);
   border-bottom: 1px solid #111111;
   z-index: 1000;
 }
@@ -299,4 +299,62 @@ input.ng-invalid.ng-touched {
 
 .google:focus {
   outline: 0;
+}
+
+#modal {
+  position: fixed;
+  z-index: 10000;
+  background-color: rgba(255, 255, 255, 0.5);
+  top: 0; left: 0; right: 0; bottom: 0;
+}
+
+#modal > .dialog {
+  position: fixed;
+  width: 400px;
+  height: 300px;
+  background-color: white;
+  border: 1px solid #777;
+  box-shadow: 2px 2px 4px #666;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+}
+
+#modal > .dialog > .title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 24px;
+  font-size: 24px;
+  padding: 8px;
+  border-bottom: 1px solid #777;
+  color: white;
+  background: linear-gradient(to bottom, #0a1e38 0%,#181f5b 100%)
+}
+
+#modal > .dialog > .content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  bottom: 32px;
+}
+
+#modal > .dialog > .footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32px;
+  border-top: 1px solid #777;
+}
+
+#modal > .dialog > .footer input[type=button] {
+  display: block;
+  float: right;
+  margin: 4px;
+  height: 24px;
+  width: 70px;
 }
