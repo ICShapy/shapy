@@ -70,7 +70,8 @@
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
       <sh-file
-          file="asset"
+          asset="asset"
+          selected="browserCtrl.selected"
           ng-class="{selected: browserCtrl.selected==asset}">
         <div
             ng-click="browserCtrl.selected=asset"

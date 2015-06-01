@@ -78,7 +78,7 @@ shapy.browser.Asset.prototype.load = goog.abstractMethod;
  * Deletes the asset.
  */
 shapy.browser.Asset.prototype.delete = function() {
-
+  console.log('delete me');
 };
 
 

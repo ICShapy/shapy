@@ -241,20 +241,50 @@ shapy.browser.files = function() {
 /**
  * File directive.
  *
+ * @param {!shapy.modal.Service} shModal
+ *
  * @return {!angular.Directive}
  */
-shapy.browser.file = function() {
+shapy.browser.file = function(shModal) {
+  /**
+   * Handles the deletion of an asset.
+   * @param {!shapy.browser.Asset} asset
+   */
+  var doDelete = function(asset) {
+    shModal.open({
+      size: 'small',
+      title: 'Delete File',
+      template:
+          'Are you sure you want to delete ' +
+          '<strong>{{asset.name}}</strong>' +
+          '?',
+      controller: function($scope) {
+        $scope.asset = asset;
+        $scope.cancel = function() { return false; };
+        $scope.okay = function() {
+          asset.delete();
+        };
+      }
+    });
+  };
+
   return {
     restrict: 'E',
     scope: {
-      file: '='
+      asset: '=',
+      selected: '='
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
-        if (!$scope.file || (evt.keyCode != 100 && evt.keyCode != 8)) {
+        if (evt.keyCode != 100 && evt.keyCode != 8) {
           return;
         }
-        $scope.file.delete();
+        if ($scope.asset != $scope.selected) {
+          return false;
+        }
+        $scope.$apply(function() {
+          doDelete($scope.asset);
+        });
         evt.stopPropagation();
         evt.preventDefault();
         return false;
@@ -290,7 +320,7 @@ shapy.browser.assetMatch = function() {
  */
 shapy.browser.assetOrder = function() {
   return function(assets) {
-    return assets.sort(function (asset1, asset2) {
+    return assets.sort(function(asset1, asset2) {
       var comparison =
           shapy.browser.typeToInt(asset1.type) -
           shapy.browser.typeToInt(asset2.type);

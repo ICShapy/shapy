@@ -310,8 +310,6 @@ input.ng-invalid.ng-touched {
 
 #modal > .dialog {
   position: fixed;
-  width: 400px;
-  height: 300px;
   background-color: white;
   border: 1px solid #777;
   box-shadow: 2px 2px 4px #666;
@@ -319,6 +317,12 @@ input.ng-invalid.ng-touched {
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 3px;
+  overflow: hidden;
+}
+
+#modal > .dialog.small {
+  width: 320px;
+  height: 140px;
 }
 
 #modal > .dialog > .title {
@@ -326,8 +330,8 @@ input.ng-invalid.ng-touched {
   left: 0;
   right: 0;
   top: 0;
-  height: 24px;
-  font-size: 24px;
+  height: 20px;
+  font-size: 20px;
   padding: 8px;
   border-bottom: 1px solid #777;
   color: white;
@@ -338,6 +342,7 @@ input.ng-invalid.ng-touched {
   position: absolute;
   left: 0;
   right: 0;
+  padding: 5px;
   top: 40px;
   bottom: 32px;
 }

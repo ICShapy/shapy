@@ -12,16 +12,18 @@ goog.provide('shapy.modal.root');
  * @constructor
  *
  * @param {!shapy.modal.Service} shModal
+ * @param {!angular.$compile}    $compile Compiles a template.
+ * @param {!angular.$controller} $controller Controller creator.
  *
  * @return {!angular.Directive}
  */
-shapy.modal.root = function(shModal) {
+shapy.modal.root = function(shModal, $compile, $controller) {
   return {
     restrict: 'E',
     replace: true,
     template:
-      '<div id="modal" ng-show="active" ng-click="active=false">' +
-        '<div class="dialog">' +
+      '<div id="modal" ng-show="active">' +
+        '<div class="dialog" ng-class="size">' +
           '<div class="title">{{title}}</div>' +
           '<div class="content">DSADS</div>' +
           '<div class="footer">' +
@@ -39,15 +41,44 @@ shapy.modal.root = function(shModal) {
         '</div>' +
       '</div>',
     link: function($scope, $elem, $attrs) {
-      $scope.active = false;
+      var content = $('.content', $elem);
+      $scope.$watch(function() { return shModal.count; }, function() {
+        if (!shModal.template) {
+          return;
+        }
+        content.html(shModal.template);
+        $scope.title = shModal.title;
+        $scope.size = shModal.size;
+        $scope.active = true;
+        $scope.okay = false;
+        $scope.cancel = false;
 
-      $scope.okay = function() {
-        $scope.active = false;
-      };
+        // Instantiate the child controller.
+        var child = $scope.$new();
+        var controller = $controller(shModal.controller, { $scope: child });
+        if (shModal.controllerAs) {
+          child[shModal.controllerAs] = controller;
+        }
 
-      $scope.cancel = function() {
-        $scope.active = false;
-      };
+        child.$watch('okay', function(okay) {
+          if (!okay) {
+            return;
+          }
+          $scope.okay = function() {
+            $scope.active = !!okay();
+          };
+        });
+        child.$watch('cancel', function(cancel) {
+          if (!cancel) {
+            return;
+          }
+          $scope.cancel = function() {
+            $scope.active = !!cancel();
+          };
+        });
+
+        $compile(content.contents())(child);
+      });
     }
   };
 };
@@ -59,15 +90,33 @@ shapy.modal.root = function(shModal) {
  *
  * @constructor
  * @ngInject
+ *
+ * @param {!angular.$scope}   $rootScope Root scope.
+ * @param {!angular.$compile} $compile   The Angular template compiler.
  */
-shapy.modal.Service = function() {
-
+shapy.modal.Service = function($rootScope, $compile) {
+  /** @public {!Object} */
+  this.controller = null;
+  /** @public {string} */
+  this.title = '';
+  /** @public {string} */
+  this.template = '';
+  /** @public {string} */
+  this.size = 'small';
+  /** @public {number} */
+  this.count = 0;
 };
 
 
 /**
  * Opens up a modal dialog.
+ *
+ * @param {!Object} config
  */
-shapy.modal.Service.prototype.dialog = function() {
-
+shapy.modal.Service.prototype.open = function(config) {
+  this.count++;
+  this.title = config['title'];
+  this.size = config['size'] || 'small';
+  this.template = config['template'] || '';
+  this.controller = config['controller'];
 };

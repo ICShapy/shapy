@@ -17,10 +17,11 @@ goog.require('shapy.browser.Asset.Texture');
  * @constructor
  * @ngInject
  *
- * @param {!angular.$http}           $http The angular http service.
- * @param {!angular.$q}              $q    The angular promise service.
+ * @param {!angular.$http}           $http   The angular http service.
+ * @param {!angular.$q}              $q      The angular promise service.
+ * @param {!shapy.modal.Service}     shModal The modal service.
  */
-shapy.browser.Service = function($http, $q) {
+shapy.browser.Service = function($http, $q, shModal) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!angular.$q} @const */
