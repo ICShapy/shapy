@@ -321,32 +321,18 @@ shapy.browser.assetMatch = function() {
 shapy.browser.assetOrder = function() {
   return function(assets) {
     return assets.sort(function(asset1, asset2) {
-      var comparison =
-          shapy.browser.typeToInt(asset1.type) -
-          shapy.browser.typeToInt(asset2.type);
-      if (comparison !== 0) {
-        return comparison;
-      } else {
+      if (asset1.type == asset2.type) {
         return asset1.name.localeCompare(asset2.name);
       }
+      if (asset1.type == shapy.browser.Asset.Type.DIRECTORY) {
+        return -1;
+      }
+      if (asset2.type == shapy.browser.Asset.Type.DIRECTORY) {
+        return 1;
+      }
+      return asset1.name.localeCompare(asset2.name);
     });
   };
-};
-
-
-
-/**
- * Converts asset type to int.
- *
- * @param {shapy.browser.Asset.Type} type Type to convert.
- */
-shapy.browser.typeToInt = function(type) {
-  switch (type) {
-    case shapy.browser.Asset.Type.DIRECTORY: return 1;
-    case shapy.browser.Asset.Type.SCENE:     return 2;
-    case shapy.browser.Asset.Type.TEXTURE:   return 3;
-    default:                                 return 0;
-  }
 };
 
 
