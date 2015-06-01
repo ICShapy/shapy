@@ -138,7 +138,7 @@ shapy.browser.Service.prototype.create_ = function(url, cache, cons) {
  * @return {!angular.$q} Promise to return a new dir.
  */
 shapy.browser.Service.prototype.createDir = function() {
-  return this.create_('/api/assets/dir', this.dirs_ , shapy.browser.Asset.Dir);
+  return this.create_('/api/assets/dir', this.dirs_, shapy.browser.Asset.Dir);
 };
 
 

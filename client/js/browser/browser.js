@@ -51,12 +51,15 @@ shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
  * Performs action associated with clicking on given asset.
  *
  * @param {!shapy.browser.Asset} asset Asset that is to be entered.
+ * @param {boolean}              enter True if the directory should be selected.
  */
-shapy.browser.BrowserController.prototype.select = function(asset) {
+shapy.browser.BrowserController.prototype.select = function(asset, enter) {
   switch (asset.type) {
     case shapy.browser.Asset.Type.DIRECTORY: {
       this.shBrowser_.getDir(asset.id).then(goog.bind(function(asset) {
-        this.shBrowser_.changeDirectory(asset);
+        if (enter) {
+          this.shBrowser_.changeDirectory(asset);
+        }
       }, this));
       break;
     }
@@ -185,8 +188,7 @@ shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
  *
  * @param {!shapy.browser.Asset.Dir} dir Dir chosen by user.
  */
-shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir)
-{
+shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir) {
   this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
     this.shBrowser_.changeDirectory(dir);
   }, this));

@@ -45,7 +45,7 @@
               ng-show="!open&&dir.hasSubdirs()"
               src="/img/arrow-right.svg" />
           <span
-              ng-click="browserCtrl.select(dir)">
+              ng-click="browserCtrl.select(dir, true)">
             {{ dir.name }}
           </span>
         </div>
@@ -76,7 +76,7 @@
       <sh-file ng-class="{selected: browserCtrl.selected==asset}">
         <div
             ng-click="browserCtrl.selected=asset"
-            ng-dblclick="browserCtrl.select(asset)">
+            ng-dblclick="browserCtrl.select(asset, true)">
           <img ng-src="{{asset.image}}">
         </div>
         <sh-editable

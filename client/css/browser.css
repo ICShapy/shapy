@@ -96,6 +96,7 @@ sh-sidebar .create > button:active {
 
 sh-sidebar .directory {
   position: relative;
+  overflow: hidden;
 }
 
 sh-sidebar .directory img {
