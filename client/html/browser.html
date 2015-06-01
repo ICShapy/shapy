@@ -14,10 +14,6 @@
       </button>
       <ul class="menu" ng-show="show">
         <li
-            ng-click="show=false;browserCtrl.createScene();">
-          Scene
-        </li>
-        <li
             ng-click="show=false;browserCtrl.createDir();">
           Folder
         </li>
@@ -71,8 +67,8 @@
     <div
         ng-repeat="
         asset in browserCtrl.current().children |
-        shFileMatch:browserCtrl.query() |
-        orderBy:'+name'">
+        shAssetMatch:browserCtrl.query() |
+        shAssetOrder">
       <sh-file ng-class="{selected: browserCtrl.selected==asset}">
         <div
             ng-click="browserCtrl.selected=asset"

@@ -9,9 +9,10 @@ goog.require('shapy.UserService');
 goog.require('shapy.browser.BrowserController');
 goog.require('shapy.browser.BrowserToolbarController');
 goog.require('shapy.browser.Service');
+goog.require('shapy.browser.assetMatch');
+goog.require('shapy.browser.assetOrder');
 goog.require('shapy.browser.directories');
 goog.require('shapy.browser.file');
-goog.require('shapy.browser.fileMatch');
 goog.require('shapy.browser.files');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.editable');
@@ -249,7 +250,8 @@ shapy.module = angular
 
   .factory('shHttp', shapy.HttpInterceptor)
 
-  .filter('shFileMatch', shapy.browser.fileMatch)
+  .filter('shAssetMatch', shapy.browser.assetMatch)
+  .filter('shAssetOrder', shapy.browser.assetOrder)
   .filter('shDirectories', shapy.browser.directories)
 
   .config(shapy.configStates_)
