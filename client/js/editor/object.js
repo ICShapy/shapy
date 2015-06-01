@@ -640,6 +640,34 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     return this.edges[edgeID];
   }, this);
 
+  // For all pairs of join pairs, create two faces to fill them in
+  for (var i = 0; i < joinEdges.length; i++) {
+    // A----B <- extruded
+    // |    |
+    // a----b <- origin
+    var aA = joinEdges[i];
+    var bB = joinEdges[(i + 1) % joinEdges.length];
+    var ab = edges[i];
+    var AB = clonedEdges[i];
+
+    // Create diagonal edge
+    var edgeID = this.nextEdge_++;
+    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+      AB.end, ab.start);
+    var diagonal = this.edges[edgeID];
+
+    // Emit faces
+    var emitFace = goog.bind(function(a, b, c) {
+      var faceID = this.nextFace_++;
+      this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+        a.id, b.id, c.id);
+      console.log(a, b, c);
+      return this.faces[faceID];
+    }, this);
+    emitFace(diagonal, aA, AB);
+    emitFace(diagonal, bB, ab);
+  }
+
   this.dirtyMesh = true;
 };
 
@@ -674,33 +702,26 @@ shapy.editor.Object.createCube = function(id, scene, w, h, d) {
     [+w, -h, -d], // 7
   ];
 
-  // Edge layout:
-  //     +--4--+
-  //   8/|7   9/5
-  //   +--0--+ |
-  //   3 +-6-1-+
-  // 11|/    |/10
-  //   +--2--+
   var edges = [
     [0, 1], [1, 3], [3, 2], [2, 0], // Front
     [4, 5], [5, 7], [7, 6], [6, 4], // Back
     [0, 4], [1, 5], [3, 7], [2, 6], // Middle
-    [0, 3],                         // Diag 12
-    [5, 3],                         // Diag 13
-    [5, 6],                         // Diag 14
-    [4, 2],                         // Diag 15
-    [4, 1],                         // Diag 16
-    [7, 2]                          // Diag 17
+    [1, 2],                         // Diag 1-3
+    [5, 3],                         // Diag 5-3
+    [4, 7],                         // Diag 4-7
+    [0, 6],                         // Diag 0-6
+    [5, 0],                         // Diag 5-0
+    [3, 6]                          // Diag 3-6
   ];
 
   // Faces
   var faces = [
-    [0, 1, 12], [2, 3, 12],     // +Z
-    [1, 9, 13], [5, 10, 13],    // +X
-    [4, 7, 14], [6, 5, 14],     // -Z
-    [8, 3, 15], [11, 7, 15],    // -X
-    [4, 9, 16],  [0, 8, 16],    // +Y
-    [2, 10, 17], [6, 11, 17]    // -Y
+    [0, 12, 3], [2, 12, 1],     // +Z
+    [9, 13, 1], [10, 13, 5],    // +X
+    [4, 14, 5], [6, 14, 7],     // -Z
+    [8, 15, 7], [11, 15, 3],    // -X
+    [4, 16, 8], [0, 16, 9],     // +Y
+    [2, 17, 11], [6, 17, 10]    // -Y
   ];
 
   return new shapy.editor.Object(id, scene, vertices, edges, faces);
@@ -1116,6 +1137,7 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
   goog.vec.Vec3.subtract(verts[1], verts[0], ab);
   goog.vec.Vec3.subtract(verts[2], verts[0], ac);
   goog.vec.Vec3.cross(ac, ab, normal);
+  goog.vec.Vec3.normalize(normal, normal);
   return normal;
 }
 
