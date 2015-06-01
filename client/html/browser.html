@@ -14,10 +14,6 @@
       </button>
       <ul class="menu" ng-show="show">
         <li
-            ng-click="show=false;browserCtrl.createScene();">
-          Scene
-        </li>
-        <li
             ng-click="show=false;browserCtrl.createDir();">
           Folder
         </li>
@@ -45,7 +41,7 @@
               ng-show="!open&&dir.hasSubdirs()"
               src="/img/arrow-right.svg" />
           <span
-              ng-click="browserCtrl.select(dir)">
+              ng-click="browserCtrl.select(dir, true)">
             {{ dir.name }}
           </span>
         </div>
@@ -71,12 +67,15 @@
     <div
         ng-repeat="
         asset in browserCtrl.current().children |
-        shFileMatch:browserCtrl.query() |
-        orderBy:'+name'">
-      <sh-file ng-class="{selected: browserCtrl.selected==asset}">
+        shAssetMatch:browserCtrl.query() |
+        shAssetOrder">
+      <sh-file
+          asset="asset"
+          selected="browserCtrl.selected"
+          ng-class="{selected: browserCtrl.selected==asset}">
         <div
             ng-click="browserCtrl.selected=asset"
-            ng-dblclick="browserCtrl.select(asset)">
+            ng-dblclick="browserCtrl.select(asset, true)">
           <img ng-src="{{asset.image}}">
         </div>
         <sh-editable
