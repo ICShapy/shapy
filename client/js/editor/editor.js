@@ -626,6 +626,10 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 82: this.rig(this.rigRotate_); break;    // r
     case 83: this.rig(this.rigScale_); break;     // s
     case 67: this.rig(this.rigCut_); break;       // c
+    case 69: {                                    // e
+      this.selected_.getObject().extrude([this.selected_]);
+      break;
+    }
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);

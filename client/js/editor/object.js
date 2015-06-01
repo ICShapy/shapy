@@ -570,6 +570,81 @@ shapy.editor.Object.prototype.connect = function(verts) {
 
 
 /**
+ * Extrude a set of faces
+ *
+ * @param {!Array<!shapy.editor.Object.Face>} faces
+ */
+shapy.editor.Object.prototype.extrude = function(faces) {
+  // Calculate normal
+  var normal = goog.vec.Vec3.createFloat32();
+  goog.array.forEach(faces, function(f) {
+    goog.vec.Vec3.add(normal, f.calculateNormal(), normal);
+  }, this);
+  goog.vec.Vec3.scale(normal, 1 / faces.length, normal);
+
+  // Get a list of disjoint edges
+  var dist = 0.5; // TODO: Use an extrude rig
+  var offset = goog.vec.Vec3.createFloat32FromArray(normal);
+  goog.vec.Vec3.scale(offset, dist, offset);
+
+  // Get a list of unique edges
+  var edges = goog.array.flatten(goog.array.map(faces, function(f) {
+    return f.getEdges();
+  }, this));
+
+  // Get a list of unique vertices
+  var verts = goog.array.flatten(goog.array.map(edges, function(e) {
+    return e.getVertices();
+  }, this));
+  goog.array.removeDuplicates(verts);
+
+  // Clone vertices
+  var vertMap = {};
+  var clonedVerts = goog.array.map(verts, function(v) {
+    var vertID = this.nextVert_++;
+    vertMap[v.id] = vertID;
+    this.verts[vertID] = new shapy.editor.Object.Vertex(this, vertID,
+      v.position[0] + offset[0],
+      v.position[1] + offset[1],
+      v.position[2] + offset[2]);
+    return this.verts[vertID];
+  }, this);
+
+  // Clone edges
+  var edgeMap = {};
+  var clonedEdges = goog.array.map(edges, function(e) {
+    var edgeID = this.nextEdge_++;
+    edgeMap[e.id] = edgeID;
+    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+      vertMap[e.start], vertMap[e.end]);
+    return this.edges[edgeID];
+  }, this);
+
+  // Clone faces
+  var faceMap = {};
+  var clonedFaces = goog.array.map(faces, function(f) {
+    var faceID = this.nextFace_++;
+    faceMap[f.id] = faceID;
+    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+        edgeMap[f.e0], edgeMap[f.e1], edgeMap[f.e2]);
+    f.delete(); // Delete original face
+    return this.faces[faceID];
+  }, this);
+
+  // Join pairs of vertices with edges
+  var vertPairs = goog.array.zip(verts, clonedVerts);
+  var joinEdges = goog.array.map(vertPairs, function(p) {
+    var edgeID = this.nextEdge_++;
+    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+      p[0].id, p[1].id);
+    return this.edges[edgeID];
+  }, this);
+
+  this.dirtyMesh = true;
+};
+
+
+/**
  * Build an cube object from triangles.
  *
  * @param {string}      id
@@ -966,6 +1041,20 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
 
 
 /**
+ * Retrieves the edges forming a face.
+ *
+ * @return {!Array<!shapy.editor.Object.Edge>}
+ */
+shapy.editor.Object.Face.prototype.getEdges = function() {
+  return [
+    this.object.edges[this.e0],
+    this.object.edges[this.e1],
+    this.object.edges[this.e2]
+  ];
+};
+
+
+/**
  * Retrives the vertices forming a face.
  *
  * @return {!Array<!shapy.editor.Object.Vertex>}
@@ -1012,6 +1101,23 @@ shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
       verts[2].position
   ];
 };
+
+
+/**
+ * Calculate the normal of the face
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.Face.prototype.calculateNormal = function() {
+  var normal = goog.vec.Vec3.createFloat32();
+  var ab = goog.vec.Vec3.createFloat32();
+  var ac = goog.vec.Vec3.createFloat32();
+  var verts = this.getVertexPositions_();
+  goog.vec.Vec3.subtract(verts[1], verts[0], ab);
+  goog.vec.Vec3.subtract(verts[2], verts[0], ac);
+  goog.vec.Vec3.cross(ac, ab, normal);
+  return normal;
+}
 
 
 /**
