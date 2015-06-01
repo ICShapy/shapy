@@ -13,7 +13,6 @@ goog.require('shapy.browser.Asset.Texture');
 /**
  * Service that handles asset browsing.
  *
- * // TODO: rename this shapy.browser.Service, a bit shorter and nicer.
  *
  * @constructor
  * @ngInject
@@ -40,6 +39,12 @@ shapy.browser.Service = function($http, $q) {
   this.dirs_ = {};
 
   /**
+   * Cached textures.
+   * @private {!Object<string, shapy.browser.Asset.Texture>} @const
+   */
+  this.textures_ = {};
+
+  /**
    * Private home dir.
    *
    * @public {shapy.browser.Asset.Dir}
@@ -53,16 +58,17 @@ shapy.browser.Service = function($http, $q) {
    */
   this.current = null;
 
-  /**
-   * Public home dir.
-   *
-   * @public {!shapy.browser.Asset.Dir}
-   * @const
-   */
-  //this.homePublic = new shapy.browser.Asset.Dir(-1, 'homePublic', null);
 
   /**
-   * Path to current folder
+   * Type of current directory.
+   * @type {boolean}
+   * @public
+   * @export
+   */
+  this.public = false;
+
+  /**
+   * Path to current folder.
    * @public {Array.<shapy.browser.Asset.Dir>}
    * @export
    */
@@ -76,6 +82,30 @@ shapy.browser.Service = function($http, $q) {
   this.query = '';
 };
 
+/**
+ * Updates data regarding current directory.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir Dir entered.
+ */
+shapy.browser.Service.prototype.changeDirectory = function(dir) {
+  // Update current dir and its type.
+  this.current = dir;
+  this.public = dir.id < 0;
+
+  // If entered private dir, update path.
+  if (!this.public) {
+    // Compose new path to current dir.
+    var newPath = [dir];
+    var current = dir;
+    while (current.parent !== null) {
+      current = current.parent;
+      newPath.push(current);
+    }
+    newPath.reverse();
+
+    this.path = newPath;
+  }
+};
 
 /**
  * Creates a new asset.
@@ -83,29 +113,32 @@ shapy.browser.Service = function($http, $q) {
  * @private
  *
  * @param {string}   url  URL of the resource.
+ * @param {!Object<string, Object>} cache Cache for the resource.
  * @param {Function} cons Asset constructor.
  *
- * @return {!shapy.browser.Asset}
+ * @return {!angular.$q} Promise to return a new asset.
  */
-shapy.browser.Service.prototype.create_ = function(url, cons) {
+shapy.browser.Service.prototype.create_ = function(url, cache, cons) {
   var parent = this.current;
+  // Request new asset from server.
   return this.http_.post(url, { parent: parent.id })
       .then(goog.bind(function(response) {
-        var dir = new cons(this, response.data.id, response.data);
-        this.dirs_[dir.id] = dir;
-        parent.children.push(dir);
-        dir.parent = parent;
+        // Create asset representation, cache it, update parent/child refs.
+        var asset = new cons(this, response.data.id, response.data);
+        cache[asset.id] = asset;
+        parent.children.push(asset);
+        asset.parent = parent;
       }, this));
 };
 
 
 /**
- * Injects new dir into databse and returns a promise with response.
+ * Creates new dir.
  *
- * @return {!shapy.browser.Asset.Dir}
+ * @return {!angular.$q} Promise to return a new dir.
  */
 shapy.browser.Service.prototype.createDir = function() {
-  return this.create_('/api/assets/dir', shapy.browser.Asset.Dir);
+  return this.create_('/api/assets/dir', this.dirs_ , shapy.browser.Asset.Dir);
 };
 
 
@@ -115,7 +148,10 @@ shapy.browser.Service.prototype.createDir = function() {
  * @return {!angular.$q} Promise to return a new scene.
  */
 shapy.browser.Service.prototype.createScene = function() {
-  return this.create_('/api/assets/scene', shapy.browser.Asset.Scene);
+  return this.create_(
+      '/api/assets/scene',
+      this.scenes_,
+      shapy.browser.Asset.Scene);
 };
 
 
@@ -125,14 +161,17 @@ shapy.browser.Service.prototype.createScene = function() {
  * @return {!angular.$q} Promise to return a new texture.
  */
 shapy.browser.Service.prototype.createTexture = function() {
-  return this.create_('/api/assets/texture', shapy.browser.Asset.Texture);
+  return this.create_(
+      '/api/assets/texture',
+      this.textures_,
+      shapy.browser.Asset.Texture);
 };
 
 
 
 
 /**
- * Creates a new asset.
+ * Fetches asset.
  *
  * @private
  *
@@ -149,16 +188,20 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
   }
 
   var asset;
+  // Check cache.
   if (goog.object.containsKey(cache, id)) {
     asset = cache[id];
+    // Return if asset loaded.
     if (asset.ready) {
       return asset.ready.promise;
     }
   } else {
+    // Construct (unloaded) asset.
     asset = new cons(this, id);
     cache[id] = asset;
   }
 
+  // Request asset data from server.
   asset.ready = this.q_.defer();
   this.http_.get(url, {params: { id: id }})
     .then(goog.bind(function(response) {
@@ -173,7 +216,7 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
 
 
 /**
- * Sends request to server to query database for contents of given dir.
+ * Fetches a dir from the server or from local storage.
  *
  * @param {number} dirID ID of the directory.
  *
@@ -207,7 +250,7 @@ shapy.browser.Service.prototype.getScene = function(sceneID) {
 
 
 /**
- * Fetches a scene from the server or from local storage.
+ * Fetches a texture from the server or from local storage.
  *
  * @param {number} textureID ID of the scene.
  *

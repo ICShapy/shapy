@@ -17,16 +17,16 @@
       <span> Scenes </span>
       <span> Textures </span>
       <span
-        ng-style="(browserCtrl.public) ? {'background-color':'red'} : null"
-        ng-click="browserCtrl.publicEnter()">
+        ng-style="(browserCtrl.public()) ? {'background-color':'red'} : null"
+        ng-click="browserCtrl.selectPublic()">
           Public
       </span>
     </div>
   </div>
   <sh-path-asset
-      ng-repeat="asset in browserCtrl.path() track by asset.id"
-      ng-click="browserCtrl.assetReturnTo(asset)">
-    {{asset.name}}
+      ng-repeat="dir in browserCtrl.path() track by dir.id"
+      ng-click="browserCtrl.selectPath(dir)">
+    {{dir.name}}
     <img src="/img/arrow.svg" ng-if="!$last"/>
   </sh-path-asset>
 </div>
