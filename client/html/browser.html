@@ -68,12 +68,15 @@
 
   <!-- Main navigator view. -->
   <sh-files>
-    <div ng-repeat="
+    <div
+        ng-repeat="
         asset in browserCtrl.current().children |
         shFileMatch:browserCtrl.query() |
         orderBy:'+name'">
-      <sh-file>
-        <div ng-click="browserCtrl.select(asset)">
+      <sh-file ng-class="{selected: browserCtrl.selected==asset}">
+        <div
+            ng-click="browserCtrl.selected=asset"
+            ng-dblclick="browserCtrl.select(asset)">
           <img ng-src="{{asset.image}}">
         </div>
         <sh-editable

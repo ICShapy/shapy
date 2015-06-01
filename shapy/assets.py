@@ -191,7 +191,7 @@ class DirHandler(APIHandler):
     name = self.get_argument('name')
 
     # Update the name.
-    yield momoko.Op(self.db.execute,
+    cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
     )
     self.finish()

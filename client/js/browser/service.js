@@ -87,7 +87,7 @@ shapy.browser.Service = function($http, $q) {
  *
  * @param {!shapy.browser.Asset.Dir} dir Dir entered.
  */
-shapy.browser.Service.prototype.updateCurrentDir = function(dir) {
+shapy.browser.Service.prototype.changeDirectory = function(dir) {
   // Update current dir and its type.
   this.current = dir;
   this.public = dir.id < 0;
@@ -105,7 +105,6 @@ shapy.browser.Service.prototype.updateCurrentDir = function(dir) {
 
     this.path = newPath;
   }
-
 };
 
 /**

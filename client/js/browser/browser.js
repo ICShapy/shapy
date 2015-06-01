@@ -43,7 +43,7 @@ shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
   this.home = this.shBrowser_.home = home;
 
   // Update current dir data.
-  this.shBrowser_.updateCurrentDir(this.home);
+  this.shBrowser_.changeDirectory(this.home);
 };
 
 
@@ -56,7 +56,7 @@ shapy.browser.BrowserController.prototype.select = function(asset) {
   switch (asset.type) {
     case shapy.browser.Asset.Type.DIRECTORY: {
       this.shBrowser_.getDir(asset.id).then(goog.bind(function(asset) {
-        this.shBrowser_.updateCurrentDir(asset);
+        this.shBrowser_.changeDirectory(asset);
       }, this));
       break;
     }
@@ -187,7 +187,7 @@ shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
 shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir)
 {
   this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
-    this.shBrowser_.updateCurrentDir(dir);
+    this.shBrowser_.changeDirectory(dir);
   }, this));
 };
 
