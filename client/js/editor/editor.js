@@ -228,7 +228,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   //this.scene_.createSphere(0.5, 16, 16);
   this.layout_ = new shapy.editor.Layout.Single();
   this.select(goog.object.getAnyValue(this.scene_.objects));
-  this.rig_ = this.rigTranslate_;
+  this.rig(this.rigTranslate_);
 };
 
 
@@ -266,8 +266,6 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
  * @param {string} type Type of the object.
  */
 shapy.editor.Editor.prototype.create = function(type) {
-  var id, object;
-
   switch (type) {
     case 'cube': {
       this.select(this.scene_.createCube(0.5, 0.5, 0.5));
@@ -279,6 +277,9 @@ shapy.editor.Editor.prototype.create = function(type) {
     }
     default: throw new Error('Invalid object type "' + type + "'");
   }
+
+  // Use translate rig as default rig.
+  this.rig(this.rigTranslate_);
 };
 
 
