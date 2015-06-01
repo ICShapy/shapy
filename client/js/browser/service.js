@@ -17,10 +17,11 @@ goog.require('shapy.browser.Asset.Texture');
  * @constructor
  * @ngInject
  *
- * @param {!angular.$http}           $http The angular http service.
- * @param {!angular.$q}              $q    The angular promise service.
+ * @param {!angular.$http}           $http   The angular http service.
+ * @param {!angular.$q}              $q      The angular promise service.
+ * @param {!shapy.modal.Service}     shModal The modal service.
  */
-shapy.browser.Service = function($http, $q) {
+shapy.browser.Service = function($http, $q, shModal) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!angular.$q} @const */
@@ -138,7 +139,7 @@ shapy.browser.Service.prototype.create_ = function(url, cache, cons) {
  * @return {!angular.$q} Promise to return a new dir.
  */
 shapy.browser.Service.prototype.createDir = function() {
-  return this.create_('/api/assets/dir', this.dirs_ , shapy.browser.Asset.Dir);
+  return this.create_('/api/assets/dir', this.dirs_, shapy.browser.Asset.Dir);
 };
 
 
@@ -201,9 +202,10 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
     cache[id] = asset;
   }
 
+  var params = (id == -1) ? {} : { id: id };
   // Request asset data from server.
   asset.ready = this.q_.defer();
-  this.http_.get(url, {params: { id: id }})
+  this.http_.get(url, {params: params})
     .then(goog.bind(function(response) {
       asset.load(response.data);
       asset.ready.resolve(asset);
@@ -262,6 +264,20 @@ shapy.browser.Service.prototype.getTexture = function(textureID) {
       this.textures_,
       shapy.browser.Asset.Texture,
       textureID
+  );
+};
+
+/**
+ * Fetches public space from the server or from local storage.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.Service.prototype.getPublic = function() {
+  return this.get_(
+      '/api/assets/public',
+      this.dirs_,
+      shapy.browser.Asset.Dir,
+      -1
   );
 };
 

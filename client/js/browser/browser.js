@@ -4,8 +4,9 @@
 goog.provide('shapy.browser.BrowserController');
 goog.provide('shapy.browser.BrowserToolbarController');
 goog.provide('shapy.browser.directories');
+goog.provide('shapy.browser.assetMatch');
+goog.provide('shapy.browser.assetOrder');
 goog.provide('shapy.browser.file');
-goog.provide('shapy.browser.fileMatch');
 goog.provide('shapy.browser.files');
 goog.provide('shapy.browser.sidebar');
 
@@ -51,12 +52,15 @@ shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
  * Performs action associated with clicking on given asset.
  *
  * @param {!shapy.browser.Asset} asset Asset that is to be entered.
+ * @param {boolean}              enter True if the directory should be selected.
  */
-shapy.browser.BrowserController.prototype.select = function(asset) {
+shapy.browser.BrowserController.prototype.select = function(asset, enter) {
   switch (asset.type) {
     case shapy.browser.Asset.Type.DIRECTORY: {
       this.shBrowser_.getDir(asset.id).then(goog.bind(function(asset) {
-        this.shBrowser_.changeDirectory(asset);
+        if (enter) {
+          this.shBrowser_.changeDirectory(asset);
+        }
       }, this));
       break;
     }
@@ -172,10 +176,9 @@ shapy.browser.BrowserToolbarController.prototype.public = function() {
  *
  */
 shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
-  var dir =
-      new shapy.browser.Asset.Dir(this.shBrowser_, -1, 'homePublic', null);
-  this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
-    this.shBrowser_.changeDirectory(dir);
+  this.shBrowser_.getPublic().then(goog.bind(function(dir) {
+    this.shBrowser_.public = true;
+    this.shBrowser_.current = dir;
   }, this));
 };
 
@@ -185,8 +188,7 @@ shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
  *
  * @param {!shapy.browser.Asset.Dir} dir Dir chosen by user.
  */
-shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir)
-{
+shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir) {
   this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {
     this.shBrowser_.changeDirectory(dir);
   }, this));
@@ -239,11 +241,58 @@ shapy.browser.files = function() {
 /**
  * File directive.
  *
+ * @param {!shapy.modal.Service} shModal
+ *
  * @return {!angular.Directive}
  */
-shapy.browser.file = function() {
+shapy.browser.file = function(shModal) {
+  /**
+   * Handles the deletion of an asset.
+   * @param {!shapy.browser.Asset} asset
+   */
+  var doDelete = function(asset) {
+    shModal.open({
+      size: 'small',
+      title: 'Delete File',
+      template:
+          'Are you sure you want to delete ' +
+          '<strong>{{asset.name}}</strong>' +
+          '?',
+      controller: function($scope) {
+        $scope.asset = asset;
+        $scope.cancel = function() { return false; };
+        $scope.okay = function() {
+          asset.delete();
+        };
+      }
+    });
+  };
+
   return {
-    restrict: 'E'
+    restrict: 'E',
+    scope: {
+      asset: '=',
+      selected: '='
+    },
+    link: function($scope, $elem) {
+      $(window).on('keydown', function(evt) {
+        if (evt.keyCode != 100 && evt.keyCode != 8) {
+          return;
+        }
+        if ($scope.asset != $scope.selected) {
+          return false;
+        }
+        $scope.$apply(function() {
+          doDelete($scope.asset);
+        });
+        evt.stopPropagation();
+        evt.preventDefault();
+        return false;
+      });
+      $scope.$on('$destroy', function() {
+        $(window).off('keydown');
+      });
+    }
   };
 };
 
@@ -254,13 +303,38 @@ shapy.browser.file = function() {
  *
  * @return {Function}
  */
-shapy.browser.fileMatch = function() {
-  return function(files, pattern) {
-    return goog.array.filter(files, function(asset) {
+shapy.browser.assetMatch = function() {
+  return function(assets, pattern) {
+    return goog.array.filter(assets, function(asset) {
       return goog.string.contains(asset.name, pattern);
     });
   };
 };
+
+
+
+/**
+ * Orders asset by type and alphabetically within type.
+ *
+ * @return {Function}
+ */
+shapy.browser.assetOrder = function() {
+  return function(assets) {
+    return assets.sort(function(asset1, asset2) {
+      if (asset1.type == asset2.type) {
+        return asset1.name.localeCompare(asset2.name);
+      }
+      if (asset1.type == shapy.browser.Asset.Type.DIRECTORY) {
+        return -1;
+      }
+      if (asset2.type == shapy.browser.Asset.Type.DIRECTORY) {
+        return 1;
+      }
+      return asset1.name.localeCompare(asset2.name);
+    });
+  };
+};
+
 
 
 /**
@@ -269,8 +343,8 @@ shapy.browser.fileMatch = function() {
  * @return {Function}
  */
 shapy.browser.directories = function() {
-  return function(files) {
-    return goog.array.filter(files, function(asset) {
+  return function(assets) {
+    return goog.array.filter(assets, function(asset) {
       return asset.type == shapy.browser.Asset.Type.DIRECTORY;
     });
   };
