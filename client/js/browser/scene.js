@@ -118,8 +118,8 @@ shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
 /**
  * Picks an object intersected by a ray.
  *
- * @param {!goog.vec.Ray}      ray
- * @param {!shapy.editor.Mode} mode
+ * @param {!goog.vec.Ray}         ray
+ * @param {!shapy.editor.Mode}    mode
  *
  * @return {!shapy.editor.Editable}
  */
@@ -158,7 +158,9 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
+shapy.browser.Asset.Scene.prototype.pickFrustum = function(
+    frustum, selected, mode)
+{
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
     var ps = obj.pickFrustum(frustum);
     if (!goog.array.isEmpty(ps)) {
