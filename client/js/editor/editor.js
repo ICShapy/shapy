@@ -478,8 +478,16 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
   // Add to an existing group.
   if (this.selected_.type == shapy.editor.Editable.Type.OBJECT_GROUP ||
       this.selected_.type == shapy.editor.Editable.Type.PARTS_GROUP) {
-    if (!this.selected_.add(editable)) {
-      his.select(null);
+
+    // Disselecting
+    if (editable.selected) {
+      this.selected_.remove(editable);
+
+      if (this.selected_.isEmpty()) {
+        this.select(null);
+      }      
+    } else {
+      this.selected_.add(editable);
     }
   } else {
     // Start a new group.
@@ -493,14 +501,14 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
     // Add to the group.
     newGroup.add(this.selected_);
     newGroup.add(editable);
+    newGroup.setSelected(true);
     this.selected_ = newGroup;
-    this.selected_.setSelected(true);
 
     if (this.rig_) {
       this.rig_.object = newGroup;
     }
   }
-  editable.setSelected(true);
+  console.log(editable);
 };
 
 
