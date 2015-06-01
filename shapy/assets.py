@@ -11,6 +11,48 @@ from tornado.web import HTTPError, asynchronous
 
 from shapy.common import APIHandler, session
 
+class PublicHandler(APIHandler):
+  """Handles requests to public space."""
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user = None):
+    """Retrieves the public space."""
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'Not authorized.')
+
+    # Initialise public space data.
+    data = (-1, 'publicHome')
+
+    # Fetch information about children.
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, type, preview
+         FROM assets
+         WHERE parent = %s
+           AND owner = %s
+      ''', (
+      data[0],
+      user.id
+    ))
+
+    # Return JSON answer.
+    self.write(json.dumps({
+      'id': data[0],
+      'name': data[1],
+      'data': [
+        {
+          'id': item[0],
+          'name': item[1],
+          'type': item[2],
+          'preview': item[3]
+        }
+        for item in cursor.fetchall()
+      ]
+    }))
+    self.finish()
+
 
 class DirHandler(APIHandler):
   """Handles requests to a directory resource."""

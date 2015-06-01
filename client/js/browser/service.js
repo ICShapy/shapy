@@ -202,9 +202,10 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
     cache[id] = asset;
   }
 
+  var params = (id == -1) ? {} : { id: id };
   // Request asset data from server.
   asset.ready = this.q_.defer();
-  this.http_.get(url, {params: { id: id }})
+  this.http_.get(url, {params: params})
     .then(goog.bind(function(response) {
       asset.load(response.data);
       asset.ready.resolve(asset);
@@ -263,6 +264,20 @@ shapy.browser.Service.prototype.getTexture = function(textureID) {
       this.textures_,
       shapy.browser.Asset.Texture,
       textureID
+  );
+};
+
+/**
+ * Fetches public space from the server or from local storage.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.Service.prototype.getPublic = function() {
+  return this.get_(
+      '/api/assets/public',
+      this.dirs_,
+      shapy.browser.Asset.Dir,
+      -1
   );
 };
 
