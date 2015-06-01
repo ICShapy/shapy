@@ -69,7 +69,9 @@
         asset in browserCtrl.current().children |
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
-      <sh-file ng-class="{selected: browserCtrl.selected==asset}">
+      <sh-file
+          file="asset"
+          ng-class="{selected: browserCtrl.selected==asset}">
         <div
             ng-click="browserCtrl.selected=asset"
             ng-dblclick="browserCtrl.select(asset, true)">

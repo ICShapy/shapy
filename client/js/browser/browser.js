@@ -245,7 +245,24 @@ shapy.browser.files = function() {
  */
 shapy.browser.file = function() {
   return {
-    restrict: 'E'
+    restrict: 'E',
+    scope: {
+      file: '='
+    },
+    link: function($scope, $elem) {
+      $(window).on('keydown', function(evt) {
+        if (!$scope.file || (evt.keyCode != 100 && evt.keyCode != 8)) {
+          return;
+        }
+        $scope.file.delete();
+        evt.stopPropagation();
+        evt.preventDefault();
+        return false;
+      });
+      $scope.$on('$destroy', function() {
+        $(window).off('keydown');
+      });
+    }
   };
 };
 
