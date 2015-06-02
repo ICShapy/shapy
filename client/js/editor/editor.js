@@ -466,26 +466,16 @@ shapy.editor.Editor.prototype.onClose_ = function(evt) {
 shapy.editor.Editor.prototype.modeChange_ = function() {
   if (this.mode.object) {
     // Deselect all parts.
-    if (this.partGroup_) {
-      this.partGroup_.setSelected(false);
-      this.rig(this.rigTranslate_);
-    } else {
-      this.rig(null);
-    }
+    this.partGroup_.setSelected(false);
+    this.partGroup_.clear();
+    this.rig(this.rigTranslate_);
   } else {
-    if (this.objectGroup_) {
-      this.objectGroup_.setSelected(false);
-      this.objectGroup_ = new shapy.editor.ObjectGroup(
-        this.objectGroup_ ? [this.objectGroup_.getLast()] : []
-      );
-      this.objectGroup_.setSelected(true);
-    }
-    // Start part selection.
-    if (this.partGroup_) {
-      this.rig(this.rig_);
-    } else {
-      this.rig(null);
-    }
+    this.objectGroup_.setSelected(false);
+    var object = this.objectGroup_.getLast();
+    this.objectGroup_.clear();
+    this.objectGroup_.add(object);
+    this.objectGroup_.setSelected(true);
+    this.rig(this.rigTranslate_);
   }
 };
 
