@@ -6,8 +6,8 @@ goog.provide('shapy.browser.BrowserToolbarController');
 goog.provide('shapy.browser.directories');
 goog.provide('shapy.browser.assetMatch');
 goog.provide('shapy.browser.assetOrder');
-goog.provide('shapy.browser.file');
-goog.provide('shapy.browser.files');
+goog.provide('shapy.browser.asset');
+goog.provide('shapy.browser.assets');
 goog.provide('shapy.browser.sidebar');
 
 goog.require('shapy.browser.Asset');
@@ -210,11 +210,11 @@ shapy.browser.sidebar = function() {
 
 
 /**
- * Files directive.
+ * Assets directive.
  *
  * @return {!angular.Directive}
  */
-shapy.browser.files = function() {
+shapy.browser.assets = function() {
   return {
     restrict: 'E',
     link: function($scope, $elem, $attrs) {
@@ -225,7 +225,7 @@ shapy.browser.files = function() {
         var width = $elem.outerWidth();
         var perRow = Math.floor((width - 40) / 160 + 0.5);
         var cellWidth = Math.floor((width - 40) / perRow - 10);
-        $('sh-file', $elem).css('width', cellWidth);
+        $('sh-asset', $elem).css('width', cellWidth);
       };
 
       $(window).resize(adjustWidth);
@@ -239,13 +239,13 @@ shapy.browser.files = function() {
 
 
 /**
- * File directive.
+ * Asset directive.
  *
  * @param {!shapy.modal.Service} shModal
  *
  * @return {!angular.Directive}
  */
-shapy.browser.file = function(shModal) {
+shapy.browser.asset = function(shModal) {
   /**
    * Handles the deletion of an asset.
    * @param {!shapy.browser.Asset} asset
@@ -253,7 +253,7 @@ shapy.browser.file = function(shModal) {
   var doDelete = function(asset) {
     shModal.open({
       size: 'small',
-      title: 'Delete File',
+      title: 'Delete Asset',
       template:
           'Are you sure you want to delete ' +
           '<strong>{{asset.name}}</strong>' +

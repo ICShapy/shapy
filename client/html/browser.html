@@ -63,13 +63,13 @@
   </sh-sidebar>
 
   <!-- Main navigator view. -->
-  <sh-files>
+  <sh-assets>
     <div
         ng-repeat="
         asset in browserCtrl.current().children |
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
-      <sh-file
+      <sh-asset
           asset="asset"
           selected="browserCtrl.selected"
           ng-class="{selected: browserCtrl.selected==asset}">
@@ -84,7 +84,7 @@
             ng-blur="asset.rename(name)"
             ng-model="name">
         </sh-editable>
-      </sh-file>
+      </sh-asset>
     </div>
-  </sh-files>
+  </sh-assets>
 </div>

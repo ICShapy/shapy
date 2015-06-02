@@ -12,8 +12,8 @@ goog.require('shapy.browser.Service');
 goog.require('shapy.browser.assetMatch');
 goog.require('shapy.browser.assetOrder');
 goog.require('shapy.browser.directories');
-goog.require('shapy.browser.file');
-goog.require('shapy.browser.files');
+goog.require('shapy.browser.asset');
+goog.require('shapy.browser.assets');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.editable');
 goog.require('shapy.editor.Editor');
@@ -237,8 +237,8 @@ shapy.module = angular
   .service('shModal', shapy.modal.Service)
 
   .directive('shSidebar', shapy.browser.sidebar)
-  .directive('shFiles', shapy.browser.files)
-  .directive('shFile', shapy.browser.file)
+  .directive('shAssets', shapy.browser.assets)
+  .directive('shAsset', shapy.browser.asset)
   .directive('shCanvas', shapy.editor.canvas)
   .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)
