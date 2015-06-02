@@ -59,6 +59,17 @@ shapy.editor.Editable.prototype.setSelected = function(selected) {
 
 
 /**
+ * Checks if the editable is selected.
+ *
+ * @return {boolean} True if the editable was selected.
+ */
+shapy.editor.Editable.prototype.isSelected = function() {
+  return this.selected;
+};
+
+
+
+/**
  * Scales the editable.
  */
 shapy.editor.Editable.prototype.scale = function() { };
@@ -134,21 +145,19 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
       break;
     }
   }
+  goog.array.removeDuplicates(this.editables_);
 };
 
 
 /**
  * Removes an element from the group.
  *
- * @return True if the element was removed.
+ * @param {shapy.editor.EditableGroup} editables Editables to remove.
  */
-shapy.editor.EditableGroup.prototype.remove = function(editable) {
-  var removed = goog.array.remove(this.editables_, editable);
-  if (removed && editable.selected) {
-    editable.setSelected(false);
-  }
-
-  return removed;
+shapy.editor.EditableGroup.prototype.remove = function(editables) {
+  this.editables_ = goog.array.filter(this.editables_, function(e) {
+    return !editables.contains(e);
+  });
 };
 
 
@@ -220,6 +229,18 @@ shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
 
   goog.object.forEach(this.editables_, function(editable) {
     editable.setSelected(selected);
+  }, this);
+};
+
+
+/**
+ * Checks if any of the editables is selected.
+ *
+ * @return {boolean} True if there is a selected editable.
+ */
+shapy.editor.EditableGroup.prototype.isSelected = function() {
+  return goog.array.some(this.editables_, function(editable) {
+    return editable.selected;
   }, this);
 };
 

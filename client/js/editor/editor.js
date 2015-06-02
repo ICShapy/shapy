@@ -392,7 +392,7 @@ shapy.editor.Editor.prototype.select = function(editable, groupSelect) {
   }
 
   if (editable) {
-    if (editable.selected) {
+    if (editable.isSelected()) {
       editable.setSelected(false);
       group.remove(editable);
     } else {
