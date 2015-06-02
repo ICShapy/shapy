@@ -280,7 +280,7 @@ shapy.browser.asset = function(shModal) {
           return;
         }
         if ($scope.asset != $scope.selected) {
-          return false;
+          return;
         }
         $scope.$apply(function() {
           doDelete($scope.asset);

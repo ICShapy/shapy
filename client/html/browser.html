@@ -79,6 +79,7 @@
           <img ng-src="{{asset.image}}">
         </div>
         <sh-editable
+            ng-click="browserCtrl.selected = null"
             ng-init="name=asset.name"
             class="name"
             ng-blur="asset.rename(name)"
