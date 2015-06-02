@@ -144,6 +144,22 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
 
 
 /**
+ * Handles a mouse press event.
+ *
+ * @param {MouseEvent} e Original event.
+ *
+ * @return {goog.vec.Ray}
+ */
+shapy.editor.Layout.prototype.mouseWheel = function(e) {
+  var result = this.getViewport_(e.offsetX, e.offsetY);
+  if (!result || !result.vp) {
+    return;
+  }
+  return result.vp.mouseWheel(e.originalEvent.wheelDelta);
+};
+
+
+/**
  * Handles a mouse release event.
  *
  * @param {MouseEvent} e
@@ -509,5 +525,4 @@ shapy.editor.Layout.Quad.prototype.mouseLeave = function(e) {
   this.hoverX_ = this.hoverY_ = this.resizeX_ = this.resizeY_ = false;
   return null;
 };
-
 

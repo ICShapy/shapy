@@ -409,7 +409,7 @@ shapy.editor.Editor.prototype.select = function(editable) {
     group.clear();
   }
 
-  this.rig(this.rig_);
+  this.rig(this.rig_ || this.rigTranslate_);
 };
 
 
@@ -618,8 +618,6 @@ shapy.editor.Editor.prototype.mouseLeave = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseWheel = function(e) {
-  if (this.layout_ && this.layout_.hover) {
-    this.layout_.hover.mouseWheel(e.originalEvent.wheelDelta);
-  }
+  this.layout_.mouseWheel(e);
 };
 
