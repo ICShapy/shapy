@@ -798,16 +798,16 @@ shapy.editor.Object.createSphere = function(id, scene, r, slices, stacks) {
       ]);
       if (i < stacks - 2) {
         faces.push([
-            slices + (i - 0) * 3 * slices + (j + 1) % slices * 3 + 1,
-            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 2,
-            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 3,
+            slices + (i - 1) * 3 * slices + j * 3 + 3,
+            slices + (i - 0) * 3 * slices + j * 3 + 1,
+            slices + (i - 1) * 3 * slices + (j - 1 + slices) % slices * 3 + 2,
         ]);
       } else {
-        //faces.push([
-        //    slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 1,
-        //    slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 2,
-        //    slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 3,
-        //]);
+        faces.push([
+            slices + (i - 1) * 3 * slices + j * 3 + 3,
+            slices + (stacks - 2) * 3 * slices + j % slices * 2 + 1,
+            slices + (i - 1) * 3 * slices + (j - 1 + slices) % slices * 3 + 2,
+        ]);
       }
     }
   }
