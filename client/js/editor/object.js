@@ -102,8 +102,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   this.verts = {};
   this.nextVert_ = 0;
   goog.array.forEach(verts, function(v, i) {
-    this.nextVert_ = Math.max(this.nextVert_, i + 1);
-    this.verts[i] = new shapy.editor.Object.Vertex(this, i, v[0], v[1], v[2]);
+    this.nextVert_ = Math.max(this.nextVert_, i + 2);
+    this.verts[i + 1] = new shapy.editor.Object.Vertex(
+        this, i, v[0], v[1], v[2]);
   }, this);
 
   /**
@@ -114,8 +115,8 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   this.edges = {};
   this.nextEdge_ = 0;
   goog.array.forEach(edges, function(e, i) {
-    this.nextEdge_ = Math.max(this.nextEdge_, i + 1);
-    this.edges[i] = new shapy.editor.Object.Edge(this, i, e[0], e[1]);
+    this.nextEdge_ = Math.max(this.nextEdge_, i + 2);
+    this.edges[i + 1] = new shapy.editor.Object.Edge(this, i, e[0], e[1]);
   }, this);
 
   /**
@@ -127,8 +128,8 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
    this.faces = {};
    this.nextFace_ = 0;
    goog.array.forEach(faces, function(f, i) {
-    this.nextFace_ = Math.max(this.nextFace_, i + 1);
-    this.faces[i] = new shapy.editor.Object.Face(this, i, f[0], f[1], f[2]);
+    this.nextFace_ = Math.max(this.nextFace_, i + 2);
+    this.faces[i + 1] = new shapy.editor.Object.Face(this, i, f[0], f[1], f[2]);
    }, this);
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
@@ -409,15 +410,16 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
 
     // Determines if the point is close enough to the edge e.
     var edgeDist = goog.bind(function(e) {
+      var edge = this.edges[e > 0 ? e : -e];
       var d = shapy.editor.geom.getDistance(
         p,
-        this.verts[this.edges[e].start].position,
-        this.verts[this.edges[e].end].position
+        this.verts[edge.start].position,
+        this.verts[edge.end].position
       );
 
       if (d < shapy.editor.Object.EDGE_DIST_TRESHOLD) {
         return {
-          item: this.edges[e],
+          item: edge,
           point: p
         };
       }
@@ -692,36 +694,45 @@ shapy.editor.Object.createCube = function(id, scene, w, h, d) {
   // |     |/
   // 2-----3
   var vertices = [
-    [-w, +h, +d], // 0
-    [+w, +h, +d], // 1
-    [-w, -h, +d], // 2
-    [+w, -h, +d], // 3
-    [-w, +h, -d], // 4
-    [+w, +h, -d], // 5
-    [-w, -h, -d], // 6
-    [+w, -h, -d], // 7
+    [-w, +h, +d], // 1
+    [+w, +h, +d], // 2
+    [-w, -h, +d], // 3
+    [+w, -h, +d], // 4
+    [-w, +h, -d], // 5
+    [+w, +h, -d], // 6
+    [-w, -h, -d], // 7
+    [+w, -h, -d], // 8
   ];
 
   var edges = [
-    [0, 1], [1, 3], [3, 2], [2, 0], // Front
-    [4, 5], [5, 7], [7, 6], [6, 4], // Back
-    [0, 4], [1, 5], [3, 7], [2, 6], // Middle
-    [1, 2],                         // Diag 1-3
-    [5, 3],                         // Diag 5-3
-    [4, 7],                         // Diag 4-7
-    [0, 6],                         // Diag 0-6
-    [5, 0],                         // Diag 5-0
-    [3, 6]                          // Diag 3-6
+    [1, 2], //  1
+    [2, 3], //  2
+    [3, 1], //  3
+    [2, 4], //  4
+    [4, 3], //  5
+    [6, 8], //  6
+    [8, 7], //  7
+    [7, 5], //  8
+    [5, 8], //  9
+    [6, 5], // 10
+    [1, 5], // 11
+    [2, 5], // 12
+    [6, 2], // 13
+    [1, 7], // 14
+    [3, 7], // 15
+    [4, 6], // 16
+    [4, 8], // 17
+    [3, 8], // 18
   ];
 
   // Faces
   var faces = [
-    [0, 12, 3], [2, 12, 1],     // +Z
-    [9, 13, 1], [10, 13, 5],    // +X
-    [4, 14, 5], [6, 14, 7],     // -Z
-    [8, 15, 7], [11, 15, 3],    // -X
-    [4, 16, 8], [0, 16, 9],     // +Y
-    [2, 17, 11], [6, 17, 10]    // -Y
+    [+1, +2, +3], [+4, +5, -2],      // +Z
+    [+10, +9, -6], [-9, -8, -7],     // -Z
+    [-1, +11, -12], [+12, -10, +13], // +Y
+    [+18, +7, -15], [-18, -5, +17],  // -Y
+    [-16, -4, -13], [+16, +6, -17],  // +X
+    [+14, +8, -11], [-3, +15, -14],  // -X
   ];
 
   return new shapy.editor.Object(id, scene, vertices, edges, faces);
@@ -759,60 +770,59 @@ shapy.editor.Object.createSphere = function(id, scene, r, slices, stacks) {
   verts.push([0, -r, 0]);
 
   for (var j = 0; j < slices; ++j) {
-    var v00 = 0;
-    var v01 = 1 + j;
-    var v10 = 1 + (j + 1) % slices;
+    var v00 = 1;
+    var v01 = 2 + j;
 
-    edges.push([v00, v01]);
+    edges.push([1, 2 + j]);
     faces.push([
-        (j + 0) % slices,
-        slices + j * 3 + 0,
-        (j + 1) % slices
+        -(1 + (j + 0) % slices),
+        +(1 + (j + 1) % slices),
+        -(1 + slices + j * 3),
     ]);
   }
 
   for (var i = 1; i < stacks - 1; ++i) {
     for (var j = 0; j < slices; ++j) {
-      var v00 = 1 + (i - 1) * slices + (j + 0) % slices;
-      var v01 = 1 + (i - 1) * slices + (j + 1) % slices;
-      var v10 = 1 + (i - 0) * slices + (j + 0) % slices;
-      var v11 = 1 + (i - 0) * slices + (j + 1) % slices;
+      var v00 = 2 + (i - 1) * slices + (j + 0) % slices;
+      var v01 = 2 + (i - 1) * slices + (j + 1) % slices;
+      var v10 = 2 + (i - 0) * slices + (j + 0) % slices;
+      var v11 = 2 + (i - 0) * slices + (j + 1) % slices;
 
       edges.push([v00, v01]);
       edges.push([v01, v11]);
       edges.push([v11, v00]);
       faces.push([
-          slices + (i - 1) * 3 * slices + j * 3 + 0,
           slices + (i - 1) * 3 * slices + j * 3 + 1,
-          slices + (i - 1) * 3 * slices + j * 3 + 2
+          slices + (i - 1) * 3 * slices + j * 3 + 2,
+          slices + (i - 1) * 3 * slices + j * 3 + 3
       ]);
       if (i < stacks - 2) {
         faces.push([
-            slices + (i - 0) * 3 * slices + (j + 1) % slices * 3 + 0,
-            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 1,
-            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 2,
+            slices + (i - 0) * 3 * slices + (j + 1) % slices * 3 + 1,
+            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 2,
+            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 3,
         ]);
       } else {
-        faces.push([
-            slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 0,
-            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 1,
-            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 2,
-        ]);
+        //faces.push([
+        //    slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 1,
+        //    slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 2,
+        //    slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 3,
+        //]);
       }
     }
   }
 
   for (var j = 0; j < slices; ++j) {
-    var v00 = 1 + (stacks - 1) * slices;
-    var v01 = 1 + (stacks - 2) * slices + j;
-    var v10 = 1 + (stacks - 2) * slices + (j + 1) % slices;
+    var v00 = 2 + (stacks - 1) * slices;
+    var v01 = 2 + (stacks - 2) * slices + j;
+    var v10 = 2 + (stacks - 2) * slices + (j + 1) % slices;
 
     edges.push([v01, v10]);
     edges.push([v00, v01]);
     faces.push([
-      slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 0,
-      slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 1,
-      slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 1,
+      -(slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 1),
+      +(slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 2),
+      -(slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 2),
     ]);
   }
 
@@ -1068,9 +1078,9 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
  */
 shapy.editor.Object.Face.prototype.getEdges = function() {
   return [
-    this.object.edges[this.e0],
-    this.object.edges[this.e1],
-    this.object.edges[this.e2]
+    this.object.edges[this.e0 >= 0 ? this.e0 : -this.e0],
+    this.object.edges[this.e1 >= 0 ? this.e1 : -this.e1],
+    this.object.edges[this.e2 >= 0 ? this.e2 : -this.e2]
   ];
 };
 
@@ -1081,19 +1091,12 @@ shapy.editor.Object.Face.prototype.getEdges = function() {
  * @return {!Array<!shapy.editor.Object.Vertex>}
  */
 shapy.editor.Object.Face.prototype.getVertices = function() {
-  var e0 = this.object.edges[this.e0];
-  var e1 = this.object.edges[this.e1];
-  var e2 = this.object.edges[this.e2];
-  var verts = [
-    e0.start, e0.end,
-    e1.start, e1.end,
-    e2.start, e2.end
+  var e = this.getEdges();
+  return [
+    this.object.verts[this.e0 >= 0 ? e[0].start : e[0].end],
+    this.object.verts[this.e1 >= 0 ? e[1].start : e[1].end],
+    this.object.verts[this.e2 >= 0 ? e[2].start : e[2].end],
   ];
-
-  goog.array.removeDuplicates(verts);
-  return goog.array.map(verts, function(v) {
-    return this.object.verts[v];
-  }, this);
 };
 
 

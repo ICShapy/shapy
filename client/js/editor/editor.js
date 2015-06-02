@@ -225,7 +225,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   //this.layout_ = new shapy.editor.Layout.Double();
-  //this.scene_.createSphere(0.5, 16, 16);
+  this.scene_.createSphere(0.5, 16, 16);
   this.layout_ = new shapy.editor.Layout.Single();
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
@@ -486,7 +486,7 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
 
 /**
  * Adds an editable to a selection group.
- * 
+ *
  * @private
  *
  * @param {!shapy.editor.Editable} editable
