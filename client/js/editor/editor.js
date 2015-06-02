@@ -108,18 +108,6 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.name_ = '';
 
   /**
-   * WebSocket connection.
-   * @private {WebSocket}
-   */
-  this.sock_ = null;
-
-  /**
-   * Pending requests.
-   * @private {!Array<Object>}
-   */
-  this.pending_ = [];
-
-  /**
    * Renderer that manages all WebGL resources.
    * @private {shapy.editor.Renderer}
    */
@@ -167,6 +155,12 @@ shapy.editor.Editor = function($location, $rootScope) {
    */
   this.mode = new shapy.editor.Mode();
 
+  /**
+   * WebSocket command executor.
+   * @private {!shapy.editor.Executor}
+   */
+  this.exec_ = null;
+
   // Watch for changes in the name.
   $rootScope.$watch(goog.bind(function() {
     return this.scene_ && this.scene_.name;
@@ -174,7 +168,7 @@ shapy.editor.Editor = function($location, $rootScope) {
     if (newName == oldName) {
       return;
     }
-    this.sendCommand({ type: 'name', value: newName });
+    this.exec_.sendCommand({ type: 'name', value: newName });
   }, this));
 
   // Watch for changes in the mode.
@@ -199,11 +193,7 @@ shapy.editor.Editor.prototype.setScene = function(scene) {
 
   // Set up the websocket connectio.
   this.pending_ = [];
-  this.sock_ = new WebSocket(goog.string.format('ws://%s:%d/api/edit/%s',
-      this.location_.host(), this.location_.port(), this.scene_.id));
-  this.sock_.onmessage = goog.bind(this.onMessage_, this);
-  this.sock_.onclose = goog.bind(this.onClose_, this);
-  this.sock_.onopen = goog.bind(this.onOpen_, this);
+  this.exec_ = new shapy.editor.Executor(this.scene_, this);
 };
 
 
@@ -267,7 +257,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
  * @param {string} type Type of the object.
  */
 shapy.editor.Editor.prototype.create = function(type) {
-  this.sendCommand({
+  this.exec_.sendCommand({
     type: 'create',
     object: type
   });
@@ -330,9 +320,9 @@ shapy.editor.Editor.prototype.destroy = function() {
   }
 
   // Close the websocket connection.
-  if (this.sock_) {
-    this.sock_.close();
-    this.sock_ = null;
+  if (this.exec_) {
+    this.exec_.destroy();
+    this.exec_ = null;
   }
 
   // Clean up buffers from camera cubes.
@@ -355,107 +345,6 @@ shapy.editor.Editor.prototype.destroy = function() {
   this.rigScale_.destroy();
   this.rigCut_.destroy();
   this.rig_ = null;
-};
-
-
-/**
- * Called on the receipt of a message from the server.
- *
- * @private
- *
- * @param {MessageEvent} evt
- */
-shapy.editor.Editor.prototype.onMessage_ = function(evt) {
-  var data;
-
-  // Try to make sense of the data.
-  try {
-    data = JSON.parse(evt.data);
-  } catch (e) {
-    console.error('Invalid message: ' + evt.data);
-  }
-
-  this.rootScope_.$apply(goog.bind(function() {
-    switch (data['type']) {
-      case 'name': {
-        if (this.scene_.name != data['value']) {
-          this.scene_.name = data['value'];
-        }
-        break;
-      }
-      case 'join': {
-        this.scene_.addUser(data['user']);
-        break;
-      }
-      case 'meta': {
-        this.scene_.name = data['name'];
-        this.scene_.setUsers(data['users']);
-        break;
-      }
-      case 'leave': {
-        this.scene_.removeUser(data['user']);
-        break;
-      }
-      case 'create': {
-        switch (data['object']) {
-          case 'cube': {
-            this.scene_.createCube(0.5, 0.5, 0.5);
-            break;
-          }
-          case 'sphere': {
-            this.scene_.createSphere(0.5, 16, 16);
-            break;
-          }
-          default: {
-            console.error('Invalid object type "' + data['object'] + "'");
-            break;
-          }
-        }
-        break;
-      }
-      case 'edit': {
-        switch (data['tool']) {
-          case 'translate': {
-            this.scene_.objects[data['id']].translate(
-                data['x'], data['y'], data['z']);
-            break;
-          }
-          default: {
-            console.error('Invalid tool "' + data['tool'] + "'");
-            break;
-          }
-        }
-        break;
-      }
-      default: {
-        console.error('Invalid message type "' + data['type'] + '"');
-        break;
-      }
-    }
-  }, this));
-};
-
-
-/**
- * Called when the connection opens - flushes pending requests.
- *
- * @private
- */
-shapy.editor.Editor.prototype.onOpen_ = function() {
-  goog.array.map(this.pending_, function(message) {
-    this.sock_.send(JSON.stringify(message));
-  }, this);
-};
-
-
-/**
- * Called when the server suspends the connection.
- *
- * @private
- *
- * @param {CloseEvent} evt
- */
-shapy.editor.Editor.prototype.onClose_ = function(evt) {
 };
 
 
@@ -762,18 +651,4 @@ shapy.editor.Editor.prototype.mouseWheel = function(e) {
   if (this.layout_ && this.layout_.hover) {
     this.layout_.hover.mouseWheel(e.originalEvent.wheelDelta);
   }
-};
-
-
-/**
- * Sends a command over websockets.
- *
- * @param {Object} data
- */
-shapy.editor.Editor.prototype.sendCommand = function(data) {
-  if (!this.sock_ || this.sock_.readyState != 1) {
-    this.pending_.push(data);
-    return;
-  }
-  this.sock_.send(JSON.stringify(data));
 };

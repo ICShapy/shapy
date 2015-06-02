@@ -48,7 +48,7 @@ class Scene(object):
 
     self.id = scene_id
     self.scene_id = scene_id
-    self.name = arg('name', 'Untitled Scene')
+    self.name = arg('name', 'New Scene')
     self.users = json.loads(arg('users', '[]'))
 
   def add_user(self, user):
