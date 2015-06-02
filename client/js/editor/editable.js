@@ -516,6 +516,16 @@ shapy.editor.Mode.prototype.toggleObject = function() {
 
 
 /**
+ * Goes to object mode.
+ */
+shapy.editor.Mode.prototype.setObject = function() {
+  if (!this.object) {
+    this.toggleObject();
+  }
+};
+
+
+/**
  * Toggle face mode.
  */
 shapy.editor.Mode.prototype.toggleFace = function() {
