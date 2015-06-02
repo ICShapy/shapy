@@ -191,17 +191,3 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
 
   this.loaded = true;
 };
-
-
-/**
- * Saves a directory.
- *
- * @param {string} name New name.
- */
-shapy.browser.Asset.prototype.rename = function(name) {
-  this.name = name;
-  this.shBrowser_.http_.put('/api/assets/dir', {
-    id: this.id,
-    name: name
-  });
-};

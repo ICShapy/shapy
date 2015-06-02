@@ -281,3 +281,38 @@ shapy.browser.Service.prototype.getPublic = function() {
   );
 };
 
+/**
+ * Renames asset.
+ *
+ * @param {string}               url   URL of the resource.
+ * @param {!shapy.browser.Asset} asset Asset to rename.
+ * @param {string}               name  New name.
+ */
+shapy.browser.Service.prototype.rename_ = function(url, asset, name) {
+  asset.name = name;
+  this.http_.put(url, {
+    id: asset.id,
+    name: name
+  });
+};
+
+/**
+ * Renames dir.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir  Dir to rename.
+ * @param {string}                   name New name.
+ */
+shapy.browser.Service.prototype.renameDir = function(dir, name) {
+  this.rename_('/api/assets/dir', dir, name);
+};
+
+/**
+ * Renames scene.
+ *
+ * @param {!shapy.browser.Asset.Scene} scene Scene to rename.
+ * @param {string}                     name  New name.
+ */
+shapy.browser.Service.prototype.renameScene = function(scene, name) {
+  this.rename_('/api/assets/scene', scene, name);
+};
+

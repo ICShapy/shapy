@@ -79,7 +79,7 @@
             ng-init="name=asset.name"
             default-name="{{browserCtrl.defaultName(asset.type)}}"
             class="name"
-            ng-blur="asset.rename(name)"
+            ng-blur="browserCtrl.rename(asset, name)"
             ng-model="name">
         </sh-editable>
       </sh-asset>

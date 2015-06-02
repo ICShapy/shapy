@@ -271,6 +271,25 @@ class SceneHandler(APIHandler):
     self.finish()
 
 
+  @session
+  @coroutine
+  @asynchronous
+  def put(self, user):
+    """Updates a scene resource."""
+
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+    id = int(self.get_argument('id'))
+    name = self.get_argument('name')
+
+    # Update the name.
+    cursor = yield momoko.Op(self.db.execute,
+      '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
+    )
+    self.finish()
+
+
 class TextureHandler(APIHandler):
   """Handles requests to a texture asset."""
 

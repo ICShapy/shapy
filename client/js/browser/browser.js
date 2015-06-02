@@ -107,6 +107,24 @@ shapy.browser.BrowserController.prototype.createTexture = function() {
 
 
 /**
+ * Renames given asset.
+ *
+ * @param {!shapy.browser.Asset} asset Asset that is to be renamed.
+ * @param {string}               name  New name.
+ */
+shapy.browser.BrowserController.prototype.rename = function(asset, name) {
+  switch (asset.type) {
+    case shapy.browser.Asset.Type.DIRECTORY:
+      this.shBrowser_.renameDir(asset, name);
+      break;
+    case shapy.browser.Asset.Type.SCENE:
+      this.shBrowser_.renameScene(asset, name);
+      break;
+  }
+};
+
+
+/**
  * Returns the current directory.
  *
  * @return {!shapy.browser.Asset.Dir}
