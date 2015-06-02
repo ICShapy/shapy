@@ -607,7 +607,15 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 83: this.rig(this.rigScale_); break;     // s
     case 67: this.rig(this.rigCut_); break;       // c
     case 69: {                                    // e
-      this.selected_.getObject().extrude([this.selected_]);
+      var editables = this.partGroup_.getEditables();
+      var isFace = function(e) {
+        return e.type == shapy.editor.Editable.Type.FACE;
+      };
+      var and = function(a, b) { return a && b; };
+      if (editables.length > 0 &&
+          goog.array.reduce(goog.array.map(editables, isFace), and, true)) {
+        this.partGroup_.getObject().extrude(this.partGroup_);
+      }
       break;
     }
     default: {

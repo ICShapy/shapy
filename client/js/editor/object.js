@@ -577,9 +577,11 @@ shapy.editor.Object.prototype.connect = function(verts) {
 /**
  * Extrude a set of faces
  *
- * @param {!Array<!shapy.editor.Object.Face>} faces
+ * @param {!shapy.editor.PartGroup} partGroup
  */
-shapy.editor.Object.prototype.extrude = function(faces) {
+shapy.editor.Object.prototype.extrude = function(partGroup) {
+  var faces = [partGroup.editables_[0]];
+
   // Calculate normal
   var normal = goog.vec.Vec3.createFloat32();
   goog.array.forEach(faces, function(f) {
