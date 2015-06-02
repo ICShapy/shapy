@@ -143,6 +143,28 @@ shapy.editor.EditableGroup.prototype.remove = function(editable) {
 
 
 /**
+ * Clears the editable.
+ */
+shapy.editor.EditableGroup.prototype.clear = function() {
+  this.editables_ = [];
+};
+
+
+/**
+ * Returns the last element of the group.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.EditableGroup.prototype.getLast = function() {
+  if (goog.array.isEmpty(this.editables_)) {
+    return null;
+  } else {
+    return this.editables_[this.editables_.length - 1];
+  }
+};
+
+
+/**
  * Determines whether the group is empty.
  *
  * @return True if empty
@@ -331,19 +353,6 @@ shapy.editor.ObjectGroup = function(objects) {
 };
 goog.inherits(shapy.editor.ObjectGroup, shapy.editor.EditableGroup);
 
-
-/**
- * Returns the last element of the group.
- *
- * @return {shapy.editor.Object}
- */
-shapy.editor.ObjectGroup.prototype.getLast = function() {
-  if (goog.array.isEmpty(this.editables_)) {
-    return null;
-  } else {
-    return this.editables_[this.editables_.length - 1];
-  }
-};
 
 /**
  * Translate the group
