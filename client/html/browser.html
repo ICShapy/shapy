@@ -46,20 +46,16 @@
           </span>
         </div>
         <div ng-show="open" style="padding-left: 14px">
-          <sh-sidebar-folders>
             <ng-include
                 src="'directory.html'"
                 ng-init="directories=dir.children"/>
-          </sh-sidebar-folders>
         </div>
       </div>
     </script>
 
-    <sh-sidebar-folders>
-      <ng-include
-          src="'directory.html'"
-          ng-init="directories=[browserCtrl.home]"/>
-    </sh-sidebar-folders>
+    <ng-include
+        src="'directory.html'"
+        ng-init="directories=[browserCtrl.home]"/>
   </sh-sidebar>
 
   <!-- Main navigator view. -->
