@@ -72,12 +72,6 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.rootScope_ = $rootScope;
 
   /**
-   * Is the ctrl modifier key pressed?
-   * @private {boolean}
-   */
-  this.ctrlDown_ = false;
-
-  /**
    * Canvas.
    * @private {!HTMLCanvasElement}
    */
@@ -378,18 +372,19 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
  * Selects an editable.
  *
  * @param {!shapy.editor.Editable} editable
+ * @param {boolean}                groupSelect
  */
-shapy.editor.Editor.prototype.select = function(editable) {
+shapy.editor.Editor.prototype.select = function(editable, groupSelect) {
   var group;
 
   if (this.mode.object) {
-    if (!this.ctrlDown_) {
+    if (!groupSelect) {
       this.objectGroup_.setSelected(false);
       this.objectGroup_.clear();
     }
     group = this.objectGroup_;
   } else {
-    if (!this.ctrlDown_) {
+    if (!groupSelect) {
       this.partGroup_.setSelected(false);
       this.partGroup_.clear();
     }
@@ -463,7 +458,6 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   var object;
 
   switch (e.keyCode) {
-    case 17: this.ctrlDown_ = true; break;        // control
     case 68: {                                    // d
       if (this.partGroup_) {
         this.partGroup_.delete();
@@ -512,11 +506,6 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyUp = function(e) {
-  switch (e.keyCode) {
-    case 17: this.ctrlDown_ = false; break;        // control
-    default:
-      break;
-  }
 };
 
 
@@ -543,13 +532,8 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
     return;
   }
 
-  if (group && group.width > 3 && group.height > 3) {
-    var frustum = this.layout_.active.groupcast(group);
-    pick = this.scene_.pickFrustum(frustum, this.partGroup_, this.mode);
-  } else {
-    pick = this.scene_.pickRay(ray, this.mode);
-  }
-  this.select(pick);
+  // Select the object hovered by the mouse.
+  this.select(this.hover_, e.ctrlKey);
 };
 
 
@@ -561,33 +545,28 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 shapy.editor.Editor.prototype.mouseMove = function(e) {
   var pick, ray, group = this.layout_.active.group;
 
-  if (!(ray = this.layout_.mouseMove(e))) {
-    if (group) {
-      pick = this.scene_.pickFrustum(
-          this.layout_.active.groupcast(group),
-          this.partGroup_,
-          this.mode);
-    }
-    if (!pick) {
-      if (this.hover_) {
-        this.hover_.setHover(false);
-      }
-      return;
-    }
-  } else {
+  // Find the entity under the mouse.
+  if ((ray = this.layout_.mouseMove(e))) {
     pick = this.scene_.pickRay(ray, this.mode);
+  } else if (group) {
+    pick = this.scene_.pickFrustum(
+        this.layout_.active.groupcast(group),
+        this.partGroup_,
+        this.mode);
   }
-  if (!pick && this.hover_) {
-    this.hover_.setHover(false);
+
+  // If object unchanged, do nothing.
+  if (pick == this.hover_) {
     return;
   }
 
-  if (pick != this.hover_) {
-    if (this.hover_) {
-      this.hover_.setHover(false);
-    }
-    pick.setHover(true);
-    this.hover_ = pick;
+  // Highlight the current object.
+  if (this.hover_) {
+    this.hover_.setHover(false);
+  }
+  this.hover_ = pick;
+  if (this.hover_) {
+    this.hover_.setHover(true);
   }
 };
 
