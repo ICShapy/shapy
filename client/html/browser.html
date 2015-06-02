@@ -81,6 +81,7 @@
         <sh-editable
             ng-click="browserCtrl.selected = null"
             ng-init="name=asset.name"
+            default-name="{{browserCtrl.defaultName(asset.type)}}"
             class="name"
             ng-blur="asset.rename(name)"
             ng-model="name">

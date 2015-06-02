@@ -84,6 +84,9 @@ shapy.editable = function() {
     replace: true,
     template: '<span contenteditable=true></span>',
     require: 'ngModel',
+    scope: {
+      defaultName : '@'
+    },
     link: function($scope, $elem, $attr, ngModel) {
       ngModel.$render = function() {
         $elem.text(ngModel.$viewValue);
@@ -93,7 +96,9 @@ shapy.editable = function() {
         .text(ngModel.$modelValue)
         .blur(function() {
           $scope.$apply(function() {
-            ngModel.$setViewValue($elem.text() || 'Untitled Scene');
+            ngModel.$setViewValue($elem.text() ||
+                                  $scope.defaultName ||
+                                  'Untitled');
             $elem.text(ngModel.$viewValue);
           });
         })
