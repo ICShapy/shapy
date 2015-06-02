@@ -11,6 +11,7 @@ goog.require('goog.string.format');
 goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
 goog.require('shapy.editor.Editable');
+goog.require('shapy.editor.Executor');
 goog.require('shapy.editor.Layout');
 goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
@@ -494,7 +495,7 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
 
 /**
  * Adds an editable to a selection group.
- * 
+ *
  * @private
  *
  * @param {!shapy.editor.Editable} editable

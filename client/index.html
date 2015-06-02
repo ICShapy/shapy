@@ -59,6 +59,7 @@
           'shapy.editor.Editor'
       ], [
           'shapy.editor.CamCube',
+          'shapy.editor.Executor',
           'shapy.editor.Object',
           'shapy.editor.Mesh',
           'shapy.editor.Renderer',
@@ -70,6 +71,9 @@
           'shapy.editor.Rig.Scale',
           'shapy.editor.Mode'
       ]);
+      goog.addDependency('../editor/executor.js', [
+          'shapy.editor.Executor'
+      ], []);
       goog.addDependency('../editor/geom.js', [
           'shapy.editor.geom'
       ], []);
