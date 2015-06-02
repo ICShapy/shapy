@@ -129,11 +129,11 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       case 'create': {
         switch (data['object']) {
           case 'cube': {
-            this.scene_.createCube(0.5, 0.5, 0.5);
+            this.editor_.select(this.scene_.createCube(0.5, 0.5, 0.5));
             break;
           }
           case 'sphere': {
-            this.scene_.createSphere(0.5, 16, 16);
+            this.editor_.select(this.scene_.createSphere(0.5, 16, 16));
             break;
           }
           default: {
@@ -141,6 +141,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             break;
           }
         }
+        this.editor_.rig(this.editor_.rigTranslate_);
         break;
       }
       case 'edit': {

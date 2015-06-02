@@ -117,20 +117,38 @@ goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
 
 
 /**
- * Add an editable
+ * Add an editable to the group, if it's not already in the group. 
  *
  * @param {shapy.editor.Editable} editable Editable object to add.
- *
- * @return {boolean} True if group is not empty.
  */
 shapy.editor.EditableGroup.prototype.add = function(editable) {
-  if (goog.array.contains(this.editables_, editable)) {
+  goog.array.insert(this.editables_, editable);
+  editable.setSelected(this.selected);
+};
+
+
+/**
+ * Removes an element from the group.
+ *
+ * @return True if the element was removed.
+ */
+shapy.editor.EditableGroup.prototype.remove = function(editable) {
+  var removed = goog.array.remove(this.editables_, editable);
+  if (removed && editable.selected) {
     editable.setSelected(false);
-    goog.array.remove(this.editables_, editable);
-  } else {
-    this.editables_.push(editable);
   }
-  return !goog.array.isEmpty(this.editables_);
+
+  return removed;
+}
+
+
+/**
+ * Determines whether the group is empty.
+ *
+ * @return True if empty
+ */
+shapy.editor.EditableGroup.prototype.isEmpty = function(editable) {
+  return goog.array.isEmpty(this.editables_);
 };
 
 
@@ -140,6 +158,8 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
  * @param {boolean} hover
  */
 shapy.editor.EditableGroup.prototype.setHover = function(hover) {
+  this.hover = hover;
+
   goog.object.forEach(this.editables_, function(editable) {
     editable.setHover(hover);
   }, this);
@@ -152,6 +172,8 @@ shapy.editor.EditableGroup.prototype.setHover = function(hover) {
  * @param {boolean} selected
  */
 shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
+  this.selected = selected;
+
   goog.object.forEach(this.editables_, function(editable) {
     editable.setSelected(selected);
   }, this);

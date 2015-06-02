@@ -255,7 +255,7 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
  * @return {boolean} True if event was captured.
  */
 shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
-  var captured = this.select_.x || this.select_.x || this.select_.z;
+  var captured = this.select_.x || this.select_.y || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
   if (this.onFinish) {
     var pos = this.object.getPosition();

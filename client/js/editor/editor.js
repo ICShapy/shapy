@@ -215,11 +215,10 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  //this.layout_ = new shapy.editor.Layout.Double();
-  //this.scene_.createSphere(0.5, 16, 16);
+
   this.layout_ = new shapy.editor.Layout.Single();
-  //this.select(goog.object.getAnyValue(this.scene_.objects));
-  //this.rig(this.rigTranslate_);
+  this.select(goog.object.getAnyValue(this.scene_.objects));
+  this.rig(this.rigTranslate_);
 };
 
 
@@ -348,13 +347,14 @@ shapy.editor.Editor.prototype.destroy = function() {
 };
 
 
+
 /**
  * Disselects the currently selected object(s) not allowed by the mode.
  *
  * @private
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
-  // Makes sure the object is not disselected when switching from object
+  // Makes sure the object is not deselected when switching from object
   // mode to face/edge/vertex mode in order to allow for group selection.
   if (this.selected_ && !this.mode[this.selected_.type] &&
       this.selected_.type != shapy.editor.Editable.Type.OBJECT) {
@@ -366,18 +366,18 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
 
 
 /**
- * Set the currently selected object in the editor/rig/etc
+ * Set the currently selected editable in the editor/rig/etc
  *
  * @private
  *
- * @param {!shapy.editor.Editable} object
+ * @param {!shapy.editor.Editable} editable
  */
-shapy.editor.Editor.prototype.selectObject_ = function(object) {
-  this.selected_ = object;
-  this.selected_.setSelected(true);
+shapy.editor.Editor.prototype.markSelected_ = function(editable) {
+  editable.setSelected(true);
+  this.selected_ = editable;
 
   if (this.rig_) {
-    this.rig_.object = object;
+    this.rig_.object = editable;
   }
 };
 
@@ -390,30 +390,37 @@ shapy.editor.Editor.prototype.selectObject_ = function(object) {
  * @param {!shapy.editor.Editable} editable
  */
 shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
-  // Add to an existing group.
+  // Removing from the group.
+  if (editable.selected) {
+    this.selected_.remove(editable);
+
+    // Editable was the last member of the group.
+    if (this.selected_.isEmpty()) {
+      this.selected_ = null;
+      this.rig(null);
+    }
+    return;
+  }
+
+  // Adding.
+  var group;
+  // The group already exists.
   if (this.selected_.type == shapy.editor.Editable.Type.OBJECT_GROUP ||
       this.selected_.type == shapy.editor.Editable.Type.PARTS_GROUP) {
-    if (editable) {
-      editable.setSelected(true);
-      if (!this.selected_.add(editable)) {
-        this.select(null);
-      }
-    }
+    group = this.selected_;
   } else {
     // Start a new group.
-    var newGroup;
     if (this.selected_.type == shapy.editor.Editable.Type.OBJECT) {
-      newGroup = new shapy.editor.ObjectGroup();
+      group = new shapy.editor.ObjectGroup([this.selected_]);
     } else {
-      newGroup = new shapy.editor.PartsGroup();
+      group = new shapy.editor.PartsGroup([this.selected_]);
     }
 
-    // Add to the group.
-    newGroup.add(this.selected_);
-    newGroup.add(editable);
-    this.selectObject_(newGroup);
-    editable.setSelected(true);
+    this.markSelected_(group);
   }
+
+  // Add to the group.
+  group.add(editable);
 };
 
 
@@ -423,25 +430,32 @@ shapy.editor.Editor.prototype.addToSelGroup_ = function(editable) {
  * @param {!shapy.editor.Editable} editable
  */
 shapy.editor.Editor.prototype.select = function(editable) {
-  if (this.ctrlDown_ && this.selected_) {
-    this.addToSelGroup_(editable);
-  } else {
-    // Unselect the previous editable
+  // Deselecting/ deleting.
+  if (!editable) {
     if (this.selected_) {
       this.selected_.setSelected(false);
     }
+    this.selected_ = null;
+    this.rig(null);
+    return;
+  }
 
-    // If the editable is null, remove the rig
-    if (!editable) {
-      this.selected_ = null;
-      this.rig(null);
+  if (this.selected_) {
+    // Trying to select the same object has no effect.
+    if (this.selected_ == editable) {
       return;
     }
 
-    // Mark the editable as selected
-    editable.setSelected(true);
-    this.selectObject_(editable);
+    // Selection group.
+    if (this.ctrlDown_) {
+      this.addToSelGroup_(editable);
+      return;
+    }
+    // Deselect currently selected object.
+    this.selected_.setSelected(false);
   }
+
+  this.markSelected_(editable);
 };
 
 
@@ -574,14 +588,11 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   if (group && group.width > 3 && group.height > 3) {
     var frustum = this.layout_.active.groupcast(group);
-    if (pick = this.scene_.pickFrustum(frustum, this.selected_, this.mode)) {
-      this.select(pick);
-    }
+    pick = this.scene_.pickFrustum(frustum, this.selected_, this.mode);
   } else {
-    if (pick = this.scene_.pickRay(ray, this.mode)) {
-      this.select(pick);
-    }
+    pick = this.scene_.pickRay(ray, this.mode);
   }
+  this.select(pick);
 };
 
 
@@ -652,3 +663,4 @@ shapy.editor.Editor.prototype.mouseWheel = function(e) {
     this.layout_.hover.mouseWheel(e.originalEvent.wheelDelta);
   }
 };
+
