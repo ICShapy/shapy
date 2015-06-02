@@ -75,6 +75,14 @@ shapy.browser.Asset.prototype.load = goog.abstractMethod;
 
 
 /**
+ * Deletes the asset.
+ */
+shapy.browser.Asset.prototype.delete = function() {
+  console.log('delete me');
+};
+
+
+/**
  * Enumeration of asset types.
  * @enum {string}
  */

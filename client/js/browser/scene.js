@@ -118,8 +118,8 @@ shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
 /**
  * Picks an object intersected by a ray.
  *
- * @param {!goog.vec.Ray}      ray
- * @param {!shapy.editor.Mode} mode
+ * @param {!goog.vec.Ray}         ray
+ * @param {!shapy.editor.Mode}    mode
  *
  * @return {!shapy.editor.Editable}
  */
@@ -158,7 +158,9 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
+shapy.browser.Asset.Scene.prototype.pickFrustum = function(
+    frustum, selected, mode)
+{
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
     var ps = obj.pickFrustum(frustum);
     if (!goog.array.isEmpty(ps)) {
@@ -173,16 +175,34 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
     return mode[hit.type];
   });
 
-  // Allow selecting multiple parts of the currently selected object only.
+  // Pick parts of the same object only.
   if (!mode[shapy.editor.Editable.Type.OBJECT]) {
+    if (!selected) {
+      return null;
+    }
+
+    // Consider only the parts of the selected object or current parts group.
+    var owner = selected;
+    if (selected.type == shapy.editor.Editable.Type.PARTS_GROUP) {
+      owner = selected.getObject();
+    }
+
     hits = goog.array.filter(hits, function(hit) {
-      return hit.object == selected;
+      return hit.object == owner;
     });
 
     return goog.array.isEmpty(hits) ? null : new shapy.editor.PartsGroup(hits);
   }
 
-  return goog.array.isEmpty(hits) ? null : new shapy.editor.ObjectGroup(hits);
+  if (goog.array.isEmpty(hits)) {
+    return null;
+  }
+
+  if (hits.length == 1) {
+    return hits[0];
+  } else {
+    return new shapy.editor.ObjectGroup(hits);
+  }
 };
 
 

@@ -25,10 +25,11 @@ goog.require('shapy.editor.geom');
  * @constructor
  * @extends {shapy.editor.Editable}
  *
- * @param {string} id
- * @param {!Array<Object>} verts
- * @param {!Array<Object>} edges
- * @param {!Array<Object>} faces
+ * @param {string}              id
+ * @param {!shapy.editor.Scene} scene
+ * @param {!Array<Object>}      verts
+ * @param {!Array<Object>}      edges
+ * @param {!Array<Object>}      faces
  */
 shapy.editor.Object = function(id, scene, verts, edges, faces) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT);

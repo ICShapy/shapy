@@ -9,9 +9,10 @@ goog.require('shapy.UserService');
 goog.require('shapy.browser.BrowserController');
 goog.require('shapy.browser.BrowserToolbarController');
 goog.require('shapy.browser.Service');
+goog.require('shapy.browser.assetMatch');
+goog.require('shapy.browser.assetOrder');
 goog.require('shapy.browser.directories');
 goog.require('shapy.browser.file');
-goog.require('shapy.browser.fileMatch');
 goog.require('shapy.browser.files');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.editable');
@@ -23,6 +24,8 @@ goog.require('shapy.email');
 goog.require('shapy.equals');
 goog.require('shapy.highlight');
 goog.require('shapy.menu');
+goog.require('shapy.modal.Service');
+goog.require('shapy.modal.root');
 goog.require('shapy.notification.Service');
 goog.require('shapy.notification.notifyBar');
 
@@ -231,6 +234,7 @@ shapy.module = angular
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)
   .service('shEditor', shapy.editor.Editor)
+  .service('shModal', shapy.modal.Service)
 
   .directive('shSidebar', shapy.browser.sidebar)
   .directive('shFiles', shapy.browser.files)
@@ -242,10 +246,12 @@ shapy.module = angular
   .directive('shEmail', shapy.email)
   .directive('shMenu', shapy.menu)
   .directive('shEditable', shapy.editable)
+  .directive('shModalRoot', shapy.modal.root)
 
   .factory('shHttp', shapy.HttpInterceptor)
 
-  .filter('shFileMatch', shapy.browser.fileMatch)
+  .filter('shAssetMatch', shapy.browser.assetMatch)
+  .filter('shAssetOrder', shapy.browser.assetOrder)
   .filter('shDirectories', shapy.browser.directories)
 
   .config(shapy.configStates_)

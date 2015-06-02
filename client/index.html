@@ -139,6 +139,10 @@
       goog.addDependency('../menu.js', [
           'shapy.menu'
       ], []);
+      goog.addDependency('../modal.js', [
+          'shapy.modal.Service',
+          'shapy.modal.root'
+      ], []);
       goog.addDependency('../notification.js', [
           'shapy.notification.notifyBar',
           'shapy.notification.Service'
@@ -165,7 +169,9 @@
           'shapy.email',
           'shapy.notification.notifyBar',
           'shapy.notification.Service',
-          'shapy.menu'
+          'shapy.menu',
+          'shapy.modal.Service',
+          'shapy.modal.root'
       ]);
       goog.addDependency('../register.js', [
           'shapy.equals',
@@ -185,6 +191,7 @@
   <body>
     <div id="header" ui-view="header"></div>
     <sh-notify-bar></sh-notify-bar>
+    <sh-modal-root></sh-modal-root>
     <div id="body" ui-view="body"></div>
   </body>
 </html>
