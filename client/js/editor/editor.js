@@ -353,19 +353,21 @@ shapy.editor.Editor.prototype.destroy = function() {
  * @private
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
+  this.partGroup_.setSelected(false);
+  this.objectGroup_.setSelected(false);
+
   if (this.mode.object) {
-    // Deselect all parts.
-    this.partGroup_.setSelected(false);
     this.partGroup_.clear();
     this.rig(this.rigTranslate_);
   } else {
-    this.objectGroup_.setSelected(false);
     var object = this.objectGroup_.getLast();
     this.objectGroup_.clear();
     this.objectGroup_.add(object);
-    this.objectGroup_.setSelected(true);
     this.rig(this.rigTranslate_);
   }
+
+  this.partGroup_.setSelected(true);
+  this.objectGroup_.setSelected(true);
 };
 
 
@@ -376,35 +378,35 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
  * @param {boolean}                groupSelect
  */
 shapy.editor.Editor.prototype.select = function(editable, groupSelect) {
-  var group;
+  var group, selected = editable ? editable.isSelected() : false;
+
+  this.partGroup_.setSelected(false);
+  this.objectGroup_.setSelected(false);
 
   if (this.mode.object) {
     if (!groupSelect) {
-      this.objectGroup_.setSelected(false);
       this.objectGroup_.clear();
     }
     group = this.objectGroup_;
   } else {
     if (!groupSelect) {
-      this.partGroup_.setSelected(false);
       this.partGroup_.clear();
     }
     group = this.partGroup_;
   }
 
   if (editable) {
-    if (editable.isSelected()) {
-      editable.setSelected(false);
+    if (selected) {
       group.remove(editable);
     } else {
       group.add(editable);
-      group.setSelected(true);
     }
   } else {
-    group.setSelected(false);
     group.clear();
   }
 
+  this.partGroup_.setSelected(true);
+  this.objectGroup_.setSelected(true);
   this.rig(this.rig_ || this.rigTranslate_);
 };
 

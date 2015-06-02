@@ -23,7 +23,26 @@ shapy.User = function(data) {
   this.name = data['first_name'] + ' ' + data['last_name'];
   /** @public {string} @const */
   this.email = data['email'];
+  /** @public {!goog.vec.Vec3} @const */
+  this.colour = shapy.User.Colour[
+      Math.floor(Math.random() * shapy.User.Colour.length)];
 };
+
+
+/**
+ * Colours assigned to users.
+ *
+ * @type {!Array<goog.vec.Vec3>} @const
+ */
+shapy.User.Colour = [
+  [0.70, 0.70, 0.70],
+  [1.00, 0.00, 0.00],
+  [0.00, 1.00, 0.00],
+  [0.00, 0.00, 1.00],
+  [1.00, 1.00, 0.00],
+  [1.00, 0.00, 1.00],
+  [0.00, 1.00, 1.00]
+];
 
 
 
