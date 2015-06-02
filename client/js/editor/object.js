@@ -104,7 +104,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   goog.array.forEach(verts, function(v, i) {
     this.nextVert_ = Math.max(this.nextVert_, i + 2);
     this.verts[i + 1] = new shapy.editor.Object.Vertex(
-        this, i, v[0], v[1], v[2]);
+        this, i + 1, v[0], v[1], v[2]);
   }, this);
 
   /**
@@ -116,7 +116,8 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   this.nextEdge_ = 0;
   goog.array.forEach(edges, function(e, i) {
     this.nextEdge_ = Math.max(this.nextEdge_, i + 2);
-    this.edges[i + 1] = new shapy.editor.Object.Edge(this, i, e[0], e[1]);
+    this.edges[i + 1] = new shapy.editor.Object.Edge(
+        this, i + 1, e[0], e[1]);
   }, this);
 
   /**
@@ -129,7 +130,8 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
    this.nextFace_ = 0;
    goog.array.forEach(faces, function(f, i) {
     this.nextFace_ = Math.max(this.nextFace_, i + 2);
-    this.faces[i + 1] = new shapy.editor.Object.Face(this, i, f[0], f[1], f[2]);
+    this.faces[i + 1] = new shapy.editor.Object.Face(
+        this, i + 1, f[0], f[1], f[2]);
    }, this);
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
@@ -628,7 +630,9 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     var faceID = this.nextFace_++;
     faceMap[f.id] = faceID;
     this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
-        edgeMap[f.e0], edgeMap[f.e1], edgeMap[f.e2]);
+        f.e0 >= 0 ? edgeMap[f.e0] : -edgeMap[-f.e0],
+        f.e1 >= 0 ? edgeMap[f.e1] : -edgeMap[-f.e1],
+        f.e2 >= 0 ? edgeMap[f.e2] : -edgeMap[-f.e2]);
     f.delete(); // Delete original face
     return this.faces[faceID];
   }, this);
@@ -666,8 +670,8 @@ shapy.editor.Object.prototype.extrude = function(faces) {
       console.log(a, b, c);
       return this.faces[faceID];
     }, this);
-    emitFace(diagonal, aA, AB);
-    emitFace(diagonal, bB, ab);
+    //emitFace(diagonal, aA, AB);
+    //emitFace(diagonal, bB, ab);
   }
 
   this.dirtyMesh = true;
