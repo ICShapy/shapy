@@ -426,22 +426,6 @@ shapy.editor.Editor.prototype.rig = function(rig) {
     return;
   }
 
-  // Cut rig should not be attached to anything other than objects.
-  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT &&
-  //    object.type != shapy.editor.Editable.Type.OBJECT) {
-  //  return;
-  //}
-
-  // Cut rig should not be attached to anything other than objects.
-  //if (rig.type == shapy.editor.Rig.Type.CUT &&
-  //    attach.type != shapy.editor.Editable.Type.OBJECT) {
-  //  return;
-  //}
-
-  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
-  //  this.rig_.reset();
-  //}
-
   this.rig_ = rig;
   if (this.rig_) {
     this.rig_.object = attach;
