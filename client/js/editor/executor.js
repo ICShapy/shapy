@@ -88,8 +88,6 @@ shapy.editor.Executor.prototype.sendCommand = function(data) {
 };
 
 
-
-
 /**
  * Called on the receipt of a message from the server.
  *
