@@ -121,6 +121,8 @@ shapy.editor.Mesh.prototype.build_ = function() {
     } else {
       if (this.object_.selected) {
         r = 0.7; g = 0.7; b = 0.7;
+      } else if (this.object_.hover) {
+        r = 0.6; g = 0.6; b = 0.6;
       } else {
         r = 0.4; g = 0.4; b = 0.4;
       }

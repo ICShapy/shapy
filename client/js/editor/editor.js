@@ -543,21 +543,26 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, ray, group = this.layout_.active.group;
+  var pick, hits, hit, ray, group = this.layout_.active.group, objs, frustum;
 
   // Find the entity under the mouse.
-  if ((ray = this.layout_.mouseMove(e))) {
-    pick = this.scene_.pickRay(ray, this.mode);
-  } else if (group) {
-    pick = this.scene_.pickFrustum(
-        this.layout_.active.groupcast(group),
-        this.partGroup_,
-        this.mode);
+  if (!!(ray = this.layout_.mouseMove(e))) {
+    hit = this.scene_.pickRay(ray, this.mode);
+    hits = hit ? [hit] : [];
+  } else if (group && group.width > 3 && group.height > 3) {
+    frustum = this.layout_.active.groupcast(group);
+    hits = this.scene_.pickFrustum(frustum, this.mode);
+  } else {
+    hits = [];
   }
 
-  // If object unchanged, do nothing.
-  if (pick == this.hover_) {
-    return;
+  // Filter out all parts that do not belong to the current object.
+  if (this.mode.object) {
+    pick = new shapy.editor.ObjectGroup(hits);
+  } else {
+    pick = new shapy.editor.PartsGroup(goog.array.filter(hits, function(e) {
+      return this.objectGroup_.contains(e.object);
+    }, this));
   }
 
   // Highlight the current object.

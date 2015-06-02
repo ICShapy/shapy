@@ -287,6 +287,7 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
  * @return {!Array<shapy.editor.Editable>}
  */
 shapy.editor.Object.prototype.pickFrustum = function(frustum) {
+  // Transform the clipping planes into model space.
   var planes = goog.array.map(frustum, function(plane) {
     var n = goog.vec.Vec3.cloneFloat32(plane.n);
     var o = goog.vec.Vec3.cloneFloat32(plane.o);
@@ -298,18 +299,24 @@ shapy.editor.Object.prototype.pickFrustum = function(frustum) {
     };
   }, this);
 
+  // Retrieve all parts of the object.
   var all = goog.array.flatten(goog.array.map([
       this.verts,
       this.edges,
       this.faces
   ], goog.object.getValues));
-  return goog.object.getValues(goog.object.filter(all, function(elem) {
+
+  // Filter out all the parts which are inside all planes.
+  var hits = goog.object.getValues(goog.object.filter(all, function(elem) {
     return goog.array.some(elem.getVertices(), function(v) {
       return goog.array.every(planes, function(plane) {
         return goog.vec.Vec3.dot(v.position, plane.n) + plane.d >= 0;
       });
     });
   }, this));
+
+  // Include current object if any part is hit.
+  return goog.array.isEmpty(hits) ? [] : goog.array.concat(hits, this);
 };
 
 

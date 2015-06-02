@@ -122,8 +122,18 @@ goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
  * @param {shapy.editor.Editable} editable Editable object to add.
  */
 shapy.editor.EditableGroup.prototype.add = function(editable) {
-  goog.array.insert(this.editables_, editable);
-  editable.setSelected(this.selected);
+  switch (editable.type) {
+    case shapy.editor.Editable.Type.OBJECT_GROUP:
+    case shapy.editor.Editable.Type.PARTS_GROUP:
+    {
+      this.editables_ = goog.array.concat(this.editables_, editable.editables_);
+      break;
+    }
+    default: {
+      goog.array.insert(this.editables_, editable);
+      break;
+    }
+  }
 };
 
 
@@ -139,7 +149,19 @@ shapy.editor.EditableGroup.prototype.remove = function(editable) {
   }
 
   return removed;
-}
+};
+
+
+/**
+ * Checks if the group contains an object.
+ *
+ * @param {!shapy.editor.Object} object
+ *
+ * @return {boolean} True if th eobject is in the group.
+ */
+shapy.editor.EditableGroup.prototype.contains = function(object) {
+  return goog.array.contains(this.editables_, object);
+};
 
 
 /**
