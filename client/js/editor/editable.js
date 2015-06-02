@@ -117,7 +117,7 @@ goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
 
 
 /**
- * Add an editable to the group, if it's not already in the group. 
+ * Add an editable to the group, if it's not already in the group.
  *
  * @param {shapy.editor.Editable} editable Editable object to add.
  */
@@ -140,6 +140,28 @@ shapy.editor.EditableGroup.prototype.remove = function(editable) {
 
   return removed;
 }
+
+
+/**
+ * Clears the editable.
+ */
+shapy.editor.EditableGroup.prototype.clear = function() {
+  this.editables_ = [];
+};
+
+
+/**
+ * Returns the last element of the group.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.EditableGroup.prototype.getLast = function() {
+  if (goog.array.isEmpty(this.editables_)) {
+    return null;
+  } else {
+    return this.editables_[this.editables_.length - 1];
+  }
+};
 
 
 /**
@@ -214,7 +236,7 @@ shapy.editor.EditableGroup.prototype.getScale = function() {
     goog.vec.Vec3.add(scale, editable.getScale(), scale);
   }, this);
   goog.vec.Vec3.scale(scale, 1 / this.editables_.length, scale);
-  return scale;    
+  return scale;
 }
 
 
@@ -455,7 +477,7 @@ shapy.editor.Mode.prototype.toggleObject = function() {
  */
 shapy.editor.Mode.prototype.toggleFace = function() {
   this.face = !this.face;
-  this.partsGroup = this.face || this.edge || this.vertex;  
+  this.partsGroup = this.face || this.edge || this.vertex;
   this.object = this.objectGroup = !this.partsGroup;
 };
 
@@ -475,6 +497,6 @@ shapy.editor.Mode.prototype.toggleEdge = function() {
  */
 shapy.editor.Mode.prototype.toggleVertex = function() {
   this.vertex = !this.vertex;
-  this.partsGroup = this.face || this.edge || this.vertex;  
+  this.partsGroup = this.face || this.edge || this.vertex;
   this.object = this.objectGroup = !this.partsGroup;
 };
