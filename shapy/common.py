@@ -49,13 +49,13 @@ class BaseHandler(RequestHandler):
   @property
   def redis(self):
     """Returns a reference to the redis connection."""
-    if not hasattr(self, 'redis_conn'):
-      self.redis_conn = tornadoredis.Client(
-          host=self.application.RD_HOST,
-          port=self.application.RD_PORT,
-          password=self.application.RD_PASS)
-      self.redis_conn.connect()
-    return self.redis_conn
+    return self.application.redis
+
+  def on_finish(self):
+    """Cleanup."""
+
+    if hasattr(self, 'redis_conn'):
+      self.redis_conn.disconnect()
 
 
 

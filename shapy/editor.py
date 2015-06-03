@@ -14,30 +14,8 @@ import tornadoredis
 from shapy.common import APIHandler, BaseHandler, session
 
 
-
 class Scene(object):
   """Wraps common information about a scene."""
-
-  @classmethod
-  @coroutine
-  def get(cls, redis, scene_id):
-    """Returns an object by reading data from postgres and redis."""
-    data = yield Task(redis.hmget, 'scene:%s' % scene_id, [
-        'name',
-        'users'
-    ])
-    raise Return(Scene(scene_id, data if data else {}))
-
-
-  @classmethod
-  @coroutine
-  def put(cls, redis, scene):
-    yield Task(redis.hmset, 'scene:%s' % scene.id, {
-        'name': scene.name,
-        'users': json.dumps(scene.users)
-    })
-    raise Return(None)
-
 
   def __init__(self, scene_id, data):
     """Creates a new scene object."""
@@ -88,10 +66,11 @@ class WSHandler(WebSocketHandler, BaseHandler):
         port=self.application.RD_PORT,
         password=self.application.RD_PASS)
     self.chan.connect()
-
-    self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
+
+    # Create a new lock.
+    self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
 
     # Get the scene object & add the client.
     def add_user(scene):
@@ -104,6 +83,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'name': scene.name,
         'users': scene.users
     }))
+
     yield self.to_channel({
       'type': 'join',
       'user': self.user.id
@@ -116,21 +96,23 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if not hasattr(self, 'user'):
       return
     data = json.loads(message)
+    seq = yield self.to_channel(data)
 
-    # Update database with changes.
-    #if data['type'] == 'name':
-    #  def update_name(scene):
-    #    scene.name = data['value']
-    #  yield self.update_scene_(update_name)
+    # Name change request - update object.
+    if data['type'] == 'name':
+      def update_name(scene):
+        scene.name = data['value']
+      yield self.update_scene_(update_name)
 
-    yield self.to_channel(data)
-
+    # Select request - lock on object.
+    if data['type'] == 'select':
+      print data['objects']
 
   @coroutine
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not hasattr(self, 'user') or message.kind != 'message':
+    if not hasattr(self, 'user') or not self.user or message.kind != 'message':
       return
 
     self.write_message(message.body)
@@ -144,29 +126,45 @@ class WSHandler(WebSocketHandler, BaseHandler):
       return
 
     # Remove the user from the scene.
-    scene = yield Scene.get(self.redis, self.scene_id)
-    scene.remove_user(self.user.id)
-    yield Scene.put(self.redis, scene)
+    def remove_user(scene):
+      scene.remove_user(self.user.id)
+    yield self.update_scene_(remove_user)
 
     # Leave the scene (of the crime).
     self.to_channel({
         'type': 'leave',
         'user': self.user.id
     })
+    self.user = None
 
     # Terminate the redis connection.
     yield Task(self.chan.unsubscribe, self.chan_id)
-    self.chan.disconnect()
+    yield Task(self.chan.disconnect)
 
   @coroutine
   def update_scene_(self, func):
     """Helper to update a scene."""
 
     yield Task(self.lock.acquire, blocking=True)
-    scene = yield Scene.get(self.redis, self.scene_id)
+
+    # Retrieve the scene object.
+    data = yield Task(self.redis.hmget, 'scene:%s' % self.scene_id, [
+        'name',
+        'users'
+    ])
+    scene = Scene(self.scene_id, data if data else {})
+
+    # Apply changes.
     func(scene)
-    yield Scene.put(self.redis, scene)
+
+    # Store the modified scene.
+    yield Task(self.redis.hmset, 'scene:%s' % self.scene_id, {
+        'name': scene.name,
+        'users': json.dumps(scene.users)
+    })
+
     yield Task(self.lock.release)
+
     raise Return(scene)
 
   @coroutine
@@ -175,6 +173,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     seq = yield Task(self.redis.hincrby, 'scene:%s' % self.scene_id, 'seq', 1)
     data['seq'] = seq
-
     yield Task(self.redis.publish, self.chan_id, json.dumps(data))
+    raise Return(seq)
 

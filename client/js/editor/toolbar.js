@@ -25,6 +25,8 @@ shapy.editor.ToolbarController = function(
     shUser,
     shEditor)
 {
+  $scope.floor = Math.floor;
+
   /** @private {!angular.$scope} @const */
   this.rootScope_ = $rootScope;
   /** @private {!shapy.editor.Editor} @const */

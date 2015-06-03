@@ -2,7 +2,6 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.editor.Editable');
-goog.provide('shapy.editor.Mode');
 
 
 
@@ -27,9 +26,16 @@ shapy.editor.Editable = function(type) {
    */
   this.type = type;
 
-  /** @public {!boolean} */
+  /**
+   * True if the mouse is over the editable.
+   * @public {!boolean}
+   */
   this.hover = false;
-  /** @public {!boolean} */
+
+  /**
+   * Information about the user who selected the object.
+   * @public {shapy.User}
+   */
   this.selected = false;
 };
 
@@ -41,7 +47,6 @@ shapy.editor.Editable = function(type) {
  */
 shapy.editor.Editable.prototype.setHover = function(hover) {
   this.hover = hover;
-  // TODO: do this properly.
   this.object.dirtyMesh = true;
 };
 
@@ -49,11 +54,10 @@ shapy.editor.Editable.prototype.setHover = function(hover) {
 /**
  * Selects the editable.
  *
- * @param {boolean} selected
+ * @param {shapy.User} selected
  */
 shapy.editor.Editable.prototype.setSelected = function(selected) {
   this.selected = selected;
-  // TODO: do this properly.
   this.object.dirtyMesh = true;
 };
 
@@ -113,7 +117,7 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
  * Collection of editable parts of an object.
  *
  * @param {=Array<shapy.editor.Editable>} opt_editables
- * @param {shapy.editor.Editable.Type}
+ * @param {shapy.editor.Editable.Type}    type
  *
  * @constructor
  * @extends {shapy.editor.Editable}
@@ -125,6 +129,23 @@ shapy.editor.EditableGroup = function(opt_editables, type) {
   this.editables_ = opt_editables || [];
 };
 goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
+
+
+/**
+ * Returns all selected objects.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.EditableGroup.prototype.getObjects = function() {
+  if (goog.array.isEmpty(this.editables_)) {
+    return null;
+  }
+  var objects = goog.array.map(this.editables_, function(e) {
+    return e.object;
+  });
+  goog.array.removeDuplicates(objects);
+  return objects;
+};
 
 
 /**
@@ -182,25 +203,11 @@ shapy.editor.EditableGroup.prototype.clear = function() {
 
 
 /**
- * Returns the last element of the group.
- *
- * @return {shapy.editor.Object}
- */
-shapy.editor.EditableGroup.prototype.getLast = function() {
-  if (goog.array.isEmpty(this.editables_)) {
-    return null;
-  } else {
-    return this.editables_[this.editables_.length - 1];
-  }
-};
-
-
-/**
  * Determines whether the group is empty.
  *
- * @return True if empty
+ * @return {boolean} True if empty.
  */
-shapy.editor.EditableGroup.prototype.isEmpty = function(editable) {
+shapy.editor.EditableGroup.prototype.isEmpty = function() {
   return goog.array.isEmpty(this.editables_);
 };
 
@@ -212,7 +219,6 @@ shapy.editor.EditableGroup.prototype.isEmpty = function(editable) {
  */
 shapy.editor.EditableGroup.prototype.setHover = function(hover) {
   this.hover = hover;
-
   goog.object.forEach(this.editables_, function(editable) {
     editable.setHover(hover);
   }, this);
@@ -222,11 +228,10 @@ shapy.editor.EditableGroup.prototype.setHover = function(hover) {
 /**
  * Selects the editable.
  *
- * @param {boolean} selected
+ * @param {shapy.User} selected
  */
 shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
   this.selected = selected;
-
   goog.object.forEach(this.editables_, function(editable) {
     editable.setSelected(selected);
   }, this);
@@ -280,7 +285,7 @@ shapy.editor.EditableGroup.prototype.getScale = function() {
   }, this);
   goog.vec.Vec3.scale(scale, 1 / this.editables_.length, scale);
   return scale;
-}
+};
 
 
 /**
@@ -299,7 +304,18 @@ shapy.editor.EditableGroup.prototype.getRotation = function() {
   }, this);
   goog.vec.Vec3.scale(rotation, 1 / this.editables_.length, rotation);
   return rotation;
-}
+};
+
+
+/**
+ * Deletes the editables in the group.
+ */
+shapy.editor.EditableGroup.prototype.delete = function() {
+  goog.object.forEach(this.editables_, function(object) {
+    object.delete();
+  });
+  this.editables_ = [];
+};
 
 
 
@@ -339,17 +355,6 @@ shapy.editor.PartsGroup.prototype.translate = function(x, y, z) {
 
 
 /**
- * Delete the parts from the mesh
- */
-shapy.editor.PartsGroup.prototype.delete = function() {
-  goog.object.forEach(this.editables_, function(editable) {
-    editable.delete();
-  }, this);
-  this.editables_ = null;
-};
-
-
-/**
  * Returns the object if all selected parts are from the same object.
  *
  * @return {shapy.editor.Object}
@@ -359,11 +364,9 @@ shapy.editor.PartsGroup.prototype.getObject = function() {
     return null;
   }
   var object = this.editables_[0].object;
-  var same = goog.array.every(this.editables_, function(e) {
+  return goog.array.every(this.editables_, function(e) {
     return e.object == object;
-  });
-
-  return same ? object : null;
+  }) ? object : null;
 };
 
 
@@ -466,16 +469,6 @@ shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z, dx, dy, dz) {
 };
 
 
-/**
- * Delete the objects.
- */
-shapy.editor.ObjectGroup.prototype.delete = function() {
-  goog.object.forEach(this.editables_, function(object) {
-    object.delete();
-  });
-};
-
-
 
 /**
  * List of editable types.
@@ -488,77 +481,4 @@ shapy.editor.Editable.Type = {
   VERTEX: 'vertex',
   EDGE: 'edge',
   FACE: 'face'
-};
-
-
-
-/**
- * Selection mode.
- *
- * @constructor
- */
-shapy.editor.Mode = function() {
-  this.object = true;
-  this.vertex = false;
-  this.edge = false;
-  this.face = false;
-  this.partsGroup = false;
-  this.objectGroup = true;
-};
-
-
-/**
- * Toggle object mode.
- */
-shapy.editor.Mode.prototype.toggleObject = function() {
-  if (this.object) {
-    this.object = this.objectGroup = false;
-    this.vertex = this.edge = this.face = this.partsGroup = true;
-  } else {
-    this.object = this.objectGroup = true;
-    this.vertex = false;
-    this.edge = false;
-    this.face = false;
-    this.partsGroup = false;
-  }
-};
-
-
-/**
- * Goes to object mode.
- */
-shapy.editor.Mode.prototype.setObject = function() {
-  if (!this.object) {
-    this.toggleObject();
-  }
-};
-
-
-/**
- * Toggle face mode.
- */
-shapy.editor.Mode.prototype.toggleFace = function() {
-  this.face = !this.face;
-  this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
-};
-
-
-/**
- * Toggle edge mode.
- */
-shapy.editor.Mode.prototype.toggleEdge = function() {
-  this.edge = !this.edge;
-  this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
-};
-
-
-/**
- * Toggle vertex mode.
- */
-shapy.editor.Mode.prototype.toggleVertex = function() {
-  this.vertex = !this.vertex;
-  this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
 };

@@ -52,7 +52,6 @@
       ], []);
       goog.addDependency('../editor/editable.js', [
           'shapy.editor.Editable',
-          'shapy.editor.Mode'
       ], []);
       goog.addDependency('../editor/editor.js', [
           'shapy.editor.EditorController',
@@ -85,6 +84,9 @@
       ], []);
       goog.addDependency('../editor/mesh.js', [
           'shapy.editor.Mesh'
+      ], []);
+      goog.addDependency('../editor/mode.js', [
+          'shapy.editor.Mode'
       ], []);
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
@@ -130,10 +132,6 @@
       goog.addDependency('../editor/viewport.js', [
           'shapy.editor.Viewport'
       ], []);
-      goog.addDependency('../auth.js', [
-          'shapy.AuthService',
-          'shapy.AuthService.User'
-      ], []);
       goog.addDependency('../header.js', [
           'shapy.HeaderController'
       ], []);
@@ -154,7 +152,6 @@
       goog.addDependency('../shapy.js', [
           'shapy.module'
       ], [
-          'shapy.AuthService',
           'shapy.browser.BrowserController',
           'shapy.browser.Service',
           'shapy.browser.BrowserToolbarController',

@@ -3,7 +3,12 @@
   <div id="editor-user-counter">
     <span>{{ editorCtrl.users.length }}</span>
     <ul>
-      <li ng-repeat="user in editorCtrl.users">
+      <li ng-repeat="user in editorCtrl.users"
+          style="background-color: rgba(
+                 {{floor(user.colour[0]*255)}},
+                 {{floor(user.colour[1]*255)}},
+                 {{floor(user.colour[2]*255)}},
+                 1.0)">
         {{ user.name }}
       </li>
     </ul>
