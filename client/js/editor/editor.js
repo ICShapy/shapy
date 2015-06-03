@@ -32,10 +32,11 @@ goog.require('shapy.editor.Viewport');
  *
  * @constructor
  *
+ * @param {!shapy.User}          user
  * @param {!shapy.Scene}         scene
  * @param {!shapy.editor.Editor} shEditor
  */
-shapy.editor.EditorController = function(scene, shEditor) {
+shapy.editor.EditorController = function(user, scene, shEditor) {
   /** @private {!shapy.Scene} @const */
   this.scene_ = scene;
   /** @private {!shapy.editor.Editor} @const */
@@ -217,8 +218,6 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
-  this.select(null);
-  this.rig(this.rigTranslate_);
 };
 
 
@@ -239,7 +238,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   switch (layout) {
     case 'single': this.layout_ = new shapy.editor.Layout.Single(); break;
     case 'double': this.layout_ = new shapy.editor.Layout.Double(); break;
-    case 'quad':   this.layout_ = new shapy.editor.Layout.Quad();   break;
+    case 'quad': this.layout_ = new shapy.editor.Layout.Quad(); break;
     default: throw Error('Invalid layout "' + layout + "'");
   }
 
@@ -441,15 +440,19 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
 
   switch (e.keyCode) {
     case 68: {                                    // d
-      if (this.partGroup_) {
+      if (this.mode.object) {
+        this.objectGroup_.delete();
+        this.objectGroup_.clear();
+        this.partGroup_.clear();
+      } else {
         this.partGroup_.delete();
-        this.select(null);
-        this.rig(null);
-        break;
+        this.partGroup_.clear();
       }
+      this.rig(null);
+      break;
     }
     case 70: {
-      if (!this.partGroup_ || !(object = this.partGroup_.getObject())) {
+      if (!(object = this.partGroup_.getObject())) {
         return;
       }
       var verts = this.partGroup_.getVertices();
@@ -460,7 +463,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       break;
     }
     case 77: {
-      if (!this.partGroup_ || !(object = this.partGroup_.getObject())) {
+      if (!(object = this.partGroup_.getObject())) {
         return;
       }
       object.mergeVertices(this.partGroup_.getVertices());
@@ -507,19 +510,15 @@ shapy.editor.Editor.prototype.mouseDown = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
-  var ray, pick, group = this.layout_.active.group;
+  var ray, toSelect, toDeselect;
 
   // If viewports want the event, give up.
   if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
     return;
   }
 
-  // Select the object hovered by the mouse.
-  if (this.hover_.isEmpty()) {
-    return;
-  }
-  if (!this.mode.object) {
-    this.select(this.hover_, e.ctrlKey);
+  // If nothing selected, ignore event.
+  if (!this.hover_ || this.hover_.isEmpty()) {
     return;
   }
 

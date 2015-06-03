@@ -102,6 +102,14 @@ shapy.configStates_ = function(
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {
+        user: function($q, shAuth) {
+          return shAuth.auth().then(function(user) {
+            if (!user) {
+              return $q.reject();
+            }
+            return user;
+          });
+        },
         scene: function(shBrowser, $stateParams) {
           return shBrowser.getScene($stateParams['sceneID']);
         }
