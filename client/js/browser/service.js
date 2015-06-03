@@ -316,3 +316,41 @@ shapy.browser.Service.prototype.renameScene = function(scene, name) {
   this.rename_('/api/assets/scene', scene, name);
 };
 
+/**
+ * Deletes asset.
+ *
+ * @param {string}                  url   URL of the resource.
+ * @param {!shapy.browser.Asset}    asset Asset to rename.
+ * @param {!Object<string, Object>} cache Cache for the resource.
+ */
+shapy.browser.Service.prototype.delete_ = function(url, asset, cache) {
+  // Early return for faulty deletes
+  if (asset.id <= 0)
+    return;
+
+  // Update parent
+  this.current.children = this.current.children.filter(function(child) {
+    return asset.id !== child.id;
+  });
+  // Delete on server
+  this.http_.delete(url + "?id=" + asset.id);
+};
+
+/**
+ * Deletes dir.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir  Dir to delete.
+ */
+shapy.browser.Service.prototype.deleteDir = function(dir) {
+  this.delete_('/api/assets/dir', dir, this.dirs_);
+};
+
+/**
+ * Deletes scene.
+ *
+ * @param {!shapy.browser.Asset.Scene} scene Scene to delete.
+ */
+shapy.browser.Service.prototype.deleteScene = function(scene) {
+  this.delete_('/api/assets/scene', scene, this.scenes_);
+};
+

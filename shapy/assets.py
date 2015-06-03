@@ -162,7 +162,10 @@ class DirHandler(APIHandler):
     # Validate arguments.
     if not user:
       raise HTTPError(401, 'User not logged in.')
+    id = int(self.get_argument('id'))
     if not id:
+      raise HTTPError(404, 'Directory does not exist.')
+    if id <= 0:
       raise HTTPError(404, 'Directory does not exist.')
 
     # Delete folder entry.
@@ -287,6 +290,35 @@ class SceneHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
     )
+    self.finish()
+
+
+  @session
+  @coroutine
+  @asynchronous
+  def delete(self, user):
+    """Deletes a scene resource."""
+
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+    id = int(self.get_argument('id'))
+    if not id:
+      raise HTTPError(404, 'Scene does not exist.')
+    if id <= 0:
+      raise HTTPError(404, 'Scene does not exist.')
+
+    # Delete folder entry.
+    yield momoko.Op(self.db.execute,
+      '''DELETE
+         FROM assets
+         WHERE id = %s
+           AND type = %s
+      ''', (
+      id,
+      'scene'
+    ))
+
     self.finish()
 
 
