@@ -444,7 +444,7 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z) {
+shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z, dx, dy, dz) {
   var m = goog.vec.Mat4.createFloat32();
   var mid = this.getPosition();
 
@@ -455,13 +455,13 @@ shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z) {
     goog.vec.Vec3.subtract(p, mid, d);
 
     goog.vec.Mat4.makeIdentity(m);
-    goog.vec.Mat4.rotateX(m, x);
-    goog.vec.Mat4.rotateY(m, y);
-    goog.vec.Mat4.rotateZ(m, z);
-    goog.vec.Mat4.multVec3(m, d, d);
+    goog.vec.Mat4.rotateX(m, dx);
+    goog.vec.Mat4.rotateY(m, dy);
+    goog.vec.Mat4.rotateZ(m, dz);
+    goog.vec.Mat4.multVec3NoTranslate(m, d, d);
 
-    object.rotate(x, y, z);
     object.translate(mid[0] + d[0], mid[1] + d[1], mid[2] + d[2]);
+    object.rotate(r[0] + dx, r[1] + dy, r[2] + dz);
   });
 };
 
