@@ -24,8 +24,7 @@ shapy.User = function(data) {
   /** @public {string} @const */
   this.email = data['email'];
   /** @public {!goog.vec.Vec3} @const */
-  this.colour = shapy.User.Colour[
-      Math.floor(Math.random() * shapy.User.Colour.length)];
+  this.colour = goog.vec.Vec3.createFloat32FromValues(0.7, 0.7, 0.7);
 };
 
 
@@ -35,7 +34,7 @@ shapy.User = function(data) {
  * @type {!Array<goog.vec.Vec3>} @const
  */
 shapy.User.Colour = [
-  [0.70, 0.70, 0.70],
+  [0.40, 0.60, 1.00],
   [1.00, 0.00, 0.00],
   [0.00, 1.00, 0.00],
   [0.00, 0.00, 1.00],
@@ -60,6 +59,8 @@ shapy.UserService = function($http, $q) {
   this.http_ = $http;
   /** @private {!angular.$q} @const */
   this.q_ = $q;
+  /** @private {number} @const */
+  this.count_ = 0;
   /** @private {!Object<number, shapy.User>} @const */
   this.users_ = {};
 };
@@ -80,6 +81,8 @@ shapy.UserService.prototype.get = function(userID) {
   return this.http_.get('/api/user/' + userID)
       .then(goog.bind(function(response) {
         var user = new shapy.User(response.data);
+        user.colour = shapy.User.Colour[this.count_ % shapy.User.Colour.length];
+        this.count_++;
         this.users_[userID] = user;
         return user;
       }, this));

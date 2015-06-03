@@ -217,7 +217,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
-  this.select(goog.object.getAnyValue(this.scene_.objects));
+  this.select(null);
   this.rig(this.rigTranslate_);
 };
 
@@ -391,7 +391,7 @@ shapy.editor.Editor.prototype.select = function(editable, groupSelect) {
   }
 
   if (editable) {
-    if (selected) {
+    if (selected && groupSelect) {
       group.remove(editable);
     } else {
       group.add(editable);
@@ -515,13 +515,21 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // Select the object hovered by the mouse.
-  if (!this.hover_.isEmpty()) {
-    if (this.mode.object) {
-      this.select(this.hover_, e.ctrlKey);
-    } else {
-      this.select(this.hover_, e.ctrlKey);
-    }
+  if (this.hover_.isEmpty()) {
+    return;
   }
+  if (!this.mode.object) {
+    this.select(this.hover_, e.ctrlKey);
+    return;
+  }
+
+  /*this.exec_.sendCommand({
+    type: 'select',
+    objects: goog.array.map(this.hover_.getObjects(), function(object) {
+      return object.id;
+    })
+  });*/
+  this.select(this.hover_, e.ctrlKey);
 };
 
 

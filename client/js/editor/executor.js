@@ -127,14 +127,17 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
         this.scene_.removeUser(data['user']);
         break;
       }
+      case 'select': {
+        break;
+      }
       case 'create': {
         switch (data['object']) {
           case 'cube': {
-            this.editor_.select(this.scene_.createCube(0.5, 0.5, 0.5));
+            this.scene_.createCube(0.5, 0.5, 0.5);
             break;
           }
           case 'sphere': {
-            this.editor_.select(this.scene_.createSphere(0.5, 16, 16));
+            this.scene_.createSphere(0.5, 16, 16);
             break;
           }
           default: {
@@ -142,7 +145,6 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             break;
           }
         }
-        this.editor_.rig(this.editor_.rigTranslate_);
         break;
       }
       case 'edit': {

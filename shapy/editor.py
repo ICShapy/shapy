@@ -96,14 +96,17 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if not hasattr(self, 'user'):
       return
     data = json.loads(message)
-    yield self.to_channel(data)
+    seq = yield self.to_channel(data)
 
-    # Update database with changes.
+    # Name change request - update object.
     if data['type'] == 'name':
       def update_name(scene):
         scene.name = data['value']
       yield self.update_scene_(update_name)
 
+    # Select request - lock on object.
+    if data['type'] == 'select':
+      print data['objects']
 
   @coroutine
   def on_channel(self, message):
@@ -171,5 +174,5 @@ class WSHandler(WebSocketHandler, BaseHandler):
     seq = yield Task(self.redis.hincrby, 'scene:%s' % self.scene_id, 'seq', 1)
     data['seq'] = seq
     yield Task(self.redis.publish, self.chan_id, json.dumps(data))
-    raise Return(None)
+    raise Return(seq)
 

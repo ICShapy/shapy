@@ -27,9 +27,16 @@ shapy.editor.Editable = function(type) {
    */
   this.type = type;
 
-  /** @public {!boolean} */
+  /**
+   * True if the mouse is over the editable.
+   * @public {!boolean}
+   */
   this.hover = false;
-  /** @public {!boolean} */
+
+  /**
+   * Information about the user who selected the object.
+   * @public {shapy.User}
+   */
   this.selected = false;
 };
 
@@ -41,7 +48,6 @@ shapy.editor.Editable = function(type) {
  */
 shapy.editor.Editable.prototype.setHover = function(hover) {
   this.hover = hover;
-  // TODO: do this properly.
   this.object.dirtyMesh = true;
 };
 
@@ -49,11 +55,10 @@ shapy.editor.Editable.prototype.setHover = function(hover) {
 /**
  * Selects the editable.
  *
- * @param {boolean} selected
+ * @param {shapy.User} selected
  */
 shapy.editor.Editable.prototype.setSelected = function(selected) {
   this.selected = selected;
-  // TODO: do this properly.
   this.object.dirtyMesh = true;
 };
 
@@ -125,6 +130,23 @@ shapy.editor.EditableGroup = function(opt_editables, type) {
   this.editables_ = opt_editables || [];
 };
 goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
+
+
+/**
+ * Returns all selected objects.
+ *
+ * @return {shapy.editor.Object}
+ */
+shapy.editor.EditableGroup.prototype.getObjects = function() {
+  if (goog.array.isEmpty(this.editables_)) {
+    return null;
+  }
+  var objects = goog.array.map(this.editables_, function(e) {
+    return e.object;
+  });
+  goog.array.removeDuplicates(objects);
+  return objects;
+};
 
 
 /**
@@ -222,7 +244,7 @@ shapy.editor.EditableGroup.prototype.setHover = function(hover) {
 /**
  * Selects the editable.
  *
- * @param {boolean} selected
+ * @param {shapy.User} selected
  */
 shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
   this.selected = selected;
