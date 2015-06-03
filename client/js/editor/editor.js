@@ -195,6 +195,14 @@ shapy.editor.Editor.prototype.setScene = function(scene) {
   this.partGroup_.clear();
   this.rig(null);
 
+  var a = scene.createCube(0.5, 0.5, 0.5);
+  a.translate(1, 0, 0);
+  var b = scene.createCube(0.5, 0.5, 0.5);
+  b.translate(-1, 0, 0);
+  var c = scene.createCube(0.5, 0.5, 0.5);
+  c.translate(0, 0, 0);
+
+
   // Set up the websocket connectio.
   this.pending_ = [];
   this.exec_ = new shapy.editor.Executor(this.scene_, this);
@@ -220,6 +228,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
+  this.rig(this.rigTranslate_);
 };
 
 
