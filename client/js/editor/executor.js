@@ -84,6 +84,7 @@ shapy.editor.Executor.prototype.sendCommand = function(data) {
     this.pending_.push(data);
     return;
   }
+
   this.sock_.send(JSON.stringify(data));
 };
 

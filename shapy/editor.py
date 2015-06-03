@@ -88,6 +88,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
         port=self.application.RD_PORT,
         password=self.application.RD_PASS)
     self.chan.connect()
+
     self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
@@ -117,10 +118,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
     data = json.loads(message)
 
     # Update database with changes.
-    if data['type'] == 'name':
-      def update_name(scene):
-        scene.name = data['value']
-      yield self.update_scene_(update_name)
+    #if data['type'] == 'name':
+    #  def update_name(scene):
+    #    scene.name = data['value']
+    #  yield self.update_scene_(update_name)
 
     yield self.to_channel(data)
 
@@ -138,6 +139,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   @coroutine
   def on_close(self):
     """Handles connection termination."""
+
     if not hasattr(self, 'user'):
       return
 
@@ -174,5 +176,5 @@ class WSHandler(WebSocketHandler, BaseHandler):
     seq = yield Task(self.redis.hincrby, 'scene:%s' % self.scene_id, 'seq', 1)
     data['seq'] = seq
 
-    self.redis.publish(self.chan_id, json.dumps(data))
+    yield Task(self.redis.publish, self.chan_id, json.dumps(data))
 
