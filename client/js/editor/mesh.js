@@ -65,10 +65,11 @@ shapy.editor.Mesh.prototype.build_ = function() {
   goog.object.forEach(this.object_.verts, function(vert) {
     if (vert.selected) {
       r = 0.9; g = 0.9; b = 0.0;
-    } else if (vert.hover) {
-      r = 0.8; g = 0.4; b = 0.0;
     } else {
       r = 0.0; g = 0.0; b = 1.0;
+    }
+    if (vert.hover) {
+      r *= 1.2; g *= 1.2; b *= 1.2;
     }
 
     add(v, vert.position);
@@ -87,18 +88,21 @@ shapy.editor.Mesh.prototype.build_ = function() {
     var v = edge.getVertices();
     if (edge.selected || v[0].selected) {
       r = 0.9; g = 0.9; b = 0.0;
-    } else if (edge.hover) {
-      r = 0.8; g = 0.4; b = 0.0;
     } else {
-      r = 1.0; g = 1.0; b = 1.0;
+      r = 0.8; g = 0.8; b = 1.0;
+    }
+    if (edge.hover) {
+      r *= 1.2; g *= 1.2; b *= 1.2;
     }
     add(e, v[0].position);
     if (edge.selected || v[1].selected) {
       r = 0.9; g = 0.9; b = 0.0;
-    } else if (edge.hover) {
-      r = 0.8; g = 0.4; b = 0.0;
     } else {
-      r = 1.0; g = 1.0; b = 1.0;
+      r = 0.8; g = 0.8; b = 1.0;
+    }
+
+    if (edge.hover) {
+      r *= 1.2; g *= 1.2; b *= 1.2;
     }
     add(e, v[1].position);
   }, this);
@@ -115,19 +119,21 @@ shapy.editor.Mesh.prototype.build_ = function() {
   goog.object.forEach(this.object_.faces, function(face) {
     var v = face.getVertices();
     if (face.selected) {
-      r = 1.0; g = 1.0; b = 0.0;
-    } else if (face.hover) {
-      r = 0.9; g = 0.5; b = 0.0;
+      r = 0.8; g = 0.8; b = 0.0;
     } else {
       if (this.object_.selected) {
         r = this.object_.selected.colour[0];
         g = this.object_.selected.colour[1];
         b = this.object_.selected.colour[2];
-      } else if (this.object_.hover) {
-        r = 0.6; g = 0.6; b = 0.6;
       } else {
         r = 0.4; g = 0.4; b = 0.4;
       }
+      if (this.object_.hover) {
+        r *= 1.2; g *= 1.2; b *= 1.2;
+      }
+    }
+    if (face.hover) {
+      r *= 1.2; g *= 1.2; b *= 1.2;
     }
     add(f, v[0].position);
     add(f, v[1].position);
