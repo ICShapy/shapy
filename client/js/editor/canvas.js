@@ -58,12 +58,6 @@ shapy.editor.canvas = function(shEditor) {
             return;
           }
           shEditor.keyDown(e);
-        }))
-        .keyup(wrap(function(e) {
-          if (e.target.tagName != 'BODY') {
-            return;
-          }
-          shEditor.keyUp(e);
         }));
     }
   };

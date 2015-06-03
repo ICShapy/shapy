@@ -406,9 +406,8 @@ shapy.editor.Editor.prototype.rig = function(rig) {
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
   var object;
-
-  switch (e.keyCode) {
-    case 68: {                                    // d
+  switch (String.fromCharCode(e.keyCode)) {
+    case 'D': {                                    // d
       if (this.mode.object) {
         this.objectGroup_.delete();
         this.objectGroup_.clear();
@@ -418,9 +417,9 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         this.partGroup_.clear();
       }
       this.rig(null);
-      break;
+      return;
     }
-    case 70: {
+    case 'F': {
       if (!(object = this.partGroup_.getObject())) {
         return;
       }
@@ -429,47 +428,27 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         return;
       }
       object.connect(verts);
-      break;
+      return;
     }
-    case 77: {
+    case 'M': {
       if (!(object = this.partGroup_.getObject())) {
         return;
       }
       var vert = object.mergeVertices(this.partGroup_.getVertices());
       this.partGroup_.clear();
       this.rig(null);
-      break;
+      return;
     }
-    case 84: this.rig(this.rigTranslate_); break; // t
-    case 82: this.rig(this.rigRotate_); break;    // r
-    case 83: this.rig(this.rigScale_); break;     // s
-    case 67: this.rig(this.rigCut_); break;       // c
-    default: {
-      if (this.layout_ && this.layout_.active) {
-        this.layout_.active.keyDown(e.keyCode);
-      }
-      break;
-    }
+    case 'T': this.rig(this.rigTranslate_); return;
+    case 'R': this.rig(this.rigRotate_); return;
+    case 'S': this.rig(this.rigScale_); return;
+    case 'C': this.rig(this.rigCut_); return;
   }
-};
 
-
-/**
- * Handles a key up event.
- *
- * @param {Event} e
- */
-shapy.editor.Editor.prototype.keyUp = function(e) {
-};
-
-
-/**
- * Handles a mouse button press event.
- *
- * @param {Event} e
- */
-shapy.editor.Editor.prototype.mouseDown = function(e) {
-  this.layout_.mouseDown(e);
+  // Delegate event to viewport.
+  if (this.layout_ && this.layout_.active) {
+    this.layout_.active.keyDown(e.keyCode);
+  }
 };
 
 
@@ -569,6 +548,16 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   goog.array.forEach(this.hover_, function(e) {
     e.setHover(true);
   });
+};
+
+
+/**
+ * Handles a mouse button press event.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseDown = function(e) {
+  this.layout_.mouseDown(e);
 };
 
 
