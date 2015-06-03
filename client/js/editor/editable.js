@@ -117,7 +117,7 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
  * Collection of editable parts of an object.
  *
  * @param {=Array<shapy.editor.Editable>} opt_editables
- * @param {shapy.editor.Editable.Type}
+ * @param {shapy.editor.Editable.Type}    type
  *
  * @constructor
  * @extends {shapy.editor.Editable}
@@ -203,25 +203,11 @@ shapy.editor.EditableGroup.prototype.clear = function() {
 
 
 /**
- * Returns the last element of the group.
- *
- * @return {shapy.editor.Object}
- */
-shapy.editor.EditableGroup.prototype.getLast = function() {
-  if (goog.array.isEmpty(this.editables_)) {
-    return null;
-  } else {
-    return this.editables_[this.editables_.length - 1];
-  }
-};
-
-
-/**
  * Determines whether the group is empty.
  *
- * @return True if empty
+ * @return {boolean} True if empty.
  */
-shapy.editor.EditableGroup.prototype.isEmpty = function(editable) {
+shapy.editor.EditableGroup.prototype.isEmpty = function() {
   return goog.array.isEmpty(this.editables_);
 };
 
@@ -233,7 +219,6 @@ shapy.editor.EditableGroup.prototype.isEmpty = function(editable) {
  */
 shapy.editor.EditableGroup.prototype.setHover = function(hover) {
   this.hover = hover;
-
   goog.object.forEach(this.editables_, function(editable) {
     editable.setHover(hover);
   }, this);
@@ -247,7 +232,6 @@ shapy.editor.EditableGroup.prototype.setHover = function(hover) {
  */
 shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
   this.selected = selected;
-
   goog.object.forEach(this.editables_, function(editable) {
     editable.setSelected(selected);
   }, this);
@@ -301,7 +285,7 @@ shapy.editor.EditableGroup.prototype.getScale = function() {
   }, this);
   goog.vec.Vec3.scale(scale, 1 / this.editables_.length, scale);
   return scale;
-}
+};
 
 
 /**
@@ -320,7 +304,18 @@ shapy.editor.EditableGroup.prototype.getRotation = function() {
   }, this);
   goog.vec.Vec3.scale(rotation, 1 / this.editables_.length, rotation);
   return rotation;
-}
+};
+
+
+/**
+ * Deletes the editables in the group.
+ */
+shapy.editor.EditableGroup.prototype.delete = function() {
+  goog.object.forEach(this.editables_, function(object) {
+    object.delete();
+  });
+  this.editables_ = [];
+};
 
 
 
@@ -360,17 +355,6 @@ shapy.editor.PartsGroup.prototype.translate = function(x, y, z) {
 
 
 /**
- * Delete the parts from the mesh
- */
-shapy.editor.PartsGroup.prototype.delete = function() {
-  goog.object.forEach(this.editables_, function(editable) {
-    editable.delete();
-  }, this);
-  this.editables_ = null;
-};
-
-
-/**
  * Returns the object if all selected parts are from the same object.
  *
  * @return {shapy.editor.Object}
@@ -380,11 +364,9 @@ shapy.editor.PartsGroup.prototype.getObject = function() {
     return null;
   }
   var object = this.editables_[0].object;
-  var same = goog.array.every(this.editables_, function(e) {
+  return goog.array.every(this.editables_, function(e) {
     return e.object == object;
-  });
-
-  return same ? object : null;
+  }) ? object : null;
 };
 
 
@@ -469,16 +451,6 @@ shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z) {
   // Apply translation to each object
   goog.object.forEach(this.editables_, function(object) {
     object.rotate(x, y, z);
-  });
-};
-
-
-/**
- * Delete the objects.
- */
-shapy.editor.ObjectGroup.prototype.delete = function() {
-  goog.object.forEach(this.editables_, function(object) {
-    object.delete();
   });
 };
 

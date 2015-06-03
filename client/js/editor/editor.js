@@ -41,6 +41,8 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
   this.scene_ = scene;
   /** @private {!shapy.editor.Editor} @const */
   this.shEditor_ = shEditor;
+  /** @private {!shapy.User} @const */
+  this.shUser_ = user;
 
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_);
