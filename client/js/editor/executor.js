@@ -108,6 +108,8 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
 
   this.editor_.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
+      case 'select': this.applySelect(data); return;
+      case 'create': this.applyCreate(data); return;
       case 'name': {
         if (this.scene_.name != data['value']) {
           this.scene_.name = data['value'];
@@ -125,26 +127,6 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       }
       case 'leave': {
         this.scene_.removeUser(data['user']);
-        break;
-      }
-      case 'select': {
-        break;
-      }
-      case 'create': {
-        switch (data['object']) {
-          case 'cube': {
-            this.scene_.createCube(0.5, 0.5, 0.5);
-            break;
-          }
-          case 'sphere': {
-            this.scene_.createSphere(0.5, 16, 16);
-            break;
-          }
-          default: {
-            console.error('Invalid object type "' + data['object'] + "'");
-            break;
-          }
-        }
         break;
       }
       case 'edit': {
@@ -167,4 +149,61 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       }
     }
   }, this));
+};
+
+
+/**
+ * Executes the create command.
+ *
+ * @param {string} type
+ */
+shapy.editor.Executor.prototype.emitCreate = function(type) {
+  this.sendCommand({
+    type: 'create',
+    object: type
+  });
+};
+
+
+/**
+ * Handles the confirmation for create.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyCreate = function(data) {
+  switch (data['object']) {
+    case 'cube': {
+      this.scene_.createCube(0.5, 0.5, 0.5);
+      break;
+    }
+    case 'sphere': {
+      this.scene_.createSphere(0.5, 16, 16);
+      break;
+    }
+    default: {
+      console.error('Invalid object type "' + data['object'] + "'");
+      return;
+    }
+  }
+  this.mode.setObject();
+};
+
+
+/**
+ * Executes the select command.
+ *
+ * @param {string} id
+ */
+shapy.editor.Executor.prototype.emitSelect = function(id) {
+
+};
+
+
+/**
+ * Handles the confirmation for select.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applySelect = function(data) {
+
 };

@@ -267,11 +267,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
  * @param {string} type Type of the object.
  */
 shapy.editor.Editor.prototype.create = function(type) {
-  this.mode.setObject();
-  this.exec_.sendCommand({
-    type: 'create',
-    object: type
-  });
+  this.exec_.emitCreate(type);
 };
 
 
