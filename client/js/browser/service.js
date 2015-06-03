@@ -328,12 +328,38 @@ shapy.browser.Service.prototype.delete_ = function(url, asset, cache) {
   if (asset.id <= 0)
     return;
 
-  // Update parent
-  this.current.children = this.current.children.filter(function(child) {
-    return asset.id !== child.id;
-  });
   // Delete on server
-  this.http_.delete(url, {params: {id: asset.id}});
+  this.http_.delete(url, {params: {id: asset.id}}).then(goog.bind(function() {
+    // Update parent
+    this.current.children = this.current.children.filter(function(child) {
+      return asset.id !== child.id;
+    });
+    // Clean cache
+    this.removefromCache(asset);
+  }, this));
+};
+
+
+/**
+ * Recursively removes assets from caches
+ *
+ * @param {!shapy.browser.Asset}    asset Asset which (with children) we remove.
+ */
+shapy.browser.Service.prototype.removefromCache = function(asset) {
+  switch (asset.type) {
+    case shapy.browser.Asset.Type.DIRECTORY:
+      goog.object.remove(asset.shBrowser_.dirs_, asset.id);
+      break;
+    case shapy.browser.Asset.Type.SCENE:
+      goog.object.remove(asset.shBrowser_.scenes_, asset.id);
+      break;
+    case shapy.browser.Asset.Type.TEXTURE:
+      goog.object.remove(asset.shBrowser_.textures_, asset.id);
+      break;
+  }
+  if (asset.children) {
+    goog.array.forEach(asset.children, asset.shBrowser_.removefromCache);
+  }
 };
 
 /**
