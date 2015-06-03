@@ -232,7 +232,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   //this.layout_ = new shapy.editor.Layout.Double();
-  this.scene_.createCube(0.5, 0.5, 0.5);
+  this.scene_.createCube(0.5, 0.5, 0.5).translate(0, 0.5, 0);
   this.layout_ = new shapy.editor.Layout.Single();
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);

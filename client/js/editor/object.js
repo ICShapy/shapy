@@ -649,15 +649,39 @@ shapy.editor.Object.prototype.extrude = function(partGroup) {
     return this.edges[edgeID];
   }, this);
 
-  // For all pairs of join pairs, create two faces to fill them in
+  // Fill in each side
   for (var i = 0; i < joinEdges.length; i++) {
-    // A----B <- extruded
-    // |    |
-    // a----b <- origin
+    // If ab is not flipped:
+    //    A--->B <- extruded
+    //    ^    ^
+    //    |    |
+    //    a--->b <- origin
+    //    Diagonal: B->a
+    //    
+    // If ab is flipped:
+    //    B--->A <- extruded
+    //    ^    ^
+    //    |    |
+    //    b--->a <- origin
+    //    Diagonal: A->b
     var aA = joinEdges[i];
     var bB = joinEdges[(i + 1) % joinEdges.length];
-    var ab = edges[i];
-    var AB = clonedEdges[i];
+
+    // Figure out which edge joins a and b
+    var j;
+    var flipped = false;
+    for (j = 0; j < edges.length; j++) {
+      if ((edges[j].start == aA.start) && (edges[j].end == bB.start)) {
+        flipped = false;
+        break;
+      } else if ((edges[j].end == aA.start) && (edges[j].start == bB.start)) {
+        flipped = true;
+        break;
+      }
+    }
+
+    var ab = edges[j];
+    var AB = clonedEdges[j];
 
     // Create diagonal edge
     var edgeID = this.nextEdge_++;
@@ -665,16 +689,22 @@ shapy.editor.Object.prototype.extrude = function(partGroup) {
       AB.end, ab.start);
     var diagonal = this.edges[edgeID];
 
+    console.log(aA, bB, ab, AB, diagonal, flipped);
+
     // Emit faces
     var emitFace = goog.bind(function(a, b, c) {
       var faceID = this.nextFace_++;
-      this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
-        a.id, b.id, c.id);
+      this.faces[faceID] = new shapy.editor.Object.Face(this, faceID, a, b, c);
       console.log(a, b, c);
-      return this.faces[faceID];
+      console.log(this.faces[faceID].getVertices());
     }, this);
-    //emitFace(diagonal, aA, AB);
-    //emitFace(diagonal, bB, ab);
+    if (flipped) {
+      emitFace(diagonal.id, bB.id, AB.id);
+      emitFace(-diagonal.id, -aA.id, -ab.id);
+    } else {
+      emitFace(-diagonal.id, -AB.id, -aA.id);
+      emitFace(diagonal.id, ab.id, bB.id);
+    }
   }
 
   this.dirtyMesh = true;
@@ -694,12 +724,12 @@ shapy.editor.Object.prototype.extrude = function(partGroup) {
  */
 shapy.editor.Object.createCube = function(id, scene, w, h, d) {
   // Vertex layout:
-  //   4-----5
+  //   5-----6
   //  /     /|
-  // 0-----1 |
-  // | 6   | 7
+  // 1-----2 |
+  // | 7   | 8
   // |     |/
-  // 2-----3
+  // 3-----4
   var vertices = [
     [-w, +h, +d], // 1
     [+w, +h, +d], // 2
