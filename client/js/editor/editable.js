@@ -445,14 +445,9 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
  * @param {number} z
  */
 shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z) {
-  var rotation = this.getRotation();
-
   // Apply translation to each object
   goog.object.forEach(this.editables_, function(object) {
-    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-    goog.vec.Vec3.subtract(delta, rotation, delta);
-    goog.vec.Vec3.add(delta, object.getRotation(), delta);
-    object.rotate(delta[0], delta[1], delta[2]);
+    object.rotate(x, y, z);
   });
 };
 

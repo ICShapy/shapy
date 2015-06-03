@@ -69,6 +69,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
 
+    # Create a new lock.
     self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
 
     # Get the scene object & add the client.
@@ -100,7 +101,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data['type'] == 'name':
       def update_name(scene):
         scene.name = data['value']
-      #yield self.update_scene_(update_name)
+      yield self.update_scene_(update_name)
 
     yield self.to_channel(data)
 
