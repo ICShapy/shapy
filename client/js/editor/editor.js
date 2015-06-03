@@ -41,11 +41,11 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
   this.scene_ = scene;
   /** @private {!shapy.editor.Editor} @const */
   this.shEditor_ = shEditor;
-  /** @private {!shapy.User} @const */
-  this.user_ = user;
+  /** @public {!shapy.User} @const */
+  this.user = user;
 
   // Initialise the scene.
-  this.shEditor_.setScene(this.scene_, this.user_);
+  this.shEditor_.setScene(this.scene_, this.user);
 };
 
 
@@ -58,8 +58,9 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
  *
  * @param {!angular.$location} $location Angular location service.
  * @param {!angular.$scope}    $rootScope
+ * @param {!shapy.UserService} shUser
  */
-shapy.editor.Editor = function($location, $rootScope) {
+shapy.editor.Editor = function($location, $rootScope, shUser) {
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
   /** @private {!shapy.editor.Rig} @const */
@@ -73,6 +74,8 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.location_ = $location;
   /** @private {!angular.$scope} @const */
   this.rootScope_ = $rootScope;
+  /** @private {!shapy.UserService} @const */
+  this.shUser_ = shUser;
 
   /**
    * Canvas.
@@ -94,9 +97,9 @@ shapy.editor.Editor = function($location, $rootScope) {
 
   /**
    * Current user.
-   * @private {!shapy.User}
+   * @public {!shapy.User}
    */
-  this.user_ = null;
+  this.user = null;
 
   /**
    * Current scene.
@@ -192,7 +195,7 @@ shapy.editor.Editor = function($location, $rootScope) {
 shapy.editor.Editor.prototype.setScene = function(scene, user) {
   // Clear anything related to the scene.
   this.scene_ = scene;
-  this.user_ = user;
+  this.user = user;
   this.objectGroup_.clear();
   this.partGroup_.clear();
   this.rig(null);
@@ -489,19 +492,18 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
     }, this);
   }
 
-  // Adjust highlight.
-  goog.array.forEach(toDeselect, function(e) {
-    e.setSelected(null);
-  }, this);
-  goog.array.forEach(toSelect, function(e) {
-    e.setSelected(this.user_);
-  }, this);
-
   // Send a command to the sever to lock on objects or adjust part group.
   if (this.mode.object) {
-    group.remove(toDeselect);
-    group.add(toSelect);
+    this.exec_.emitSelect(toSelect, toDeselect);
   } else {
+    // Adjust highlight.
+    goog.array.forEach(toDeselect, function(e) {
+      e.setSelected(null);
+    }, this);
+    goog.array.forEach(toSelect, function(e) {
+      e.setSelected(this.user);
+    }, this);
+
     group.remove(toDeselect);
     group.add(toSelect);
   }

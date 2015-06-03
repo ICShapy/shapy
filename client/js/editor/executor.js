@@ -108,8 +108,9 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
 
   this.editor_.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
-      case 'select': this.applySelect(data); return;
       case 'create': this.applyCreate(data); return;
+      case 'lock': this.applyLock(data); return;
+      case 'unlock': this.applyUnlock(data); return;
       case 'name': {
         if (this.scene_.name != data['value']) {
           this.scene_.name = data['value'];
@@ -192,18 +193,63 @@ shapy.editor.Executor.prototype.applyCreate = function(data) {
 /**
  * Executes the select command.
  *
- * @param {string} id
+ * @param {!Array<!shapy.editor.Object>} toLock
+ * @param {!Array<!shapy.editor.Object>} toUnlock
  */
-shapy.editor.Executor.prototype.emitSelect = function(id) {
+shapy.editor.Executor.prototype.emitSelect = function(toLock, toUnlock) {
+  if (!goog.array.isEmpty(toLock)) {
+    this.sendCommand({
+      type: 'lock',
+      user: this.editor_.user.id,
+      objects: goog.array.map(toLock, function(object) {
+        return object.id;
+      })
+    });
+  }
 
+  if (!goog.array.isEmpty(toUnlock)) {
+    this.sendCommand({
+      type: 'unlock',
+      user: this.editor_.user.id,
+      objects: goog.array.map(toUnlock, function(object) {
+        return object.id;
+      })
+    });
+  }
 };
 
 
 /**
- * Handles the confirmation for select.
+ * Handles acquired locks for selection.
  *
  * @param {!Object} data
  */
-shapy.editor.Executor.prototype.applySelect = function(data) {
+shapy.editor.Executor.prototype.applyLock = function(data) {
+  this.editor_.shUser_.get(data['user']).then(goog.bind(function(user) {
+    goog.array.forEach(data['objects'], function(id) {
+      if (!goog.object.containsKey(this.scene_.objects, id)) {
+        console.log('Invalid object "' + id + "'");
+        return;
+      }
+      this.editor_.objectGroup_.add([this.scene_.objects[id]]);
+      this.scene_.objects[id].setSelected(user);
+    }, this);
+  }, this));
+};
 
+
+/**
+ * Handles released locks for selection.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyUnlock = function(data) {
+  goog.array.forEach(data['objects'], function(id) {
+    if (!goog.object.containsKey(this.scene_.objects, id)) {
+      console.log('Invalid object "' + id + "'");
+      return;
+    }
+    this.editor_.objectGroup_.remove([this.scene_.objects[id]]);
+    this.scene_.objects[id].setSelected(null);
+  }, this);
 };
