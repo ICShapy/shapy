@@ -12,6 +12,34 @@ from tornado.web import HTTPError, asynchronous
 from shapy.common import APIHandler, session
 
 
+class FilteredHandler(APIHandler):
+  """Handles requests to filtered space."""
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user = None):
+
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'Not authorized.')
+    id = int(self.get_argument('id'))
+    if not id:
+      raise HTTPError(404, 'Asset does not exist.')
+    if id >= 0:
+      raise HTTPError(404, 'Incorrect filter id.')
+
+    # Initialise filtered space data.
+    data = (id, 'filter')
+
+    # Return JSON answer.
+    self.write(json.dumps({
+      'id': data[0],
+      'name': data[1],
+      'data': []
+    }))
+    self.finish()
+
 
 class PublicHandler(APIHandler):
   """Handles requests to public space."""

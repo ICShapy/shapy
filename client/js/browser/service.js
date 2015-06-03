@@ -66,7 +66,7 @@ shapy.browser.Service = function($http, $q, shModal) {
    * @public
    * @export
    */
-  this.public = false;
+  this.private = true;
 
   /**
    * Path to current folder.
@@ -91,10 +91,10 @@ shapy.browser.Service = function($http, $q, shModal) {
 shapy.browser.Service.prototype.changeDirectory = function(dir) {
   // Update current dir and its type.
   this.current = dir;
-  this.public = dir.id < 0;
+  this.private = dir.id >= 0;
 
   // If entered private dir, update path.
-  if (!this.public) {
+  if (this.private) {
     // Compose new path to current dir.
     var newPath = [dir];
     var current = dir;
@@ -202,10 +202,9 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
     cache[id] = asset;
   }
 
-  var params = (id == -1) ? {} : { id: id };
   // Request asset data from server.
   asset.ready = this.q_.defer();
-  this.http_.get(url, {params: params})
+  this.http_.get(url, {params: { id: id }})
     .then(goog.bind(function(response) {
       asset.load(response.data);
       asset.ready.resolve(asset);
@@ -267,6 +266,7 @@ shapy.browser.Service.prototype.getTexture = function(textureID) {
   );
 };
 
+
 /**
  * Fetches public space from the server or from local storage.
  *
@@ -280,6 +280,22 @@ shapy.browser.Service.prototype.getPublic = function() {
       -1
   );
 };
+
+
+/**
+ * Fetches filtered space from the server or from local storage.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.Service.prototype.getFiltered = function(id) {
+  return this.get_(
+      '/api/assets/filtered',
+      this.dirs_,
+      shapy.browser.Asset.Dir,
+      id
+  );
+};
+
 
 /**
  * Renames asset.
@@ -296,6 +312,7 @@ shapy.browser.Service.prototype.rename_ = function(url, asset, name) {
   });
 };
 
+
 /**
  * Renames dir.
  *
@@ -306,6 +323,7 @@ shapy.browser.Service.prototype.renameDir = function(dir, name) {
   this.rename_('/api/assets/dir', dir, name);
 };
 
+
 /**
  * Renames scene.
  *
@@ -315,6 +333,7 @@ shapy.browser.Service.prototype.renameDir = function(dir, name) {
 shapy.browser.Service.prototype.renameScene = function(scene, name) {
   this.rename_('/api/assets/scene', scene, name);
 };
+
 
 /**
  * Deletes asset.
@@ -362,6 +381,7 @@ shapy.browser.Service.prototype.removefromCache = function(asset) {
   }
 };
 
+
 /**
  * Deletes dir.
  *
@@ -370,6 +390,7 @@ shapy.browser.Service.prototype.removefromCache = function(asset) {
 shapy.browser.Service.prototype.deleteDir = function(dir) {
   this.delete_('/api/assets/dir', dir, this.dirs_);
 };
+
 
 /**
  * Deletes scene.

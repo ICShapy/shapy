@@ -198,18 +198,31 @@ shapy.browser.BrowserToolbarController.prototype.path = function() {
  *
  * @return {boolean}
  */
-shapy.browser.BrowserToolbarController.prototype.public = function() {
-  return this.shBrowser_.public;
+shapy.browser.BrowserToolbarController.prototype.private = function() {
+  return this.shBrowser_.private;
 };
 
 
 /**
- * Enters public assets space.
+ * Enters public space.
  *
  */
 shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
   this.shBrowser_.getPublic().then(goog.bind(function(dir) {
-    this.shBrowser_.public = true;
+    this.shBrowser_.private = false;
+    this.shBrowser_.current = dir;
+  }, this));
+};
+
+
+/**
+ * Enters filtered space.
+ *
+ * @param {number} id Id of the filtered space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectFiltered = function(id) {
+  this.shBrowser_.getFiltered(id).then(goog.bind(function(dir) {
+    this.shBrowser_.private = false;
     this.shBrowser_.current = dir;
   }, this));
 };

@@ -14,12 +14,17 @@
         id="browser-search-panel"
         ng-click="open=false">
       <div class="title"> Filter </div>
-      <span> Scenes </span>
-      <span> Textures </span>
-      <span
-        ng-style="(browserCtrl.public()) ? {'background-color':'red'} : null"
-        ng-click="browserCtrl.selectPublic()">
-          Public
+      <span ng-click="browserCtrl.selectFiltered(-4)"> 
+        All Scenes 
+      </span>
+      <span ng-click="browserCtrl.selectFiltered(-3)"> 
+        All Textures 
+      </span>
+      <span ng-click="browserCtrl.selectFiltered(-2)"> 
+        Shared 
+      </span>
+      <span ng-click="browserCtrl.selectPublic()">
+        Public
       </span>
     </div>
   </div>
