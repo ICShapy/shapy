@@ -15,8 +15,9 @@ goog.require('goog.object');
  * @ngInject
  *
  * @param {Object} data Data from the server.
+ * @param {number} count Index number of the user.
  */
-shapy.User = function(data) {
+shapy.User = function(data, count) {
   /** @public {number} @const */
   this.id = data['id'];
   /** @public {string} @const */
@@ -24,7 +25,7 @@ shapy.User = function(data) {
   /** @public {string} @const */
   this.email = data['email'];
   /** @public {!goog.vec.Vec3} @const */
-  this.colour = goog.vec.Vec3.createFloat32FromValues(0.7, 0.7, 0.7);
+  this.colour = shapy.User.Colour[count % shapy.User.Colour.length];
 };
 
 
@@ -63,6 +64,10 @@ shapy.UserService = function($http, $q) {
   this.count_ = 0;
   /** @private {!Object<number, shapy.User>} @const */
   this.users_ = {};
+  /** @private {boolean} */
+  this.fetched_ = false;
+  /** @private {shapy.User} */
+  this.user_ = null;
 };
 
 
@@ -80,10 +85,72 @@ shapy.UserService.prototype.get = function(userID) {
 
   return this.http_.get('/api/user/' + userID)
       .then(goog.bind(function(response) {
-        var user = new shapy.User(response.data);
-        user.colour = shapy.User.Colour[this.count_ % shapy.User.Colour.length];
+        var user = new shapy.User(response.data, this.count_);
         this.count_++;
         this.users_[userID] = user;
         return user;
       }, this));
+};
+
+
+/**
+ * Returns data of an authenticated user.
+ *
+ * @return {!angular.$q} Promise wrapping the user.
+ */
+shapy.UserService.prototype.auth = function() {
+  var defer = this.q_.defer();
+  if (this.fetched_) {
+    defer.resolve(this.user_);
+    return defer.promise;
+  }
+
+  this.http_.get('/api/user/auth')
+      .success(function(data) {
+        if (data['id']) {
+          this.user_ = new shapy.User(data, this.count_);
+          this.count_++;
+          this.fetched_ = true;
+        } else {
+          this.user_ = null;
+          this.fetched_ = true;
+        }
+        defer.resolve(this.user_);
+      }.bind(this));
+  return defer.promise;
+};
+
+
+/**
+ * Logs a user in.
+ *
+ * @param {string} email
+ * @param {string} passw
+ *
+ * @return {!angular.$q}
+ */
+shapy.UserService.prototype.login = function(email, passw) {
+  this.fetched_ = false;
+  this.user_ = null;
+  return this.http_.post('/api/user/login', {
+      email: email,
+      passw: passw
+  });
+};
+
+
+/**
+ * Logs a user out.
+ *
+ * @return {!angular.$q} Promise resolved when request succeeds.
+ */
+shapy.UserService.prototype.logout = function() {
+  if (this.fetched_) {
+    this.fetched_ = false;
+    if (this.user_) {
+      this.user_ = null;
+      return this.http_.post('/api/user/logout');
+    }
+  }
+  return this.q_.when();
 };
