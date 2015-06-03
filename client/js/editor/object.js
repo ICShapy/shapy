@@ -361,8 +361,6 @@ shapy.editor.Object.prototype.pickVertices_ = function(ray) {
  * @param {!goog.vec.Ray} ray Ray converted to model space.
  *
  * @return {!Array<shapy.editor.Editable>}
- *
- * @private
  */
 shapy.editor.Object.prototype.pickEdges_ = function(ray) {
   var u = goog.vec.Vec3.createFloat32();

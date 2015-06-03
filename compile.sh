@@ -43,4 +43,5 @@ java -jar /opt/google/closure-compiler/compiler.jar \
   --js /opt/google/closure-library/closure/goog/vec/vec4.js \
   --js /opt/google/closure-library/closure/goog/webgl/webgl.js \
   --js_output_file test.js \
-
+  --language_in=ECMASCRIPT5 \
+  --language_out=ECMASCRIPT5
