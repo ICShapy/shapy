@@ -281,3 +281,102 @@ shapy.browser.Service.prototype.getPublic = function() {
   );
 };
 
+/**
+ * Renames asset.
+ *
+ * @param {string}               url   URL of the resource.
+ * @param {!shapy.browser.Asset} asset Asset to rename.
+ * @param {string}               name  New name.
+ */
+shapy.browser.Service.prototype.rename_ = function(url, asset, name) {
+  asset.name = name;
+  this.http_.put(url, {
+    id: asset.id,
+    name: name
+  });
+};
+
+/**
+ * Renames dir.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir  Dir to rename.
+ * @param {string}                   name New name.
+ */
+shapy.browser.Service.prototype.renameDir = function(dir, name) {
+  this.rename_('/api/assets/dir', dir, name);
+};
+
+/**
+ * Renames scene.
+ *
+ * @param {!shapy.browser.Asset.Scene} scene Scene to rename.
+ * @param {string}                     name  New name.
+ */
+shapy.browser.Service.prototype.renameScene = function(scene, name) {
+  this.rename_('/api/assets/scene', scene, name);
+};
+
+/**
+ * Deletes asset.
+ *
+ * @param {string}                  url   URL of the resource.
+ * @param {!shapy.browser.Asset}    asset Asset to rename.
+ * @param {!Object<string, Object>} cache Cache for the resource.
+ */
+shapy.browser.Service.prototype.delete_ = function(url, asset, cache) {
+  // Early return for faulty deletes
+  if (asset.id <= 0)
+    return;
+
+  // Delete on server
+  this.http_.delete(url, {params: {id: asset.id}}).then(goog.bind(function() {
+    // Update parent
+    this.current.children = this.current.children.filter(function(child) {
+      return asset.id !== child.id;
+    });
+    // Clean cache
+    this.removefromCache(asset);
+  }, this));
+};
+
+
+/**
+ * Recursively removes assets from caches
+ *
+ * @param {!shapy.browser.Asset}    asset Asset which (with children) we remove.
+ */
+shapy.browser.Service.prototype.removefromCache = function(asset) {
+  switch (asset.type) {
+    case shapy.browser.Asset.Type.DIRECTORY:
+      goog.object.remove(asset.shBrowser_.dirs_, asset.id);
+      break;
+    case shapy.browser.Asset.Type.SCENE:
+      goog.object.remove(asset.shBrowser_.scenes_, asset.id);
+      break;
+    case shapy.browser.Asset.Type.TEXTURE:
+      goog.object.remove(asset.shBrowser_.textures_, asset.id);
+      break;
+  }
+  if (asset.children) {
+    goog.array.forEach(asset.children, asset.shBrowser_.removefromCache);
+  }
+};
+
+/**
+ * Deletes dir.
+ *
+ * @param {!shapy.browser.Asset.Dir} dir  Dir to delete.
+ */
+shapy.browser.Service.prototype.deleteDir = function(dir) {
+  this.delete_('/api/assets/dir', dir, this.dirs_);
+};
+
+/**
+ * Deletes scene.
+ *
+ * @param {!shapy.browser.Asset.Scene} scene Scene to delete.
+ */
+shapy.browser.Service.prototype.deleteScene = function(scene) {
+  this.delete_('/api/assets/scene', scene, this.scenes_);
+};
+
