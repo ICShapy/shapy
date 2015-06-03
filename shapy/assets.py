@@ -11,6 +11,8 @@ from tornado.web import HTTPError, asynchronous
 
 from shapy.common import APIHandler, session
 
+
+
 class PublicHandler(APIHandler):
   """Handles requests to public space."""
 
@@ -54,8 +56,71 @@ class PublicHandler(APIHandler):
     self.finish()
 
 
-class DirHandler(APIHandler):
+
+class AssetHandler(APIHandler):
+  """Handles common requests to assets."""
+
+  TYPE = None
+
+  @session
+  @coroutine
+  @asynchronous
+  def delete(self, user):
+    """Deletes an asset."""
+
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+    id = int(self.get_argument('id'))
+    if not id:
+      raise HTTPError(404, 'Asset does not exist.')
+    if id <= 0:
+      raise HTTPError(404, 'Asset does not exist.')
+
+    # Delete folder entry.
+    yield momoko.Op(self.db.execute,
+      '''DELETE
+         FROM assets
+         WHERE id = %s
+           AND type = %s
+      ''', (
+      id,
+      self.TYPE
+    ))
+
+    self.finish()
+
+  @session
+  @coroutine
+  @asynchronous
+  def put(self, user):
+    """Updates a scene resource."""
+
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'User not logged in.')
+    id = int(self.get_argument('id'))
+    name = self.get_argument('name')
+
+    # Update the name.
+    cursor = yield momoko.Op(self.db.execute,
+      '''UPDATE assets
+         SET name = %s
+         WHERE id = %s
+           AND type = %s
+      ''', (
+      name,
+      id,
+      self.TYPE
+      ))
+    self.finish()
+
+
+
+class DirHandler(AssetHandler):
   """Handles requests to a directory resource."""
+
+  TYPE = 'dir'
 
   @session
   @coroutine
@@ -153,55 +218,12 @@ class DirHandler(APIHandler):
     }))
     self.finish()
 
-  @session
-  @coroutine
-  @asynchronous
-  def delete(self, user):
-    """Deletes a directory resource."""
-
-    # Validate arguments.
-    if not user:
-      raise HTTPError(401, 'User not logged in.')
-    id = int(self.get_argument('id'))
-    if not id:
-      raise HTTPError(404, 'Directory does not exist.')
-    if id <= 0:
-      raise HTTPError(404, 'Directory does not exist.')
-
-    # Delete folder entry.
-    yield momoko.Op(self.db.execute,
-      '''DELETE
-         FROM assets
-         WHERE id = %s
-           AND type = %s
-      ''', (
-      id,
-      'dir'
-    ))
-
-    self.finish()
-
-  @session
-  @coroutine
-  @asynchronous
-  def put(self, user):
-    """Updates a directory resource."""
-
-    # Validate arguments.
-    if not user:
-      raise HTTPError(401, 'User not logged in.')
-    id = int(self.get_argument('id'))
-    name = self.get_argument('name')
-
-    # Update the name.
-    cursor = yield momoko.Op(self.db.execute,
-      '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
-    )
-    self.finish()
 
 
-class SceneHandler(APIHandler):
+class SceneHandler(AssetHandler):
   """Handles requests to a scene asset."""
+
+  TYPE = 'scene'
 
   @session
   @coroutine
@@ -274,54 +296,8 @@ class SceneHandler(APIHandler):
     self.finish()
 
 
-  @session
-  @coroutine
-  @asynchronous
-  def put(self, user):
-    """Updates a scene resource."""
 
-    # Validate arguments.
-    if not user:
-      raise HTTPError(401, 'User not logged in.')
-    id = int(self.get_argument('id'))
-    name = self.get_argument('name')
-
-    # Update the name.
-    cursor = yield momoko.Op(self.db.execute,
-      '''UPDATE assets SET name = %s WHERE id = %s''', (name, id)
-    )
-    self.finish()
-
-
-  @session
-  @coroutine
-  @asynchronous
-  def delete(self, user):
-    """Deletes a scene resource."""
-
-    # Validate arguments.
-    if not user:
-      raise HTTPError(401, 'User not logged in.')
-    id = int(self.get_argument('id'))
-    if not id:
-      raise HTTPError(404, 'Scene does not exist.')
-    if id <= 0:
-      raise HTTPError(404, 'Scene does not exist.')
-
-    # Delete folder entry.
-    yield momoko.Op(self.db.execute,
-      '''DELETE
-         FROM assets
-         WHERE id = %s
-           AND type = %s
-      ''', (
-      id,
-      'scene'
-    ))
-
-    self.finish()
-
-
-class TextureHandler(APIHandler):
+class TextureHandler(AssetHandler):
   """Handles requests to a texture asset."""
 
+  TYPE = 'texture'
