@@ -358,14 +358,9 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
 
   if (this.mode.object) {
     this.partGroup_.clear();
-    this.rig(this.rigTranslate_);
-  } else {
-    var object = this.objectGroup_.getLast();
-    this.objectGroup_.clear();
-    this.objectGroup_.add(object);
-    this.rig(this.rigTranslate_);
   }
 
+  this.rig(this.rigTranslate_);
   this.partGroup_.setSelected(true);
   this.objectGroup_.setSelected(true);
 };
@@ -536,7 +531,13 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // Select the object hovered by the mouse.
-  this.select(this.hover_, e.ctrlKey);
+  if (!this.hover_.isEmpty()) {
+    if (this.mode.object) {
+      this.select(this.hover_, e.ctrlKey);
+    } else {
+      this.select(this.hover_, e.ctrlKey);
+    }
+  }
 };
 
 
