@@ -365,16 +365,12 @@ shapy.editor.Editor.prototype.destroy = function() {
  * @private
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
-  this.partGroup_.setSelected(null);
-  this.objectGroup_.setSelected(null);
-
   if (this.mode.object) {
+    this.partGroup_.setSelected(null);
     this.partGroup_.clear();
   }
 
   this.rig(this.rigTranslate_);
-  this.partGroup_.setSelected(this.user_);
-  this.objectGroup_.setSelected(this.user_);
 };
 
 
