@@ -14,15 +14,15 @@ goog.provide('shapy.equals');
  *
  * @param {!angular.$http} $http The angular $http service.
  * @param {!angular.$state} $state The angular $state service.
- * @param {!shapy.AuthService} shAuth The authentication service.
+ * @param {!shapy.AuthService} shUser The authentication service.
  */
-shapy.RegisterController = function($http, $state, shAuth) {
+shapy.RegisterController = function($http, $state, shUser) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!angular.$state} @const */
   this.state_ = $state;
-  /** @private {!angular.shAuth} @const */
-  this.shAuth_ = shAuth;
+  /** @private {!angular.shUser} @const */
+  this.shUser_ = shUser;
 
   /**
    * Name of the user.
@@ -65,7 +65,7 @@ shapy.RegisterController = function($http, $state, shAuth) {
  * Submits the form.
  */
 shapy.RegisterController.prototype.register = function() {
-  this.shAuth_.logout().then(goog.bind(function() {
+  this.shUser_.logout().then(goog.bind(function() {
     this.http_.post('/api/user/register', {
       firstName: this.firstName,
       lastName: this.lastName,

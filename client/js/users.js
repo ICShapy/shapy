@@ -104,18 +104,16 @@ shapy.UserService.prototype.auth = function() {
   }
 
   this.ready_ = this.q_.defer();
-
-  this.http_.get('/api/user/auth')
-      .success(function(data) {
-        if (data['id']) {
-          this.user_ = new shapy.User(data, this.count_);
-          this.users_[data['id']] = this.user_;
-          this.count_++;
-        } else {
-          this.user_ = null;
-        }
-        this.ready_.resolve(this.user_);
-      }.bind(this));
+  this.http_.get('/api/user/auth').success(function(data) {
+    if (data['id']) {
+      this.user_ = new shapy.User(data, this.count_);
+      this.users_[data['id']] = this.user_;
+      this.count_++;
+    } else {
+      this.user_ = null;
+    }
+    this.ready_.resolve(this.user_);
+  }.bind(this));
   return this.ready_.promise;
 };
 
@@ -147,11 +145,11 @@ shapy.UserService.prototype.logout = function() {
   if (!this.ready_) {
     return this.q_.when();
   }
-  this.ready_.then(goog.bind(function(user) {
+  return this.ready_.promise.then(goog.bind(function(user) {
     if (user) {
       this.user_ = null;
+      this.ready_ = null;
       return this.http_.post('/api/user/logout');
     }
   }, this));
-  this.ready_ = null;
 };
