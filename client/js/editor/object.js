@@ -261,23 +261,11 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
   var r = new goog.vec.Ray(q, v);
 
-  var faces = this.pickFaces_(r);
-
-  // Include the object if the ray intersects it.
-  if (!goog.array.isEmpty(faces)) {
-    obj = [
-      {
-        item: this,
-        point: this.position_
-      }
-    ];
-  }
-
+  // Pick individual components.
   return [
-      obj,
       this.pickVertices_(r),
       this.pickEdges_(r),
-      faces
+      this.pickFaces_(r),
   ];
 };
 

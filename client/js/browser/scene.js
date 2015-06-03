@@ -131,9 +131,11 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
   hits = goog.array.flatten(hits);
 
   // Find all allowed objects in the current mode.
-  hits = goog.array.filter(hits, function(hit) {
-    return mode[hit.item.type];
-  });
+  if (!mode.object) {
+    hits = goog.array.filter(hits, function(hit) {
+      return mode[hit.item.type];
+    });
+  }
 
   if (goog.array.isEmpty(hits)) {
     return null;
@@ -145,7 +147,7 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
     return da - db;
   }, this);
 
-  return hits[0].item;
+  return mode.object ? hits[0].item.object : hits[0].item;
 };
 
 
