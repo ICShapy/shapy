@@ -59,6 +59,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.scene_id = scene_id
     self.chan_id = 'chan_%s' % scene_id
     self.lock_id = 'lock_%s' % scene_id
+    self.objects = set()
 
     # Start listening & broadcasting on the channel.
     self.chan = tornadoredis.Client(
@@ -96,7 +97,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if not hasattr(self, 'user'):
       return
     data = json.loads(message)
-    seq = yield self.to_channel(data)
 
     # Name change request - update object.
     if data['type'] == 'name':
@@ -104,9 +104,26 @@ class WSHandler(WebSocketHandler, BaseHandler):
         scene.name = data['value']
       yield self.update_scene_(update_name)
 
-    # Select request - lock on object.
-    if data['type'] == 'select':
-      print data['objects']
+    # Request to lock on an object.
+    if data['type'] == 'lock':
+      objects = []
+      for id in data['objects']:
+        lock = yield Task(self.redis.setnx, '%s:%s' % (self.scene_id, id), 1)
+        if lock:
+          self.objects.add(id)
+          objects.append(id)
+      data['objects'] = objects
+
+    # Request to unlock objects.
+    if data['type'] == 'unlock':
+      objects = []
+      for id in data['objects']:
+        yield Task(self.redis.delete, '%s:%s' % (self.scene_id, id))
+        objects.append(id)
+        self.objects.remove(id)
+      data['objects'] = objects
+    seq = yield self.to_channel(data)
+
 
   @coroutine
   def on_channel(self, message):
@@ -129,6 +146,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
     def remove_user(scene):
       scene.remove_user(self.user.id)
     yield self.update_scene_(remove_user)
+
+    # Unlock all objects.
+    for id in self.objects:
+      yield Task(self.redis.delete, '%s:%s' % (self.scene_id, id))
 
     # Leave the scene (of the crime).
     self.to_channel({

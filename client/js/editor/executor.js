@@ -111,6 +111,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       case 'create': this.applyCreate(data); return;
       case 'lock': this.applyLock(data); return;
       case 'unlock': this.applyUnlock(data); return;
+      case 'leave': this.applyLeave(data); return;
       case 'name': {
         if (this.scene_.name != data['value']) {
           this.scene_.name = data['value'];
@@ -124,10 +125,6 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       case 'meta': {
         this.scene_.name = data['name'];
         this.scene_.setUsers(data['users']);
-        break;
-      }
-      case 'leave': {
-        this.scene_.removeUser(data['user']);
         break;
       }
       case 'edit': {
@@ -231,7 +228,9 @@ shapy.editor.Executor.prototype.applyLock = function(data) {
         console.log('Invalid object "' + id + "'");
         return;
       }
-      this.editor_.objectGroup_.add([this.scene_.objects[id]]);
+      if (user.id == this.editor_.user.id) {
+        this.editor_.objectGroup_.add([this.scene_.objects[id]]);
+      }
       this.scene_.objects[id].setSelected(user);
     }, this);
   }, this));
@@ -251,5 +250,20 @@ shapy.editor.Executor.prototype.applyUnlock = function(data) {
     }
     this.editor_.objectGroup_.remove([this.scene_.objects[id]]);
     this.scene_.objects[id].setSelected(null);
+  }, this);
+};
+
+
+/**
+ * Handles a leave message.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyLeave = function(data) {
+  this.scene_.removeUser(data['user']);
+  goog.object.forEach(this.scene_.objects, function(object) {
+    if (object.selected && object.selected.id == data['user']) {
+      object.setSelected(null);
+    }
   }, this);
 };
