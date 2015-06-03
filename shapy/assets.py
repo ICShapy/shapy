@@ -78,15 +78,23 @@ class AssetHandler(APIHandler):
       raise HTTPError(404, 'Asset does not exist.')
 
     # Delete folder entry.
-    yield momoko.Op(self.db.execute,
+    cursor = yield momoko.Op(self.db.execute,
       '''DELETE
          FROM assets
          WHERE id = %s
            AND type = %s
+           AND owner = %s
+         RETURNING id
       ''', (
       id,
-      self.TYPE
+      self.TYPE,
+      user.id
     ))
+
+    # Check if deletion successful
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(400, 'Asset deletion failed.')
 
     self.finish()
 
@@ -108,11 +116,18 @@ class AssetHandler(APIHandler):
          SET name = %s
          WHERE id = %s
            AND type = %s
+         RETURNING id
       ''', (
       name,
       id,
       self.TYPE
       ))
+
+    # Check if update successful
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(400, 'Asset update failed.')
+
     self.finish()
 
 
@@ -282,7 +297,7 @@ class SceneHandler(AssetHandler):
       False
     ))
 
-    # Check if the directory was created successfully.
+    # Check if the scene was created successfully.
     data = cursor.fetchone()
     if not data:
       raise HTTPError(400, 'Asset creation failed.')
