@@ -64,8 +64,8 @@ shapy.UserService = function($http, $q) {
   this.count_ = 0;
   /** @private {!Object<number, shapy.User>} @const */
   this.users_ = {};
-  /** @private {boolean} */
-  this.fetched_ = false;
+  /** @private {!angular.$q} */
+  this.ready_ = null;
   /** @private {shapy.User} */
   this.user_ = null;
 };
@@ -99,25 +99,24 @@ shapy.UserService.prototype.get = function(userID) {
  * @return {!angular.$q} Promise wrapping the user.
  */
 shapy.UserService.prototype.auth = function() {
-  var defer = this.q_.defer();
-  if (this.fetched_) {
-    defer.resolve(this.user_);
-    return defer.promise;
+  if (this.ready_) {
+    return this.ready_.promise;
   }
+
+  this.ready_ = this.q_.defer();
 
   this.http_.get('/api/user/auth')
       .success(function(data) {
         if (data['id']) {
           this.user_ = new shapy.User(data, this.count_);
+          this.users_[data['id']] = this.user_;
           this.count_++;
-          this.fetched_ = true;
         } else {
           this.user_ = null;
-          this.fetched_ = true;
         }
-        defer.resolve(this.user_);
+        this.ready_.resolve(this.user_);
       }.bind(this));
-  return defer.promise;
+  return this.ready_.promise;
 };
 
 
@@ -130,7 +129,7 @@ shapy.UserService.prototype.auth = function() {
  * @return {!angular.$q}
  */
 shapy.UserService.prototype.login = function(email, passw) {
-  this.fetched_ = false;
+  this.ready_ = null;
   this.user_ = null;
   return this.http_.post('/api/user/login', {
       email: email,
@@ -145,12 +144,14 @@ shapy.UserService.prototype.login = function(email, passw) {
  * @return {!angular.$q} Promise resolved when request succeeds.
  */
 shapy.UserService.prototype.logout = function() {
-  if (this.fetched_) {
-    this.fetched_ = false;
-    if (this.user_) {
+  if (!this.ready_) {
+    return this.q_.when();
+  }
+  this.ready_.then(goog.bind(function(user) {
+    if (user) {
       this.user_ = null;
       return this.http_.post('/api/user/logout');
     }
-  }
-  return this.q_.when();
+  }, this));
+  this.ready_ = null;
 };
