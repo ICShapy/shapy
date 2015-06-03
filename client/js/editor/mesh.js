@@ -120,7 +120,9 @@ shapy.editor.Mesh.prototype.build_ = function() {
       r = 0.9; g = 0.5; b = 0.0;
     } else {
       if (this.object_.selected) {
-        r = 0.7; g = 0.7; b = 0.7;
+        r = this.object_.selected.colour[0];
+        g = this.object_.selected.colour[1];
+        b = this.object_.selected.colour[2];
       } else if (this.object_.hover) {
         r = 0.6; g = 0.6; b = 0.6;
       } else {

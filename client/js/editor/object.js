@@ -463,6 +463,8 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
  * Merges a set of points into a single point.
  *
  * @param {!Array<shapy.editor.Object.Vertex>} verts
+ *
+ * @return {!shapy.editor.Object.Vertex}
  */
 shapy.editor.Object.prototype.mergeVertices = function(verts) {
   var center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
@@ -521,6 +523,7 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
   }, this);
 
   this.dirtyMesh = true;
+  return this.verts[vertID];
 };
 
 

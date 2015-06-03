@@ -42,10 +42,10 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
   /** @private {!shapy.editor.Editor} @const */
   this.shEditor_ = shEditor;
   /** @private {!shapy.User} @const */
-  this.shUser_ = user;
+  this.user_ = user;
 
   // Initialise the scene.
-  this.shEditor_.setScene(this.scene_);
+  this.shEditor_.setScene(this.scene_, this.user_);
 };
 
 
@@ -93,16 +93,16 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.gl_ = null;
 
   /**
+   * Current user.
+   * @private {!shapy.User}
+   */
+  this.user_ = null;
+
+  /**
    * Current scene.
    * @private {!shapy.Scene}
    */
   this.scene_ = null;
-
-  /**
-   * Name of the scene.
-   * @private {string}
-   */
-  this.name_ = '';
 
   /**
    * Renderer that manages all WebGL resources.
@@ -187,10 +187,12 @@ shapy.editor.Editor = function($location, $rootScope) {
  * Resets the scene after it changes.
  *
  * @param {!shapy.Scene} scene
+ * @param {!shapy.User}  user
  */
-shapy.editor.Editor.prototype.setScene = function(scene) {
+shapy.editor.Editor.prototype.setScene = function(scene, user) {
   // Clear anything related to the scene.
   this.scene_ = scene;
+  this.user_ = user;
   this.objectGroup_.clear();
   this.partGroup_.clear();
   this.rig(null);
@@ -363,56 +365,16 @@ shapy.editor.Editor.prototype.destroy = function() {
  * @private
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
-  this.partGroup_.setSelected(false);
-  this.objectGroup_.setSelected(false);
+  this.partGroup_.setSelected(null);
+  this.objectGroup_.setSelected(null);
 
   if (this.mode.object) {
     this.partGroup_.clear();
   }
 
   this.rig(this.rigTranslate_);
-  this.partGroup_.setSelected(true);
-  this.objectGroup_.setSelected(true);
-};
-
-
-/**
- * Selects an editable.
- *
- * @param {!shapy.editor.Editable} editable
- * @param {boolean}                groupSelect
- */
-shapy.editor.Editor.prototype.select = function(editable, groupSelect) {
-  var group, selected = editable ? editable.isSelected() : false;
-
-  this.partGroup_.setSelected(false);
-  this.objectGroup_.setSelected(false);
-
-  if (this.mode.object) {
-    if (!groupSelect) {
-      this.objectGroup_.clear();
-    }
-    group = this.objectGroup_;
-  } else {
-    if (!groupSelect) {
-      this.partGroup_.clear();
-    }
-    group = this.partGroup_;
-  }
-
-  if (editable) {
-    if (selected && groupSelect) {
-      group.remove(editable);
-    } else {
-      group.add(editable);
-    }
-  } else {
-    group.clear();
-  }
-
-  this.partGroup_.setSelected(true);
-  this.objectGroup_.setSelected(true);
-  this.rig(this.rig_ || this.rigTranslate_);
+  this.partGroup_.setSelected(this.user_);
+  this.objectGroup_.setSelected(this.user_);
 };
 
 
@@ -477,8 +439,8 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (!(object = this.partGroup_.getObject())) {
         return;
       }
-      object.mergeVertices(this.partGroup_.getVertices());
-      this.select(null);
+      var vert = object.mergeVertices(this.partGroup_.getVertices());
+      this.partGroup_.clear();
       this.rig(null);
       break;
     }
@@ -558,10 +520,10 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   // Adjust highlight.
   goog.array.forEach(toDeselect, function(e) {
-    e.setSelected(false);
+    e.setSelected(null);
   }, this);
   goog.array.forEach(toSelect, function(e) {
-    e.setSelected(true);
+    e.setSelected(this.user_);
   }, this);
 
   // Send a command to the sever to lock on objects or adjust part group.
