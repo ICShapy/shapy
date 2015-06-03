@@ -333,7 +333,7 @@ shapy.browser.Service.prototype.delete_ = function(url, asset, cache) {
     return asset.id !== child.id;
   });
   // Delete on server
-  this.http_.delete(url + "?id=" + asset.id);
+  this.http_.delete(url, {params: {id: asset.id}});
 };
 
 /**

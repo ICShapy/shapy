@@ -124,23 +124,6 @@ shapy.browser.BrowserController.prototype.rename = function(asset, name) {
 };
 
 /**
- * Deletes given asset.
- *
- * @param {!shapy.browser.Asset} asset Asset that is to be deleted.
- */
-shapy.browser.BrowserController.prototype.delete = function(asset) {
-  switch (asset.type) {
-    case shapy.browser.Asset.Type.DIRECTORY:
-      asset.shBrowser_.deleteDir(asset);
-      break;
-    case shapy.browser.Asset.Type.SCENE:
-      asset.shBrowser_.deleteScene(asset);
-      break;
-  }
-};
-
-
-/**
  * Returns the current directory.
  *
  * @return {!shapy.browser.Asset.Dir}
@@ -299,7 +282,7 @@ shapy.browser.asset = function(shModal) {
    * Handles the deletion of an asset.
    * @param {!shapy.browser.Asset} asset
    */
-  var doDelete = function(asset, deleteAsset) {
+  var doDelete = function(asset) {
     shModal.open({
       size: 'small',
       title: 'Delete Asset',
@@ -311,7 +294,14 @@ shapy.browser.asset = function(shModal) {
         $scope.asset = asset;
         $scope.cancel = function() { return false; };
         $scope.okay = function() {
-          deleteAsset(asset);
+          switch (asset.type) {
+            case shapy.browser.Asset.Type.DIRECTORY:
+              asset.shBrowser_.deleteDir(asset);
+              break;
+            case shapy.browser.Asset.Type.SCENE:
+              asset.shBrowser_.deleteScene(asset);
+              break;
+          }
         };
       }
     });
@@ -321,8 +311,7 @@ shapy.browser.asset = function(shModal) {
     restrict: 'E',
     scope: {
       asset: '=',
-      selected: '=',
-      deleteAsset: '='
+      selected: '='
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
@@ -333,7 +322,7 @@ shapy.browser.asset = function(shModal) {
           return;
         }
         $scope.$apply(function() {
-          doDelete($scope.asset, $scope.deleteAsset);
+          doDelete($scope.asset);
         });
         evt.stopPropagation();
         evt.preventDefault();
