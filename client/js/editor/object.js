@@ -218,7 +218,10 @@ shapy.editor.Object.prototype.getScale = function() {
  * @param {number} z
  */
 shapy.editor.Object.prototype.rotate = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.rotate_, x, y, z);
+  goog.vec.Vec3.setFromValues(this.rotate_,
+      x || this.rotate_[0],
+      y || this.rotate_[1],
+      z || this.rotate_[2]);
 };
 
 

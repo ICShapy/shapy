@@ -124,9 +124,9 @@ shapy.editor.Editor = function($location, $rootScope) {
 
   /**
    * Object hovered by mouse.
-   * @private {!shapy.editor.Editable}
+   * @private {!Array<!shapy.editor.Editable>}
    */
-  this.hover_ = null;
+  this.hover_ = [];
 
   /**
    * Active rig.
@@ -521,7 +521,7 @@ shapy.editor.Editor.prototype.mouseDown = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
-  var ray, toSelect, toDeselect;
+  var ray, toSelect, toDeselect, group;
 
   // If viewports want the event, give up.
   if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
@@ -529,17 +529,49 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // If nothing selected, ignore event.
-  if (!this.hover_ || this.hover_.isEmpty()) {
+  if (!this.hover_ || goog.array.isEmpty(this.hover_)) {
     return;
   }
 
-  /*this.exec_.sendCommand({
-    type: 'select',
-    objects: goog.array.map(this.hover_.getObjects(), function(object) {
-      return object.id;
-    })
-  });*/
-  this.select(this.hover_, e.ctrlKey);
+  // Find out which group is going to be affected.
+  group = this.mode.object ? this.objectGroup_ : this.partGroup_;
+
+  // Find out what is going to be selected & what is going to be selected.
+  if (e.ctrlKey) {
+    toDeselect = [];
+    toSelect = goog.array.filter(this.hover_, function(e) {
+      return !group.contains(e);
+    }, this);
+  } else if (e.shiftKey) {
+    toSelect = [];
+    toDeselect = goog.array.filter(this.hover_, function(e) {
+      return group.contains(e);
+    }, this);
+  } else {
+    toSelect = goog.array.filter(this.hover_, function(e) {
+      return !group.contains(e);
+    }, this);
+    toDeselect = goog.array.filter(group.editables, function(e) {
+      return !goog.array.contains(this.hover_, e);
+    }, this);
+  }
+
+  // Adjust highlight.
+  goog.array.forEach(toDeselect, function(e) {
+    e.setSelected(false);
+  }, this);
+  goog.array.forEach(toSelect, function(e) {
+    e.setSelected(true);
+  }, this);
+
+  // Send a command to the sever to lock on objects or adjust part group.
+  if (this.mode.object) {
+    group.remove(toDeselect);
+    group.add(toSelect);
+  } else {
+    group.remove(toDeselect);
+    group.add(toSelect);
+  }
 };
 
 
@@ -564,21 +596,21 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
 
   // Filter out all parts that do not belong to the current object.
   if (this.mode.object) {
-    pick = new shapy.editor.ObjectGroup(hits);
+    pick = hits;
   } else {
-    pick = new shapy.editor.PartsGroup(goog.array.filter(hits, function(e) {
+    pick = goog.array.filter(hits, function(e) {
       return this.objectGroup_.contains(e.object);
-    }, this));
+    }, this);
   }
 
   // Highlight the current object.
-  if (this.hover_) {
-    this.hover_.setHover(false);
-  }
+  goog.array.forEach(this.hover_, function(e) {
+    e.setHover(false);
+  });
   this.hover_ = pick;
-  if (this.hover_) {
-    this.hover_.setHover(true);
-  }
+  goog.array.forEach(this.hover_, function(e) {
+    e.setHover(true);
+  });
 };
 
 

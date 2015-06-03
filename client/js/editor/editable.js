@@ -125,8 +125,8 @@ shapy.editor.Editable.prototype.getObject = function() { return null; };
 shapy.editor.EditableGroup = function(opt_editables, type) {
   shapy.editor.Editable.call(this, type);
 
-  /** @private {!Array<shapy.editor.Editable>} List of editables to control */
-  this.editables_ = opt_editables || [];
+  /** @public {!Array<shapy.editor.Editable>} List of editables to control */
+  this.editables = opt_editables || [];
 };
 goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
 
@@ -137,10 +137,10 @@ goog.inherits(shapy.editor.EditableGroup, shapy.editor.Editable);
  * @return {shapy.editor.Object}
  */
 shapy.editor.EditableGroup.prototype.getObjects = function() {
-  if (goog.array.isEmpty(this.editables_)) {
+  if (goog.array.isEmpty(this.editables)) {
     return null;
   }
-  var objects = goog.array.map(this.editables_, function(e) {
+  var objects = goog.array.map(this.editables, function(e) {
     return e.object;
   });
   goog.array.removeDuplicates(objects);
@@ -154,19 +154,24 @@ shapy.editor.EditableGroup.prototype.getObjects = function() {
  * @param {shapy.editor.Editable} editable Editable object to add.
  */
 shapy.editor.EditableGroup.prototype.add = function(editable) {
+  if (goog.isArray(editable)) {
+    this.editables = goog.array.concat(this.editables, editable);
+    return;
+  }
+
   switch (editable.type) {
     case shapy.editor.Editable.Type.OBJECT_GROUP:
     case shapy.editor.Editable.Type.PARTS_GROUP:
     {
-      this.editables_ = goog.array.concat(this.editables_, editable.editables_);
+      this.editables = goog.array.concat(this.editables, editable.editables);
       break;
     }
     default: {
-      goog.array.insert(this.editables_, editable);
+      goog.array.insert(this.editables, editable);
       break;
     }
   }
-  goog.array.removeDuplicates(this.editables_);
+  goog.array.removeDuplicates(this.editables);
 };
 
 
@@ -176,8 +181,12 @@ shapy.editor.EditableGroup.prototype.add = function(editable) {
  * @param {shapy.editor.EditableGroup} editables Editables to remove.
  */
 shapy.editor.EditableGroup.prototype.remove = function(editables) {
-  this.editables_ = goog.array.filter(this.editables_, function(e) {
-    return !editables.contains(e);
+  this.editables = goog.array.filter(this.editables, function(e) {
+    if (goog.isArray(editables)) {
+      return !goog.array.contains(editables, e);
+    } else {
+      return !editables.contains(e);
+    }
   });
 };
 
@@ -190,7 +199,7 @@ shapy.editor.EditableGroup.prototype.remove = function(editables) {
  * @return {boolean} True if th eobject is in the group.
  */
 shapy.editor.EditableGroup.prototype.contains = function(object) {
-  return goog.array.contains(this.editables_, object);
+  return goog.array.contains(this.editables, object);
 };
 
 
@@ -198,7 +207,7 @@ shapy.editor.EditableGroup.prototype.contains = function(object) {
  * Clears the editable.
  */
 shapy.editor.EditableGroup.prototype.clear = function() {
-  this.editables_ = [];
+  this.editables = [];
 };
 
 
@@ -208,7 +217,7 @@ shapy.editor.EditableGroup.prototype.clear = function() {
  * @return {boolean} True if empty.
  */
 shapy.editor.EditableGroup.prototype.isEmpty = function() {
-  return goog.array.isEmpty(this.editables_);
+  return goog.array.isEmpty(this.editables);
 };
 
 
@@ -219,7 +228,7 @@ shapy.editor.EditableGroup.prototype.isEmpty = function() {
  */
 shapy.editor.EditableGroup.prototype.setHover = function(hover) {
   this.hover = hover;
-  goog.object.forEach(this.editables_, function(editable) {
+  goog.object.forEach(this.editables, function(editable) {
     editable.setHover(hover);
   }, this);
 };
@@ -232,7 +241,7 @@ shapy.editor.EditableGroup.prototype.setHover = function(hover) {
  */
 shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
   this.selected = selected;
-  goog.object.forEach(this.editables_, function(editable) {
+  goog.object.forEach(this.editables, function(editable) {
     editable.setSelected(selected);
   }, this);
 };
@@ -244,7 +253,7 @@ shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
  * @return {boolean} True if there is a selected editable.
  */
 shapy.editor.EditableGroup.prototype.isSelected = function() {
-  return goog.array.some(this.editables_, function(editable) {
+  return goog.array.some(this.editables, function(editable) {
     return editable.selected;
   }, this);
 };
@@ -257,14 +266,14 @@ shapy.editor.EditableGroup.prototype.isSelected = function() {
  */
 shapy.editor.EditableGroup.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
-  if (goog.array.isEmpty(this.editables_)) {
+  if (goog.array.isEmpty(this.editables)) {
     return position;
   }
 
-  goog.object.forEach(this.editables_, function(editable) {
+  goog.object.forEach(this.editables, function(editable) {
     goog.vec.Vec3.add(position, editable.getPosition(), position);
   }, this);
-  goog.vec.Vec3.scale(position, 1 / this.editables_.length, position);
+  goog.vec.Vec3.scale(position, 1 / this.editables.length, position);
   return position;
 };
 
@@ -276,14 +285,14 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
  */
 shapy.editor.EditableGroup.prototype.getScale = function() {
   var scale = goog.vec.Vec3.createFloat32FromValues(1, 1, 1);
-  if (goog.array.isEmpty(this.editables_)) {
+  if (goog.array.isEmpty(this.editables)) {
     return scale;
   }
 
-  goog.object.forEach(this.editables_, function(editable) {
+  goog.object.forEach(this.editables, function(editable) {
     goog.vec.Vec3.add(scale, editable.getScale(), scale);
   }, this);
-  goog.vec.Vec3.scale(scale, 1 / this.editables_.length, scale);
+  goog.vec.Vec3.scale(scale, 1 / this.editables.length, scale);
   return scale;
 };
 
@@ -295,14 +304,14 @@ shapy.editor.EditableGroup.prototype.getScale = function() {
  */
 shapy.editor.EditableGroup.prototype.getRotation = function() {
   var rotation = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
-  if (goog.array.isEmpty(this.editables_)) {
+  if (goog.array.isEmpty(this.editables)) {
     return rotation;
   }
 
-  goog.object.forEach(this.editables_, function(editable) {
+  goog.object.forEach(this.editables, function(editable) {
     goog.vec.Vec3.add(rotation, editable.getRotation(), rotation);
   }, this);
-  goog.vec.Vec3.scale(rotation, 1 / this.editables_.length, rotation);
+  goog.vec.Vec3.scale(rotation, 1 / this.editables.length, rotation);
   return rotation;
 };
 
@@ -311,10 +320,10 @@ shapy.editor.EditableGroup.prototype.getRotation = function() {
  * Deletes the editables in the group.
  */
 shapy.editor.EditableGroup.prototype.delete = function() {
-  goog.object.forEach(this.editables_, function(object) {
+  goog.object.forEach(this.editables, function(object) {
     object.delete();
   });
-  this.editables_ = [];
+  this.editables = [];
 };
 
 
@@ -360,11 +369,11 @@ shapy.editor.PartsGroup.prototype.translate = function(x, y, z) {
  * @return {shapy.editor.Object}
  */
 shapy.editor.PartsGroup.prototype.getObject = function() {
-  if (goog.array.isEmpty(this.editables_)) {
+  if (goog.array.isEmpty(this.editables)) {
     return null;
   }
-  var object = this.editables_[0].object;
-  return goog.array.every(this.editables_, function(e) {
+  var object = this.editables[0].object;
+  return goog.array.every(this.editables, function(e) {
     return e.object == object;
   }) ? object : null;
 };
@@ -376,7 +385,7 @@ shapy.editor.PartsGroup.prototype.getObject = function() {
  * @return {!Array<!shapy.editor.Object.Vertex>}
  */
 shapy.editor.PartsGroup.prototype.getVertices = function() {
-  var verts = goog.array.flatten(goog.array.map(this.editables_, function(e) {
+  var verts = goog.array.flatten(goog.array.map(this.editables, function(e) {
     return e.getVertices();
   }, this));
   goog.array.removeDuplicates(verts);
@@ -411,7 +420,7 @@ shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
   var mid = this.getPosition();
 
   // Apply translation to each object
-  goog.object.forEach(this.editables_, function(object) {
+  goog.object.forEach(this.editables, function(object) {
     var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
     goog.vec.Vec3.subtract(delta, mid, delta);
     goog.vec.Vec3.add(delta, object.getPosition(), delta);
@@ -431,7 +440,7 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
   var scale = this.getScale();
 
   // Apply translation to each object
-  goog.object.forEach(this.editables_, function(object) {
+  goog.object.forEach(this.editables, function(object) {
     var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
     goog.vec.Vec3.subtract(delta, scale, delta);
     goog.vec.Vec3.add(delta, object.getScale(), delta);
@@ -451,7 +460,7 @@ shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z, dx, dy, dz) {
   var m = goog.vec.Mat4.createFloat32();
   var mid = this.getPosition();
 
-  goog.object.forEach(this.editables_, function(object) {
+  goog.object.forEach(this.editables, function(object) {
     var d = goog.vec.Vec3.createFloat32();
     var p = object.getPosition();
     var r = object.getRotation();
