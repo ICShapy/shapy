@@ -19,6 +19,7 @@ goog.require('shapy.editor.Mode');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Rig');
 goog.require('shapy.editor.Rig.Cut');
+goog.require('shapy.editor.Rig.Extrude');
 goog.require('shapy.editor.Rig.Rotate');
 goog.require('shapy.editor.Rig.Scale');
 goog.require('shapy.editor.Rig.Translate');
@@ -64,6 +65,8 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.rigScale_ = new shapy.editor.Rig.Scale();
   /** @private {!shapy.editor.Rig} @const */
   this.rigCut_ = new shapy.editor.Rig.Cut();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigExtrude_ = new shapy.editor.Rig.Extrude();
 
   /** @private {!angular.$location} @const */
   this.location_ = $location;
@@ -232,7 +235,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
   //this.layout_ = new shapy.editor.Layout.Double();
-  //this.scene_.createSphere(0.5, 16, 16);
+  this.scene_.createCube(0.5, 0.5, 0.5).translate(0, 0.5, 0);
   this.layout_ = new shapy.editor.Layout.Single();
   this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
@@ -606,6 +609,28 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 82: this.rig(this.rigRotate_); break;    // r
     case 83: this.rig(this.rigScale_); break;     // s
     case 67: this.rig(this.rigCut_); break;       // c
+    case 69: {                                    // e
+      if (this.partGroup_) {
+        object = this.partGroup_.getObject();
+        var editables = this.partGroup_.getEditables();
+
+        // Filter non-faces
+        editables = goog.array.filter(editables, function(e) {
+          return e.type == shapy.editor.Editable.Type.FACE;
+        });
+
+        // Extrude
+        if (editables.length > 0) {
+          var extrudeData = object.extrude(editables);
+
+          this.rig(this.rigExtrude_);
+          this.rigExtrude_.buildModelMatrix(
+            this.partGroup_.getPosition(),
+            extrudeData.normal);
+        }
+      }
+      break;
+    }
     default: {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.keyDown(e.keyCode);

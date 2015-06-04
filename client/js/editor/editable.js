@@ -338,6 +338,16 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
 };
 
 
+/**
+ * Retrives the editables forming this group
+ *
+ * @return {!Array<!shapy.editor.Editable>}
+ */
+shapy.editor.PartsGroup.prototype.getEditables = function() {
+  return this.editables_;
+};
+
+
 
 /**
  * Collection of objects.
