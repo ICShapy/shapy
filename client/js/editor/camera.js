@@ -64,7 +64,7 @@ shapy.editor.Camera.prototype.groupcast = goog.abstractMethod;
  * Maximum zoom level.
  * @type {number} @const
  */
-shapy.editor.Camera.MAX_ZOOM = 20.0;
+shapy.editor.Camera.MAX_ZOOM = 40.0;
 
 
 /**

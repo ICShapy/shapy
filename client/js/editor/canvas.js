@@ -28,8 +28,10 @@ shapy.editor.canvas = function(shEditor) {
        */
       var wrap = function(method) {
         return function(e) {
-          e.offsetY = $elem.height() - e.offsetY;
-          (goog.bind(method, shEditor))(e);
+          $scope.$apply(function() {
+            e.offsetY = $elem.height() - e.offsetY;
+            (goog.bind(method, shEditor))(e);
+          });
         };
       };
 

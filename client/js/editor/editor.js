@@ -409,8 +409,9 @@ shapy.editor.Editor.prototype.rig = function(rig) {
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
   var object;
+
   switch (String.fromCharCode(e.keyCode)) {
-    case 'D': {                                    // d
+    case 'D': {
       if (this.mode.object) {
         this.objectGroup_.delete();
         this.objectGroup_.clear();
@@ -446,6 +447,10 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 'R': this.rig(this.rigRotate_); return;
     case 'S': this.rig(this.rigScale_); return;
     case 'C': this.rig(this.rigCut_); return;
+    case '1': this.mode.toggleObject(); return;
+    case '2': this.mode.toggleFace(); return;
+    case '3': this.mode.toggleEdge(); return;
+    case '4': this.mode.toggleVertex(); return;
   }
 
   // Delegate event to viewport.

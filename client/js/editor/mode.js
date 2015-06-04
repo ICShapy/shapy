@@ -29,10 +29,7 @@ shapy.editor.Mode.prototype.toggleObject = function() {
     this.vertex = this.edge = this.face = this.partsGroup = true;
   } else {
     this.object = this.objectGroup = true;
-    this.vertex = false;
-    this.edge = false;
-    this.face = false;
-    this.partsGroup = false;
+    this.vertex = this.edge = this.face = this.partsGroup = false;
   }
 };
 
