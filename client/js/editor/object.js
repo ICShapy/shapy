@@ -499,10 +499,12 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
 
   // Remove faces that had any edges removed.
   this.faces = goog.object.filter(this.faces, function(f) {
-    f.e0 = map[f.e0]; f.e1 = map[f.e1]; f.e2 = map[f.e2];
-    var e0 = goog.array.contains(faceIDs, f.e0);
-    var e1 = goog.array.contains(faceIDs, f.e1);
-    var e2 = goog.array.contains(faceIDs, f.e2);
+    f.e0 = map[f.e0] || -map[-f.e0];
+    f.e1 = map[f.e1] || -map[-f.e1];
+    f.e2 = map[f.e2] || -map[-f.e2];
+    var e0 = goog.array.contains(faceIDs, Math.abs(f.e0));
+    var e1 = goog.array.contains(faceIDs, Math.abs(f.e1));
+    var e2 = goog.array.contains(faceIDs, Math.abs(f.e2));
 
     return e0 && e1 && e2;
   }, this);
