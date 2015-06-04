@@ -879,39 +879,6 @@ shapy.editor.Object.Edge.prototype.getObject = function() {
 
 
 /**
- * Translate the edge.
- *
- * @param {number} dx
- * @param {number} dy
- * @param {number} dz
- */
-shapy.editor.Object.Edge.prototype.translate = function(dx, dy, dz) {
-  console.log("called");
-
-  var a = this.object.verts[this.start].position;
-  var b = this.object.verts[this.end].position;
-
-  var t = goog.vec.Vec3.createFloat32();
-  var s = goog.vec.Vec3.createFloat32();
-
-  // Compute offset.
-  goog.vec.Vec3.add(a, b, t);
-  goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Mat4.multVec3(
-      this.object.invModel_,
-      [t[0] + dx, t[1] + dy, t[2] + dz],
-      s
-  );
-
-  // Adjust endpoints.
-  goog.vec.Vec3.subtract(s, t, s);
-  goog.vec.Vec3.add(a, s, a);
-  goog.vec.Vec3.add(b, s, b);
-  this.object.dirtyMesh = true;
-};
-
-
-/**
  * Retrives the vertices forming an edge.
  */
 shapy.editor.Object.Edge.prototype.getVertices = function() {
@@ -1026,29 +993,6 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
   goog.vec.Mat4.multVec3(this.object.model_, c, c);
   return c;
-};
-
-
-/**
- * Translate the face.
- *
- * @param {number} dx
- * @param {number} dy
- * @param {number} dz
- */
-shapy.editor.Object.Face.prototype.translate = function(dx, dy, dz) {
-  var t = this.getVertexPositions_();
-
-  // Get the translation vector.
-  var d = goog.vec.Vec3.createFloat32FromValues(dx, dy, dz);
-  goog.vec.Mat4.multVec3NoTranslate(this.object.invModel_, d, d);
-
-  // Adjust the points.
-  goog.vec.Vec3.add(t[0], d, t[0]);
-  goog.vec.Vec3.add(t[1], d, t[1]);
-  goog.vec.Vec3.add(t[2], d, t[2]);
-
-  this.object.dirtyMesh = true;
 };
 
 
