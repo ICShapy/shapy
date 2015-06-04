@@ -66,10 +66,10 @@ shapy.editor.Mesh.prototype.build_ = function() {
     if (vert.selected) {
       r = 0.9; g = 0.9; b = 0.0;
     } else {
-      r = 0.0; g = 0.0; b = 1.0;
+      r = 0.0; g = 0.0; b = 0.4;
     }
     if (vert.hover) {
-      r *= 1.2; g *= 1.2; b *= 1.2;
+      r *= 1.2; g *= 1.2; b *= 1.5;
     }
 
     add(v, vert.position);
