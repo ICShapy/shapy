@@ -317,7 +317,7 @@ class DirHandler(AssetHandler):
       ))
       data = cursor.fetchone()
       if not data:
-        raise HTTPError(404, 'Directory does not exist.')
+        raise HTTPError(404, 'Parent directory does not exist.')
 
     # Create new dir - store in database
     cursor = yield momoko.Op(self.db.execute,
@@ -393,11 +393,27 @@ class SceneHandler(AssetHandler):
     """Creates a new scene."""
 
     # Validate arguments.
-    parent = self.get_argument('parent')
+    parent = int(self.get_argument('parent'))
     if not user:
       raise HTTPError(401, 'User not logged in.')
+    # Reject parent dirs not owned by user
+    if parent != 0:
+      cursor = yield momoko.Op(self.db.execute,
+        '''SELECT id, name
+           FROM assets
+           WHERE id = %s
+             AND type = %s
+             AND owner = %s
+        ''', (
+        parent,
+        'dir',
+        user.id
+      ))
+      data = cursor.fetchone()
+      if not data:
+        raise HTTPError(404, 'Parent directory does not exist.')
 
-    # Create new account - store in database
+    # Create new scene - store in database
     cursor = yield momoko.Op(self.db.execute,
       '''INSERT INTO assets (name, type, data, owner, parent, public)
          VALUES (%s, %s, %s, %s, %s, %s)
@@ -420,6 +436,8 @@ class SceneHandler(AssetHandler):
     self.write(json.dumps({
         'id': data[0],
         'name': data[1],
+        'owner': True,
+        'write': True,
         'data': []
     }))
     self.finish()
