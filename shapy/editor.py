@@ -84,6 +84,19 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'objects': []
     }))
 
+    # Get all the existing locks.
+    for key in self.redis.keys('scene:%s:*' % self.scene_id):
+      user = int(self.redis.get(key))
+      id = key.split(':')[-1]
+      if user == self.user.id:
+        self.objects.add(id)
+
+      self.write_message(json.dumps({
+        'type': 'lock',
+        'objects': [id],
+        'user': user
+      }))
+
     self.to_channel({
       'type': 'join',
       'user': self.user.id
