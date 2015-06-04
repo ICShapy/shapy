@@ -173,12 +173,9 @@ shapy.editor.Object.prototype.computeModel = function() {
  * @param {number} dz
  */
 shapy.editor.Object.prototype.translate = function(dx, dy, dz) {
-  goog.vec.Vec3.setFromValues(
-      this.translate_,
-      this.translate_[0] + dx,
-      this.translate_[1] + dy,
-      this.translate_[2] + dz
-  );
+  this.translate_[0] += dx;
+  this.translate_[1] += dy;
+  this.translate_[2] += dz;
 };
 
 
