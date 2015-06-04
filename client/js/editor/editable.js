@@ -444,7 +444,7 @@ shapy.editor.ObjectGroup.prototype.rotate = function(q) {
     goog.vec.Quaternion.concat(dq, c, dq);
 
     // Translate.
-    object.translate(mid[0] + dq[0], mid[1] + dq[1], mid[2] + dq[2]);
+    object.translate(dq[0] - d[0], dq[1] - d[1], dq[2] - d[2]);
     object.rotate(q);
   });
 };
