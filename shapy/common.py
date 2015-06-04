@@ -9,7 +9,7 @@ import json
 
 from tornado.web import RequestHandler, HTTPError
 from tornado.gen import Return, Task, coroutine
-import tornadoredis
+import redis
 
 from shapy.account import Account
 
@@ -28,8 +28,8 @@ def session(method):
 
     # Map the session ID to a user & refresh expiration.
     key = 'session:%s' % token
-    data = yield Task(self.redis.get, key)
-    yield Task(self.redis.expire, key, Account.SESSION_EXPIRE)
+    data = self.redis.get(key)
+    self.redis.expire(key, Account.SESSION_EXPIRE)
 
     # If user not logged in, pass None.
     if not data:
@@ -73,7 +73,7 @@ class BaseHandler(RequestHandler):
   def login(self, user):
     """Logs the user in, storing a session entry in the database."""
     token = os.urandom(16).encode('hex')
-    yield Task(self.redis.set, 'session:%s' % token, json.dumps({
+    self.redis.set('session:%s' % token, json.dumps({
       'id': user[0],
       'first_name': user[1],
       'last_name': user[2],

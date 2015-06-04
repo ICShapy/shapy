@@ -71,9 +71,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
 
-    # Create a new lock.
-    self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
-
     # Get the scene object & add the client.
     def add_user(scene):
       scene.add_user(self.user.id)
@@ -86,7 +83,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'users': scene.users
     }))
 
-    yield self.to_channel({
+    self.to_channel({
       'type': 'join',
       'user': self.user.id
     })
@@ -110,9 +107,9 @@ class WSHandler(WebSocketHandler, BaseHandler):
       objects = []
       for id in data['objects']:
         key = '%s:%s' % (self.scene_id, id)
-        lock = yield Task(self.redis.setnx, key, 1)
+        lock = self.redis.setnx(key, 1)
         if lock:
-          yield Task(self.redis.expire, key, 60 * 10)
+          self.redis.expire(key, 60 * 10)
           self.objects.add(id)
           objects.append(id)
       data['objects'] = objects
@@ -121,11 +118,13 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data['type'] == 'unlock':
       objects = []
       for id in data['objects']:
-        yield Task(self.redis.delete, '%s:%s' % (self.scene_id, id))
+        self.redis.delete('%s:%s' % (self.scene_id, id))
         objects.append(id)
         self.objects.remove(id)
       data['objects'] = objects
-    seq = yield self.to_channel(data)
+
+    # Broadcast the message, appending a seqnum.
+    seq = self.to_channel(data)
 
 
   @coroutine
@@ -152,7 +151,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     # Unlock all objects.
     for id in self.objects:
-      yield Task(self.redis.delete, '%s:%s' % (self.scene_id, id))
+      self.redis.delete('%s:%s' % (self.scene_id, id))
 
     # Leave the scene (of the crime).
     user_id = self.user.id
@@ -174,7 +173,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     #yield Task(self.lock.acquire, blocking=True)
 
     # Retrieve the scene object.
-    data = yield Task(self.redis.hmget, 'scene:%s' % self.scene_id, [
+    data = self.redis.hmget('scene:%s' % self.scene_id, [
         'name',
         'users'
     ])
@@ -184,7 +183,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     func(scene)
 
     # Store the modified scene.
-    yield Task(self.redis.hmset, 'scene:%s' % self.scene_id, {
+    self.redis.hmset('scene:%s' % self.scene_id, {
         'name': scene.name,
         'users': json.dumps(scene.users)
     })
@@ -196,8 +195,8 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def to_channel(self, data):
     """Puts a message into the channel, tagging it with a seqnum."""
 
-    seq = yield Task(self.redis.hincrby, 'scene:%s' % self.scene_id, 'seq', 1)
+    seq = self.redis.hincrby('scene:%s' % self.scene_id, 'seq', 1)
     data['seq'] = seq
-    yield Task(self.redis.publish, self.chan_id, json.dumps(data))
-    raise Return(seq)
+    self.redis.publish(self.chan_id, json.dumps(data))
+    return seq
 
