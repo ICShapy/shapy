@@ -15,6 +15,6 @@ goog.require('shapy.editor.Viewport');
  * @param {string} name Name of the viewport.
  */
 shapy.editor.Viewport.UV = function(name) {
-
+  shapy.editor.Viewport.call(this, name, shapy.editor.Viewport.Type.UV);
 };
 goog.inherits(shapy.editor.Viewport.UV, shapy.editor.Viewport);

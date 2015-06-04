@@ -245,7 +245,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   // Clean up after the old layout.
   if (this.layout_) {
     goog.object.forEach(this.layout_.viewports, function(vp) {
-      vp.camCube.destroy();
+      vp.destroy();
     }, this);
   }
 
@@ -300,12 +300,21 @@ shapy.editor.Editor.prototype.render = function() {
 
   // First pass - compute view/proj matrices and render objects.
   goog.object.forEach(this.layout_.viewports, function(vp, name) {
-    vp.camera.compute();
-    vp.camCube.compute();
-    this.renderer_.renderObjects(vp);
-    this.renderer_.renderGround(vp);
-    this.renderer_.renderCamCube(vp);
-    this.renderer_.renderOverlay(vp);
+    switch (vp.type) {
+      case shapy.editor.Viewport.Type.EDIT: {
+        vp.camera.compute();
+        vp.camCube.compute();
+        this.renderer_.renderObjects(vp);
+        this.renderer_.renderGround(vp);
+        this.renderer_.renderCamCube(vp);
+        this.renderer_.renderOverlay(vp);
+        break;
+      }
+      case shapy.editor.Viewport.Type.UV: {
+        this.renderer_.renderOverlay(vp);
+        break;
+      }
+    }
   }, this);
 
   // Second pass - render rigs.
@@ -464,6 +473,20 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       this.rigExtrude_.setup(extrudeData.normal);
       return;
     }
+    case 'O': {
+      if (this.layout_ && this.layout_.active) {
+        this.layout_.active.camera = new shapy.editor.Camera.Ortho();
+        this.layout_.resize(this.vp_.width, this.vp_.height);
+      }
+      break;
+    }
+    case 'P': {
+      if (this.layout_ && this.layout_.active) {
+        this.layout_.active.camera = new shapy.editor.Camera.Persp();
+        this.layout_.resize(this.vp_.width, this.vp_.height);
+      }
+      break;
+    }
     case 'T': this.rig(this.rigTranslate_); return;
     case 'R': this.rig(this.rigRotate_); return;
     case 'S': this.rig(this.rigScale_); return;
@@ -475,8 +498,8 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   }
 
   // Delegate event to viewport.
-  if (this.layout_ && this.layout_.active) {
-    this.layout_.active.keyDown(e.keyCode);
+  if (this.layout_) {
+    this.layout_.keyDown(e);
   }
 };
 

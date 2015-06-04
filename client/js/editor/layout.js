@@ -95,6 +95,44 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
 
 
 /**
+ * Changes a viewport to UV mode.
+ *
+ * @private
+ */
+shapy.editor.Layout.prototype.toggleViewport_ = function() {
+  goog.object.forEach(this.viewports, function(vp, name) {
+    vp.destroy();
+    if (name != this.active.name) {
+      this[name] = this.viewports[name] = new shapy.editor.Viewport.Edit(name);
+    } else {
+      this[name] = this.viewports[name] = new shapy.editor.Viewport.UV(name);
+      this.active = this[name];
+      this.active.active = true;
+    }
+  }, this);
+  this.resize(this.size.width, this.size.height);
+};
+
+
+/**
+ * Handles a key press.
+ *
+ * @param {KeyboardEvent} e
+ */
+shapy.editor.Layout.prototype.keyDown = function(e) {
+  switch (String.fromCharCode(e.keyCode)) {
+    case 'U': {
+      this.toggleViewport_();
+      return;
+    }
+  }
+  if (this.active) {
+    this.active.keyDown(e);
+  }
+};
+
+
+/**
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
@@ -223,7 +261,7 @@ shapy.editor.Layout.prototype.mouseLeave = function(e) {
  */
 shapy.editor.Layout.Single = function() {
   /** @public {!shapy.editor.Viewport} @const */
-  this.viewport = new shapy.editor.Viewport('viewport');
+  this.viewport = new shapy.editor.Viewport.Edit('viewport');
 
   shapy.editor.Layout.call(this, {
       'viewport': this.viewport
@@ -253,9 +291,9 @@ shapy.editor.Layout.Single.prototype.resize = function(w, h) {
  */
 shapy.editor.Layout.Double = function() {
   /** @public {!shapy.editor.Viewport} @const */
-  this.left = new shapy.editor.Viewport('left');
+  this.left = new shapy.editor.Viewport.Edit('left');
   /** @public {!shapy.editor.Viewport} @const */
-  this.right = new shapy.editor.Viewport('right');
+  this.right = new shapy.editor.Viewport.Edit('right');
 
   /** @private {number} */
   this.split_ = 0.5;
@@ -372,13 +410,13 @@ shapy.editor.Layout.Double.prototype.mouseLeave = function(e) {
  */
 shapy.editor.Layout.Quad = function() {
   /** @public {!shapy.editor.Viewport} @const */
-  this.topLeft = new shapy.editor.Viewport('top-left');
+  this.topLeft = new shapy.editor.Viewport.Edit('topLeft');
   /** @public {!shapy.editor.Viewport} @const */
-  this.topRight = new shapy.editor.Viewport('top-right');
+  this.topRight = new shapy.editor.Viewport.Edit('topRight');
   /** @public {!shapy.editor.Viewport} @const */
-  this.bottomLeft = new shapy.editor.Viewport('bottom-left');
+  this.bottomLeft = new shapy.editor.Viewport.Edit('bottomLeft');
   /** @public {!shapy.editor.Viewport} @const */
-  this.bottomRight = new shapy.editor.Viewport('bottom-right');
+  this.bottomRight = new shapy.editor.Viewport.Edit('bottomRight');
 
   /** @private {number} */
   this.splitX_ = 0.5;
@@ -399,10 +437,10 @@ shapy.editor.Layout.Quad = function() {
   this.hoverY_ = false;
 
   shapy.editor.Layout.call(this, {
-      'top-left': this.topLeft,
-      'top-right': this.topRight,
-      'bottom-left': this.bottomLeft,
-      'bottom-right': this.bottomRight
+      'topLeft': this.topLeft,
+      'topRight': this.topRight,
+      'bottomLeft': this.bottomLeft,
+      'bottomRight': this.bottomRight
   });
 };
 goog.inherits(shapy.editor.Layout.Quad, shapy.editor.Layout);
