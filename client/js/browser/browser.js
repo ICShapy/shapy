@@ -159,12 +159,7 @@ shapy.browser.BrowserController.prototype.private = function() {
  * @param {shapy.browser.Asset.Type} type Type of asset for which we return name
  */
 shapy.browser.BrowserController.prototype.defaultName = function(type) {
-  switch (type) {
-    case shapy.browser.Asset.Type.DIRECTORY: return 'Untitled Folder';
-    case shapy.browser.Asset.Type.SCENE:     return 'Untitled Scene';
-    case shapy.browser.Asset.Type.TEXTURE:   return 'Untitled Texture';
-    default:                                 return 'Untitled';
-  }
+  return this.shBrowser_.defaultName(type);
 };
 
 

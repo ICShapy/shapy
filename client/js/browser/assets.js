@@ -15,7 +15,7 @@ goog.provide('shapy.browser.Asset.Texture');
  * @constructor
  *
  * @param {!shapy.browser.Service}    shBrowser Browser service.
- * @param {number}                    id        ID of the asset.
+ * @param {number}                    id        ID of the asset. 
  * @param {!shapy.browser.Asset.Type} type      Type of the asset.
  * @param {=Object}                   opt_data  Source data.
  */
@@ -38,6 +38,18 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
   this.type = type;
 
   /**
+   * Flag showing if user is the asset owner.
+   * @public {boolean} @const
+   */
+  this.owner = !(!(data['owner']));
+
+  /**
+   * Write permission.
+   * @public {bolean} @const
+   */
+  this.write = !(!(data['write']));
+
+  /**
    * Promise resolved when the asset is loaded.
    * @public {!angular.$q}
    */
@@ -52,7 +64,7 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
    * Name of the asset.
    * @public {string} @const
    */
-  this.name = data['name'] || '';
+  this.name = data['name'] || this.shBrowser_.defaultName(this.type);
 
   /**
    * Path to image to be displayed for asset in browser.
@@ -72,14 +84,6 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
  * Loads the asset data.
  */
 shapy.browser.Asset.prototype.load = goog.abstractMethod;
-
-
-/**
- * Deletes the asset.
- */
-shapy.browser.Asset.prototype.delete = function() {
-  console.log('delete me');
-};
 
 
 
@@ -165,7 +169,10 @@ shapy.browser.Asset.Dir.prototype.hasSubdirs = function() {
  */
 shapy.browser.Asset.Dir.prototype.load = function(data) {
   // Fill in the name if unknown.
-  this.name = data.name || 'Untitled Directory';
+  this.name = data.name || this.shBrowser_.defaultName(this.type);
+  // Fill in permission flags
+  this.owner = !(!(data.owner));
+  this.write = !(!(data.write));
 
   // Fill in child assets.
   goog.array.forEach(data['data'], function(child) {

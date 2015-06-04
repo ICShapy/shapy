@@ -37,7 +37,7 @@ shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
    * Name of the scene.
    * @public {string}
    */
-  this.name = data['name'] || 'Untitled Scene';
+  this.name = data['name'] || this.shBrowser_.defaultName(this.type);
 
   /**
    * List of users editing the scene.
@@ -69,6 +69,17 @@ goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
  * @param {Object} data
  */
 shapy.browser.Asset.Scene.prototype.load = function(data) {
+  // Fill in the name if unknown.
+  this.name = data.name || this.shBrowser_.defaultName(this.type);
+  // Fill in permission flags
+  this.owner = !(!(data.owner));
+  this.write = !(!(data.write));
+
+  // Preview image.
+  this.image = data['preview'] || '/img/scene.svg';
+
+  // Load data.data into this.objects
+
   this.loaded = true;
 };
 
