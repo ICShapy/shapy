@@ -275,9 +275,9 @@ shapy.editor.geom.getDistance = function(p0, p1, p2) {
 shapy.editor.geom.quatFromEulerAngles = function(x, y, z, q) {
   var pi180 = Math.PI / 180;
 
-  var pitch = x * pi180 / 2.0;
-  var yaw   = y * pi180 / 2.0;
-  var roll  = z * pi180 / 2.0; 
+  var pitch = y * pi180 / 2.0;
+  var yaw   = z * pi180 / 2.0;
+  var roll  = x * pi180 / 2.0; 
 
   var sinp = Math.sin(pitch);
   var siny = Math.sin(yaw);
