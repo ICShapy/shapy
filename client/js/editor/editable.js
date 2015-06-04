@@ -54,7 +54,7 @@ shapy.editor.Editable.prototype.setHover = function(hover) {
 /**
  * Selects the editable.
  *
- * @param {shapy.User} selected
+ * @param {boolean} selected
  */
 shapy.editor.Editable.prototype.setSelected = function(selected) {
   this.selected = selected;

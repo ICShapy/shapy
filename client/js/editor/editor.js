@@ -375,7 +375,6 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
     this.partGroup_.setSelected(null);
     this.partGroup_.clear();
   }
-
   this.rig(this.rigTranslate_);
 };
 
@@ -460,9 +459,10 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       }
 
       this.rig(this.rigExtrude_);
-      this.rigExtrude_.buildModelMatrix(
-          this.partGroup_.getPosition(),
-          object.extrude(faces).normal);
+      this.rigExtrude_.setup({
+          faces: faces,
+          normal: object.extrude(faces).normal
+      });
       return;
     }
     case 'T': this.rig(this.rigTranslate_); return;

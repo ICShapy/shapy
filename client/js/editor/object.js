@@ -579,12 +579,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.array.forEach(faces, function(f) {
     goog.vec.Vec3.add(normal, f.calculateNormal(), normal);
   }, this);
-  goog.vec.Vec3.scale(normal, 1 / faces.length, normal);
-
-  // Calculate offset
-  var dist = 0.5; // TODO(David): Use the extrude rig
-  var offset = goog.vec.Vec3.createFloat32FromArray(normal);
-  goog.vec.Vec3.scale(offset, dist, offset);
+  goog.vec.Vec3.normalize(normal, normal);
 
   // Get the list of edges used in all vertices
   var edges = goog.array.flatten(goog.array.map(faces, function(f) {
@@ -628,9 +623,9 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     var vertID = this.nextVert_++;
     vertMap[v.id] = vertID;
     this.verts[vertID] = new shapy.editor.Object.Vertex(this, vertID,
-      v.position[0] + offset[0],
-      v.position[1] + offset[1],
-      v.position[2] + offset[2]);
+      v.position[0],
+      v.position[1],
+      v.position[2]);
     return this.verts[vertID];
   }, this);
 
