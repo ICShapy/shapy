@@ -466,8 +466,8 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       return;
     }
     case 'T': this.rig(this.rigTranslate_); return;
-    case 'S': this.rig(this.rigRotate_); return;
-    case 'R': this.rig(this.rigScale_); return;
+    case 'R': this.rig(this.rigRotate_); return;
+    case 'S': this.rig(this.rigScale_); return;
     case 'C': this.rig(this.rigCut_); return;
   }
 
