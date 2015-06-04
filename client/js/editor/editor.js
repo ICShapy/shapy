@@ -460,7 +460,14 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       }
       var extrudeData = object.extrude(faces);
 
-      this.partGroup_ = new shapy.editor.PartsGroup(extrudeData.faces);
+      // Select extruded faces
+      this.partGroup_.clear();
+      this.partGroup_.add(extrudeData.faces);
+      goog.array.forEach(extrudeData.faces, function(e) {
+        e.setSelected(this.user);
+      }, this);
+
+      // Set up extrude rig
       this.rig(this.rigExtrude_);
       this.rigExtrude_.setup(extrudeData.normal);
       return;
