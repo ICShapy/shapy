@@ -26,15 +26,18 @@ def session(method):
       yield method(self, *args, user=None, **kwargs)
       raise Return()
 
-    # Map the session ID to a user.
-    data = yield Task(self.redis.hget, 'session', token)
-    data = json.loads(data)
+    # Map the session ID to a user & refresh expiration.
+    key = 'session:%s' % token
+    data = yield Task(self.redis.get, key)
+    yield Task(self.redis.expire, key, Account.SESSION_EXPIRE)
 
-    if not data or not data['id']:
+    # If user not logged in, pass None.
+    if not data:
       yield method(self, *args, user=None, **kwargs)
       raise Return()
 
-    # Fetch the user info from the database & pass it to the method.
+    # Initialize the account object.
+    data = json.loads(data)
     yield method(self, *args, user=Account(
       data['id'],
       first_name=data['first_name'],
@@ -69,12 +72,12 @@ class BaseHandler(RequestHandler):
   def login(self, user):
     """Logs the user in, storing a session entry in the database."""
     token = os.urandom(16).encode('hex')
-    yield Task(self.redis.hset, 'session' , token, json.dumps({
+    yield Task(self.redis.set, 'session:%s' % token, json.dumps({
       'id': user[0],
       'first_name': user[1],
       'last_name': user[2],
       'email': user[3]
-    }))
+    }), Account.SESSION_EXPIRE)
     self.set_secure_cookie('session', token)
 
 
