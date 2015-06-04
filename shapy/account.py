@@ -9,6 +9,9 @@ from tornado.gen import Return, coroutine
 class Account(object):
   """User account management."""
 
+  # Sesions expire in 30 minutes if not refreshed.
+  SESSION_EXPIRE = 60 * 15
+
   @classmethod
   @coroutine
   def get(cls, db, user_id):
@@ -29,6 +32,12 @@ class Account(object):
         first_name=user[0],
         last_name=user[1],
         email=user[2]))
+
+  @classmethod
+  @coroutine
+  def login(cls, db, account):
+    """Logs a user in."""
+    pass
 
 
   def __init__(self, user_id, first_name='', last_name='', email=''):

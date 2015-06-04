@@ -5,6 +5,7 @@
 import json
 import momoko
 
+from threading import Timer
 from tornado.web import asynchronous
 from tornado.gen import engine, coroutine, Task, Return
 from tornado.web import HTTPError
@@ -70,9 +71,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
 
-    # Create a new lock.
-    self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
-
     # Get the scene object & add the client.
     def add_user(scene):
       scene.add_user(self.user.id)
@@ -82,10 +80,24 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.write_message(json.dumps({
         'type': 'meta',
         'name': scene.name,
-        'users': scene.users
+        'users': scene.users,
+        'objects': []
     }))
 
-    yield self.to_channel({
+    # Get all the existing locks.
+    for key in self.redis.keys('scene:%s:*' % self.scene_id):
+      user = int(self.redis.get(key))
+      id = key.split(':')[-1]
+      if user == self.user.id:
+        self.objects.add(id)
+
+      self.write_message(json.dumps({
+        'type': 'lock',
+        'objects': [id],
+        'user': user
+      }))
+
+    self.to_channel({
       'type': 'join',
       'user': self.user.id
     })
@@ -108,8 +120,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data['type'] == 'lock':
       objects = []
       for id in data['objects']:
-        lock = yield Task(self.redis.setnx, '%s:%s' % (self.scene_id, id), 1)
+        key = 'scene:%s:%s' % (self.scene_id, id)
+        lock = self.redis.setnx(key, self.user.id)
         if lock:
+          self.redis.expire(key, 60 * 10)
           self.objects.add(id)
           objects.append(id)
       data['objects'] = objects
@@ -118,11 +132,13 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data['type'] == 'unlock':
       objects = []
       for id in data['objects']:
-        yield Task(self.redis.delete, '%s:%s' % (self.scene_id, id))
+        self.redis.delete('scene:%s:%s' % (self.scene_id, id))
         objects.append(id)
         self.objects.remove(id)
       data['objects'] = objects
-    seq = yield self.to_channel(data)
+
+    # Broadcast the message, appending a seqnum.
+    seq = self.to_channel(data)
 
 
   @coroutine
@@ -149,27 +165,29 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     # Unlock all objects.
     for id in self.objects:
-      yield Task(self.redis.delete, '%s:%s' % (self.scene_id, id))
+      self.redis.delete('%s:%s' % (self.scene_id, id))
 
     # Leave the scene (of the crime).
+    user_id = self.user.id
+    self.user = None
     self.to_channel({
         'type': 'leave',
-        'user': self.user.id
+        'user': user_id
     })
-    self.user = None
 
     # Terminate the redis connection.
     yield Task(self.chan.unsubscribe, self.chan_id)
     yield Task(self.chan.disconnect)
 
+
   @coroutine
   def update_scene_(self, func):
     """Helper to update a scene."""
 
-    yield Task(self.lock.acquire, blocking=True)
+    #yield Task(self.lock.acquire, blocking=True)
 
     # Retrieve the scene object.
-    data = yield Task(self.redis.hmget, 'scene:%s' % self.scene_id, [
+    data = self.redis.hmget('scene:%s' % self.scene_id, [
         'name',
         'users'
     ])
@@ -179,21 +197,20 @@ class WSHandler(WebSocketHandler, BaseHandler):
     func(scene)
 
     # Store the modified scene.
-    yield Task(self.redis.hmset, 'scene:%s' % self.scene_id, {
+    self.redis.hmset('scene:%s' % self.scene_id, {
         'name': scene.name,
         'users': json.dumps(scene.users)
     })
 
-    yield Task(self.lock.release)
-
+    #yield Task(self.lock.release)
     raise Return(scene)
 
   @coroutine
   def to_channel(self, data):
     """Puts a message into the channel, tagging it with a seqnum."""
 
-    seq = yield Task(self.redis.hincrby, 'scene:%s' % self.scene_id, 'seq', 1)
+    seq = self.redis.hincrby('scene:%s' % self.scene_id, 'seq', 1)
     data['seq'] = seq
-    yield Task(self.redis.publish, self.chan_id, json.dumps(data))
-    raise Return(seq)
+    self.redis.publish(self.chan_id, json.dumps(data))
+    return seq
 
