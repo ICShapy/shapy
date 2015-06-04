@@ -136,20 +136,31 @@ shapy.editor.CamCube.prototype.destroy = function() {
 shapy.editor.CamCube.prototype.compute = function() {
   var size = shapy.editor.CamCube.DISTANCE * 0.5;
 
+  // Update the camera reference.
+  this.camera_ = this.viewport_.camera;
+
   // Compute the camera position based on the tracked camera.
   goog.vec.Vec3.subtract(this.camera_.eye, this.camera_.center, this.pos_);
   goog.vec.Vec3.normalize(this.pos_, this.pos_);
   goog.vec.Vec3.scale(this.pos_, shapy.editor.CamCube.DISTANCE, this.pos_);
 
   // Compute cube projection matrix based on the camera's mode.
-  if (this.viewport_.type == shapy.editor.Viewport.Type.PERSPECTIVE) {
-    goog.vec.Mat4.makePerspective(this.proj, 45.0, 1.0, 0.1, 100);
-  } else {
-    goog.vec.Mat4.makeOrtho(this.proj, -size, size, -size, size, 0.1, 100);
+  switch (this.camera_.constructor) {
+    case shapy.editor.Camera.Persp: {
+      goog.vec.Mat4.makePerspective(this.proj, 45.0, 1.0, 0.1, 100);
+      break;
+    }
+    case shapy.editor.Camera.Ortho: {
+      goog.vec.Mat4.makeOrtho(this.proj, -size, size, -size, size, 0.1, 100);
+      break;
+    }
+    default: {
+      throw new Error('Invalid camera type.');
+    }
   }
 
   // Compute view and vp matrices.
-  goog.vec.Mat4.makeLookAt(this.view, this.pos_, [0, 0, 0], this.camera_.up);
+  goog.vec.Mat4.makeLookAt(this.view, this.pos_, [0, 1, 0], this.camera_.up);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
   goog.vec.Mat4.invert(this.proj, this.invProj);
   goog.vec.Mat4.invert(this.view, this.invView);
@@ -300,12 +311,21 @@ shapy.editor.CamCube.prototype.raycast_ = function(x, y) {
   x = 2.0 * x / this.size - 1.0;
   y = 2.0 * y / this.size - 1.0;
 
-  var dir = goog.vec.Vec4.createFloat32FromValues(x, y, -1, 1);
+  var x0 = goog.vec.Vec4.createFloat32FromValues(x, y, -1, 1);
+  goog.vec.Mat4.multVec4(this.invProj, x0, x0);
+  goog.vec.Vec4.scale(x0, 1.0 / x0[3], x0);
+  goog.vec.Mat4.multVec4(this.invView, x0, x0);
 
-  goog.vec.Mat4.multVec3(this.invProj, dir, dir);
-  goog.vec.Mat4.multVec3NoTranslate(this.invView, dir, dir);
+  var x1 = goog.vec.Vec4.createFloat32FromValues(x, y, +1, 1);
+  goog.vec.Mat4.multVec4(this.invProj, x1, x1);
+  goog.vec.Vec4.scale(x1, 1.0 / x1[3], x1);
+  goog.vec.Mat4.multVec4(this.invView, x1, x1);
+
+  var dir = goog.vec.Vec4.createFloat32();
+  goog.vec.Vec3.subtract(x1, x0, dir);
   goog.vec.Vec3.normalize(dir, dir);
-  return new goog.vec.Ray(goog.vec.Vec3.cloneFloat32(this.pos_), dir);
+
+  return new goog.vec.Ray(x0, dir);
 };
 
 
