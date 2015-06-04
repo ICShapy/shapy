@@ -201,12 +201,8 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   this.rig(null);
 
   var a = scene.createCube(0.5, 0.5, 0.5);
-  a.translate(1, 0, 0);
-  var b = scene.createCube(0.5, 0.5, 0.5);
-  b.translate(-1, 0, 0);
-  var c = scene.createCube(0.5, 0.5, 0.5);
-  c.translate(0, 0, 0);
-
+  a.translate(0, 0, 0);
+  a.scale(2, 1, 1);
 
   // Set up the websocket connectio.
   this.pending_ = [];

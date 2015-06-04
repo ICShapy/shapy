@@ -153,13 +153,13 @@ shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.translate(
       this.model_,
       this.translate_[0], this.translate_[1], this.translate_[2]);
-  goog.vec.Mat4.scale(
-      this.model_,
-      this.scale_[0], this.scale_[1], this.scale_[2]);
   goog.vec.Quaternion.toRotationMatrix4(
       this.rotQuat_, this.rotation_);
   goog.vec.Mat4.multMat(
       this.model_, this.rotation_, this.model_);
+  goog.vec.Mat4.scale(
+      this.model_,
+      this.scale_[0], this.scale_[1], this.scale_[2]);
 
   goog.vec.Mat4.invert(this.model_, this.invModel_);
 };
@@ -266,12 +266,15 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
  * @return {!Array<shapy.editor.Editable>}
  */
 shapy.editor.Object.prototype.pickFrustum = function(frustum) {
+  var transpose = goog.vec.Mat4.createFloat32();
+  goog.vec.Mat4.transpose(this.model_, transpose);
   // Transform the clipping planes into model space.
   var planes = goog.array.map(frustum, function(plane) {
     var n = goog.vec.Vec3.cloneFloat32(plane.n);
     var o = goog.vec.Vec3.cloneFloat32(plane.o);
     goog.vec.Mat4.multVec3(this.invModel_, o, o);
-    goog.vec.Mat4.multVec3NoTranslate(this.invModel_, n, n);
+    goog.vec.Mat4.multVec3NoTranslate(transpose, n, n);
+    goog.vec.Vec3.normalize(n, n);
     return {
       n: n,
       d: -goog.vec.Vec3.dot(o, n)
