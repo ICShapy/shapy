@@ -379,6 +379,16 @@ shapy.editor.PartsGroup.prototype.getEditables = function() {
 };
 
 
+/**
+ * Retrives [obj id, vert id] pairs forming the group.
+ */
+shapy.editor.PartsGroup.prototype.getObjVertIds = function() {
+  return goog.array.map(this.getVertices(), function(vertex) {
+    return [vertex.object.id, vertex.id];
+  }, this);
+};
+
+
 
 /**
  * Collection of objects.
@@ -454,6 +464,16 @@ shapy.editor.ObjectGroup.prototype.rotate = function(q) {
     object.translate(dq[0] - d[0], dq[1] - d[1], dq[2] - d[2]);
     object.rotate(q);
   });
+};
+
+
+/**
+ * Retrieves the list of ids of the group members.
+ */
+shapy.editor.ObjectGroup.prototype.getObjIds = function() {
+  return goog.array.map(this.editables, function(object) {
+    return object.id;
+  }, this);
 };
 
 

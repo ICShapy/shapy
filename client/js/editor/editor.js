@@ -215,9 +215,10 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   c.translate(-1, 0, 0);
   c.scale(1, 1, 1);
 
-  // Set up the websocket connectio.
+  // Set up the websocket connection.
   this.pending_ = [];
   this.exec_ = new shapy.editor.Executor(this.scene_, this);
+  this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
 };
 
 

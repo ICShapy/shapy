@@ -111,10 +111,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
     data = json.loads(message)
 
     # Name change request - update object.
-    #if data['type'] == 'name':
-    #  def update_name(scene):
-    #    scene.name = data['value']
-    #  yield self.update_scene_(update_name)
+    if data['type'] == 'name':
+      def update_name(scene):
+        scene.name = data['value']
+      yield self.update_scene_(update_name)
 
     # Request to lock on an object.
     if data['type'] == 'lock':

@@ -130,8 +130,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       case 'edit': {
         switch (data['tool']) {
           case 'translate': {
-            this.scene_.objects[data['id']].translate(
-                data['x'], data['y'], data['z']);
+            this.applyTranslate(data);
             break;
           }
           default: {
@@ -266,4 +265,45 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
       object.setSelected(null);
     }
   }, this);
+};
+
+
+/**
+ * Executes the translate command.
+ *
+ * @param {shapy.editor.Object.Type} obj Object to be translated.
+ * @param {number}                   x Absolute position on x.
+ * @param {number}                   y Absolute position on y.
+ * @param {number}                   z Absolute position on z.
+ */
+shapy.editor.Executor.prototype.emitTranslate = function(obj, x, y, z) {
+  var data = {
+    type: 'edit',
+    tool: 'translate',
+    userId: this.editor_.user.id,
+    objMode: this.editor_.mode.object
+  };
+
+  // Object group.
+  if (this.editor_.mode.object) {
+    data.ids = obj.getObjIds();
+  } else {
+  // Parts group.
+    data.ids = obj.getObjVertIds();
+  }
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Handles translate command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyTranslate = function(data) {
+  // Ignore the edit if it is performed by current user.
+  if (data['userId'] == this.editor_.user.id) {
+    return;
+  }
 };

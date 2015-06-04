@@ -256,7 +256,7 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
 shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.y || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
-  if (this.onFinish) {
+  if (this.onFinish && captured) {
     var pos = this.object.getPosition();
     this.onFinish(this.object, pos[0], pos[1], pos[2]);
   }
