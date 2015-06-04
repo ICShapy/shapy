@@ -459,6 +459,7 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
 shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z, dx, dy, dz) {
   var m = goog.vec.Mat4.createFloat32();
   var mid = this.getPosition();
+  var q = goog.vec.Quaternion.createFloat32();
 
   goog.object.forEach(this.editables, function(object) {
     var d = goog.vec.Vec3.createFloat32();
@@ -472,8 +473,12 @@ shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z, dx, dy, dz) {
     goog.vec.Mat4.rotateZ(m, dz);
     goog.vec.Mat4.multVec3NoTranslate(m, d, d);
 
-    object.translate(mid[0] + d[0], mid[1] + d[1], mid[2] + d[2]);
-    object.rotate(r[0] + dx, r[1] + dy, r[2] + dz);
+    object.translate(mid[0] + d[0], mid[1] + d[1], mid[2] + d[2]);    
+
+    shapy.editor.geom.quatFromEulerAngles(dx, dy, dz, q);
+    object.rotate(q);
+
+    //object.rotate(r[0] + dx, r[1] + dy, r[2] + dz);
   });
 };
 

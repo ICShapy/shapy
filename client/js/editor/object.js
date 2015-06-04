@@ -65,7 +65,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   this.translate_ = goog.vec.Vec3.createFromValues(0, 0, 0);
 
   /** @private {goog.vec.Quaternion.Type} @const */
-  this.rotQuat_ = goog.vec.Quaternion.createFloat32();
+  this.rotQuat_ = goog.vec.Quaternion.createFloat32FromValues(0, 0, 0, 1);
   /** @private {goog.vec.Mat4.Type} @const */
   this.rotation_ = goog.vec.Mat4.createFloat32();
 
@@ -158,16 +158,19 @@ shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
-  goog.vec.Mat4.rotateY(
-      this.model_,
-      this.rotate_[1]);
-  goog.vec.Mat4.rotateZ(
-      this.model_,
-      this.rotate_[2]);
-  goog.vec.Mat4.rotateX(
-      this.model_,
-      this.rotate_[0]);  
-  //goog.vec.Quaternion.toRotationMatrix4(this.rotQuat_, this.rotation_);
+  //goog.vec.Mat4.rotateY(
+  //    this.model_,
+  //    this.rotate_[1]);
+  //goog.vec.Mat4.rotateZ(
+  //    this.model_,
+  //    this.rotate_[2]);
+  //goog.vec.Mat4.rotateX(
+  //    this.model_,
+  //    this.rotate_[0]);
+
+  goog.vec.Quaternion.toRotationMatrix4(this.rotQuat_, this.rotation_);
+  goog.vec.Mat4.multMat(
+      this.model_, this.rotation_, this.model_);
 
   goog.vec.Mat4.invert(this.model_, this.invModel_);
 };
@@ -224,11 +227,13 @@ shapy.editor.Object.prototype.getScale = function() {
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.Object.prototype.rotate = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.rotate_,
-      x || this.rotate_[0],
-      y || this.rotate_[1],
-      z || this.rotate_[2]);
+shapy.editor.Object.prototype.rotate = function(q) {
+  goog.vec.Quaternion.concat(q, this.rotQuat_, this.rotQuat_);
+
+  //goog.vec.Vec3.setFromValues(this.rotate_,
+  //    x || this.rotate_[0],
+  //    y || this.rotate_[1],
+  //    z || this.rotate_[2]);
 };
 
 

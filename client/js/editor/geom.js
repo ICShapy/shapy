@@ -272,7 +272,7 @@ shapy.editor.geom.getDistance = function(p0, p1, p2) {
  * @param {number} z
  * @param {goog.vec.Quaternion.Type} q
  */
-shapy.ediotr.geom.quatFromEulerAngles = function(x, y, z, q) {
+shapy.editor.geom.quatFromEulerAngles = function(x, y, z, q) {
   var pi180 = Math.PI / 180;
 
   var pitch = x * pi180 / 2.0;
