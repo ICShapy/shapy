@@ -327,19 +327,14 @@ goog.inherits(shapy.editor.PartsGroup, shapy.editor.EditableGroup);
 /**
  * Translate the group
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.PartsGroup.prototype.translate = function(x, y, z) {
-  var mid = this.getPosition();
-
+shapy.editor.PartsGroup.prototype.translate = function(dx, dy, dz) {
   // Apply translation to each vertex
   goog.object.forEach(this.getVertices(), function(vertex) {
-    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-    goog.vec.Vec3.subtract(delta, mid, delta);
-    goog.vec.Vec3.add(delta, vertex.getPosition(), delta);
-    vertex.translate(delta[0], delta[1], delta[2]);
+    vertex.translate(dx, dy, dz);
   }, this);
 };
 
@@ -393,19 +388,14 @@ goog.inherits(shapy.editor.ObjectGroup, shapy.editor.EditableGroup);
 /**
  * Translate the group
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
-  var mid = this.getPosition();
-
+shapy.editor.ObjectGroup.prototype.translate = function(dx, dy, dz) {
   // Apply translation to each object
   goog.object.forEach(this.editables, function(object) {
-    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-    goog.vec.Vec3.subtract(delta, mid, delta);
-    goog.vec.Vec3.add(delta, object.getPosition(), delta);
-    object.translate(delta[0], delta[1], delta[2]);
+    object.translate(dx, dy, dz);
   });
 };
 
@@ -451,7 +441,7 @@ shapy.editor.ObjectGroup.prototype.rotate = function(q) {
     goog.vec.Quaternion.concat(dq, c, dq);
 
     // Translate.
-    object.translate(mid[0] + dq[0], mid[1] + dq[1], mid[2] + dq[2]);    
+    object.translate(mid[0] + dq[0], mid[1] + dq[1], mid[2] + dq[2]);
     object.rotate(q);
   });
 };

@@ -153,27 +153,32 @@ shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.translate(
       this.model_,
       this.translate_[0], this.translate_[1], this.translate_[2]);
-  goog.vec.Mat4.scale(
-      this.model_,
-      this.scale_[0], this.scale_[1], this.scale_[2]);
   goog.vec.Quaternion.toRotationMatrix4(
       this.rotQuat_, this.rotation_);
   goog.vec.Mat4.multMat(
       this.model_, this.rotation_, this.model_);
+  goog.vec.Mat4.scale(
+      this.model_,
+      this.scale_[0], this.scale_[1], this.scale_[2]);
 
   goog.vec.Mat4.invert(this.model_, this.invModel_);
 };
 
 
 /**
- * Updates the object position.
+ * Translates the object.
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.Object.prototype.translate = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
+shapy.editor.Object.prototype.translate = function(dx, dy, dz) {
+  goog.vec.Vec3.setFromValues(
+      this.translate_,
+      this.translate_[0] + dx,
+      this.translate_[1] + dy,
+      this.translate_[2] + dz
+  );
 };
 
 
@@ -771,13 +776,19 @@ shapy.editor.Object.Vertex.prototype.getObject = function() {
 /**
  * Translate the Vertex.
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.position, x, y, z);
-  goog.vec.Mat4.multVec3(this.object.invModel_, this.position, this.position);
+shapy.editor.Object.Vertex.prototype.translate = function(dx, dy, dz) {
+  goog.vec.Vec3.setFromValues(
+      this.position,
+      this.position[0] + dx,
+      this.position[1] + dy,
+      this.position[2] + dz
+  );
+  goog.vec.Mat4.multVec3NoTranslate(
+      this.object.invModel_, this.position, this.position);
   this.object.dirtyMesh = true;
 };
 
@@ -871,11 +882,13 @@ shapy.editor.Object.Edge.prototype.getObject = function() {
 /**
  * Translate the edge.
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
+shapy.editor.Object.Edge.prototype.translate = function(dx, dy, dz) {
+  console.log("called");
+
   var a = this.object.verts[this.start].position;
   var b = this.object.verts[this.end].position;
 
@@ -885,7 +898,11 @@ shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
   // Compute offset.
   goog.vec.Vec3.add(a, b, t);
   goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Mat4.multVec3(this.object.invModel_, [x, y, z], s);
+  goog.vec.Mat4.multVec3(
+      this.object.invModel_,
+      [t[0] + dx, t[1] + dy, t[2] + dz],
+      s
+  );
 
   // Adjust endpoints.
   goog.vec.Vec3.subtract(s, t, s);
@@ -1016,18 +1033,16 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
 /**
  * Translate the face.
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
+shapy.editor.Object.Face.prototype.translate = function(dx, dy, dz) {
   var t = this.getVertexPositions_();
-  var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
 
   // Get the translation vector.
-  var d = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-  goog.vec.Mat4.multVec3(this.object.invModel_, d, d);
-  goog.vec.Vec3.subtract(d, c, d);
+  var d = goog.vec.Vec3.createFloat32FromValues(dx, dy, dz);
+  goog.vec.Mat4.multVec3NoTranslate(this.object.invModel_, d, d);
 
   // Adjust the points.
   goog.vec.Vec3.add(t[0], d, t[0]);
