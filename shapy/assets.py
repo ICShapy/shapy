@@ -30,7 +30,7 @@ class SharedHandler(APIHandler):
       raise HTTPError(404, 'Incorrect shared space id.')
 
     # Initialise filtered space data.
-    data = (id, 'shared')
+    data = (id, 'Shared')
 
     # Return JSON answer.
     self.write(json.dumps({
@@ -58,13 +58,15 @@ class FilteredHandler(APIHandler):
       raise HTTPError(404, 'Asset does not exist.')
     if id == -3:
       type = 'texture'
+      name = 'Textures'
     elif id == -4:
       type = 'scene'
+      name = 'Scenes'
     else:
       raise HTTPError(404, 'Incorrect filter id.')
 
     # Initialise filtered space data.
-    data = (id, 'filter')
+    data = (id, name)
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
@@ -107,7 +109,7 @@ class PublicHandler(APIHandler):
       raise HTTPError(401, 'Not authorized.')
 
     # Initialise public space data.
-    data = (-1, 'publicHome')
+    data = (-1, 'Public')
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,

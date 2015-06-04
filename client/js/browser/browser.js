@@ -144,6 +144,16 @@ shapy.browser.BrowserController.prototype.query = function() {
 
 
 /**
+ * Returns type of current directory.
+ *
+ * @return {boolean}
+ */
+shapy.browser.BrowserController.prototype.private = function() {
+  return this.shBrowser_.private;
+};
+
+
+/**
  * Returns default name for assets
  *
  * @param {shapy.browser.Asset.Type} type Type of asset for which we return name
@@ -190,16 +200,6 @@ shapy.browser.BrowserToolbarController = function(
  */
 shapy.browser.BrowserToolbarController.prototype.path = function() {
   return this.shBrowser_.path;
-};
-
-
-/**
- * Returns type of current directory.
- *
- * @return {boolean}
- */
-shapy.browser.BrowserToolbarController.prototype.private = function() {
-  return this.shBrowser_.private;
 };
 
 

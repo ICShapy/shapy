@@ -141,11 +141,23 @@ sh-sidebar .name:active img.right {
   content: url('/img/arrow-right-press.svg');
 }
 
-sh-sidebar > h1 {
-  position: absolute;
-  height: 30px;
-  font-size: 30px;
-  left: 10px; top: 0px;
+sh-sidebar .space {
+  position: relative;
+  height: 28px;
+  padding: 0px 0px 0px 0px;
+  margin-top: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 119px;
+}
+
+sh-sidebar .space h2{
+  text-align: center;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
+  border: none;
+  z-index: 5000;
 }
 
 /**
