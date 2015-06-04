@@ -60,8 +60,6 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   /** @private {goog.vec.Vec3} @const */
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
   /** @private {goog.vec.Vec3} @const */
-  this.rotate_ = goog.vec.Vec3.createFromValues(0, 0, 0);
-  /** @private {goog.vec.Vec3} @const */
   this.translate_ = goog.vec.Vec3.createFromValues(0, 0, 0);
 
   /** @private {goog.vec.Quaternion.Type} @const */
@@ -222,16 +220,6 @@ shapy.editor.Object.prototype.getScale = function() {
  */
 shapy.editor.Object.prototype.rotate = function(q) {
   goog.vec.Quaternion.concat(q, this.rotQuat_, this.rotQuat_);
-};
-
-
-/**
- * Retrieves the object rotation.
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.Object.prototype.getRotation = function() {
-  return this.rotate_;
 };
 
 
