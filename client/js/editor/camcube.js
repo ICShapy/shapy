@@ -160,7 +160,7 @@ shapy.editor.CamCube.prototype.compute = function() {
   }
 
   // Compute view and vp matrices.
-  goog.vec.Mat4.makeLookAt(this.view, this.pos_, [0, 1, 0], this.camera_.up);
+  goog.vec.Mat4.makeLookAt(this.view, this.pos_, [0, 0, 0], this.camera_.up);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
   goog.vec.Mat4.invert(this.proj, this.invProj);
   goog.vec.Mat4.invert(this.view, this.invView);
