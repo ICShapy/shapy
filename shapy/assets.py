@@ -56,17 +56,40 @@ class FilteredHandler(APIHandler):
     id = int(self.get_argument('id'))
     if not id:
       raise HTTPError(404, 'Asset does not exist.')
-    if id >= 0:
+    if id == -3:
+      type = 'texture'
+    elif id == -4:
+      type = 'scene'
+    else:
       raise HTTPError(404, 'Incorrect filter id.')
 
     # Initialise filtered space data.
     data = (id, 'filter')
 
+    # Fetch information about children.
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, type, preview
+         FROM assets
+         WHERE type = %s
+           AND owner = %s
+      ''', (
+      type,
+      user.id
+    ))
+
     # Return JSON answer.
     self.write(json.dumps({
       'id': data[0],
       'name': data[1],
-      'data': []
+      'data': [
+        {
+          'id': item[0],
+          'name': item[1],
+          'type': item[2],
+          'preview': item[3]
+        }
+        for item in cursor.fetchall()
+      ]
     }))
     self.finish()
 
