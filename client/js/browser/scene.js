@@ -131,9 +131,11 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
   hits = goog.array.flatten(hits);
 
   // Find all allowed objects in the current mode.
-  hits = goog.array.filter(hits, function(hit) {
-    return mode[hit.item.type];
-  });
+  if (!mode.object) {
+    hits = goog.array.filter(hits, function(hit) {
+      return mode[hit.item.type];
+    });
+  }
 
   if (goog.array.isEmpty(hits)) {
     return null;
@@ -145,7 +147,7 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
     return da - db;
   }, this);
 
-  return hits[0].item;
+  return mode.object ? hits[0].item.object : hits[0].item;
 };
 
 
@@ -153,56 +155,17 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
  * Picks a group of objects intersection a frustum.
  *
  * @param {!Array<Object>}         frustum  Frostrum.
- * @param {!shapy.editor.Editable} selected Currently selected editable.
  * @param {!shapy.editor.Mode}     mode     Current selection mode.
  *
- * @return {!shapy.editor.Editable}
+ * @return {!shapy.editor.EditableGroup}
  */
-shapy.browser.Asset.Scene.prototype.pickFrustum = function(
-    frustum, selected, mode)
-{
+shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
-    var ps = obj.pickFrustum(frustum);
-    if (!goog.array.isEmpty(ps)) {
-      ps = goog.array.concat(ps, obj);
-    }
-    return ps;
-  });
-  hits = goog.array.flatten(hits);
-
-  // Find all allowed objects in the current mode.
-  hits = goog.array.filter(hits, function(hit) {
-    return mode[hit.type];
-  });
-
-  // Pick parts of the same object only.
-  if (!mode[shapy.editor.Editable.Type.OBJECT]) {
-    if (!selected) {
-      return null;
-    }
-
-    // Consider only the parts of the selected object or current parts group.
-    var owner = selected;
-    if (selected.type == shapy.editor.Editable.Type.PARTS_GROUP) {
-      owner = selected.getObject();
-    }
-
-    hits = goog.array.filter(hits, function(hit) {
-      return hit.object == owner;
+    return goog.array.filter(obj.pickFrustum(frustum), function(hit) {
+      return mode[hit.type];
     });
-
-    return goog.array.isEmpty(hits) ? null : new shapy.editor.PartsGroup(hits);
-  }
-
-  if (goog.array.isEmpty(hits)) {
-    return null;
-  }
-
-  if (hits.length == 1) {
-    return hits[0];
-  } else {
-    return new shapy.editor.ObjectGroup(hits);
-  }
+  });
+  return goog.array.flatten(hits);
 };
 
 

@@ -60,9 +60,12 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   /** @private {goog.vec.Vec3} @const */
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
   /** @private {goog.vec.Vec3} @const */
-  this.rotate_ = goog.vec.Vec3.createFromValues(0, 0, 0);
-  /** @private {goog.vec.Vec3} @const */
   this.translate_ = goog.vec.Vec3.createFromValues(0, 0, 0);
+
+  /** @private {goog.vec.Quaternion.Type} @const */
+  this.rotQuat_ = goog.vec.Quaternion.createFloat32FromValues(0, 0, 0, 1);
+  /** @private {goog.vec.Mat4.Type} @const */
+  this.rotation_ = goog.vec.Mat4.createFloat32();
 
   /**
    * Cached model matrix, computed from scale, rotate and translate.
@@ -150,31 +153,29 @@ shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.translate(
       this.model_,
       this.translate_[0], this.translate_[1], this.translate_[2]);
+  goog.vec.Quaternion.toRotationMatrix4(
+      this.rotQuat_, this.rotation_);
+  goog.vec.Mat4.multMat(
+      this.model_, this.rotation_, this.model_);
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
-  goog.vec.Mat4.rotateX(
-      this.model_,
-      this.rotate_[0]);
-  goog.vec.Mat4.rotateY(
-      this.model_,
-      this.rotate_[1]);
-  goog.vec.Mat4.rotateZ(
-      this.model_,
-      this.rotate_[2]);
+
   goog.vec.Mat4.invert(this.model_, this.invModel_);
 };
 
 
 /**
- * Updates the object position.
+ * Translates the object.
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.Object.prototype.translate = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
+shapy.editor.Object.prototype.translate = function(dx, dy, dz) {
+  this.translate_[0] += dx;
+  this.translate_[1] += dy;
+  this.translate_[2] += dz;
 };
 
 
@@ -196,7 +197,9 @@ shapy.editor.Object.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.Object.prototype.scale = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.scale_, x, y, z);
+  this.scale_[0] *= x;
+  this.scale_[1] *= y;
+  this.scale_[2] *= z;
 };
 
 
@@ -217,18 +220,8 @@ shapy.editor.Object.prototype.getScale = function() {
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.Object.prototype.rotate = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.rotate_, x, y, z);
-};
-
-
-/**
- * Retrieves the object rotation.
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.Object.prototype.getRotation = function() {
-  return this.rotate_;
+shapy.editor.Object.prototype.rotate = function(q) {
+  goog.vec.Quaternion.concat(q, this.rotQuat_, this.rotQuat_);
 };
 
 
@@ -258,23 +251,11 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
   goog.vec.Mat4.multVec3NoTranslate(this.invModel_, ray.dir, v);
   var r = new goog.vec.Ray(q, v);
 
-  var faces = this.pickFaces_(r);
-
-  // Include the object if the ray intersects it.
-  if (!goog.array.isEmpty(faces)) {
-    obj = [
-      {
-        item: this,
-        point: this.position_
-      }
-    ];
-  }
-
+  // Pick individual components.
   return [
-      obj,
       this.pickVertices_(r),
       this.pickEdges_(r),
-      faces
+      this.pickFaces_(r),
   ];
 };
 
@@ -287,29 +268,39 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
  * @return {!Array<shapy.editor.Editable>}
  */
 shapy.editor.Object.prototype.pickFrustum = function(frustum) {
+  var transpose = goog.vec.Mat4.createFloat32();
+  goog.vec.Mat4.transpose(this.model_, transpose);
+  // Transform the clipping planes into model space.
   var planes = goog.array.map(frustum, function(plane) {
     var n = goog.vec.Vec3.cloneFloat32(plane.n);
     var o = goog.vec.Vec3.cloneFloat32(plane.o);
     goog.vec.Mat4.multVec3(this.invModel_, o, o);
-    goog.vec.Mat4.multVec3NoTranslate(this.invModel_, n, n);
+    goog.vec.Mat4.multVec3NoTranslate(transpose, n, n);
+    goog.vec.Vec3.normalize(n, n);
     return {
       n: n,
       d: -goog.vec.Vec3.dot(o, n)
     };
   }, this);
 
+  // Retrieve all parts of the object.
   var all = goog.array.flatten(goog.array.map([
       this.verts,
       this.edges,
       this.faces
   ], goog.object.getValues));
-  return goog.object.getValues(goog.object.filter(all, function(elem) {
+
+  // Filter out all the parts which are inside all planes.
+  var hits = goog.object.getValues(goog.object.filter(all, function(elem) {
     return goog.array.some(elem.getVertices(), function(v) {
       return goog.array.every(planes, function(plane) {
         return goog.vec.Vec3.dot(v.position, plane.n) + plane.d >= 0;
       });
     });
   }, this));
+
+  // Include current object if any part is hit.
+  return goog.array.isEmpty(hits) ? [] : goog.array.concat(hits, this);
 };
 
 
@@ -354,8 +345,6 @@ shapy.editor.Object.prototype.pickVertices_ = function(ray) {
  * @param {!goog.vec.Ray} ray Ray converted to model space.
  *
  * @return {!Array<shapy.editor.Editable>}
- *
- * @private
  */
 shapy.editor.Object.prototype.pickEdges_ = function(ray) {
   var u = goog.vec.Vec3.createFloat32();
@@ -455,6 +444,8 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
  * Merges a set of points into a single point.
  *
  * @param {!Array<shapy.editor.Object.Vertex>} verts
+ *
+ * @return {!shapy.editor.Object.Vertex}
  */
 shapy.editor.Object.prototype.mergeVertices = function(verts) {
   var center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
@@ -513,6 +504,7 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
   }, this);
 
   this.dirtyMesh = true;
+  return this.verts[vertID];
 };
 
 
@@ -786,13 +778,19 @@ shapy.editor.Object.Vertex.prototype.getObject = function() {
 /**
  * Translate the Vertex.
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {number} dx
+ * @param {number} dy
+ * @param {number} dz
  */
-shapy.editor.Object.Vertex.prototype.translate = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.position, x, y, z);
-  goog.vec.Mat4.multVec3(this.object.invModel_, this.position, this.position);
+shapy.editor.Object.Vertex.prototype.translate = function(dx, dy, dz) {
+  goog.vec.Vec3.setFromValues(
+      this.position,
+      this.position[0] + dx,
+      this.position[1] + dy,
+      this.position[2] + dz
+  );
+  goog.vec.Mat4.multVec3NoTranslate(
+      this.object.invModel_, this.position, this.position);
   this.object.dirtyMesh = true;
 };
 
@@ -880,33 +878,6 @@ shapy.editor.Object.Edge.prototype.getPosition = function() {
  */
 shapy.editor.Object.Edge.prototype.getObject = function() {
   return this.object;
-};
-
-
-/**
- * Translate the edge.
- *
- * @param {number} x
- * @param {number} y
- * @param {number} z
- */
-shapy.editor.Object.Edge.prototype.translate = function(x, y, z) {
-  var a = this.object.verts[this.start].position;
-  var b = this.object.verts[this.end].position;
-
-  var t = goog.vec.Vec3.createFloat32();
-  var s = goog.vec.Vec3.createFloat32();
-
-  // Compute offset.
-  goog.vec.Vec3.add(a, b, t);
-  goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Mat4.multVec3(this.object.invModel_, [x, y, z], s);
-
-  // Adjust endpoints.
-  goog.vec.Vec3.subtract(s, t, s);
-  goog.vec.Vec3.add(a, s, a);
-  goog.vec.Vec3.add(b, s, b);
-  this.object.dirtyMesh = true;
 };
 
 
@@ -1025,31 +996,6 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
   goog.vec.Mat4.multVec3(this.object.model_, c, c);
   return c;
-};
-
-
-/**
- * Translate the face.
- *
- * @param {number} x
- * @param {number} y
- * @param {number} z
- */
-shapy.editor.Object.Face.prototype.translate = function(x, y, z) {
-  var t = this.getVertexPositions_();
-  var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
-
-  // Get the translation vector.
-  var d = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-  goog.vec.Mat4.multVec3(this.object.invModel_, d, d);
-  goog.vec.Vec3.subtract(d, c, d);
-
-  // Adjust the points.
-  goog.vec.Vec3.add(t[0], d, t[0]);
-  goog.vec.Vec3.add(t[1], d, t[1]);
-  goog.vec.Vec3.add(t[2], d, t[2]);
-
-  this.object.dirtyMesh = true;
 };
 
 

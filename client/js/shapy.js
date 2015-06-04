@@ -1,7 +1,6 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.require('shapy.AuthService');
 goog.require('shapy.HeaderController');
 goog.require('shapy.LoginController');
 goog.require('shapy.RegisterController');
@@ -54,8 +53,8 @@ shapy.configStates_ = function(
     .state('main', {
       url: '/',
       resolve: {
-        user: function(shAuth) {
-          return shAuth.auth();
+        user: function(shUser) {
+          return shUser.auth();
         }
       },
       views: {
@@ -102,6 +101,14 @@ shapy.configStates_ = function(
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {
+        user: function($q, shUser) {
+          return shUser.auth().then(function(user) {
+            if (!user) {
+              return $q.reject();
+            }
+            return user;
+          });
+        },
         scene: function(shBrowser, $stateParams) {
           return shBrowser.getScene($stateParams['sceneID']);
         }
@@ -229,7 +236,6 @@ shapy.module = angular
       'ui.router'
   ])
 
-  .service('shAuth', shapy.AuthService)
   .service('shBrowser', shapy.browser.Service)
   .service('shNotify', shapy.notification.Service)
   .service('shUser', shapy.UserService)

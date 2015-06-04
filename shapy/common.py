@@ -2,12 +2,13 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
+import os
 import functools
 import json
 
 from tornado.web import RequestHandler, HTTPError
 from tornado.gen import Return, Task, coroutine
-import tornadoredis
+import redis
 
 from shapy.account import Account
 
@@ -24,15 +25,25 @@ def session(method):
       yield method(self, *args, user=None, **kwargs)
       raise Return()
 
-    # Map the session ID to a user.
-    user_id = yield Task(self.redis.hget, 'session:%s' % token, 'user_id')
-    if not user_id:
+    # Map the session ID to a user & refresh expiration.
+    key = 'session:%s' % token
+    data = self.redis.get(key)
+    self.redis.expire(key, Account.SESSION_EXPIRE)
+
+    # If user not logged in, pass None.
+    if not data:
       yield method(self, *args, user=None, **kwargs)
       raise Return()
 
-    # Fetch the user info from the database & pass it to the method.
-    user = yield Account.get(self.db, user_id)
-    yield method(self, *args, user=user, **kwargs)
+    # Initialize the account object.
+    data = json.loads(data)
+    yield method(self, *args, user=Account(
+      data['id'],
+      first_name=data['first_name'],
+      last_name=data['last_name'],
+      email=data['email']
+    ), **kwargs)
+    raise Return()
 
   return wrapper
 
@@ -49,13 +60,25 @@ class BaseHandler(RequestHandler):
   @property
   def redis(self):
     """Returns a reference to the redis connection."""
-    if not hasattr(self, 'redis_conn'):
-      self.redis_conn = tornadoredis.Client(
-          host=self.application.RD_HOST,
-          port=self.application.RD_PORT,
-          password=self.application.RD_PASS)
-      self.redis_conn.connect()
-    return self.redis_conn
+    return self.application.redis
+
+  def on_finish(self):
+    """Cleanup."""
+
+    if hasattr(self, 'redis_conn'):
+      self.redis_conn.disconnect()
+
+  @coroutine
+  def login(self, user):
+    """Logs the user in, storing a session entry in the database."""
+    token = os.urandom(16).encode('hex')
+    self.redis.set('session:%s' % token, json.dumps({
+      'id': user[0],
+      'first_name': user[1],
+      'last_name': user[2],
+      'email': user[3]
+    }), Account.SESSION_EXPIRE)
+    self.set_secure_cookie('session', token)
 
 
 

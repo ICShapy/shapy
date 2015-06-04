@@ -10,6 +10,8 @@ goog.provide('shapy.notification.Service');
  * Notification service, brokers messages between the display and clients.
  *
  * @constructor
+ *
+ * @param {!angular.$timeout} $timeout
  */
 shapy.notification.Service = function($timeout) {
   /**
@@ -28,7 +30,10 @@ shapy.notification.Service = function($timeout) {
 /**
  * Adds a new notification.
  *
+ * @private
+ *
  * @param {!shapy.notification.Type_} type Type of the notification.
+ * @param {Object}                    data
  */
 shapy.notification.Service.prototype.add_ = function(type, data) {
   var item = new shapy.notification.Notification_(type, data);
@@ -38,7 +43,7 @@ shapy.notification.Service.prototype.add_ = function(type, data) {
       item.fade = true;
       this.timeout_(goog.bind(function() {
         this.remove(item);
-      }, this), 1000)
+      }, this), 1000);
     }, this), data.dismiss);
   }
 };
@@ -56,6 +61,8 @@ shapy.notification.Service.prototype.remove = function(notif) {
 
 /**
  * Adds a new notice.
+ *
+ * @param {Object} data
  */
 shapy.notification.Service.prototype.warning = function(data) {
   this.add_(shapy.notification.Type_.WARNING, data);
@@ -65,6 +72,8 @@ shapy.notification.Service.prototype.warning = function(data) {
 
 /**
  * Adds a new error.
+ *
+ * @param {Object} data
  */
 shapy.notification.Service.prototype.error = function(data) {
   this.add_(shapy.notification.Type_.ERROR, data);
@@ -73,6 +82,8 @@ shapy.notification.Service.prototype.error = function(data) {
 
 /**
  * Adds a new notice.
+ *
+ * @param {Object} data
  */
 shapy.notification.Service.prototype.notice = function(data) {
   this.add_(shapy.notification.Type_.NOTICE, data);
@@ -87,6 +98,7 @@ shapy.notification.Service.prototype.notice = function(data) {
  * @private
  *
  * @param {shapy.Notification.Type_} type Type of the notification.
+ * @param {Object} data
  */
 shapy.notification.Notification_ = function(type, data) {
   /**
@@ -135,9 +147,9 @@ shapy.notification.Notification_ = function(type, data) {
  * @enum {string}
  */
 shapy.notification.Type_ = {
-  WARNING:  'warning',
-  ERROR:    'error',
-  NOTICE:   'notice'
+  WARNING: 'warning',
+  ERROR: 'error',
+  NOTICE: 'notice'
 };
 
 
@@ -147,8 +159,10 @@ shapy.notification.Type_ = {
  *
  * @constructor
  *
- * @private {shapy.notification.Service} shNotify Angular notification service.
- * @private {!angular.$location} $location Angular location service.
+ * @private
+ *
+ * @param {shapy.notification.Service} shNotify  Angular notification service.
+ * @param {!angular.$location}         $location Angular location service.
  */
 shapy.notification.Controller_ = function(shNotify, $location) {
   /**

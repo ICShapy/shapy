@@ -148,6 +148,19 @@ sh-sidebar > h1 {
   left: 10px; top: 0px;
 }
 
+sh-sidebar-folders {
+  height: 250px;
+  background-color:red;
+
+}
+
+sh-sidebar-folder {
+  display: block;
+  width: 100px;
+  height: 30px;
+  cursor: pointer;
+}
+
 /**
  * Assets
  */

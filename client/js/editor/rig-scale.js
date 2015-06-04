@@ -216,14 +216,13 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
 
     // Update the scale.
     goog.vec.Vec3.scale(d, 1 / this.size_, d);
+    var sx = (this.scale_[0] + d[0]) / this.scale_[0];
+    var sy = (this.scale_[1] + d[1]) / this.scale_[1];
+    var sz = (this.scale_[2] + d[2]) / this.scale_[2];
     goog.vec.Vec3.add(this.scale_, d, this.scale_);
 
     // Update the scale of the model to be the relative scale
-    this.object.scale(
-      this.scale_[0] * this.scaleRelativeTo_[0],
-      this.scale_[1] * this.scaleRelativeTo_[1],
-      this.scale_[2] * this.scaleRelativeTo_[2]
-    );
+    this.object.scale(sx, sy, sz);
     return true;
   }
 

@@ -11,15 +11,15 @@ goog.provide('shapy.HeaderController');
  * @constructor
  * @ngInject
  *
- * @param {!angular.$state}         $state Angular state object.
- * @param {!shapy.AuthService}      shAuth Authentication service.
- * @param {!shapy.AuthService.User} user   User object.
+ * @param {!angular.$state}    $state Angular state object.
+ * @param {!shapy.UserService} shUser Authentication service.
+ * @param {!shapy.User}        user   User object.
  */
-shapy.HeaderController = function($state, shAuth, user) {
+shapy.HeaderController = function($state, shUser, user) {
   /** @export */
   this.user = user;
   /** @private {!shapy.AuthService} @const */
-  this.shAuth_ = shAuth;
+  this.shUser_ = shUser;
   /** @private {!angular.$state} @const */
   this.state_ = $state;
 };
@@ -31,7 +31,7 @@ shapy.HeaderController = function($state, shAuth, user) {
  * @export
  */
 shapy.HeaderController.prototype.logout = function() {
-  this.shAuth_.logout().then(goog.bind(function() {
+  this.shUser_.logout().then(goog.bind(function() {
     this.state_.go('main', null, { reload: true });
   }, this));
 };

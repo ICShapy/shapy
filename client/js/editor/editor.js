@@ -11,6 +11,7 @@ goog.require('goog.string.format');
 goog.require('goog.webgl');
 goog.require('shapy.editor.Camera');
 goog.require('shapy.editor.Editable');
+goog.require('shapy.editor.Executor');
 goog.require('shapy.editor.Layout');
 goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
@@ -31,17 +32,20 @@ goog.require('shapy.editor.Viewport');
  *
  * @constructor
  *
+ * @param {!shapy.User}          user
  * @param {!shapy.Scene}         scene
  * @param {!shapy.editor.Editor} shEditor
  */
-shapy.editor.EditorController = function(scene, shEditor) {
+shapy.editor.EditorController = function(user, scene, shEditor) {
   /** @private {!shapy.Scene} @const */
   this.scene_ = scene;
   /** @private {!shapy.editor.Editor} @const */
   this.shEditor_ = shEditor;
+  /** @public {!shapy.User} @const */
+  this.user = user;
 
   // Initialise the scene.
-  this.shEditor_.setScene(this.scene_);
+  this.shEditor_.setScene(this.scene_, this.user);
 };
 
 
@@ -54,8 +58,9 @@ shapy.editor.EditorController = function(scene, shEditor) {
  *
  * @param {!angular.$location} $location Angular location service.
  * @param {!angular.$scope}    $rootScope
+ * @param {!shapy.UserService} shUser
  */
-shapy.editor.Editor = function($location, $rootScope) {
+shapy.editor.Editor = function($location, $rootScope, shUser) {
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
   /** @private {!shapy.editor.Rig} @const */
@@ -69,12 +74,8 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.location_ = $location;
   /** @private {!angular.$scope} @const */
   this.rootScope_ = $rootScope;
-
-  /**
-   * Is the ctrl modifier key pressed?
-   * @private {boolean}
-   */
-  this.ctrlDown_ = false;
+  /** @private {!shapy.UserService} @const */
+  this.shUser_ = shUser;
 
   /**
    * Canvas.
@@ -95,28 +96,16 @@ shapy.editor.Editor = function($location, $rootScope) {
   this.gl_ = null;
 
   /**
+   * Current user.
+   * @public {!shapy.User}
+   */
+  this.user = null;
+
+  /**
    * Current scene.
    * @private {!shapy.Scene}
    */
   this.scene_ = null;
-
-  /**
-   * Name of the scene.
-   * @private {string}
-   */
-  this.name_ = '';
-
-  /**
-   * WebSocket connection.
-   * @private {WebSocket}
-   */
-  this.sock_ = null;
-
-  /**
-   * Pending requests.
-   * @private {!Array<Object>}
-   */
-  this.pending_ = [];
 
   /**
    * Renderer that manages all WebGL resources.
@@ -138,9 +127,9 @@ shapy.editor.Editor = function($location, $rootScope) {
 
   /**
    * Object hovered by mouse.
-   * @private {!shapy.editor.Editable}
+   * @private {!Array<!shapy.editor.Editable>}
    */
-  this.hover_ = null;
+  this.hover_ = [];
 
   /**
    * Active rig.
@@ -172,6 +161,12 @@ shapy.editor.Editor = function($location, $rootScope) {
    */
   this.mode = new shapy.editor.Mode();
 
+  /**
+   * WebSocket command executor.
+   * @private {!shapy.editor.Executor}
+   */
+  this.exec_ = null;
+
   // Watch for changes in the name.
   $rootScope.$watch(goog.bind(function() {
     return this.scene_ && this.scene_.name;
@@ -179,7 +174,7 @@ shapy.editor.Editor = function($location, $rootScope) {
     if (newName == oldName) {
       return;
     }
-    this.sendCommand({ type: 'name', value: newName });
+    this.exec_.sendCommand({ type: 'name', value: newName });
   }, this));
 
   // Watch for changes in the mode.
@@ -195,21 +190,31 @@ shapy.editor.Editor = function($location, $rootScope) {
  * Resets the scene after it changes.
  *
  * @param {!shapy.Scene} scene
+ * @param {!shapy.User}  user
  */
-shapy.editor.Editor.prototype.setScene = function(scene) {
+shapy.editor.Editor.prototype.setScene = function(scene, user) {
   // Clear anything related to the scene.
   this.scene_ = scene;
+  this.user = user;
   this.objectGroup_.clear();
   this.partGroup_.clear();
   this.rig(null);
 
+  var a = scene.createCube(0.5, 0.5, 0.5);
+  a.translate(0, 0, 0);
+  a.scale(1, 1, 1);
+
+  var b = scene.createCube(0.5, 0.5, 0.5);
+  b.translate(1, 0, 0);
+  b.scale(1, 1, 1);
+
+  var c = scene.createCube(0.5, 0.5, 0.5);
+  c.translate(-1, 0, 0);
+  c.scale(1, 1, 1);
+
   // Set up the websocket connectio.
   this.pending_ = [];
-  this.sock_ = new WebSocket(goog.string.format('ws://%s:%d/api/edit/%s',
-      this.location_.host(), this.location_.port(), this.scene_.id));
-  this.sock_.onmessage = goog.bind(this.onMessage_, this);
-  this.sock_.onclose = goog.bind(this.onClose_, this);
-  this.sock_.onopen = goog.bind(this.onOpen_, this);
+  this.exec_ = new shapy.editor.Executor(this.scene_, this);
 };
 
 
@@ -231,10 +236,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  //this.layout_ = new shapy.editor.Layout.Double();
-  //this.scene_.createSphere(0.5, 16, 16);
   this.layout_ = new shapy.editor.Layout.Single();
-  this.select(goog.object.getAnyValue(this.scene_.objects));
   this.rig(this.rigTranslate_);
 };
 
@@ -256,12 +258,11 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   switch (layout) {
     case 'single': this.layout_ = new shapy.editor.Layout.Single(); break;
     case 'double': this.layout_ = new shapy.editor.Layout.Double(); break;
-    case 'quad':   this.layout_ = new shapy.editor.Layout.Quad();   break;
+    case 'quad': this.layout_ = new shapy.editor.Layout.Quad(); break;
     default: throw Error('Invalid layout "' + layout + "'");
   }
 
   // Adjust stuff.
-  this.select(this.partGroup_);
   this.rig(this.rig_);
   this.vp_.width = this.vp_.height = 0;
 };
@@ -273,20 +274,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
  * @param {string} type Type of the object.
  */
 shapy.editor.Editor.prototype.create = function(type) {
-  switch (type) {
-    case 'cube': {
-      this.select(this.scene_.createCube(0.5, 0.5, 0.5));
-      break;
-    }
-    case 'sphere': {
-      this.select(this.scene_.createSphere(0.5, 16, 16));
-      break;
-    }
-    default: throw new Error('Invalid object type "' + type + "'");
-  }
-
-  // Use translate rig as default rig.
-  this.rig(this.rigTranslate_);
+  this.exec_.emitCreate(type);
 };
 
 
@@ -346,9 +334,9 @@ shapy.editor.Editor.prototype.destroy = function() {
   }
 
   // Close the websocket connection.
-  if (this.sock_) {
-    this.sock_.close();
-    this.sock_ = null;
+  if (this.exec_) {
+    this.exec_.destroy();
+    this.exec_ = null;
   }
 
   // Clean up buffers from camera cubes.
@@ -375,151 +363,17 @@ shapy.editor.Editor.prototype.destroy = function() {
 
 
 /**
- * Called on the receipt of a message from the server.
- *
- * @private
- *
- * @param {MessageEvent} evt
- */
-shapy.editor.Editor.prototype.onMessage_ = function(evt) {
-  var data;
-
-  // Try to make sense of the data.
-  try {
-    data = JSON.parse(evt.data);
-  } catch (e) {
-    console.error('Invalid message: ' + evt.data);
-  }
-
-  this.rootScope_.$apply(goog.bind(function() {
-    switch (data['type']) {
-      case 'name': {
-        if (this.scene_.name != data['value']) {
-          this.scene_.name = data['value'];
-        }
-        break;
-      }
-      case 'join': {
-        this.scene_.addUser(data['user']);
-        break;
-      }
-      case 'meta': {
-        this.scene_.name = data['name'];
-        this.scene_.setUsers(data['users']);
-        break;
-      }
-      case 'leave': {
-        this.scene_.removeUser(data['user']);
-        break;
-      }
-      case 'edit': {
-        switch (data['tool']) {
-          case 'translate': {
-            this.scene_.objects[data['id']].translate(
-                data['x'], data['y'], data['z']);
-            break;
-          }
-          default: {
-            console.error('Invalid tool "' + data['tool'] + "'");
-            break;
-          }
-        }
-        break;
-      }
-      default: {
-        console.error('Invalid message type "' + data['type'] + '"');
-        break;
-      }
-    }
-  }, this));
-};
-
-
-/**
- * Called when the connection opens - flushes pending requests.
- *
- * @private
- */
-shapy.editor.Editor.prototype.onOpen_ = function() {
-  goog.array.map(this.pending_, function(message) {
-    this.sock_.send(JSON.stringify(message));
-  }, this);
-};
-
-
-/**
- * Called when the server suspends the connection.
- *
- * @private
- *
- * @param {CloseEvent} evt
- */
-shapy.editor.Editor.prototype.onClose_ = function(evt) {
-};
-
-
-/**
  * Disselects the currently selected object(s) not allowed by the mode.
  *
  * @private
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
   if (this.mode.object) {
-    // Deselect all parts.
-    this.partGroup_.setSelected(false);
+    this.partGroup_.setSelected(null);
     this.partGroup_.clear();
-    this.rig(this.rigTranslate_);
-  } else {
-    this.objectGroup_.setSelected(false);
-    var object = this.objectGroup_.getLast();
-    this.objectGroup_.clear();
-    this.objectGroup_.add(object);
-    this.objectGroup_.setSelected(true);
-    this.rig(this.rigTranslate_);
-  }
-};
-
-
-/**
- * Selects an editable.
- *
- * @param {!shapy.editor.Editable} editable
- */
-shapy.editor.Editor.prototype.select = function(editable) {
-  var group;
-
-  if (this.mode.object) {
-    if (!this.ctrlDown_) {
-      this.objectGroup_.setSelected(false);
-      this.objectGroup_.clear();
-    }
-    group = this.objectGroup_;
-  } else {
-    if (!this.ctrlDown_) {
-      this.partGroup_.setSelected(false);
-      this.partGroup_.clear();
-    }
-    group = this.partGroup_;
   }
 
-  if (editable) {
-    if (editable.selected) {
-      editable.setSelected(false);
-      group.remove(editable);
-    } else {
-      group.add(editable);
-      group.setSelected(true);
-    }
-  } else {
-    group.setSelected(false);
-    group.clear();
-  }
-
-  if (group.isEmpty()) {
-    this.rig(null);
-  } else {
-    this.rig(this.rigTranslate_);
-  }
+  this.rig(this.rigTranslate_);
 };
 
 
@@ -538,22 +392,6 @@ shapy.editor.Editor.prototype.rig = function(rig) {
     return;
   }
 
-  // Cut rig should not be attached to anything other than objects.
-  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT &&
-  //    object.type != shapy.editor.Editable.Type.OBJECT) {
-  //  return;
-  //}
-
-  // Cut rig should not be attached to anything other than objects.
-  //if (rig.type == shapy.editor.Rig.Type.CUT &&
-  //    attach.type != shapy.editor.Editable.Type.OBJECT) {
-  //  return;
-  //}
-
-  //if (this.rig_ && this.rig_.type == shapy.editor.Rig.Type.CUT) {
-  //  this.rig_.reset();
-  //}
-
   this.rig_ = rig;
   if (this.rig_) {
     this.rig_.object = attach;
@@ -571,19 +409,21 @@ shapy.editor.Editor.prototype.rig = function(rig) {
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
   var object;
-
-  switch (e.keyCode) {
-    case 17: this.ctrlDown_ = true; break;        // control
-    case 68: {                                    // d
-      if (this.partGroup_) {
+  switch (String.fromCharCode(e.keyCode)) {
+    case 'D': {                                    // d
+      if (this.mode.object) {
+        this.objectGroup_.delete();
+        this.objectGroup_.clear();
+        this.partGroup_.clear();
+      } else {
         this.partGroup_.delete();
-        this.select(null);
-        this.rig(null);
-        break;
+        this.partGroup_.clear();
       }
+      this.rig(null);
+      return;
     }
-    case 70: {
-      if (!this.partGroup_ || !(object = this.partGroup_.getObject())) {
+    case 'F': {
+      if (!(object = this.partGroup_.getObject())) {
         return;
       }
       var verts = this.partGroup_.getVertices();
@@ -591,42 +431,125 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         return;
       }
       object.connect(verts);
-      break;
+      return;
     }
-    case 77: {
-      if (!this.partGroup_ || !(object = this.partGroup_.getObject())) {
+    case 'M': {
+      if (!(object = this.partGroup_.getObject())) {
         return;
       }
-      object.mergeVertices(this.partGroup_.getVertices());
-      this.select(null);
+      var vert = object.mergeVertices(this.partGroup_.getVertices());
+      this.partGroup_.clear();
       this.rig(null);
-      break;
+      return;
     }
-    case 84: this.rig(this.rigTranslate_); break; // t
-    case 82: this.rig(this.rigRotate_); break;    // r
-    case 83: this.rig(this.rigScale_); break;     // s
-    case 67: this.rig(this.rigCut_); break;       // c
-    default: {
-      if (this.layout_ && this.layout_.active) {
-        this.layout_.active.keyDown(e.keyCode);
-      }
-      break;
-    }
+    case 'T': this.rig(this.rigTranslate_); return;
+    case 'R': this.rig(this.rigRotate_); return;
+    case 'S': this.rig(this.rigScale_); return;
+    case 'C': this.rig(this.rigCut_); return;
+  }
+
+  // Delegate event to viewport.
+  if (this.layout_ && this.layout_.active) {
+    this.layout_.active.keyDown(e.keyCode);
   }
 };
 
 
 /**
- * Handles a key up event.
+ * Handles a mouse button release event.
  *
  * @param {Event} e
  */
-shapy.editor.Editor.prototype.keyUp = function(e) {
-  switch (e.keyCode) {
-    case 17: this.ctrlDown_ = false; break;        // control
-    default:
-      break;
+shapy.editor.Editor.prototype.mouseUp = function(e) {
+  var ray, toSelect, toDeselect, group;
+
+  // If viewports want the event, give up.
+  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
+    return;
   }
+
+  // If nothing selected, ignore event.
+  if (!this.hover_ || goog.array.isEmpty(this.hover_)) {
+    return;
+  }
+
+  // Find out which group is going to be affected.
+  group = this.mode.object ? this.objectGroup_ : this.partGroup_;
+
+  // Find out what is going to be selected & what is going to be selected.
+  if (e.ctrlKey) {
+    toDeselect = [];
+    toSelect = goog.array.filter(this.hover_, function(e) {
+      return !group.contains(e);
+    }, this);
+  } else if (e.shiftKey) {
+    toSelect = [];
+    toDeselect = goog.array.filter(this.hover_, function(e) {
+      return group.contains(e);
+    }, this);
+  } else {
+    toSelect = goog.array.filter(this.hover_, function(e) {
+      return !group.contains(e);
+    }, this);
+    toDeselect = goog.array.filter(group.editables, function(e) {
+      return !goog.array.contains(this.hover_, e);
+    }, this);
+  }
+
+  // Send a command to the sever to lock on objects or adjust part group.
+  if (this.mode.object) {
+    this.exec_.emitSelect(toSelect, toDeselect);
+  } else {
+    // Adjust highlight.
+    goog.array.forEach(toDeselect, function(e) {
+      e.setSelected(null);
+    }, this);
+    goog.array.forEach(toSelect, function(e) {
+      e.setSelected(this.user);
+    }, this);
+
+    group.remove(toDeselect);
+    group.add(toSelect);
+  }
+};
+
+
+/**
+ * Handles mouse motion events.
+ *
+ * @param {Event} e
+ */
+shapy.editor.Editor.prototype.mouseMove = function(e) {
+  var pick, hits, hit, ray, group = this.layout_.active.group, objs, frustum;
+
+  // Find the entity under the mouse.
+  if (!!(ray = this.layout_.mouseMove(e))) {
+    hit = this.scene_.pickRay(ray, this.mode);
+    hits = hit ? [hit] : [];
+  } else if (group && group.width > 3 && group.height > 3) {
+    frustum = this.layout_.active.groupcast(group);
+    hits = this.scene_.pickFrustum(frustum, this.mode);
+  } else {
+    hits = [];
+  }
+
+  // Filter out all parts that do not belong to the current object.
+  if (this.mode.object) {
+    pick = hits;
+  } else {
+    pick = goog.array.filter(hits, function(e) {
+      return this.objectGroup_.contains(e.object);
+    }, this);
+  }
+
+  // Highlight the current object.
+  goog.array.forEach(this.hover_, function(e) {
+    e.setHover(false);
+  });
+  this.hover_ = pick;
+  goog.array.forEach(this.hover_, function(e) {
+    e.setHover(true);
+  });
 };
 
 
@@ -637,68 +560,6 @@ shapy.editor.Editor.prototype.keyUp = function(e) {
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
   this.layout_.mouseDown(e);
-};
-
-
-/**
- * Handles a mouse button release event.
- *
- * @param {Event} e
- */
-shapy.editor.Editor.prototype.mouseUp = function(e) {
-  var ray, pick, group = this.layout_.active.group;
-
-  // If viewports want the event, give up.
-  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
-    return;
-  }
-
-  if (group && group.width > 3 && group.height > 3) {
-    var frustum = this.layout_.active.groupcast(group);
-    pick = this.scene_.pickFrustum(frustum, this.partGroup_, this.mode);
-  } else {
-    pick = this.scene_.pickRay(ray, this.mode);
-  }
-  this.select(pick);
-};
-
-
-/**
- * Handles mouse motion events.
- *
- * @param {Event} e
- */
-shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, ray, group = this.layout_.active.group;
-
-  if (!(ray = this.layout_.mouseMove(e))) {
-    if (group) {
-      pick = this.scene_.pickFrustum(
-          this.layout_.active.groupcast(group),
-          this.partGroup_,
-          this.mode);
-    }
-    if (!pick) {
-      if (this.hover_) {
-        this.hover_.setHover(false);
-      }
-      return;
-    }
-  } else {
-    pick = this.scene_.pickRay(ray, this.mode);
-  }
-  if (!pick && this.hover_) {
-    this.hover_.setHover(false);
-    return;
-  }
-
-  if (pick != this.hover_) {
-    if (this.hover_) {
-      this.hover_.setHover(false);
-    }
-    pick.setHover(true);
-    this.hover_ = pick;
-  }
 };
 
 
@@ -728,21 +589,6 @@ shapy.editor.Editor.prototype.mouseLeave = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseWheel = function(e) {
-  if (this.layout_ && this.layout_.hover) {
-    this.layout_.hover.mouseWheel(e.originalEvent.wheelDelta);
-  }
+  this.layout_.mouseWheel(e);
 };
 
-
-/**
- * Sends a command over websockets.
- *
- * @param {Object} data
- */
-shapy.editor.Editor.prototype.sendCommand = function(data) {
-  if (!this.sock_ || this.sock_.readyState != 1) {
-    this.pending_.push(data);
-    return;
-  }
-  this.sock_.send(JSON.stringify(data));
-};

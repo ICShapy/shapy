@@ -263,3 +263,36 @@ shapy.editor.geom.getDistance = function(p0, p1, p2) {
   return goog.vec.Vec3.magnitude(c) / goog.vec.Vec3.magnitude(v21);
 };
 
+
+/**
+ * Computes a quaternion from Euler angles.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {goog.vec.Quaternion.Type} q
+ */
+shapy.editor.geom.quatFromEulerAngles = function(x, y, z, q) {
+  var pi180 = Math.PI / 180;
+
+  var pitch = y * pi180 / 2.0;
+  var yaw   = z * pi180 / 2.0;
+  var roll  = x * pi180 / 2.0; 
+
+  var sinp = Math.sin(pitch);
+  var siny = Math.sin(yaw);
+  var sinr = Math.sin(roll);
+  var cosp = Math.cos(pitch);
+  var cosy = Math.cos(yaw);
+  var cosr = Math.cos(roll);
+
+  goog.vec.Quaternion.setFromValues(
+      q,
+      sinr * cosp * cosy - cosr * sinp * siny,
+      cosr * sinp * cosy + sinr * cosp * siny,
+      cosr * cosp * siny - sinr * sinp * cosy,
+      cosr * cosp * cosy + sinr * sinp * siny
+  );
+
+  goog.vec.Quaternion.normalize(q, q);
+};
