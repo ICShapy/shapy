@@ -458,12 +458,11 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (faces.length <= 0) {
         return;
       }
+      var extrudeData = object.extrude(faces);
 
+      this.partGroup_ = new shapy.editor.PartsGroup(extrudeData.faces);
       this.rig(this.rigExtrude_);
-      this.rigExtrude_.setup({
-          faces: faces,
-          normal: object.extrude(faces).normal
-      });
+      this.rigExtrude_.setup(extrudeData.normal);
       return;
     }
     case 'T': this.rig(this.rigTranslate_); return;
@@ -490,6 +489,11 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
+
+  // If we're extruding, stop
+  if (this.rig_ == this.rigExtrude_) {
+    this.rig(null);
+  }
 
   // If viewports want the event, give up.
   if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {

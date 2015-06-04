@@ -1188,7 +1188,7 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
   goog.vec.Vec3.cross(ac, ab, normal);
   goog.vec.Vec3.normalize(normal, normal);
   return normal;
-}
+};
 
 
 /**
