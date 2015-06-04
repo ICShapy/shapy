@@ -231,6 +231,9 @@ class DirHandler(AssetHandler):
     if not user:
       raise HTTPError(401, 'Not authorized.')
 
+    # Reject IDs of not private dir
+    if id < 0:
+      raise HTTPError(404, 'Directory does not exist.')
     if id:
       # If ID is not 0, retrieve information about a directory.
       cursor = yield momoko.Op(self.db.execute,
@@ -238,9 +241,11 @@ class DirHandler(AssetHandler):
            FROM assets
            WHERE id = %s
              AND type = %s
+             AND owner = %s
         ''', (
         id,
-        'dir'
+        'dir',
+        user.id
       ))
 
       # See if resource exists.
@@ -266,12 +271,16 @@ class DirHandler(AssetHandler):
     self.write(json.dumps({
       'id': data[0],
       'name': data[1],
+      'owner': True,
+      'write': True,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3]
+          'preview': item[3],
+          'owner': True,
+          'write': True
         }
         for item in cursor.fetchall()
       ]
@@ -286,11 +295,27 @@ class DirHandler(AssetHandler):
     """Creates a new directory."""
 
     # Validate arguments.
-    parent = self.get_argument('parent')
+    parent = int(self.get_argument('parent'))
     if not user:
       raise HTTPError(401, 'User not logged in.')
+    # Reject parent dirs not owned by user
+    if parent != 0:
+      cursor = yield momoko.Op(self.db.execute,
+        '''SELECT id, name
+           FROM assets
+           WHERE id = %s
+             AND type = %s
+             AND owner = %s
+        ''', (
+        parent,
+        'dir',
+        user.id
+      ))
+      data = cursor.fetchone()
+      if not data:
+        raise HTTPError(404, 'Directory does not exist.')
 
-    # Create new account - store in database
+    # Create new dir - store in database
     cursor = yield momoko.Op(self.db.execute,
       '''INSERT INTO assets (name, type, owner, parent, public)
          VALUES (%s, %s, %s, %s, %s)
@@ -312,6 +337,8 @@ class DirHandler(AssetHandler):
     self.write(json.dumps({
         'id': data[0],
         'name': data[1],
+        'owner': True,
+        'write': True,
         'data': []
     }))
     self.finish()
