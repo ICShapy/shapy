@@ -184,7 +184,8 @@ shapy.editor.Viewport.prototype.mouseWheel = goog.abstractMethod;
  *
  * @param {number} kc Keycode
  */
-shapy.editor.Viewport.prototype.keyDown = goog.abstractMethod;
+shapy.editor.Viewport.prototype.keyDown = function() {
+};
 
 
 /**
