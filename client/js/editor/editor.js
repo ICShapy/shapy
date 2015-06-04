@@ -233,6 +233,9 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Double();
   this.rig(this.rigTranslate_);
+
+  // TODO: this is debugging only.
+  this.layout_.toggleViewport_();
 };
 
 
