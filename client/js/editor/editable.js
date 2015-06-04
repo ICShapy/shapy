@@ -298,25 +298,6 @@ shapy.editor.EditableGroup.prototype.getScale = function() {
 
 
 /**
- * Retrieves the group average rotation.
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.EditableGroup.prototype.getRotation = function() {
-  var rotation = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
-  if (goog.array.isEmpty(this.editables)) {
-    return rotation;
-  }
-
-  goog.object.forEach(this.editables, function(editable) {
-    goog.vec.Vec3.add(rotation, editable.getRotation(), rotation);
-  }, this);
-  goog.vec.Vec3.scale(rotation, 1 / this.editables.length, rotation);
-  return rotation;
-};
-
-
-/**
  * Deletes the editables in the group.
  */
 shapy.editor.EditableGroup.prototype.delete = function() {
