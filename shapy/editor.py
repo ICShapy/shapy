@@ -80,7 +80,8 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.write_message(json.dumps({
         'type': 'meta',
         'name': scene.name,
-        'users': scene.users
+        'users': scene.users,
+        'objects': []
     }))
 
     self.to_channel({
@@ -106,8 +107,8 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data['type'] == 'lock':
       objects = []
       for id in data['objects']:
-        key = '%s:%s' % (self.scene_id, id)
-        lock = self.redis.setnx(key, 1)
+        key = 'scene:%s:%s' % (self.scene_id, id)
+        lock = self.redis.setnx(key, self.user.id)
         if lock:
           self.redis.expire(key, 60 * 10)
           self.objects.add(id)
@@ -118,7 +119,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data['type'] == 'unlock':
       objects = []
       for id in data['objects']:
-        self.redis.delete('%s:%s' % (self.scene_id, id))
+        self.redis.delete('scene:%s:%s' % (self.scene_id, id))
         objects.append(id)
         self.objects.remove(id)
       data['objects'] = objects
