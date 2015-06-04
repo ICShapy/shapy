@@ -91,10 +91,32 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
+ *
+ * @return {boolean}
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   this.currMousePos_.x = x;
   this.currMousePos_.y = y;
+
+  if (!this.group) {
+    return false;
+  }
+
+  if (x > this.lastClick_.x) {
+    this.group.width = x - this.lastClick_.x;
+  } else {
+    this.group.width = this.lastClick_.x - x;
+    this.group.left = x;
+  }
+
+  if (y > this.lastClick_.y) {
+    this.group.height = y - this.lastClick_.y;
+  } else {
+    this.group.height = this.lastClick_.y - y;
+    this.group.top = y;
+  }
+
+  return this.group.width > 3 && this.group.height > 3;
 };
 
 
@@ -131,6 +153,10 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
   this.currMousePos_.y = y;
   this.lastMousePos_.x = x;
   this.lastMousePos_.y = y;
+
+  if (button == 1) {
+    this.group = new goog.math.Rect(x, y, 0, 0);
+  }
 };
 
 
@@ -150,8 +176,7 @@ shapy.editor.Viewport.prototype.mouseUp = function(x, y) {
  *
  * @param {number} delta Mouse wheel delta value.
  */
-shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
-};
+shapy.editor.Viewport.prototype.mouseWheel = goog.abstractMethod;
 
 
 /**
@@ -159,8 +184,7 @@ shapy.editor.Viewport.prototype.mouseWheel = function(delta) {
  *
  * @param {number} kc Keycode
  */
-shapy.editor.Viewport.prototype.keyDown = function(kc) {
-};
+shapy.editor.Viewport.prototype.keyDown = goog.abstractMethod;
 
 
 /**

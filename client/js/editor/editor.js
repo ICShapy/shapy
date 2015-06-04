@@ -577,17 +577,19 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, hits, hit, ray, group = this.layout_.active.group, objs, frustum;
+  var pick, hits = [], hit, ray, objs, frustum;
+  var group = this.layout_.active.group;
 
   // Find the entity under the mouse.
-  if (!!(ray = this.layout_.mouseMove(e))) {
-    hit = this.scene_.pickRay(ray, this.mode);
-    hits = hit ? [hit] : [];
-  } else if (group && group.width > 3 && group.height > 3) {
-    frustum = this.layout_.active.groupcast(group);
-    hits = this.scene_.pickFrustum(frustum, this.mode);
-  } else {
-    hits = [];
+  ray = this.layout_.mouseMove(e);
+  if (this.layout_.hover.type == shapy.editor.Viewport.Type.EDIT) {
+    if (!!ray) {
+      hit = this.scene_.pickRay(ray, this.mode);
+      hits = hit ? [hit] : [];
+    } else if (group && group.width > 3 && group.height > 3) {
+      frustum = this.layout_.active.groupcast(group);
+      hits = this.scene_.pickFrustum(frustum, this.mode);
+    }
   }
 
   // Filter out all parts that do not belong to the current object.

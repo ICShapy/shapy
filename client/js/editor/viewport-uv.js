@@ -18,3 +18,82 @@ shapy.editor.Viewport.UV = function(name) {
   shapy.editor.Viewport.call(this, name, shapy.editor.Viewport.Type.UV);
 };
 goog.inherits(shapy.editor.Viewport.UV, shapy.editor.Viewport);
+
+
+/**
+ * Resizes the viewport, specifying a new position and size.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ */
+shapy.editor.Viewport.UV.prototype.resize = function(x, y, w, h) {
+  shapy.editor.Viewport.prototype.resize.call(this, x, y, w, h);
+};
+
+
+
+/**
+ * Handles a mouse motion event.
+ *
+ * @param {number} x Mouse X coordinate.
+ * @param {number} y Mouse Y coordinate.
+ *
+ * @return {boolean}
+ */
+shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y) {
+  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y);
+  return true;
+};
+
+
+/**
+ * Handles a mouse enter event.
+ *
+ * @param {number} x Mouse X coordinate.
+ * @param {number} y Mouse Y coordinate.
+ */
+shapy.editor.Viewport.UV.prototype.mouseEnter = function(x, y) {
+  shapy.editor.Viewport.prototype.mouseEnter.call(this, x, y);
+};
+
+
+/**
+ * Handles a mouse leave event.
+ */
+shapy.editor.Viewport.UV.prototype.mouseLeave = function() {
+  shapy.editor.Viewport.prototype.mouseLeave.call(this);
+};
+
+
+/**
+ * Handles a mouse press event.
+ *
+ * @param {number} x      Mouse X coordinate.
+ * @param {number} y      Mouse Y coordinate.
+ * @param {number} button Mouse button that was clicked.
+ */
+shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
+  shapy.editor.Viewport.prototype.mouseDown.call(this, x, y, button);
+};
+
+
+/**
+ * Handles a mouse release event.
+ *
+ * @param {number} x Mouse X coordinate.
+ * @param {number} y Mouse Y coordinate.
+ */
+shapy.editor.Viewport.UV.prototype.mouseUp = function(x, y) {
+  shapy.editor.Viewport.prototype.mouseUp.call(this, x, y);
+};
+
+
+/**
+ * Handles a mouse wheel event.
+ *
+ * @param {number} delta Mouse wheel delta value.
+ */
+shapy.editor.Viewport.UV.prototype.mouseWheel = function(delta) {
+};
