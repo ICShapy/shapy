@@ -268,12 +268,15 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
  * @return {!Array<shapy.editor.Editable>}
  */
 shapy.editor.Object.prototype.pickFrustum = function(frustum) {
+  var transpose = goog.vec.Mat4.createFloat32();
+  goog.vec.Mat4.transpose(this.model_, transpose);
   // Transform the clipping planes into model space.
   var planes = goog.array.map(frustum, function(plane) {
     var n = goog.vec.Vec3.cloneFloat32(plane.n);
     var o = goog.vec.Vec3.cloneFloat32(plane.o);
     goog.vec.Mat4.multVec3(this.invModel_, o, o);
-    goog.vec.Mat4.multVec3NoTranslate(this.invModel_, n, n);
+    goog.vec.Mat4.multVec3NoTranslate(transpose, n, n);
+    goog.vec.Vec3.normalize(n, n);
     return {
       n: n,
       d: -goog.vec.Vec3.dot(o, n)
