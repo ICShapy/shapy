@@ -575,9 +575,11 @@ shapy.editor.Object.prototype.connect = function(verts) {
 
 
 /**
- * Extrude a set of faces
+ * Extrude a group of faces
  *
  * @param {!Array<!shapy.editor.Object.Face>} faces
+ *
+ * @return {!Object} An object containing the extruded faces and the normal
  */
 shapy.editor.Object.prototype.extrude = function(faces) {
   // Calculate normal
@@ -588,9 +590,11 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.vec.Vec3.scale(normal, 1 / faces.length, normal);
 
   // Calculate offset
-  var dist = 0.5; // TODO: Use an extrude rig
+  var dist = 0.5; // TODO(David): Use the extrude rig
   var offset = goog.vec.Vec3.createFloat32FromArray(normal);
   goog.vec.Vec3.scale(offset, dist, offset);
+
+  // TODO(David): If edges are duplicate, they are internal
 
   // Get a list of unique edges
   var edges = goog.array.flatten(goog.array.map(faces, function(f) {
@@ -598,8 +602,8 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   }, this));
   goog.array.removeDuplicates(edges);
 
-  // Compute the list of boundary edges (which aren't shared by 2 faces)
-  edges = goog.array.filter(edges, function(e) {
+  // Get boundary edges
+  var boundaryEdges = goog.array.filter(edges, function(e) {
     var faceCount = 0;
     goog.array.forEach(faces, function(f) {
       if (goog.array.contains(f.getEdges(), e)) {
@@ -609,15 +613,26 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     return faceCount == 1;
   });
 
-  // Compute the vertices shared by the boundary edges
+  // Compute the vertices
   var verts = goog.array.flatten(goog.array.map(edges, function(e) {
     return e.getVertices();
   }, this));
   goog.array.removeDuplicates(verts);
 
+  // Compute the boundary vertices
+  var boundaryVerts =
+    goog.array.flatten(goog.array.map(boundaryEdges, function(e) {
+      return e.getVertices();
+    }, this));
+  goog.array.removeDuplicates(boundaryVerts);
+
+  //
+  // Extruded faces/edges
+  //
+
   // Clone vertices
   var vertMap = {};
-  var clonedVerts = goog.array.map(verts, function(v) {
+  goog.array.map(verts, function(v) {
     var vertID = this.nextVert_++;
     vertMap[v.id] = vertID;
     this.verts[vertID] = new shapy.editor.Object.Vertex(this, vertID,
@@ -629,7 +644,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
 
   // Clone edges
   var edgeMap = {};
-  var clonedEdges = goog.array.map(edges, function(e) {
+  goog.array.map(edges, function(e) {
     var edgeID = this.nextEdge_++;
     edgeMap[e.id] = edgeID;
     this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
@@ -637,23 +652,16 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     return this.edges[edgeID];
   }, this);
 
-  // Clone faces
-  /*
-  var faceMap = {};
-  var clonedFaces = goog.array.map(faces, function(f) {
-    var faceID = this.nextFace_++;
-    faceMap[f.id] = faceID;
-    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
-        f.e0 >= 0 ? edgeMap[f.e0] : -edgeMap[-f.e0],
-        f.e1 >= 0 ? edgeMap[f.e1] : -edgeMap[-f.e1],
-        f.e2 >= 0 ? edgeMap[f.e2] : -edgeMap[-f.e2]);
-    f.delete(); // Delete original face
-    return this.faces[faceID];
+  //
+  // Edge Faces
+  //
+
+  // Build vert pairs
+  var vertPairs = goog.array.map(boundaryVerts, function(v) {
+    return [v, this.verts[vertMap[v.id]]];
   }, this);
-*/
 
   // Join pairs of vertices with edges
-  var vertPairs = goog.array.zip(verts, clonedVerts);
   var joinEdges = goog.array.map(vertPairs, function(p) {
     var edgeID = this.nextEdge_++;
     this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
@@ -670,7 +678,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     }
     return null;
   };
-  goog.array.forEach(edges, function(e, i) {
+  goog.array.forEach(boundaryEdges, function(e, i) {
     // If ab is not flipped, it looks like:
     //    B<---A <- extruded
     //    ^ \  ^
@@ -685,7 +693,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     //    a--->b <- origin
     //    Diagonal: B->a
     var ab = e;
-    var AB = clonedEdges[i];
+    var AB = this.edges[edgeMap[e.id]];
     var aA = findEdge(joinEdges, ab.start, AB.start);
     var bB = findEdge(joinEdges, ab.end, AB.end);
 
@@ -720,11 +728,28 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     }
   }, this);
 
+  //
+  // End Faces
+  //
+
+  // Clone faces
+  var faceMap = {};
+  var clonedFaces = goog.array.map(faces, function(f) {
+    var faceID = this.nextFace_++;
+    faceMap[f.id] = faceID;
+    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+        f.e0 >= 0 ? edgeMap[f.e0] : -edgeMap[-f.e0],
+        f.e1 >= 0 ? edgeMap[f.e1] : -edgeMap[-f.e1],
+        f.e2 >= 0 ? edgeMap[f.e2] : -edgeMap[-f.e2]);
+    f.delete(); // Delete original face
+    return this.faces[faceID];
+  }, this);
+
   this.dirtyMesh = true;
 
   return {
     normal: normal,
-    faces: []
+    faces: clonedFaces
   };
 };
 
