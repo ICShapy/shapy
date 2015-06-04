@@ -17,4 +17,4 @@ goog.require('shapy.editor.Viewport');
 shapy.editor.Viewport.Edit = function(name) {
 
 };
-goog.inherit(shapy.editor.Viewport.Edit, shapy.editor.Viewport);
+goog.inherits(shapy.editor.Viewport.Edit, shapy.editor.Viewport);
