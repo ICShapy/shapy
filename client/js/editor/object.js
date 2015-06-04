@@ -64,6 +64,11 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   /** @private {goog.vec.Vec3} @const */
   this.translate_ = goog.vec.Vec3.createFromValues(0, 0, 0);
 
+  /** @private {goog.vec.Quaternion.Type} @const */
+  this.rotQuat_ = goog.vec.Quaternion.createFloat32();
+  /** @private {goog.vec.Mat4.Type} @const */
+  this.rotation_ = goog.vec.Mat4.createFloat32();
+
   /**
    * Cached model matrix, computed from scale, rotate and translate.
    * @private {goog.vec.Mat4} @const
@@ -153,15 +158,17 @@ shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.scale(
       this.model_,
       this.scale_[0], this.scale_[1], this.scale_[2]);
-  goog.vec.Mat4.rotateX(
-      this.model_,
-      this.rotate_[0]);
   goog.vec.Mat4.rotateY(
       this.model_,
       this.rotate_[1]);
   goog.vec.Mat4.rotateZ(
       this.model_,
       this.rotate_[2]);
+  goog.vec.Mat4.rotateX(
+      this.model_,
+      this.rotate_[0]);  
+  //goog.vec.Quaternion.toRotationMatrix4(this.rotQuat_, this.rotation_);
+
   goog.vec.Mat4.invert(this.model_, this.invModel_);
 };
 
