@@ -414,10 +414,7 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
   // Apply translation to each object
   goog.object.forEach(this.editables, function(object) {
     goog.vec.Vec3.subtract(object.getPosition(), mid, d);
-    d[0] *= x;
-    d[1] *= y;
-    d[2] *= z;
-    object.translate(d[0], d[1], d[2]);
+    object.translate(d[0] * x - d[0], d[1] * y - d[1], d[2] * z - d[2]);
     object.scale(x, y, z);
   });
 };
