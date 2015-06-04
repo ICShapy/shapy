@@ -277,9 +277,13 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
  * @param {number}                   z Absolute position on z.
  */
 shapy.editor.Executor.prototype.emitTranslate = function(obj, x, y, z) {
+
   var data = {
     type: 'edit',
     tool: 'translate',
+    x: x,
+    y: y,
+    z: z,
     userId: this.editor_.user.id,
     objMode: this.editor_.mode.object
   };
@@ -305,5 +309,11 @@ shapy.editor.Executor.prototype.applyTranslate = function(data) {
   // Ignore the edit if it is performed by current user.
   if (data['userId'] == this.editor_.user.id) {
     return;
+  }
+
+  if (data['objMode']) {
+    goog.array.forEach(data['ids'], function(id) {
+      this.scene_.objects[id].setPosition(data['x'], data['y'], data['z']);
+    }, this);
   }
 };
