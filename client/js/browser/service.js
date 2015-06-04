@@ -335,10 +335,11 @@ shapy.browser.Service.prototype.getFiltered = function(id) {
  * @param {string}               name  New name.
  */
 shapy.browser.Service.prototype.rename_ = function(url, asset, name) {
-  asset.name = name;
   this.http_.put(url, {
     id: asset.id,
     name: name
+  }).then(function() {
+      asset.name = name;
   });
 };
 
