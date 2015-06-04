@@ -44,6 +44,7 @@ def session(method):
       last_name=data['last_name'],
       email=data['email']
     ), **kwargs)
+    raise Return()
 
   return wrapper
 
