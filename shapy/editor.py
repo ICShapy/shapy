@@ -5,6 +5,7 @@
 import json
 import momoko
 
+from threading import Timer
 from tornado.web import asynchronous
 from tornado.gen import engine, coroutine, Task, Return
 from tornado.web import HTTPError
@@ -154,21 +155,23 @@ class WSHandler(WebSocketHandler, BaseHandler):
       yield Task(self.redis.delete, '%s:%s' % (self.scene_id, id))
 
     # Leave the scene (of the crime).
+    user_id = self.user.id
+    self.user = None
     self.to_channel({
         'type': 'leave',
-        'user': self.user.id
+        'user': user_id
     })
-    self.user = None
 
     # Terminate the redis connection.
     yield Task(self.chan.unsubscribe, self.chan_id)
     yield Task(self.chan.disconnect)
 
+
   @coroutine
   def update_scene_(self, func):
     """Helper to update a scene."""
 
-    yield Task(self.lock.acquire, blocking=True)
+    #yield Task(self.lock.acquire, blocking=True)
 
     # Retrieve the scene object.
     data = yield Task(self.redis.hmget, 'scene:%s' % self.scene_id, [
@@ -186,8 +189,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'users': json.dumps(scene.users)
     })
 
-    yield Task(self.lock.release)
-
+    #yield Task(self.lock.release)
     raise Return(scene)
 
   @coroutine
