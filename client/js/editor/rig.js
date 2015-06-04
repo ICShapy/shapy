@@ -289,5 +289,6 @@ shapy.editor.Rig.Type = {
   TRANSLATE: 'translate',
   ROTATE: 'rotate',
   SCALE: 'scale',
-  CUT: 'cut'
+  CUT: 'cut',
+  EXTRUDE: 'extrude'
 };

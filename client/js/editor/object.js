@@ -106,8 +106,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   this.verts = {};
   this.nextVert_ = 0;
   goog.array.forEach(verts, function(v, i) {
-    this.nextVert_ = Math.max(this.nextVert_, i + 1);
-    this.verts[i] = new shapy.editor.Object.Vertex(this, i, v[0], v[1], v[2]);
+    this.nextVert_ = Math.max(this.nextVert_, i + 2);
+    this.verts[i + 1] = new shapy.editor.Object.Vertex(
+        this, i + 1, v[0], v[1], v[2]);
   }, this);
 
   /**
@@ -118,8 +119,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   this.edges = {};
   this.nextEdge_ = 0;
   goog.array.forEach(edges, function(e, i) {
-    this.nextEdge_ = Math.max(this.nextEdge_, i + 1);
-    this.edges[i] = new shapy.editor.Object.Edge(this, i, e[0], e[1]);
+    this.nextEdge_ = Math.max(this.nextEdge_, i + 2);
+    this.edges[i + 1] = new shapy.editor.Object.Edge(
+        this, i + 1, e[0], e[1]);
   }, this);
 
   /**
@@ -131,8 +133,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
    this.faces = {};
    this.nextFace_ = 0;
    goog.array.forEach(faces, function(f, i) {
-    this.nextFace_ = Math.max(this.nextFace_, i + 1);
-    this.faces[i] = new shapy.editor.Object.Face(this, i, f[0], f[1], f[2]);
+    this.nextFace_ = Math.max(this.nextFace_, i + 2);
+    this.faces[i + 1] = new shapy.editor.Object.Face(
+        this, i + 1, f[0], f[1], f[2]);
    }, this);
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
@@ -399,15 +402,16 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
 
     // Determines if the point is close enough to the edge e.
     var edgeDist = goog.bind(function(e) {
+      var edge = this.edges[e > 0 ? e : -e];
       var d = shapy.editor.geom.getDistance(
         p,
-        this.verts[this.edges[e].start].position,
-        this.verts[this.edges[e].end].position
+        this.verts[edge.start].position,
+        this.verts[edge.end].position
       );
 
       if (d < shapy.editor.Object.EDGE_DIST_TRESHOLD) {
         return {
-          item: this.edges[e],
+          item: edge,
           point: p
         };
       }
@@ -563,6 +567,186 @@ shapy.editor.Object.prototype.connect = function(verts) {
 
 
 /**
+ * Extrude a group of faces
+ *
+ * @param {!Array<!shapy.editor.Object.Face>} faces
+ *
+ * @return {!Object} An object containing the extruded faces and the normal
+ */
+shapy.editor.Object.prototype.extrude = function(faces) {
+  // Calculate normal
+  var normal = goog.vec.Vec3.createFloat32();
+  goog.array.forEach(faces, function(f) {
+    goog.vec.Vec3.add(normal, f.calculateNormal(), normal);
+  }, this);
+  goog.vec.Vec3.scale(normal, 1 / faces.length, normal);
+
+  // Calculate offset
+  var dist = 0.5; // TODO(David): Use the extrude rig
+  var offset = goog.vec.Vec3.createFloat32FromArray(normal);
+  goog.vec.Vec3.scale(offset, dist, offset);
+
+  // Get the list of edges used in all vertices
+  var edges = goog.array.flatten(goog.array.map(faces, function(f) {
+    return f.getEdges();
+  }, this));
+
+  // Figure out the boundary edges by performing two passes, first to record the
+  // counts of each edge, then second to remove edges with count != 1 (as
+  // internal edges are defined to be edges shared by 2 faces).
+  var edgeCounts = {};
+  goog.array.forEach(edges, function(e) {
+    if (!Object.prototype.hasOwnProperty.call(edgeCounts, e.id)) {
+      edgeCounts[e.id] = 0;
+    }
+    edgeCounts[e.id]++;
+  });
+  var boundaryEdges = goog.array.filter(edges, function(e) {
+    return edgeCounts[e.id] == 1;
+  });
+
+  // Compute the vertices
+  var verts = goog.array.flatten(goog.array.map(edges, function(e) {
+    return e.getVertices();
+  }, this));
+  goog.array.removeDuplicates(verts);
+
+  // Compute the boundary vertices
+  var boundaryVerts =
+    goog.array.flatten(goog.array.map(boundaryEdges, function(e) {
+      return e.getVertices();
+    }, this));
+  goog.array.removeDuplicates(boundaryVerts);
+
+  //
+  // Extruded faces/edges
+  //
+
+  // Clone vertices
+  var vertMap = {};
+  goog.array.map(verts, function(v) {
+    var vertID = this.nextVert_++;
+    vertMap[v.id] = vertID;
+    this.verts[vertID] = new shapy.editor.Object.Vertex(this, vertID,
+      v.position[0] + offset[0],
+      v.position[1] + offset[1],
+      v.position[2] + offset[2]);
+    return this.verts[vertID];
+  }, this);
+
+  // Clone edges
+  var edgeMap = {};
+  goog.array.map(edges, function(e) {
+    var edgeID = this.nextEdge_++;
+    edgeMap[e.id] = edgeID;
+    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+      vertMap[e.start], vertMap[e.end]);
+    return this.edges[edgeID];
+  }, this);
+
+  //
+  // Side Faces
+  //
+
+  // Build vert pairs
+  var vertPairs = goog.array.map(boundaryVerts, function(v) {
+    return [v, this.verts[vertMap[v.id]]];
+  }, this);
+
+  // Join pairs of vertices with edges
+  var joinEdges = goog.array.map(vertPairs, function(p) {
+    var edgeID = this.nextEdge_++;
+    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+      p[0].id, p[1].id);
+    return this.edges[edgeID];
+  }, this);
+
+  // Create faces joining the extruded faces and original faces
+  var findEdge = function(edgeList, a, b) {
+    for (var i = 0; i < edgeList.length; i++) {
+      if (edgeList[i].start == a && edgeList[i].end == b) {
+        return edgeList[i];
+      }
+    }
+    return null;
+  };
+  goog.array.forEach(boundaryEdges, function(e, i) {
+    // If ab is not flipped, it looks like:
+    //    B<---A <- extruded
+    //    ^ \  ^
+    //    |  \ |
+    //    b<---a <- origin
+    //    Diagonal: B->a
+    //
+    // If ab is flipped, it looks like:
+    //    A--->B <- extruded
+    //    ^  / ^
+    //    | /  |
+    //    a--->b <- origin
+    //    Diagonal: B->a
+    var ab = e;
+    var AB = this.edges[edgeMap[e.id]];
+    var aA = findEdge(joinEdges, ab.start, AB.start);
+    var bB = findEdge(joinEdges, ab.end, AB.end);
+
+    // Determine whether this edge was flipped
+    var flipped;
+    goog.array.forEach(faces, function(f) {
+      if (f.e0 == ab.id || f.e1 == ab.id || f.e2 == ab.id) {
+        flipped = false;
+      }
+      if (f.e0 == -ab.id || f.e1 == -ab.id || f.e2 == -ab.id) {
+        flipped = true;
+      }
+    }, this);
+
+    // Create diagonal edge
+    var edgeID = this.nextEdge_++;
+    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+      AB.end, ab.start);
+    var diagonal = this.edges[edgeID];
+
+    // Fill out faces
+    var emitFace = goog.bind(function(a, b, c) {
+      var faceID = this.nextFace_++;
+      this.faces[faceID] = new shapy.editor.Object.Face(this, faceID, a, b, c);
+    }, this);
+    if (flipped) {
+      emitFace(aA.id, AB.id, diagonal.id);
+      emitFace(-bB.id, -ab.id, -diagonal.id);
+    } else {
+      emitFace(-AB.id, -aA.id, -diagonal.id);
+      emitFace(ab.id, bB.id, diagonal.id);
+    }
+  }, this);
+
+  //
+  // End Faces
+  //
+
+  // Clone faces
+  var faceMap = {};
+  var clonedFaces = goog.array.map(faces, function(f) {
+    var faceID = this.nextFace_++;
+    faceMap[f.id] = faceID;
+    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+        f.e0 >= 0 ? edgeMap[f.e0] : -edgeMap[-f.e0],
+        f.e1 >= 0 ? edgeMap[f.e1] : -edgeMap[-f.e1],
+        f.e2 >= 0 ? edgeMap[f.e2] : -edgeMap[-f.e2]);
+    f.delete(); // Delete original face
+    return this.faces[faceID];
+  }, this);
+
+  this.dirtyMesh = true;
+
+  return {
+    normal: normal,
+    faces: clonedFaces
+  };
+};
+
+
+/**
  * Build an cube object from triangles.
  *
  * @param {string}      id
@@ -575,50 +759,52 @@ shapy.editor.Object.prototype.connect = function(verts) {
  */
 shapy.editor.Object.createCube = function(id, scene, w, h, d) {
   // Vertex layout:
-  //   4-----5
+  //   5-----6
   //  /     /|
-  // 0-----1 |
-  // | 6   | 7
+  // 1-----2 |
+  // | 7   | 8
   // |     |/
-  // 2-----3
+  // 3-----4
   var vertices = [
-    [-w, +h, +d], // 0
-    [+w, +h, +d], // 1
-    [-w, -h, +d], // 2
-    [+w, -h, +d], // 3
-    [-w, +h, -d], // 4
-    [+w, +h, -d], // 5
-    [-w, -h, -d], // 6
-    [+w, -h, -d], // 7
+    [-w, +h, +d], // 1
+    [+w, +h, +d], // 2
+    [-w, -h, +d], // 3
+    [+w, -h, +d], // 4
+    [-w, +h, -d], // 5
+    [+w, +h, -d], // 6
+    [-w, -h, -d], // 7
+    [+w, -h, -d], // 8
   ];
 
-  // Edge layout:
-  //     +--4--+
-  //   8/|7   9/5
-  //   +--0--+ |
-  //   3 +-6-1-+
-  // 11|/    |/10
-  //   +--2--+
   var edges = [
-    [0, 1], [1, 3], [3, 2], [2, 0], // Front
-    [4, 5], [5, 7], [7, 6], [6, 4], // Back
-    [0, 4], [1, 5], [3, 7], [2, 6], // Middle
-    [0, 3],                         // Diag 12
-    [5, 3],                         // Diag 13
-    [5, 6],                         // Diag 14
-    [4, 2],                         // Diag 15
-    [4, 1],                         // Diag 16
-    [7, 2]                          // Diag 17
+    [1, 2], //  1
+    [2, 3], //  2
+    [3, 1], //  3
+    [2, 4], //  4
+    [4, 3], //  5
+    [6, 8], //  6
+    [8, 7], //  7
+    [7, 5], //  8
+    [5, 8], //  9
+    [6, 5], // 10
+    [1, 5], // 11
+    [2, 5], // 12
+    [6, 2], // 13
+    [1, 7], // 14
+    [3, 7], // 15
+    [4, 6], // 16
+    [4, 8], // 17
+    [3, 8], // 18
   ];
 
   // Faces
   var faces = [
-    [0, 1, 12], [2, 3, 12],     // +Z
-    [1, 9, 13], [5, 10, 13],    // +X
-    [4, 7, 14], [6, 5, 14],     // -Z
-    [8, 3, 15], [11, 7, 15],    // -X
-    [4, 9, 16],  [0, 8, 16],    // +Y
-    [2, 10, 17], [6, 11, 17]    // -Y
+    [+1, +2, +3], [+4, +5, -2],      // +Z
+    [+10, +9, -6], [-9, -8, -7],     // -Z
+    [-1, +11, -12], [+12, -10, +13], // +Y
+    [+18, +7, -15], [-18, -5, +17],  // -Y
+    [-16, -4, -13], [+16, +6, -17],  // +X
+    [+14, +8, -11], [-3, +15, -14],  // -X
   ];
 
   return new shapy.editor.Object(id, scene, vertices, edges, faces);
@@ -656,60 +842,59 @@ shapy.editor.Object.createSphere = function(id, scene, r, slices, stacks) {
   verts.push([0, -r, 0]);
 
   for (var j = 0; j < slices; ++j) {
-    var v00 = 0;
-    var v01 = 1 + j;
-    var v10 = 1 + (j + 1) % slices;
+    var v00 = 1;
+    var v01 = 2 + j;
 
-    edges.push([v00, v01]);
+    edges.push([1, 2 + j]);
     faces.push([
-        (j + 0) % slices,
-        slices + j * 3 + 0,
-        (j + 1) % slices
+        -(1 + (j + 0) % slices),
+        +(1 + (j + 1) % slices),
+        -(1 + slices + j * 3),
     ]);
   }
 
   for (var i = 1; i < stacks - 1; ++i) {
     for (var j = 0; j < slices; ++j) {
-      var v00 = 1 + (i - 1) * slices + (j + 0) % slices;
-      var v01 = 1 + (i - 1) * slices + (j + 1) % slices;
-      var v10 = 1 + (i - 0) * slices + (j + 0) % slices;
-      var v11 = 1 + (i - 0) * slices + (j + 1) % slices;
+      var v00 = 2 + (i - 1) * slices + (j + 0) % slices;
+      var v01 = 2 + (i - 1) * slices + (j + 1) % slices;
+      var v10 = 2 + (i - 0) * slices + (j + 0) % slices;
+      var v11 = 2 + (i - 0) * slices + (j + 1) % slices;
 
       edges.push([v00, v01]);
       edges.push([v01, v11]);
       edges.push([v11, v00]);
       faces.push([
-          slices + (i - 1) * 3 * slices + j * 3 + 0,
           slices + (i - 1) * 3 * slices + j * 3 + 1,
-          slices + (i - 1) * 3 * slices + j * 3 + 2
+          slices + (i - 1) * 3 * slices + j * 3 + 2,
+          slices + (i - 1) * 3 * slices + j * 3 + 3
       ]);
       if (i < stacks - 2) {
         faces.push([
-            slices + (i - 0) * 3 * slices + (j + 1) % slices * 3 + 0,
-            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 1,
-            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 2,
+            slices + (i - 1) * 3 * slices + j * 3 + 3,
+            slices + (i - 0) * 3 * slices + j * 3 + 1,
+            slices + (i - 1) * 3 * slices + (j - 1 + slices) % slices * 3 + 2,
         ]);
       } else {
         faces.push([
-            slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 0,
-            slices + (i - 1) * 3 * slices + (j + 0) % slices * 3 + 1,
-            slices + (i - 1) * 3 * slices + (j + 1) % slices * 3 + 2,
+            slices + (i - 1) * 3 * slices + j * 3 + 3,
+            slices + (stacks - 2) * 3 * slices + j % slices * 2 + 1,
+            slices + (i - 1) * 3 * slices + (j - 1 + slices) % slices * 3 + 2,
         ]);
       }
     }
   }
 
   for (var j = 0; j < slices; ++j) {
-    var v00 = 1 + (stacks - 1) * slices;
-    var v01 = 1 + (stacks - 2) * slices + j;
-    var v10 = 1 + (stacks - 2) * slices + (j + 1) % slices;
+    var v00 = 2 + (stacks - 1) * slices;
+    var v01 = 2 + (stacks - 2) * slices + j;
+    var v10 = 2 + (stacks - 2) * slices + (j + 1) % slices;
 
     edges.push([v01, v10]);
     edges.push([v00, v01]);
     faces.push([
-      slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 0,
-      slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 1,
-      slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 1,
+      -(slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 1),
+      +(slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 2),
+      -(slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 2),
     ]);
   }
 
@@ -938,24 +1123,31 @@ goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
 
 
 /**
+ * Retrieves the edges forming a face.
+ *
+ * @return {!Array<!shapy.editor.Object.Edge>}
+ */
+shapy.editor.Object.Face.prototype.getEdges = function() {
+  return [
+    this.object.edges[this.e0 >= 0 ? this.e0 : -this.e0],
+    this.object.edges[this.e1 >= 0 ? this.e1 : -this.e1],
+    this.object.edges[this.e2 >= 0 ? this.e2 : -this.e2]
+  ];
+};
+
+
+/**
  * Retrives the vertices forming a face.
  *
  * @return {!Array<!shapy.editor.Object.Vertex>}
  */
 shapy.editor.Object.Face.prototype.getVertices = function() {
-  var e0 = this.object.edges[this.e0];
-  var e1 = this.object.edges[this.e1];
-  var e2 = this.object.edges[this.e2];
-  var verts = [
-    e0.start, e0.end,
-    e1.start, e1.end,
-    e2.start, e2.end
+  var e = this.getEdges();
+  return [
+    this.object.verts[this.e0 >= 0 ? e[0].start : e[0].end],
+    this.object.verts[this.e1 >= 0 ? e[1].start : e[1].end],
+    this.object.verts[this.e2 >= 0 ? e[2].start : e[2].end],
   ];
-
-  goog.array.removeDuplicates(verts);
-  return goog.array.map(verts, function(v) {
-    return this.object.verts[v];
-  }, this);
 };
 
 
@@ -984,6 +1176,24 @@ shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
       verts[2].position
   ];
 };
+
+
+/**
+ * Calculate the normal of the face
+ *
+ * @return {!goog.vec.Vec3.Type}
+ */
+shapy.editor.Object.Face.prototype.calculateNormal = function() {
+  var normal = goog.vec.Vec3.createFloat32();
+  var ab = goog.vec.Vec3.createFloat32();
+  var ac = goog.vec.Vec3.createFloat32();
+  var verts = this.getVertexPositions_();
+  goog.vec.Vec3.subtract(verts[1], verts[0], ab);
+  goog.vec.Vec3.subtract(verts[2], verts[0], ac);
+  goog.vec.Vec3.cross(ac, ab, normal);
+  goog.vec.Vec3.normalize(normal, normal);
+  return normal;
+}
 
 
 /**

@@ -365,12 +365,14 @@ shapy.editor.Renderer.prototype.renderObjects = function(vp) {
 
   this.shObject_.use();
 
+  this.gl_.enable(goog.webgl.CULL_FACE);
   goog.object.forEach(this.objectCache_, function(pair, id, meshes) {
     var mvp = goog.vec.Mat4.createFloat32();
     goog.vec.Mat4.multMat(vp.camera.vp, pair[1], mvp);
     this.shObject_.uniformMat4x4('u_mvp', mvp);
     pair[0].render(this.shObject_);
   }, this);
+  this.gl_.disable(goog.webgl.CULL_FACE);
 };
 
 
