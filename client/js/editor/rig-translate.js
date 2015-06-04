@@ -21,6 +21,11 @@ shapy.editor.Rig.Translate = function() {
    * @private {goog.vec.Vec3.Type}
    */
   this.lastPos_ = goog.vec.Vec3.createFloat32();
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.objLastPos_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
 
@@ -241,6 +246,7 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
   this.lastPos_ = this.getClosest_(ray);
+  this.objLastPos_ = this.object.getPosition();
 
   return this.hover_.x || this.hover_.y || this.hover_.z;
 };
@@ -258,7 +264,12 @@ shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
   this.select_.x = this.select_.y = this.select_.z = false;
   if (this.onFinish && captured) {
     var pos = this.object.getPosition();
-    this.onFinish(this.object, pos[0], pos[1], pos[2]);
+    this.onFinish(
+        this.object,
+        pos[0] - this.objLastPos_[0],
+        pos[1] - this.objLastPos_[1],
+        pos[2] - this.objLastPos_[2]
+    );
   }
   return captured;
 };

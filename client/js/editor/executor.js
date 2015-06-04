@@ -272,18 +272,18 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
  * Executes the translate command.
  *
  * @param {shapy.editor.Object.Type} obj Object to be translated.
- * @param {number}                   x Absolute position on x.
- * @param {number}                   y Absolute position on y.
- * @param {number}                   z Absolute position on z.
+ * @param {number}                   dx  Delta on x.
+ * @param {number}                   dy  Delta on y.
+ * @param {number}                   dz  Delta on z.
  */
-shapy.editor.Executor.prototype.emitTranslate = function(obj, x, y, z) {
+shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
 
   var data = {
     type: 'edit',
     tool: 'translate',
-    x: x,
-    y: y,
-    z: z,
+    dx: dx,
+    dy: dy,
+    dz: dz,
     userId: this.editor_.user.id,
     objMode: this.editor_.mode.object
   };
@@ -311,9 +311,15 @@ shapy.editor.Executor.prototype.applyTranslate = function(data) {
     return;
   }
 
+  // Translate objects/ parts.
   if (data['objMode']) {
     goog.array.forEach(data['ids'], function(id) {
-      this.scene_.objects[id].setPosition(data['x'], data['y'], data['z']);
+      this.scene_.objects[id].translate(data['dx'], data['dy'], data['dz']);
+    }, this);
+  } else {
+    goog.array.forEach(data['ids'], function(p) {
+      this.scene_.objects[p[0]].verts[p[1]].translate(
+          data['dx'], data['dy'], data['dz']);
     }, this);
   }
 };
