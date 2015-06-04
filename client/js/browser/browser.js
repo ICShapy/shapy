@@ -232,7 +232,10 @@ shapy.browser.BrowserToolbarController.prototype.selectFiltered = function(id) {
  * Enters shared space.
  */
 shapy.browser.BrowserToolbarController.prototype.selectShared = function() {
-  this.selectFiltered(shapy.browser.Asset.Space.SHARED);
+  this.shBrowser_.getShared().then(goog.bind(function(dir) {
+    this.shBrowser_.private = false;
+    this.shBrowser_.current = dir;
+  }, this));
 };
 
 

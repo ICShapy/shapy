@@ -281,6 +281,20 @@ shapy.browser.Service.prototype.getPublic = function() {
   );
 };
 
+/**
+ * Fetches shared space from the server or from local storage.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.Service.prototype.getShared = function() {
+  return this.get_(
+      '/api/assets/shared',
+      this.dirs_,
+      shapy.browser.Asset.Dir,
+      shapy.browser.Asset.Space.SHARED
+  );
+};
+
 
 /**
  * Fetches filtered space from the server or from local storage.
