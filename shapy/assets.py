@@ -83,12 +83,16 @@ class FilteredHandler(APIHandler):
     self.write(json.dumps({
       'id': data[0],
       'name': data[1],
+      'owner': True,
+      'write': True,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3]
+          'preview': item[3],
+          'owner': True,
+          'write': True
         }
         for item in cursor.fetchall()
       ]
