@@ -663,20 +663,25 @@ shapy.editor.Object.prototype.extrude = function(faces) {
 
   // Create faces joining the extruded faces and original faces
   var findEdge = function(edgeList, a, b) {
-    goog.array.forEach(edgeList, function(e, i) {
-      if (e.start == a && e.end == b) {
-        return i;
-      } else if (e.end == a && e.start == b) {
-        return i;
+    for (var i = 0; i < edgeList.length; i++) {
+      if (edgeList[i].start == a && edgeList[i].end == b) {
+        return edgeList[i];
       }
-    });
-    return -1;
+    }
+    return null;
   };
   goog.array.forEach(edges, function(e, i) {
-    // If ab is not flipped:
+    // If ab is not flipped, it looks like:
+    //    B<---A <- extruded
+    //    ^ \  ^
+    //    |  \ |
+    //    b<---a <- origin
+    //    Diagonal: B->a
+    //
+    // If ab is flipped, it looks like:
     //    A--->B <- extruded
-    //    ^    ^
-    //    |    |
+    //    ^  / ^
+    //    | /  |
     //    a--->b <- origin
     //    Diagonal: B->a
     var ab = e;
@@ -684,50 +689,16 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     var aA = findEdge(joinEdges, ab.start, AB.start);
     var bB = findEdge(joinEdges, ab.end, AB.end);
 
-    // Create diagonal edge
-    var edgeID = this.nextEdge_++;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
-      AB.end, ab.start);
-    var diagonal = this.edges[edgeID];
-
-  }, this);
-
-  // Fill in each side
-  // TODO(David): This is the wrong approach, instead loop over each boundary
-  // edge and work from there, rather than attempting to join the joinEdges...
-  /*
-  for (var i = 0; i < joinEdges.length; i++) {
-    // If ab is not flipped:
-    //    A--->B <- extruded
-    //    ^    ^
-    //    |    |
-    //    a--->b <- origin
-    //    Diagonal: B->a
-    //
-    // If ab is flipped:
-    //    B--->A <- extruded
-    //    ^    ^
-    //    |    |
-    //    b--->a <- origin
-    //    Diagonal: A->b
-    var aA = joinEdges[i];
-    var bB = joinEdges[(i + 1) % joinEdges.length];
-
-    // Figure out which edge joins a and b
-    var j;
-    var flipped = false;
-    for (j = 0; j < edges.length; j++) {
-      if ((edges[j].start == aA.start) && (edges[j].end == bB.start)) {
+    // Determine whether this edge was flipped
+    var flipped;
+    goog.array.forEach(faces, function(f) {
+      if (f.e0 == ab.id || f.e1 == ab.id || f.e2 == ab.id) {
         flipped = false;
-        break;
-      } else if ((edges[j].end == aA.start) && (edges[j].start == bB.start)) {
-        flipped = true;
-        break;
       }
-    }
-
-    var ab = edges[j];
-    var AB = clonedEdges[j];
+      if (f.e0 == -ab.id || f.e1 == -ab.id || f.e2 == -ab.id) {
+        flipped = true;
+      }
+    }, this);
 
     // Create diagonal edge
     var edgeID = this.nextEdge_++;
@@ -735,29 +706,25 @@ shapy.editor.Object.prototype.extrude = function(faces) {
       AB.end, ab.start);
     var diagonal = this.edges[edgeID];
 
-    console.log(aA, bB, ab, AB, diagonal, flipped);
-
-    // Emit faces
+    // Fill out faces
     var emitFace = goog.bind(function(a, b, c) {
       var faceID = this.nextFace_++;
       this.faces[faceID] = new shapy.editor.Object.Face(this, faceID, a, b, c);
-      console.log(a, b, c);
-      console.log(this.faces[faceID].getVertices());
     }, this);
     if (flipped) {
-      emitFace(diagonal.id, bB.id, AB.id);
-      emitFace(-diagonal.id, -aA.id, -ab.id);
+      emitFace(aA.id, AB.id, diagonal.id);
+      emitFace(-bB.id, -ab.id, -diagonal.id);
     } else {
-      emitFace(-diagonal.id, -AB.id, -aA.id);
-      emitFace(diagonal.id, ab.id, bB.id);
+      emitFace(-AB.id, -aA.id, -diagonal.id);
+      emitFace(ab.id, bB.id, diagonal.id);
     }
-  }
-  */
+  }, this);
 
   this.dirtyMesh = true;
 
   return {
-    normal: normal
+    normal: normal,
+    faces: []
   };
 };
 
