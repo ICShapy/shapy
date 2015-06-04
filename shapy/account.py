@@ -30,6 +30,12 @@ class Account(object):
         last_name=user[1],
         email=user[2]))
 
+  @classmethod
+  @coroutine
+  def login(cls, db, account):
+    """Logs a user in."""
+    pass
+
 
   def __init__(self, user_id, first_name='', last_name='', email=''):
     """Initializes a new account object."""

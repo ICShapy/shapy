@@ -2,7 +2,9 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
+import os
 import functools
+import hashlib
 import json
 
 from tornado.web import RequestHandler, HTTPError
@@ -25,14 +27,20 @@ def session(method):
       raise Return()
 
     # Map the session ID to a user.
-    user_id = yield Task(self.redis.hget, 'session:%s' % token, 'user_id')
-    if not user_id:
+    data = yield Task(self.redis.hget, 'session', token)
+    data = json.loads(data)
+
+    if not data or not data['id']:
       yield method(self, *args, user=None, **kwargs)
       raise Return()
 
     # Fetch the user info from the database & pass it to the method.
-    user = yield Account.get(self.db, user_id)
-    yield method(self, *args, user=user, **kwargs)
+    yield method(self, *args, user=Account(
+      data['id'],
+      first_name=data['first_name'],
+      last_name=data['last_name'],
+      email=data['email']
+    ), **kwargs)
 
   return wrapper
 
@@ -56,6 +64,18 @@ class BaseHandler(RequestHandler):
 
     if hasattr(self, 'redis_conn'):
       self.redis_conn.disconnect()
+
+  @coroutine
+  def login(self, user):
+    """Logs the user in, storing a session entry in the database."""
+    token = os.urandom(16).encode('hex')
+    yield Task(self.redis.hset, 'session' , token, json.dumps({
+      'id': user[0],
+      'first_name': user[1],
+      'last_name': user[2],
+      'email': user[3]
+    }))
+    self.set_secure_cookie('session', token)
 
 
 
