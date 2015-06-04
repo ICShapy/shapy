@@ -229,6 +229,30 @@ shapy.browser.BrowserToolbarController.prototype.selectFiltered = function(id) {
 
 
 /**
+ * Enters shared space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectShared = function() {
+  this.selectFiltered(shapy.browser.Asset.Space.SHARED);
+};
+
+
+/**
+ * Enters textures space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectTextures = function() {
+  this.selectFiltered(shapy.browser.Asset.Space.TEXTURES);
+};
+
+
+/**
+ * Enters scenes space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectScenes = function() {
+  this.selectFiltered(shapy.browser.Asset.Space.SCENES);
+};
+
+
+/**
  * Selects chosen dir from path.
  *
  * @param {!shapy.browser.Asset.Dir} dir Dir chosen by user.

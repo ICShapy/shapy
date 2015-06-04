@@ -277,7 +277,7 @@ shapy.browser.Service.prototype.getPublic = function() {
       '/api/assets/public',
       this.dirs_,
       shapy.browser.Asset.Dir,
-      -1
+      shapy.browser.Asset.Space.PUBLIC
   );
 };
 

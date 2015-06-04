@@ -82,6 +82,7 @@ shapy.browser.Asset.prototype.delete = function() {
 };
 
 
+
 /**
  * Enumeration of asset types.
  * @enum {string}
@@ -90,6 +91,19 @@ shapy.browser.Asset.Type = {
   DIRECTORY: 'dir',
   SCENE: 'scene',
   TEXTURE: 'texture'
+};
+
+
+
+/**
+ * Enumeration of asset spaces.
+ * @enum {number}
+ */
+shapy.browser.Asset.Space = {
+  PUBLIC: -1,
+  SHARED: -2,
+  TEXTURES: -3,
+  SCENES: -4
 };
 
 
@@ -153,7 +167,7 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
   // Fill in the name if unknown.
   this.name = data.name || 'Untitled Directory';
 
-  // Fill in child directories.
+  // Fill in child assets.
   goog.array.forEach(data['data'], function(child) {
     var asset;
 
@@ -187,7 +201,11 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
       }
     }
 
-    asset.parent = this;
+    // Set parent only if parent from private space
+    if (this.id >= 0) {
+      asset.parent = this;
+    }
+    // Update children list
     this.children.push(asset);
   }, this);
 
