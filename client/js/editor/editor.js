@@ -397,9 +397,9 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   this.rig_ = rig;
   if (this.rig_) {
     this.rig_.object = attach;
-    if (this.layout_) {
-      this.layout_.active.rig = rig;
-    }
+  }
+  if (this.layout_) {
+    this.layout_.active.rig = rig;
   }
 };
 
