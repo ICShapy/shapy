@@ -594,23 +594,23 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   var offset = goog.vec.Vec3.createFloat32FromArray(normal);
   goog.vec.Vec3.scale(offset, dist, offset);
 
-  // TODO(David): If edges are duplicate, they are internal
-
-  // Get a list of unique edges
+  // Get the list of edges used in all vertices
   var edges = goog.array.flatten(goog.array.map(faces, function(f) {
     return f.getEdges();
   }, this));
-  goog.array.removeDuplicates(edges);
 
-  // Get boundary edges
+  // Figure out the boundary edges by performing two passes, first to record the
+  // counts of each edge, then second to remove edges with count != 1 (as
+  // internal edges are defined to be edges shared by 2 faces).
+  var edgeCounts = {};
+  goog.array.forEach(edges, function(e) {
+    if (!Object.prototype.hasOwnProperty.call(edgeCounts, e.id)) {
+      edgeCounts[e.id] = 0;
+    }
+    edgeCounts[e.id]++;
+  });
   var boundaryEdges = goog.array.filter(edges, function(e) {
-    var faceCount = 0;
-    goog.array.forEach(faces, function(f) {
-      if (goog.array.contains(f.getEdges(), e)) {
-        faceCount++;
-      }
-    });
-    return faceCount == 1;
+    return edgeCounts[e.id] == 1;
   });
 
   // Compute the vertices
@@ -653,7 +653,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   }, this);
 
   //
-  // Edge Faces
+  // Side Faces
   //
 
   // Build vert pairs
