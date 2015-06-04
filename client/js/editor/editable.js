@@ -452,48 +452,26 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
 /**
  * Rotate the group
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {!goog.vec.Quaternion.Type} q
  */
-shapy.editor.ObjectGroup.prototype.rotate = function(x, y, z, dx, dy, dz) {
-  var m = goog.vec.Mat4.createFloat32();
+shapy.editor.ObjectGroup.prototype.rotate = function(q) {
   var mid = this.getPosition();
-  var q = goog.vec.Quaternion.createFloat32();
-  var dQuater = goog.vec.Quaternion.createFloat32();
   var c = goog.vec.Quaternion.createFloat32();
-
+  var dq = goog.vec.Quaternion.createFloat32();
+  goog.vec.Quaternion.conjugate(q, c);
 
   goog.object.forEach(this.editables, function(object) {
     var d = goog.vec.Vec3.createFloat32();
-    var p = object.getPosition();
-    var r = object.getRotation();
-    goog.vec.Vec3.subtract(p, mid, d);
-
-    //goog.vec.Mat4.makeIdentity(m);
-    //goog.vec.Mat4.rotateX(m, dx);
-    //goog.vec.Mat4.rotateY(m, dy);
-    //goog.vec.Mat4.rotateZ(m, dz);
-    //goog.vec.Mat4.multVec3NoTranslate(m, d, d);
-
-    // Compute the current rotation quaternion.
-    goog.vec.Quaternion.setFromValues(dQuater, d[0], d[1], d[2], 0);
-    
-    // Compute the rotation quaternion.
-    shapy.editor.geom.quatFromEulerAngles(x, y, z, q);
+    goog.vec.Vec3.subtract(object.getPosition(), mid, d);
 
     // Compute the rotation quaternion
-    goog.vec.Quaternion.conjugate(q, c);
-    goog.vec.Quaternion.concat(q, dQuater, dQuater);
-    goog.vec.Quaternion.concat(dQuater, c, dQuater);
+    goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
+    goog.vec.Quaternion.concat(q, dq, dq);
+    goog.vec.Quaternion.concat(dq, c, dq);
 
-    // Update d.
-    goog.vec.Vec3.setFromValues(d, dQuater[0], dQuater[1], dQuater[2]);     
     // Translate.
-    object.translate(mid[0] + d[0], mid[1] + d[1], mid[2] + d[2]);    
+    object.translate(mid[0] + dq[0], mid[1] + dq[1], mid[2] + dq[2]);    
     object.rotate(q);
-
-    //object.rotate(r[0] + dx, r[1] + dy, r[2] + dz);
   });
 };
 
