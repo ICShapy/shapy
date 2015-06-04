@@ -4,7 +4,6 @@
 
 import os
 import functools
-import hashlib
 import json
 
 from tornado.web import RequestHandler, HTTPError

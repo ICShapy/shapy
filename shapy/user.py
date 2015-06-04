@@ -2,6 +2,7 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
+import hashlib
 import json
 
 import momoko
