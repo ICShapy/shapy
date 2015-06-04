@@ -619,14 +619,11 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
           return e.type == shapy.editor.Editable.Type.FACE;
         });
 
-        // Extrude
+        // Perform extrude
         if (editables.length > 0) {
           var extrudeData = object.extrude(editables);
-
           this.rig(this.rigExtrude_);
-          this.rigExtrude_.buildModelMatrix(
-            this.partGroup_.getPosition(),
-            extrudeData.normal);
+          this.rigExtrude_.setup(extrudeData);
         }
       }
       break;

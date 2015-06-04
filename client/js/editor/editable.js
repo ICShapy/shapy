@@ -237,7 +237,7 @@ shapy.editor.EditableGroup.prototype.getScale = function() {
   }, this);
   goog.vec.Vec3.scale(scale, 1 / this.editables_.length, scale);
   return scale;
-}
+};
 
 
 /**
@@ -256,7 +256,7 @@ shapy.editor.EditableGroup.prototype.getRotation = function() {
   }, this);
   goog.vec.Vec3.scale(rotation, 1 / this.editables_.length, rotation);
   return rotation;
-}
+};
 
 
 
