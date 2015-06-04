@@ -108,8 +108,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data['type'] == 'lock':
       objects = []
       for id in data['objects']:
-        lock = yield Task(self.redis.setnx, '%s:%s' % (self.scene_id, id), 1)
+        key = '%s:%s' % (self.scene_id, id)
+        lock = yield Task(self.redis.setnx, key, 1)
         if lock:
+          yield Task(self.redis.expire, key, 60 * 10)
           self.objects.add(id)
           objects.append(id)
       data['objects'] = objects
