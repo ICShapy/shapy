@@ -755,6 +755,10 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   */
 
   this.dirtyMesh = true;
+
+  return {
+    normal: normal
+  };
 };
 
 
