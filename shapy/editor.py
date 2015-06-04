@@ -165,7 +165,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
 
     # Unlock all objects.
     for id in self.objects:
-      self.redis.delete('%s:%s' % (self.scene_id, id))
+      self.redis.delete('scene:%s:%s' % (self.scene_id, id))
 
     # Leave the scene (of the crime).
     user_id = self.user.id
