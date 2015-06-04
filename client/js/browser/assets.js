@@ -111,6 +111,7 @@ shapy.browser.Asset.Dir = function(shBrowser, id, opt_data) {
       id,
       shapy.browser.Asset.Type.DIRECTORY,
       opt_data);
+  var defer;
 
   /**
    * Child assets of this directory.
@@ -121,7 +122,8 @@ shapy.browser.Asset.Dir = function(shBrowser, id, opt_data) {
   // If data provides child list, resolve promise.
   if (opt_data && opt_data.data) {
     this.load(opt_data);
-    this.ready = this.shBrowser_.q_.when(this);
+    this.ready = this.shBrowser_.q_.defer();
+    this.ready.resolve(this);
   }
 
   // Hardcoded image for directories.
@@ -190,18 +192,4 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
   }, this);
 
   this.loaded = true;
-};
-
-
-/**
- * Saves a directory.
- *
- * @param {string} name New name.
- */
-shapy.browser.Asset.prototype.rename = function(name) {
-  this.name = name;
-  this.shBrowser_.http_.put('/api/assets/dir', {
-    id: this.id,
-    name: name
-  });
 };

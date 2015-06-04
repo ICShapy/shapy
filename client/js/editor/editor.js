@@ -20,6 +20,7 @@ goog.require('shapy.editor.Mode');
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Rig');
 goog.require('shapy.editor.Rig.Cut');
+goog.require('shapy.editor.Rig.Extrude');
 goog.require('shapy.editor.Rig.Rotate');
 goog.require('shapy.editor.Rig.Scale');
 goog.require('shapy.editor.Rig.Translate');
@@ -69,6 +70,8 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
   this.rigScale_ = new shapy.editor.Rig.Scale();
   /** @private {!shapy.editor.Rig} @const */
   this.rigCut_ = new shapy.editor.Rig.Cut();
+  /** @private {!shapy.editor.Rig} @const */
+  this.rigExtrude_ = new shapy.editor.Rig.Extrude();
 
   /** @private {!angular.$location} @const */
   this.location_ = $location;
@@ -372,7 +375,6 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
     this.partGroup_.setSelected(null);
     this.partGroup_.clear();
   }
-
   this.rig(this.rigTranslate_);
 };
 
@@ -427,7 +429,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (!(object = this.partGroup_.getObject())) {
         return;
       }
-      var verts = this.partGroup_.getVertices();
+      verts = this.partGroup_.getVertices();
       if (verts.length != 3 && verts.length != 2) {
         return;
       }
@@ -438,9 +440,30 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (!(object = this.partGroup_.getObject())) {
         return;
       }
-      var vert = object.mergeVertices(this.partGroup_.getVertices());
+      vert = object.mergeVertices(this.partGroup_.getVertices());
       this.partGroup_.clear();
       this.rig(null);
+      return;
+    }
+    case 'E': {
+      // Get all selected faces.
+      if (!(object = this.partGroup_.getObject())) {
+        return;
+      }
+      faces = goog.array.filter(this.partGroup_.getEditables(), function(e) {
+        return e.type == shapy.editor.Editable.Type.FACE;
+      });
+
+      // Extrude.
+      if (faces.length <= 0) {
+        return;
+      }
+
+      this.rig(this.rigExtrude_);
+      this.rigExtrude_.setup({
+          faces: faces,
+          normal: object.extrude(faces).normal
+      });
       return;
     }
     case 'T': this.rig(this.rigTranslate_); return;

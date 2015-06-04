@@ -54,7 +54,7 @@ shapy.editor.Editable.prototype.setHover = function(hover) {
 /**
  * Selects the editable.
  *
- * @param {shapy.User} selected
+ * @param {boolean} selected
  */
 shapy.editor.Editable.prototype.setSelected = function(selected) {
   this.selected = selected;
@@ -366,6 +366,16 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
   }, this));
   goog.array.removeDuplicates(verts);
   return verts;
+};
+
+
+/**
+ * Retrives the editables forming this group
+ *
+ * @return {!Array<!shapy.editor.Editable>}
+ */
+shapy.editor.PartsGroup.prototype.getEditables = function() {
+  return this.editables;
 };
 
 

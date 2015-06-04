@@ -7,6 +7,7 @@ sh-sidebar {
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
   z-index: 1000;
+  overflow: scroll;
 }
 
 sh-sidebar .create img {
@@ -95,7 +96,6 @@ sh-sidebar .create > button:active {
 
 
 sh-sidebar .directory {
-  overflow: hidden;
   position: relative;
   overflow: hidden;
 }
@@ -165,7 +165,7 @@ sh-sidebar-folder {
  * Assets
  */
 
-sh-files {
+sh-assets {
   position: fixed;
   top: 31px;
   left: 222px;
@@ -177,7 +177,7 @@ sh-files {
   overflow: auto;
 }
 
-sh-file {
+sh-asset {
   display: block;
   position: relative;
   float: left;
@@ -187,7 +187,7 @@ sh-file {
   cursor: pointer;
 }
 
-sh-file > .name {
+sh-asset > .name {
   display: block;
   position: absolute;
   bottom: 0; left: 0; right: 0; height: 16px;
@@ -203,11 +203,11 @@ sh-file > .name {
   white-space: nowrap;
 }
 
-sh-file > .name:focus {
+sh-asset > .name:focus {
   outline: 0;
 }
 
-sh-file > div {
+sh-asset > div {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 25px;
   border: 1px solid #cccccc;
@@ -215,17 +215,17 @@ sh-file > div {
   background-color: white;
 }
 
-sh-file > div:hover {
+sh-asset > div:hover {
   box-shadow: 2px 2px 2px #bbbbbb;
 }
 
-sh-file.selected > div {
+sh-asset.selected > div {
   background-color: #3399FF;
   border: 1px solid #0066FF;
   box-shadow: 1px 1px 1px #0066FF;
 }
 
-sh-file.selected > .name {
+sh-asset.selected > .name {
   font-weight: bold;
 }
 
@@ -324,7 +324,7 @@ sh-sidebar-folder > div > img {
   max-height: 80%;
 }
 
-sh-file > div > img {
+sh-asset > div > img {
   max-width: 100%;
   max-height: 100%;
 }

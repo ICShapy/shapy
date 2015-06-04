@@ -6,8 +6,8 @@ goog.provide('shapy.browser.BrowserToolbarController');
 goog.provide('shapy.browser.directories');
 goog.provide('shapy.browser.assetMatch');
 goog.provide('shapy.browser.assetOrder');
-goog.provide('shapy.browser.file');
-goog.provide('shapy.browser.files');
+goog.provide('shapy.browser.asset');
+goog.provide('shapy.browser.assets');
 goog.provide('shapy.browser.sidebar');
 
 goog.require('shapy.browser.Asset');
@@ -107,6 +107,23 @@ shapy.browser.BrowserController.prototype.createTexture = function() {
 
 
 /**
+ * Renames given asset.
+ *
+ * @param {!shapy.browser.Asset} asset Asset that is to be renamed.
+ * @param {string}               name  New name.
+ */
+shapy.browser.BrowserController.prototype.rename = function(asset, name) {
+  switch (asset.type) {
+    case shapy.browser.Asset.Type.DIRECTORY:
+      this.shBrowser_.renameDir(asset, name);
+      break;
+    case shapy.browser.Asset.Type.SCENE:
+      this.shBrowser_.renameScene(asset, name);
+      break;
+  }
+};
+
+/**
  * Returns the current directory.
  *
  * @return {!shapy.browser.Asset.Dir}
@@ -123,6 +140,21 @@ shapy.browser.BrowserController.prototype.current = function() {
  */
 shapy.browser.BrowserController.prototype.query = function() {
   return this.shBrowser_.query;
+};
+
+
+/**
+ * Returns default name for assets
+ *
+ * @param {shapy.browser.Asset.Type} type Type of asset for which we return name
+ */
+shapy.browser.BrowserController.prototype.defaultName = function(type) {
+  switch (type) {
+    case shapy.browser.Asset.Type.DIRECTORY: return 'Untitled Folder';
+    case shapy.browser.Asset.Type.SCENE:     return 'Untitled Scene';
+    case shapy.browser.Asset.Type.TEXTURE:   return 'Untitled Texture';
+    default:                                 return 'Untitled';
+  }
 };
 
 
@@ -210,11 +242,11 @@ shapy.browser.sidebar = function() {
 
 
 /**
- * Files directive.
+ * Assets directive.
  *
  * @return {!angular.Directive}
  */
-shapy.browser.files = function() {
+shapy.browser.assets = function() {
   return {
     restrict: 'E',
     link: function($scope, $elem, $attrs) {
@@ -225,7 +257,7 @@ shapy.browser.files = function() {
         var width = $elem.outerWidth();
         var perRow = Math.floor((width - 40) / 160 + 0.5);
         var cellWidth = Math.floor((width - 40) / perRow - 10);
-        $('sh-file', $elem).css('width', cellWidth);
+        $('sh-asset', $elem).css('width', cellWidth);
       };
 
       $(window).resize(adjustWidth);
@@ -239,13 +271,13 @@ shapy.browser.files = function() {
 
 
 /**
- * File directive.
+ * Asset directive.
  *
  * @param {!shapy.modal.Service} shModal
  *
  * @return {!angular.Directive}
  */
-shapy.browser.file = function(shModal) {
+shapy.browser.asset = function(shModal) {
   /**
    * Handles the deletion of an asset.
    * @param {!shapy.browser.Asset} asset
@@ -253,7 +285,7 @@ shapy.browser.file = function(shModal) {
   var doDelete = function(asset) {
     shModal.open({
       size: 'small',
-      title: 'Delete File',
+      title: 'Delete Asset',
       template:
           'Are you sure you want to delete ' +
           '<strong>{{asset.name}}</strong>' +
@@ -262,7 +294,14 @@ shapy.browser.file = function(shModal) {
         $scope.asset = asset;
         $scope.cancel = function() { return false; };
         $scope.okay = function() {
-          asset.delete();
+          switch (asset.type) {
+            case shapy.browser.Asset.Type.DIRECTORY:
+              asset.shBrowser_.deleteDir(asset);
+              break;
+            case shapy.browser.Asset.Type.SCENE:
+              asset.shBrowser_.deleteScene(asset);
+              break;
+          }
         };
       }
     });
@@ -280,7 +319,7 @@ shapy.browser.file = function(shModal) {
           return;
         }
         if ($scope.asset != $scope.selected) {
-          return false;
+          return;
         }
         $scope.$apply(function() {
           doDelete($scope.asset);
