@@ -197,7 +197,9 @@ shapy.editor.Object.prototype.getPosition = function() {
  * @param {number} z
  */
 shapy.editor.Object.prototype.scale = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.scale_, x, y, z);
+  this.scale_[0] *= x;
+  this.scale_[1] *= y;
+  this.scale_[2] *= z;
 };
 
 

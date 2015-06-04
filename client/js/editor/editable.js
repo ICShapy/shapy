@@ -437,14 +437,17 @@ shapy.editor.ObjectGroup.prototype.translate = function(x, y, z) {
  * @param {number} z
  */
 shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
-  var scale = this.getScale();
+  var mid = this.getPosition();
+  var d = goog.vec.Vec3.createFloat32();
 
   // Apply translation to each object
   goog.object.forEach(this.editables, function(object) {
-    var delta = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-    goog.vec.Vec3.subtract(delta, scale, delta);
-    goog.vec.Vec3.add(delta, object.getScale(), delta);
-    object.scale(delta[0], delta[1], delta[2]);
+    goog.vec.Vec3.subtract(object.getPosition(), mid, d);
+    d[0] *= x;
+    d[1] *= y;
+    d[2] *= z;
+    object.translate(d[0], d[1], d[2]);
+    object.scale(x, y, z);
   });
 };
 
@@ -457,11 +460,11 @@ shapy.editor.ObjectGroup.prototype.scale = function(x, y, z) {
 shapy.editor.ObjectGroup.prototype.rotate = function(q) {
   var mid = this.getPosition();
   var c = goog.vec.Quaternion.createFloat32();
+  var d = goog.vec.Vec3.createFloat32();
   var dq = goog.vec.Quaternion.createFloat32();
   goog.vec.Quaternion.conjugate(q, c);
 
   goog.object.forEach(this.editables, function(object) {
-    var d = goog.vec.Vec3.createFloat32();
     goog.vec.Vec3.subtract(object.getPosition(), mid, d);
 
     // Compute the rotation quaternion
@@ -470,7 +473,7 @@ shapy.editor.ObjectGroup.prototype.rotate = function(q) {
     goog.vec.Quaternion.concat(dq, c, dq);
 
     // Translate.
-    object.translate(mid[0] + dq[0], mid[1] + dq[1], mid[2] + dq[2]);    
+    object.translate(mid[0] + dq[0], mid[1] + dq[1], mid[2] + dq[2]);
     object.rotate(q);
   });
 };
