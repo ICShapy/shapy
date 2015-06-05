@@ -134,32 +134,48 @@ class PublicHandler(APIHandler):
     """Retrieves the public space."""
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'Not authorized.')
+      # Set special id for not logged in users
+      user = {'id' : -1}
 
     # Initialise public space data.
     data = (-1, 'Public')
 
-    # Fetch information about children.
+    #Fetch assets shared with user with write perm.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview
-         FROM assets
-         WHERE parent = %s
-           AND owner = %s
+      '''SELECT asset_id
+         FROM permissions
+         WHERE user_id = %s
+           AND write = %s
       ''', (
-      data[0],
-      user.id
+      user.id,
+      True
+    ))
+
+    assetsWrite =[asset[0] for asset in cursor.fetchall()]
+
+    # Fetch information about public assets.
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, type, preview, owner
+         FROM assets
+         WHERE public = %s
+      ''', (
+      True,
     ))
 
     # Return JSON answer.
     self.write(json.dumps({
       'id': data[0],
       'name': data[1],
+      'owner': True,
+      'write': True,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3]
+          'preview': item[3],
+          'owner': item[4] == int(user.id),
+          'write': item[4] == int(user.id) or item[0] in assetsWrite
         }
         for item in cursor.fetchall()
       ]
