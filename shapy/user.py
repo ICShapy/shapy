@@ -2,8 +2,6 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
-import os
-
 import hashlib
 import json
 
@@ -43,13 +41,15 @@ class LoginHandler(APIHandler):
 
     # Fetch data from the database.
     cursor = yield momoko.Op(self.db.execute,
-        '''SELECT id, password FROM users WHERE email=%s''', (email,))
+        '''SELECT id, first_name, last_name, email, password
+           FROM users
+           WHERE email=%s''', (email,))
     user = cursor.fetchone()
-    if not user or not user[1]:
+    if not user or not user[4]:
       raise HTTPError(401, 'Invalid username or password.')
 
     # Fetch the hash & the salt.
-    user_id, user_passw = user
+    user_id, _, _, _, user_passw = user
     user_hash = user_passw[0:128]
     user_salt = user_passw[128:160]
 
@@ -59,9 +59,7 @@ class LoginHandler(APIHandler):
       raise HTTPError(401, 'Invalid username or password.')
 
     # Generate a session token & map the user to it.
-    token = os.urandom(16).encode('hex')
-    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user_id)
-    self.set_secure_cookie('session', token)
+    yield self.login(user)
 
 
 
@@ -104,7 +102,7 @@ class RegisterHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
         '''INSERT INTO users (id, first_name, last_name, email, password)
            VALUES (DEFAULT, %s, %s, %s, %s)
-           RETURNING id''', (
+           RETURNING id, first_name, last_name, email''', (
           firstName,
           lastName,
           email,
@@ -117,9 +115,7 @@ class RegisterHandler(APIHandler):
       raise HTTPError(400, 'Registration failed.')
 
     # Log the user in after registering.
-    token = os.urandom(16).encode('hex')
-    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user[0])
-    self.set_secure_cookie('session', token)
+    yield self.login(user)
 
 
 
@@ -181,7 +177,9 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
 
     # Check if a user with that ID already exists.
     cursor = yield momoko.Op(self.db.execute,
-        '''SELECT id FROM users WHERE fb_id=%s''',
+        '''SELECT id, first_name, last_name, email
+           FROM users
+           WHERE fb_id=%s''',
         (current['id'],))
     user = cursor.fetchone()
 
@@ -198,14 +196,15 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
 
       cursors = yield momoko.Op(self.db.transaction, (
           (
-              '''UPDATE users SET fb_id=%s WHERE email=%s RETURNING id;''',
+              '''UPDATE users SET fb_id=%s WHERE email=%s
+                 RETURNING id, first_name, last_name, email;''',
               (user['id'], email)
           ),
           (
               '''INSERT INTO users (first_name, last_name, email, fb_id)
                  SELECT %s, %s, %s, %s
                  WHERE NOT EXISTS (SELECT 1 FROM users WHERE email=%s)
-                 RETURNING id''',
+                 RETURNING id, first_name, last_name, email''',
               (
                 user['first_name'],
                 user['last_name'],
@@ -225,9 +224,7 @@ class FacebookHandler(APIHandler, FacebookGraphMixin):
         raise HTTPError(400, 'Registration failed.')
 
     # Create a new session & attach the user.
-    token = os.urandom(16).encode('hex')
-    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user[0])
-    self.set_secure_cookie('session', token)
+    yield self.login(user)
 
     # Go back to the homepage.
     self.redirect('/')
@@ -266,7 +263,9 @@ class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
 
     # Check if a user with that ID already exists.
     cursor = yield momoko.Op(self.db.execute,
-        '''SELECT id FROM users WHERE gp_id=%s''',
+        '''SELECT id, first_name, last_name, email
+           FROM users
+           WHERE gp_id=%s''',
         (current['id'],))
     user = cursor.fetchone()
 
@@ -278,14 +277,15 @@ class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
         email = current['name']['givenName'] + current['name']['familyName']
       cursors = yield momoko.Op(self.db.transaction, (
           (
-              '''UPDATE users SET gp_id=%s WHERE email=%s RETURNING id;''',
+              '''UPDATE users SET gp_id=%s WHERE email=%s
+                 RETURNING id, first_name, last_name, email;''',
               (current['id'], email)
           ),
           (
               '''INSERT INTO users (first_name, last_name, email, gp_id)
                  SELECT %s, %s, %s, %s
                  WHERE NOT EXISTS (SELECT 1 FROM users WHERE email=%s)
-                 RETURNING id''',
+                 RETURNING id, first_name, last_name, email''',
               (
                 current['name']['givenName'],
                 current['name']['familyName'],
@@ -305,9 +305,7 @@ class GoogleHandler(APIHandler, GoogleOAuth2Mixin):
         raise HTTPError(400, 'Registration failed.')
 
     # Create a new session & attach the user.
-    token = os.urandom(16).encode('hex')
-    yield Task(self.redis.hset, 'session:%s' % token, 'user_id', user[0])
-    self.set_secure_cookie('session', token)
+    yield self.login(user)
 
     # Go back to the homepage.
     self.redirect('/')

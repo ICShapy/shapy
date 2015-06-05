@@ -3,10 +3,10 @@
 import os
 import sys
 
+import redis
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import tornadoredis
 
 import psycopg2
 import momoko
@@ -90,6 +90,12 @@ def main(args):
       dsn='dbname=%s user=%s password=%s host=%s port=%d' %
           (app.DB_NAME, app.DB_USER, app.DB_PASS, app.DB_HOST, app.DB_PORT),
       size=1)
+
+  # Connect to the redis server.
+  app.redis = redis.Redis(
+      host=app.RD_HOST,
+      port=app.RD_PORT,
+      password=app.RD_PASS)
 
   # Start the server.
   tornado.httpserver.HTTPServer(app).listen(int(os.environ.get('PORT', 8000)))

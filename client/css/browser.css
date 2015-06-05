@@ -160,6 +160,19 @@ sh-sidebar .space h2{
   z-index: 5000;
 }
 
+sh-sidebar-folders {
+  height: 250px;
+  background-color:red;
+
+}
+
+sh-sidebar-folder {
+  display: block;
+  width: 100px;
+  height: 30px;
+  cursor: pointer;
+}
+
 /**
  * Assets
  */

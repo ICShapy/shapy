@@ -20,12 +20,12 @@ shapy.editor.Rig.Rotate = function() {
   this.normal_ = goog.vec.Vec3.createFloat32();
   /** @private {!goog.vec.Vec3.Type} */
   this.cursor_ = goog.vec.Vec3.createFloat32();
-  /** @private {!goog.vec.Vec3.Type} */
-  this.initialAngle_ = 0.0;
   /** @private {number} */
   this.startAngle_ = 0.0;
   /** @private {number} */
   this.currentAngle_ = 0.0;
+  /** @private {number} @const */
+  this.lastAngle_ = 0.0;
 };
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
 
@@ -172,9 +172,9 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
       data[k++] = r * Math.cos(this.startAngle_);
       data[k++] = r * Math.sin(this.startAngle_);
     } else if (this.select_.y) {
-      data[k++] = r * Math.cos(this.startAngle_);
-      data[k++] = 0.0;
       data[k++] = r * Math.sin(this.startAngle_);
+      data[k++] = 0.0;
+      data[k++] = r * Math.cos(this.startAngle_);
     } else {
       data[k++] = r * Math.cos(this.startAngle_);
       data[k++] = r * Math.sin(this.startAngle_);
@@ -193,9 +193,9 @@ shapy.editor.Rig.Rotate.prototype.render = function(gl, sh) {
         data[k++] = r * Math.cos(p);
         data[k++] = r * Math.sin(p);
       } else if (this.select_.y) {
-        data[k++] = r * Math.cos(p);
-        data[k++] = 0.0;
         data[k++] = r * Math.sin(p);
+        data[k++] = 0.0;
+        data[k++] = r * Math.cos(p);
       } else {
         data[k++] = r * Math.cos(p);
         data[k++] = r * Math.sin(p);
@@ -294,33 +294,39 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
-  var pos = this.object.getPosition();
+  var pos = this.object.getPosition(), diff, quat;
+  quat = goog.vec.Quaternion.createFloat32();
+
   if (this.select_.x || this.select_.y || this.select_.z) {
     this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
     this.adjustCursor_(this.cursor_);
-    this.currentAngle_ = this.getAngle_(this.cursor_);
+    this.lastAngle_ = this.currentAngle_;
+    this.currentAngle_ = this.getAngle_();
+
+    if ((this.currentAngle_ < 0 && this.lastAngle_ > 0) ||
+        (this.currentAngle_ > 0 && this.lastAngle_ < 0))
+    {
+      diff = this.currentAngle_ + this.lastAngle_;
+    } else {
+      diff = this.currentAngle_ - this.lastAngle_;
+    }
 
     if (this.select_.x) {
-      this.object.rotate(
-          this.initialAngle_ + this.currentAngle_ - this.startAngle_, 0, 0);
-      return true;
+      goog.vec.Quaternion.fromAngleAxis(diff, [1, 0, 0], quat);
+    } else if (this.select_.y) {
+      goog.vec.Quaternion.fromAngleAxis(diff, [0, 1, 0], quat);
+    } else if (this.select_.z) {
+      goog.vec.Quaternion.fromAngleAxis(diff, [0, 0, 1], quat);
     }
-    if (this.select_.y) {
-      this.object.rotate(
-          0, this.initialAngle_ - this.currentAngle_ + this.startAngle_, 0);
-      return true;
-    }
-    if (this.select_.z) {
-      this.object.rotate(
-          0, 0, this.initialAngle_ + this.currentAngle_ - this.startAngle_);
-      return true;
-    }
+
+    this.object.rotate(quat);
+    return true;
   }
 
   var hit = this.getHit_(ray);
   if (!hit) {
     this.hover_.x = this.hover_.y = this.hover_.z = false;
-    return;
+    return false;
   }
 
   this.normal_ = hit[0];
@@ -337,24 +343,22 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
  *
  * @private
  *
- * @param {goog.vec.Vec3.Type} cursor
- *
  * @return {number}
  */
-shapy.editor.Rig.Rotate.prototype.getAngle_ = function(cursor) {
+shapy.editor.Rig.Rotate.prototype.getAngle_ = function() {
   var pos = this.object.getPosition();
 
-  if (this.hover_.x) {
+  if (this.select_.x) {
     return Math.atan2(
         this.cursor_[2] - pos[2],
         this.cursor_[1] - pos[1]);
   }
-  if (this.hover_.y) {
+  if (this.select_.y) {
     return Math.atan2(
-        this.cursor_[2] - pos[2],
-        this.cursor_[0] - pos[0]);
+        this.cursor_[0] - pos[0],
+        this.cursor_[2] - pos[2]);
   }
-  if (this.hover_.z) {
+  if (this.select_.z) {
     return Math.atan2(
         this.cursor_[1] - pos[1],
         this.cursor_[0] - pos[0]);
@@ -379,26 +383,16 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
     return false;
   }
 
+  this.select_.x = this.hover_.x;
+  this.select_.y = this.hover_.y;
+  this.select_.z = this.hover_.z;
+
   this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
   this.adjustCursor_(this.cursor_);
-  this.startAngle_ = this.currentAngle_ = this.getAngle_(this.cursor_);
-  angle = this.object.getRotation();
+  this.currentAngle_ = this.getAngle_();
+  this.startAngle_ = this.currentAngle_;
+  this.lastAngle_ = this.currentAngle_;
 
-  if (this.hover_.x) {
-    this.initialAngle_ = angle[0];
-    this.select_.x = true;
-    return true;
-  }
-  if (this.hover_.y) {
-    this.initialAngle_ = angle[1];
-    this.select_.y = true;
-    return true;
-  }
-  if (this.hover_.z) {
-    this.initialAngle_ = angle[2];
-    this.select_.z = true;
-    return true;
-  }
   return true;
 };
 

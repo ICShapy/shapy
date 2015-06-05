@@ -190,8 +190,6 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
-  var pos = this.object.getPosition();
-
   if (this.select_.x || this.select_.y || this.select_.z) {
     // Calculate the translation.
     var t = goog.vec.Vec3.createFloat32();
@@ -200,10 +198,11 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
     this.lastPos_ = currPos;
 
     // Update the position.
-    this.object.translate(pos[0] + t[0], pos[1] + t[1], pos[2] + t[2]);
+    this.object.translate(t[0], t[1], t[2]);
     return true;
   }
 
+  var pos = this.object.getPosition();
   var c = goog.vec.Vec3.createFloat32();
 
   // Find intersection with X arrow.

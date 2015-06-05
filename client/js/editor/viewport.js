@@ -349,6 +349,8 @@ shapy.editor.Viewport.prototype.keyDown = function(kc) {
     default:
       break;
   }
+
+  this.camera.resize(this.rect.w, this.rect.h);
 };
 
 

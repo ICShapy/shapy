@@ -33,6 +33,8 @@ shapy.editor.Camera = function() {
   this.eye = goog.vec.Vec3.createFloat32FromValues(8, 8, 8);
   /** @public {!goog.vec.Vec3} @const */
   this.center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
+  /** @public {number} */
+  this.aspect = 16.0 / 9.0;
 };
 
 
@@ -43,15 +45,41 @@ shapy.editor.Camera.prototype.compute = goog.abstractMethod;
 
 
 /**
- * Resize the camera, usually affects aspect ratio of perspective cameras.
+ * Resize the camera, usually affects aspect ratio of cameras.
+ *
+ * @param {number} w
+ * @param {number} h
  */
-shapy.editor.Camera.prototype.resize = goog.abstractMethod;
+shapy.editor.Camera.prototype.resize = function(w, h) {
+  this.aspect = w / h;
+};
 
 
 /**
  * Returns the ray that corresponds to a screen coordinate.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {goog.vec.Ray.Type}
  */
-shapy.editor.Camera.prototype.raycast = goog.abstractMethod;
+shapy.editor.Camera.prototype.raycast = function(x, y) {
+  var x0 = goog.vec.Vec4.createFloat32FromValues(x, y, -1, 1);
+  goog.vec.Mat4.multVec4(this.invProj, x0, x0);
+  goog.vec.Vec4.scale(x0, 1.0 / x0[3], x0);
+  goog.vec.Mat4.multVec4(this.invView, x0, x0);
+
+  var x1 = goog.vec.Vec4.createFloat32FromValues(x, y, +1, 1);
+  goog.vec.Mat4.multVec4(this.invProj, x1, x1);
+  goog.vec.Vec4.scale(x1, 1.0 / x1[3], x1);
+  goog.vec.Mat4.multVec4(this.invView, x1, x1);
+
+  var dir = goog.vec.Vec4.createFloat32();
+  goog.vec.Vec3.subtract(x1, x0, dir);
+  goog.vec.Vec3.normalize(dir, dir);
+
+  return new goog.vec.Ray(x0, dir);
+};
 
 
 /**
@@ -64,7 +92,7 @@ shapy.editor.Camera.prototype.groupcast = goog.abstractMethod;
  * Maximum zoom level.
  * @type {number} @const
  */
-shapy.editor.Camera.MAX_ZOOM = 20.0;
+shapy.editor.Camera.MAX_ZOOM = 40.0;
 
 
 /**
@@ -98,8 +126,6 @@ shapy.editor.Camera.Persp = function() {
   shapy.editor.Camera.call(this);
 
   /** @public {number} */
-  this.aspect = 16.0 / 9.0;
-  /** @public {number} */
   this.znear = 0.1;
   /** @public {number} */
   this.zfar = 100.0;
@@ -129,34 +155,6 @@ shapy.editor.Camera.Persp.prototype.compute = function() {
 
 
 /**
- * On resize.
- *
- * @param {number} w
- * @param {number} h
- */
-shapy.editor.Camera.Persp.prototype.resize = function(w, h) {
-  this.aspect = w / h;
-};
-
-
-/**
- * Creates a ray out of normalized device coordinates.
- *
- * @param {number} x
- * @param {number} y
- *
- * @return {goog.vec.Ray.Type}
- */
-shapy.editor.Camera.Persp.prototype.raycast = function(x, y) {
-  var dir = goog.vec.Vec4.createFloat32FromValues(x, y, -1, 1);
-  goog.vec.Mat4.multVec3(this.invProj, dir, dir);
-  goog.vec.Mat4.multVec3NoTranslate(this.invView, dir, dir);
-  goog.vec.Vec3.normalize(dir, dir);
-  return new goog.vec.Ray(goog.vec.Vec3.cloneFloat32(this.eye), dir);
-};
-
-
-/**
  * Returns the frustum that corresponds to a selection group.
  *
  * @param {number} x0
@@ -168,13 +166,18 @@ shapy.editor.Camera.Persp.prototype.raycast = function(x, y) {
  */
 shapy.editor.Camera.prototype.groupcast = function(x0, y0, x1, y1) {
   var corners = goog.array.map([
-    goog.vec.Vec3.createFloat32FromValues(x0, y0, -1, 1),
-    goog.vec.Vec3.createFloat32FromValues(x0, y1, -1, 1),
-    goog.vec.Vec3.createFloat32FromValues(x1, y1, -1, 1),
-    goog.vec.Vec3.createFloat32FromValues(x1, y0, -1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x0, y0, -1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x0, y0, +1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x0, y1, -1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x0, y1, +1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x1, y1, -1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x1, y1, +1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x1, y0, -1, 1),
+    goog.vec.Vec4.createFloat32FromValues(x1, y0, +1, 1),
   ], function(v) {
-    goog.vec.Mat4.multVec3(this.invProj, v, v);
-    goog.vec.Mat4.multVec3(this.invView, v, v);
+    goog.vec.Mat4.multVec4(this.invProj, v, v);
+    goog.vec.Vec4.scale(v, 1.0 / v[3], v);
+    goog.vec.Mat4.multVec4(this.invView, v, v);
     return v;
   }, this);
 
@@ -194,10 +197,10 @@ shapy.editor.Camera.prototype.groupcast = function(x0, y0, x1, y1) {
   };
 
   var planes = [
-    buildPlane(corners[0], corners[1], this.eye),
-    buildPlane(corners[1], corners[2], this.eye),
-    buildPlane(corners[2], corners[3], this.eye),
-    buildPlane(corners[3], corners[0], this.eye),
+    buildPlane(corners[0], corners[1], corners[2]),
+    buildPlane(corners[2], corners[3], corners[4]),
+    buildPlane(corners[4], corners[5], corners[6]),
+    buildPlane(corners[6], corners[7], corners[0]),
   ];
 
   return planes;
@@ -233,18 +236,11 @@ shapy.editor.Camera.Ortho.prototype.compute = function() {
   goog.vec.Mat4.makeLookAt(
       this.view, this.eye, this.center, this.up);
   goog.vec.Mat4.makeOrtho(
-      this.proj, -fSize, fSize, -fSize, fSize, this.znear, this.zfar);
+      this.proj,
+      -fSize, fSize,
+      -fSize / this.aspect, fSize / this.aspect,
+      this.znear, this.zfar);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
   goog.vec.Mat4.invert(this.view, this.invView);
   goog.vec.Mat4.invert(this.proj, this.invProj);
-};
-
-
-/**
- * On resize.
- *
- * @param {number} w
- * @param {number} h
- */
-shapy.editor.Camera.Ortho.prototype.resize = function(w, h) {
 };

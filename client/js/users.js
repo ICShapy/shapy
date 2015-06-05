@@ -15,15 +15,34 @@ goog.require('goog.object');
  * @ngInject
  *
  * @param {Object} data Data from the server.
+ * @param {number} count Index number of the user.
  */
-shapy.User = function(data) {
+shapy.User = function(data, count) {
   /** @public {number} @const */
   this.id = data['id'];
   /** @public {string} @const */
   this.name = data['first_name'] + ' ' + data['last_name'];
   /** @public {string} @const */
   this.email = data['email'];
+  /** @public {!goog.vec.Vec3} @const */
+  this.colour = shapy.User.Colour[count % shapy.User.Colour.length];
 };
+
+
+/**
+ * Colours assigned to users.
+ *
+ * @type {!Array<goog.vec.Vec3>} @const
+ */
+shapy.User.Colour = [
+  [0.40, 0.60, 1.00],
+  [1.00, 0.00, 0.00],
+  [0.00, 1.00, 0.00],
+  [0.00, 0.00, 1.00],
+  [1.00, 1.00, 0.00],
+  [1.00, 0.00, 1.00],
+  [0.00, 1.00, 1.00]
+];
 
 
 
@@ -41,8 +60,14 @@ shapy.UserService = function($http, $q) {
   this.http_ = $http;
   /** @private {!angular.$q} @const */
   this.q_ = $q;
+  /** @private {number} @const */
+  this.count_ = 0;
   /** @private {!Object<number, shapy.User>} @const */
   this.users_ = {};
+  /** @private {!angular.$q} */
+  this.ready_ = null;
+  /** @private {shapy.User} */
+  this.user_ = null;
 };
 
 
@@ -60,8 +85,71 @@ shapy.UserService.prototype.get = function(userID) {
 
   return this.http_.get('/api/user/' + userID)
       .then(goog.bind(function(response) {
-        var user = new shapy.User(response.data);
+        var user = new shapy.User(response.data, this.count_);
+        this.count_++;
         this.users_[userID] = user;
         return user;
       }, this));
+};
+
+
+/**
+ * Returns data of an authenticated user.
+ *
+ * @return {!angular.$q} Promise wrapping the user.
+ */
+shapy.UserService.prototype.auth = function() {
+  if (this.ready_) {
+    return this.ready_.promise;
+  }
+
+  this.ready_ = this.q_.defer();
+  this.http_.get('/api/user/auth').success(function(data) {
+    if (data['id']) {
+      this.user_ = new shapy.User(data, this.count_);
+      this.users_[data['id']] = this.user_;
+      this.count_++;
+    } else {
+      this.user_ = null;
+    }
+    this.ready_.resolve(this.user_);
+  }.bind(this));
+  return this.ready_.promise;
+};
+
+
+/**
+ * Logs a user in.
+ *
+ * @param {string} email
+ * @param {string} passw
+ *
+ * @return {!angular.$q}
+ */
+shapy.UserService.prototype.login = function(email, passw) {
+  this.ready_ = null;
+  this.user_ = null;
+  return this.http_.post('/api/user/login', {
+      email: email,
+      passw: passw
+  });
+};
+
+
+/**
+ * Logs a user out.
+ *
+ * @return {!angular.$q} Promise resolved when request succeeds.
+ */
+shapy.UserService.prototype.logout = function() {
+  if (!this.ready_) {
+    return this.q_.when();
+  }
+  return this.ready_.promise.then(goog.bind(function(user) {
+    if (user) {
+      this.user_ = null;
+      this.ready_ = null;
+      return this.http_.post('/api/user/logout');
+    }
+  }, this));
 };

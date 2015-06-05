@@ -52,13 +52,13 @@
       ], []);
       goog.addDependency('../editor/editable.js', [
           'shapy.editor.Editable',
-          'shapy.editor.Mode'
       ], []);
       goog.addDependency('../editor/editor.js', [
           'shapy.editor.EditorController',
           'shapy.editor.Editor'
       ], [
           'shapy.editor.CamCube',
+          'shapy.editor.Executor',
           'shapy.editor.Object',
           'shapy.editor.Mesh',
           'shapy.editor.Renderer',
@@ -70,6 +70,9 @@
           'shapy.editor.Rig.Scale',
           'shapy.editor.Mode'
       ]);
+      goog.addDependency('../editor/executor.js', [
+          'shapy.editor.Executor'
+      ], []);
       goog.addDependency('../editor/geom.js', [
           'shapy.editor.geom'
       ], []);
@@ -81,6 +84,9 @@
       ], []);
       goog.addDependency('../editor/mesh.js', [
           'shapy.editor.Mesh'
+      ], []);
+      goog.addDependency('../editor/mode.js', [
+          'shapy.editor.Mode'
       ], []);
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
@@ -94,6 +100,16 @@
       goog.addDependency('../editor/rig.js', [
           'shapy.editor.Rig'
       ], []);
+      goog.addDependency('../editor/rig-cut.js', [
+          'shapy.editor.Rig.Cut'
+      ], [
+          'shapy.editor.Rig'
+      ]);
+      goog.addDependency('../editor/rig-extrude.js', [
+          'shapy.editor.Rig.Extrude'
+      ], [
+          'shapy.editor.Rig'
+      ]);
       goog.addDependency('../editor/rig-rotate.js', [
           'shapy.editor.Rig.Rotate'
       ], [
@@ -123,12 +139,18 @@
       goog.addDependency('../editor/toolbar.js', [
           'shapy.editor.ToolbarController'
       ], []);
+      goog.addDependency('../editor/viewport-edit.js', [
+          'shapy.editor.Viewport.Edit'
+      ], [
+          'shapy.editor.Viewport'
+      ]);
+      goog.addDependency('../editor/viewport-uv.js', [
+          'shapy.editor.Viewport.UV'
+      ], [
+          'shapy.editor.Viewport'
+      ]);
       goog.addDependency('../editor/viewport.js', [
           'shapy.editor.Viewport'
-      ], []);
-      goog.addDependency('../auth.js', [
-          'shapy.AuthService',
-          'shapy.AuthService.User'
       ], []);
       goog.addDependency('../header.js', [
           'shapy.HeaderController'
@@ -150,7 +172,6 @@
       goog.addDependency('../shapy.js', [
           'shapy.module'
       ], [
-          'shapy.AuthService',
           'shapy.browser.BrowserController',
           'shapy.browser.Service',
           'shapy.browser.BrowserToolbarController',

@@ -5,6 +5,7 @@
 import json
 import momoko
 
+from threading import Timer
 from tornado.web import asynchronous
 from tornado.gen import engine, coroutine, Task, Return
 from tornado.web import HTTPError
@@ -14,38 +15,20 @@ import tornadoredis
 from shapy.common import APIHandler, BaseHandler, session
 
 
-
 class Scene(object):
   """Wraps common information about a scene."""
-
-  @classmethod
-  @coroutine
-  def get(cls, redis, scene_id):
-    """Returns an object by reading data from postgres and redis."""
-    data = yield Task(redis.get, 'scene_%s' % scene_id)
-    raise Return(Scene(scene_id, json.loads(data) if data else {}))
-
-
-  @classmethod
-  @coroutine
-  def put(cls, redis, scene):
-    yield Task(redis.set, scene.key, json.dumps({
-        'name': scene.name,
-        'users': scene.users
-    }))
-    raise Return(None)
-
 
   def __init__(self, scene_id, data):
     """Creates a new scene object."""
 
     def arg(key, default):
-      return data[key] if key in data else default
+      val = data[key] if key in data else default
+      return val or default
 
-    self.key = 'scene_%s' % scene_id
+    self.id = scene_id
     self.scene_id = scene_id
-    self.name = arg('name', 'Untitled Scene')
-    self.users = arg('users', [])
+    self.name = arg('name', 'New Scene')
+    self.users = json.loads(arg('users', '[]'))
 
   def add_user(self, user):
     """Adds a user to the scene."""
@@ -77,6 +60,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.scene_id = scene_id
     self.chan_id = 'chan_%s' % scene_id
     self.lock_id = 'lock_%s' % scene_id
+    self.objects = set()
 
     # Start listening & broadcasting on the channel.
     self.chan = tornadoredis.Client(
@@ -84,7 +68,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
         port=self.application.RD_PORT,
         password=self.application.RD_PASS)
     self.chan.connect()
-    self.lock = self.redis.lock(self.lock_id, lock_ttl=10)
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
 
@@ -97,12 +80,27 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.write_message(json.dumps({
         'type': 'meta',
         'name': scene.name,
-        'users': scene.users
+        'users': scene.users,
+        'objects': []
     }))
-    self.redis.publish(self.chan_id, json.dumps({
-        'type': 'join',
-        'user': self.user.id
-    }))
+
+    # Get all the existing locks.
+    for key in self.redis.keys('scene:%s:*' % self.scene_id):
+      user = int(self.redis.get(key))
+      id = key.split(':')[-1]
+      if user == self.user.id:
+        self.objects.add(id)
+
+      self.write_message(json.dumps({
+        'type': 'lock',
+        'objects': [id],
+        'user': user
+      }))
+
+    self.to_channel({
+      'type': 'join',
+      'user': self.user.id
+    })
 
   @coroutine
   def on_message(self, message):
@@ -112,19 +110,42 @@ class WSHandler(WebSocketHandler, BaseHandler):
       return
     data = json.loads(message)
 
-    if data['type'] == 'name':
-      def update_name(scene):
-        scene.name = data['value']
-      yield self.update_scene_(update_name)
+    # Name change request - update object.
+    #if data['type'] == 'name':
+    #  def update_name(scene):
+    #    scene.name = data['value']
+    #  yield self.update_scene_(update_name)
 
-    self.redis.publish(self.chan_id, message)
+    # Request to lock on an object.
+    if data['type'] == 'lock':
+      objects = []
+      for id in data['objects']:
+        key = 'scene:%s:%s' % (self.scene_id, id)
+        lock = self.redis.setnx(key, self.user.id)
+        if lock:
+          self.redis.expire(key, 60 * 10)
+          self.objects.add(id)
+          objects.append(id)
+      data['objects'] = objects
+
+    # Request to unlock objects.
+    if data['type'] == 'unlock':
+      objects = []
+      for id in data['objects']:
+        self.redis.delete('scene:%s:%s' % (self.scene_id, id))
+        objects.append(id)
+        self.objects.remove(id)
+      data['objects'] = objects
+
+    # Broadcast the message, appending a seqnum.
+    seq = self.to_channel(data)
 
 
   @coroutine
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not hasattr(self, 'user') or message.kind != 'message':
+    if not hasattr(self, 'user') or not self.user or message.kind != 'message':
       return
 
     self.write_message(message.body)
@@ -133,31 +154,63 @@ class WSHandler(WebSocketHandler, BaseHandler):
   @coroutine
   def on_close(self):
     """Handles connection termination."""
+
     if not hasattr(self, 'user'):
       return
 
     # Remove the user from the scene.
-    scene = yield Scene.get(self.redis, self.scene_id)
-    scene.remove_user(self.user.id)
-    yield Scene.put(self.redis, scene)
+    def remove_user(scene):
+      scene.remove_user(self.user.id)
+    yield self.update_scene_(remove_user)
+
+    # Unlock all objects.
+    for id in self.objects:
+      self.redis.delete('scene:%s:%s' % (self.scene_id, id))
 
     # Leave the scene (of the crime).
-    self.redis.publish(self.chan_id, json.dumps({
+    user_id = self.user.id
+    self.user = None
+    self.to_channel({
         'type': 'leave',
-        'user': self.user.id
-    }))
+        'user': user_id
+    })
 
     # Terminate the redis connection.
-    self.chan.unsubscribe(self.chan_id)
-    self.chan.disconnect()
+    yield Task(self.chan.unsubscribe, self.chan_id)
+    yield Task(self.chan.disconnect)
+
 
   @coroutine
   def update_scene_(self, func):
     """Helper to update a scene."""
 
-    yield Task(self.lock.acquire, blocking=True)
-    scene = yield Scene.get(self.redis, self.scene_id)
+    #yield Task(self.lock.acquire, blocking=True)
+
+    # Retrieve the scene object.
+    data = self.redis.hmget('scene:%s' % self.scene_id, [
+        'name',
+        'users'
+    ])
+    scene = Scene(self.scene_id, data if data else {})
+
+    # Apply changes.
     func(scene)
-    yield Scene.put(self.redis, scene)
-    yield Task(self.lock.release)
+
+    # Store the modified scene.
+    self.redis.hmset('scene:%s' % self.scene_id, {
+        'name': scene.name,
+        'users': json.dumps(scene.users)
+    })
+
+    #yield Task(self.lock.release)
     raise Return(scene)
+
+  @coroutine
+  def to_channel(self, data):
+    """Puts a message into the channel, tagging it with a seqnum."""
+
+    seq = self.redis.hincrby('scene:%s' % self.scene_id, 'seq', 1)
+    data['seq'] = seq
+    self.redis.publish(self.chan_id, json.dumps(data))
+    return seq
+
