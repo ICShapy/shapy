@@ -290,13 +290,44 @@ class AssetHandler(APIHandler):
   @coroutine
   @asynchronous
   def put(self, user):
-    """Updates a scene resource."""
+    """Updates a resource."""
 
     # Validate arguments.
     if not user:
       raise HTTPError(401, 'User not logged in.')
     id = int(self.get_argument('id'))
     name = self.get_argument('name')
+
+    # Check if user has write permission
+    cursors = yield momoko.Op(self.db.transaction, (
+      (
+      '''SELECT 1
+         FROM assets
+         WHERE id = %s
+           AND owner = %s
+      ''',
+        (
+          id,
+          user.id,
+        )
+      ),
+      (
+      '''SELECT 1
+         FROM permissions
+         WHERE user_id = %s
+           AND asset_id = %s
+           AND write = %s
+      ''',
+        (
+          user.id,
+          id,
+          True,
+        )
+      )
+      ))
+
+    if not cursors[0].fetchone() and not cursors[1].fetchone():
+      raise HTTPError(400, 'Asset update failed.')
 
     # Update the name.
     cursor = yield momoko.Op(self.db.execute,
