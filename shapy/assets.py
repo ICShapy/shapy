@@ -369,26 +369,65 @@ class SceneHandler(AssetHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      # Set special id for not logged in users
+      user = {'id' : -1}
     id = int(self.get_argument('id'))
 
-    cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name
-         FROM assets
-         WHERE id = %s
-           AND type = %s
-      ''', (
-      id,
-      'scene'
+    # Fetch asset data.
+    cursors = yield momoko.Op(self.db.transaction, (
+      (
+        '''SELECT id, name, preview, data, public, owner
+           FROM assets
+           WHERE id = %s
+             AND type = %s
+        ''',
+        (
+          id,
+          self.TYPE
+        )
+      ),
+      (
+        '''SELECT write
+           FROM permissions
+           WHERE user_id = %s
+             AND asset_id = %s
+        ''',
+        (
+          user.id,
+          id
+        )
+      )
     ))
 
-    data = cursor.fetchone()
-    if not data:
+    dataAssets = cursors[0].fetchone()
+    dataPerm = cursors[1].fetchone()
+
+    if not dataAssets:
       raise HTTPError(404, 'Scene not found.')
 
+    if dataAssets[5] == int(user.id):
+      # User is owner
+      owner = True
+      write = True
+    elif dataPerm:
+      # User shares asset with owner
+      owner = False
+      write = dataPerm[0]
+    elif dataAssets[4]:
+      # Just read perm. as asset public
+      owner = False
+      write = False
+    else:
+      # Illegal access
+      raise HTTPError(400, 'Asset access not granted.')
+
     self.write(json.dumps({
-        'id': data[0],
-        'name': data[1],
+        'id': dataAssets[0],
+        'name': dataAssets[1],
+        'preview': dataAssets[2],
+        'data': dataAssets[3],
+        'owner': owner,
+        'write': write
     }))
     self.finish()
 
