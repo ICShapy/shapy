@@ -262,6 +262,26 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
 shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.y || this.select_.z;
   this.select_.x = this.select_.y = this.select_.z = false;
+  this.finish_(captured);
+  return captured;
+};
+
+
+/**
+ * Handles mouse leave event.
+ */
+shapy.editor.Rig.Translate.prototype.mouseLeave = function() {
+  this.finish_(this.select_.x || this.select_.y || this.select_.z);
+  this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
+/**
+ * Handles onFinish call.
+ *
+ * @param {boolean} captured
+ */
+shapy.editor.Rig.Translate.prototype.finish_ = function(captured) {
   if (this.onFinish && captured) {
     var pos = this.object.getPosition();
     this.onFinish(
@@ -271,13 +291,4 @@ shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
         pos[2] - this.objLastPos_[2]
     );
   }
-  return captured;
-};
-
-
-/**
- * Handles mouse leave event.
- */
-shapy.editor.Rig.Translate.prototype.mouseLeave = function() {
-  this.select_.x = this.select_.y = this.select_.z = false;
 };

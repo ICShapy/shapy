@@ -217,7 +217,6 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
 
   // Set up the websocket connection.
   this.pending_ = [];
-  console.log("scene", this.scene_);
   this.exec_ = new shapy.editor.Executor(this.scene_, this);
   this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
 };
