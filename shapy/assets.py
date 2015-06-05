@@ -32,11 +32,35 @@ class SharedHandler(APIHandler):
     # Initialise filtered space data.
     data = (id, 'Shared')
 
+    # Fetch information about children.
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT assets.id, assets.name, assets.type, assets.preview,
+                assets.owner, permissions.write
+         FROM assets
+         INNER JOIN permissions
+         ON assets.id = permissions.asset_id
+         WHERE permissions.user_id = %s
+      ''', (
+      user.id,
+    ))
+
     # Return JSON answer.
     self.write(json.dumps({
       'id': data[0],
       'name': data[1],
-      'data': []
+      'owner': True,
+      'write': True,
+      'data': [
+        {
+          'id': item[0],
+          'name': item[1],
+          'type': item[2],
+          'preview': item[3],
+          'owner': item[4] == int(user.id),
+          'write': item[5]
+        }
+        for item in cursor.fetchall()
+      ]
     }))
     self.finish()
 
