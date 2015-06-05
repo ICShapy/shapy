@@ -291,56 +291,6 @@ shapy.editor.Rig.Rotate.prototype.getHit_ = function(ray) {
 
 
 /**
- * Handles mouse move event.
- *
- * @param {!goog.vec.Ray} ray
- */
-shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
-  var pos = this.object.getPosition(), diff, quat;
-  quat = goog.vec.Quaternion.createFloat32();
-
-  if (this.select_.x || this.select_.y || this.select_.z) {
-    this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
-    this.adjustCursor_(this.cursor_);
-    this.lastAngle_ = this.currentAngle_;
-    this.currentAngle_ = this.getAngle_();
-
-    if ((this.currentAngle_ < 0 && this.lastAngle_ > 0) ||
-        (this.currentAngle_ > 0 && this.lastAngle_ < 0))
-    {
-      diff = this.currentAngle_ + this.lastAngle_;
-    } else {
-      diff = this.currentAngle_ - this.lastAngle_;
-    }
-
-    if (this.select_.x) {
-      goog.vec.Quaternion.fromAngleAxis(diff, [1, 0, 0], quat);
-    } else if (this.select_.y) {
-      goog.vec.Quaternion.fromAngleAxis(diff, [0, 1, 0], quat);
-    } else if (this.select_.z) {
-      goog.vec.Quaternion.fromAngleAxis(diff, [0, 0, 1], quat);
-    }
-
-    this.object.rotate(quat);
-    return true;
-  }
-
-  var hit = this.getHit_(ray);
-  if (!hit) {
-    this.hover_.x = this.hover_.y = this.hover_.z = false;
-    return false;
-  }
-
-  this.normal_ = hit[0];
-  this.hover_.x = hit[0][0] != 0;
-  this.hover_.y = hit[0][1] != 0;
-  this.hover_.z = hit[0][2] != 0;
-
-  return this.hover_.x || this.hover_.y || this.hover_.z;
-};
-
-
-/**
  * Returns the rotation angle.
  *
  * @private
@@ -366,6 +316,85 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function() {
         this.cursor_[0] - pos[0]);
   }
   return 0.0;
+};
+
+
+/**
+ * Handles onFinish call.
+ */
+shapy.editor.Rig.Rotate.prototype.finish_ = function() {
+  if (!this.onFinish || !(this.select_.x || this.select_.y || this.select_.z)) {
+    return;
+  }
+
+  // Calculate the rotation quaternion.
+  var quat = goog.vec.Quaternion.createFloat32();
+  this.computeRotQuater_(quat, this.onDownAngle_);
+
+  this.onFinish(this.object, quat[0], quat[1], quat[2], quat[3]);
+};
+
+
+/**
+ * Computes the rotation quaternion between the start angl and the curr angle.
+ *
+ * @param {!goog.vec.Quaternion.Type} q          Quaternion to be computed.
+ * @param {number}                    startAngle Start angle of the rotation.
+ */
+shapy.editor.Rig.Rotate.prototype.computeRotQuater_ = function(q, startAngle) {
+  if ((this.currentAngle_ < 0 && startAngle > 0) ||
+      (this.currentAngle_ > 0 && startAngle < 0))
+  {
+    diff = this.currentAngle_ + startAngle;
+  } else {
+    diff = this.currentAngle_ - startAngle;
+  }
+
+  if (this.select_.x) {
+    goog.vec.Quaternion.fromAngleAxis(diff, [1, 0, 0], q);
+  } else if (this.select_.y) {
+    goog.vec.Quaternion.fromAngleAxis(diff, [0, 1, 0], q);
+  } else if (this.select_.z) {
+    goog.vec.Quaternion.fromAngleAxis(diff, [0, 0, 1], q);
+  }
+};
+
+
+/**
+ * Handles mouse move event.
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
+  var pos = this.object.getPosition(), diff, quat;
+  quat = goog.vec.Quaternion.createFloat32();
+
+  if (this.select_.x || this.select_.y || this.select_.z) {
+    this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
+
+    this.adjustCursor_(this.cursor_);
+    this.lastAngle_ = this.currentAngle_;
+    this.currentAngle_ = this.getAngle_();
+
+    // Compute and apply the rotation.
+    this.computeRotQuater_(quat, this.lastAngle_);
+    this.object.rotate(quat);
+
+    return true;
+  }
+
+  var hit = this.getHit_(ray);
+  if (!hit) {
+    this.hover_.x = this.hover_.y = this.hover_.z = false;
+    return false;
+  }
+
+  this.normal_ = hit[0];
+  this.hover_.x = hit[0][0] != 0;
+  this.hover_.y = hit[0][1] != 0;
+  this.hover_.z = hit[0][2] != 0;
+
+  return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
 
@@ -403,7 +432,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
 /**
  * Handles mouse up event.
  *
- * @param {!goog.vec.Ray} ray
+ * @param {!goog.vec.Ray.Type} ray
  */
 shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.x || this.select_.z;
@@ -419,35 +448,4 @@ shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
 shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
   this.finish_();
   this.select_.x = this.select_.y = this.select_.z = false;
-};
-
-
-/**
- * Handles onFinish call.
- */
-shapy.editor.Rig.Rotate.prototype.finish_ = function() {
-  if (!this.onFinish || !(this.select_.x || this.select_.y || this.select_.z)) {
-    return;
-  }
-
-  // Calculate the rotation quaternion.
-  var quat = goog.vec.Quaternion.createFloat32();
-
-  if ((this.currentAngle_ < 0 && this.onDownAngle_ > 0) ||
-      (this.currentAngle_ > 0 && this.onDownAngle_ < 0))
-  {
-    diff = this.currentAngle_ + this.onDownAngle_;
-  } else {
-    diff = this.currentAngle_ - this.onDownAngle_;
-  }
-
-  if (this.select_.x) {
-    goog.vec.Quaternion.fromAngleAxis(diff, [1, 0, 0], quat);
-  } else if (this.select_.y) {
-    goog.vec.Quaternion.fromAngleAxis(diff, [0, 1, 0], quat);
-  } else if (this.select_.z) {
-    goog.vec.Quaternion.fromAngleAxis(diff, [0, 0, 1], quat);
-  }
-
-  this.onFinish(this.object, quat[0], quat[1], quat[2], quat[3]);
 };
