@@ -26,6 +26,8 @@ shapy.editor.Rig.Rotate = function() {
   this.currentAngle_ = 0.0;
   /** @private {number} @const */
   this.lastAngle_ = 0.0;
+  /** @private {number} */
+  this.onDownAngle_ = 0.0;
 };
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
 
@@ -392,6 +394,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   this.currentAngle_ = this.getAngle_();
   this.startAngle_ = this.currentAngle_;
   this.lastAngle_ = this.currentAngle_;
+  this.onDownAngle_ = this.currentAngle_;
 
   return true;
 };
@@ -404,6 +407,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
  */
 shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.x || this.select_.z;
+  this.finish_();
   this.select_.x = this.select_.y = this.select_.z = false;
   return captured;
 };
@@ -413,5 +417,37 @@ shapy.editor.Rig.Rotate.prototype.mouseUp = function(ray) {
  * Handles mouse leave event.
  */
 shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
+  this.finish_();
   this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
+/**
+ * Handles onFinish call.
+ */
+shapy.editor.Rig.Rotate.prototype.finish_ = function() {
+  if (!this.onFinsh || !(this.select_.x || this.select_.y || this.select_.z)) {
+    return;
+  }
+
+  // Calculate the rotation quaternion.
+  var quat = goog.vec.Quaternion.createFloat32();
+
+  if ((this.currentAngle_ < 0 && ths.onDownAngle_ > 0) ||
+      (this.currentAngle_ > 0 && this.onDownAngle_ < 0))
+  {
+    diff = this.currentAngle_ + this.onDownAngle_;
+  } else {
+    diff = this.currentAngle_ - this.onDownAngle_;
+  }
+
+  if (this.select_.x) {
+    goog.vec.Quaternion.fromAngleAxis(diff, [1, 0, 0], quat);
+  } else if (this.select_.y) {
+    goog.vec.Quaternion.fromAngleAxis(diff, [0, 1, 0], quat);
+  } else if (this.select_.z) {
+    goog.vec.Quaternion.fromAngleAxis(diff, [0, 0, 1], quat);
+  }
+
+  this.onFinsh(this.object, quat[0], quat[1], quat[2], quat[3]);
 };
