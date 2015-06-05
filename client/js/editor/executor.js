@@ -134,7 +134,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             break;
           }
           case 'rotate': {
-            this.applyRotation(data);
+            this.applyRotate(data);
             break;
           }
           default: {
@@ -285,10 +285,12 @@ shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
   var data = {
     type: 'edit',
     tool: 'translate',
+    userId: this.editor_.user.id,
+
     dx: dx,
     dy: dy,
     dz: dz,
-    userId: this.editor_.user.id,
+
     objMode: this.editor_.mode.object
   };
 
@@ -310,7 +312,7 @@ shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
  * @param {!Object} data
  */
 shapy.editor.Executor.prototype.applyTranslate = function(data) {
-  // Ignore the edit if it is performed by current user.
+  // Ignore edits performed by current user.
   if (data['userId'] == this.editor_.user.id) {
     return;
   }
@@ -338,8 +340,34 @@ shapy.editor.Executor.prototype.applyTranslate = function(data) {
  * @param {number}                   z
  * @param {number}                   w
  */
-shapy.editor.Executor.prototype.emitRotate = function(obj) {
+shapy.editor.Executor.prototype.emitRotate = function(obj, x, y, z, w) {
+  var mid = obj.getPosition();
 
+  var data = {
+    type: 'edit',
+    tool: 'rotate',
+    userId: this.editor_.user.id,
+
+    mx: mid[0],
+    my: mid[1],
+    mz: mid[2],
+
+    x: x,
+    y: y,
+    z: z,
+    w: w,
+
+    objMode: this.editor_.mode.object
+  };
+
+  // Objects group
+  if (this.editor_.mode.object) {
+    data.ids = obj.getObjIds();
+  } else {
+    // Parts group rotation to be implemented.
+  }
+
+  this.sendCommand(data);
 };
 
 
@@ -349,6 +377,47 @@ shapy.editor.Executor.prototype.emitRotate = function(obj) {
  * @param {!Object} data
  */
 shapy.editor.Executor.prototype.applyRotate = function(data) {
+  // Ignore edits from gurrent user.
+  if (data['userId'] == this.editor_.user.id) {
+    return;
+  }
 
+  // Construct the rotation quaternion.
+  var quat = goog.vec.Quaternion.createFloat32FromValues(
+      data['x'],
+      data['y'],
+      data['z'],
+      data['w']
+  );
+
+  // Retrieve the group middle.
+  var mid = goog.vec.Vec3.createFloat32FromValues(
+      data['mx'], data['my'], data['mz']);
+
+  var c = goog.vec.Quaternion.createFloat32();
+  var d = goog.vec.Vec3.createFloat32();
+  var dq = goog.vec.Quaternion.createFloat32();
+  goog.vec.Quaternion.conjugate(quat, c);
+
+  // Rotate objects/ parts.
+  if (data['objMode']) {
+    goog.array.forEach(data.ids, function(id) {
+      goog.vec.Vec3.subtract(this.scene_.objects[id].getPosition(), mid, d);
+
+      // Compute the rotation quaternion.
+      goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
+      goog.vec.Quaternion.concat(quat, dq, dq);
+      goog.vec.Quaternion.concat(dq, c, dq);
+
+      // Translate and rotate.
+      this.scene_.objects[id].translate(
+          dq[0] - d[0],
+          dq[1] - d[1],
+          dq[2] - d[2]
+      );
+      this.scene_.objects[id].rotate(quat);
+    }, this);
+  } else {
+    // To be implemented.
+  }
 };
-

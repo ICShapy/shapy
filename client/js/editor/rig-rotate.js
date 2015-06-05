@@ -426,14 +426,14 @@ shapy.editor.Rig.Rotate.prototype.mouseLeave = function() {
  * Handles onFinish call.
  */
 shapy.editor.Rig.Rotate.prototype.finish_ = function() {
-  if (!this.onFinsh || !(this.select_.x || this.select_.y || this.select_.z)) {
+  if (!this.onFinish || !(this.select_.x || this.select_.y || this.select_.z)) {
     return;
   }
 
   // Calculate the rotation quaternion.
   var quat = goog.vec.Quaternion.createFloat32();
 
-  if ((this.currentAngle_ < 0 && ths.onDownAngle_ > 0) ||
+  if ((this.currentAngle_ < 0 && this.onDownAngle_ > 0) ||
       (this.currentAngle_ > 0 && this.onDownAngle_ < 0))
   {
     diff = this.currentAngle_ + this.onDownAngle_;
@@ -449,5 +449,5 @@ shapy.editor.Rig.Rotate.prototype.finish_ = function() {
     goog.vec.Quaternion.fromAngleAxis(diff, [0, 0, 1], quat);
   }
 
-  this.onFinsh(this.object, quat[0], quat[1], quat[2], quat[3]);
+  this.onFinish(this.object, quat[0], quat[1], quat[2], quat[3]);
 };
