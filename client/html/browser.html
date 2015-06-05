@@ -70,7 +70,7 @@
         asset in browserCtrl.current().children |
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
-      <sh-asset
+      <sh-asset ng-style="(asset.write) ? null : {'border': '1px solid red'}"
           asset="asset"
           selected="browserCtrl.selected"
           ng-class="{selected: browserCtrl.selected==asset}">
