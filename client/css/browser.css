@@ -324,6 +324,9 @@ sh-sidebar-folder > div > img {
 }
 
 sh-asset > div > img {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
   max-width: 100%;
   max-height: 100%;
 }
