@@ -26,8 +26,6 @@ shapy.editor.Rig.Rotate = function() {
   this.currentAngle_ = 0.0;
   /** @private {number} @const */
   this.lastAngle_ = 0.0;
-  /** @private {number} */
-  this.onDownAngle_ = 0.0;
 };
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
 
@@ -329,25 +327,25 @@ shapy.editor.Rig.Rotate.prototype.finish_ = function() {
 
   // Calculate the rotation quaternion.
   var quat = goog.vec.Quaternion.createFloat32();
-  this.computeRotQuater_(quat, this.onDownAngle_);
+  this.computeRotQuater_(quat, this.startAngle_);
 
   this.onFinish(this.object, quat[0], quat[1], quat[2], quat[3]);
 };
 
 
 /**
- * Computes the rotation quaternion between the start angl and the curr angle.
+ * Computes the rotation quaternion between the angle and the current angle.
  *
- * @param {!goog.vec.Quaternion.Type} q          Quaternion to be computed.
- * @param {number}                    startAngle Start angle of the rotation.
+ * @param {!goog.vec.Quaternion.Type} q     Quaternion to be computed.
+ * @param {number}                    angle Start angle of the rotation.
  */
-shapy.editor.Rig.Rotate.prototype.computeRotQuater_ = function(q, startAngle) {
-  if ((this.currentAngle_ < 0 && startAngle > 0) ||
-      (this.currentAngle_ > 0 && startAngle < 0))
+shapy.editor.Rig.Rotate.prototype.computeRotQuater_ = function(q, angle) {
+  if ((this.currentAngle_ < 0 && angle > 0) ||
+      (this.currentAngle_ > 0 && angle < 0))
   {
-    diff = this.currentAngle_ + startAngle;
+    diff = this.currentAngle_ + angle;
   } else {
-    diff = this.currentAngle_ - startAngle;
+    diff = this.currentAngle_ - angle;
   }
 
   if (this.select_.x) {
@@ -371,8 +369,8 @@ shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
 
   if (this.select_.x || this.select_.y || this.select_.z) {
     this.cursor_ = shapy.editor.geom.intersectPlane(ray, this.normal_, pos);
-
     this.adjustCursor_(this.cursor_);
+
     this.lastAngle_ = this.currentAngle_;
     this.currentAngle_ = this.getAngle_();
 
@@ -423,7 +421,6 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   this.currentAngle_ = this.getAngle_();
   this.startAngle_ = this.currentAngle_;
   this.lastAngle_ = this.currentAngle_;
-  this.onDownAngle_ = this.currentAngle_;
 
   return true;
 };
