@@ -133,6 +133,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyTranslate(data);
             break;
           }
+          case 'rotate': {
+            this.applyRotation(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -323,3 +327,28 @@ shapy.editor.Executor.prototype.applyTranslate = function(data) {
     }, this);
   }
 };
+
+
+/**
+ * Executes the rotate command.
+ *
+ * @param {shapy.editor.Object.Type} obj
+ * @param {number}                   x
+ * @param {number}                   y
+ * @param {number}                   z
+ * @param {number}                   w
+ */
+shapy.editor.Executor.prototype.emitRotate = function(obj) {
+
+};
+
+
+/**
+ * Handles rotate command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyRotate = function(data) {
+
+};
+

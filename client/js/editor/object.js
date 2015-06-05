@@ -156,13 +156,13 @@ shapy.editor.Object.prototype.computeModel = function() {
   goog.vec.Mat4.translate(
       this.model_,
       this.translate_[0], this.translate_[1], this.translate_[2]);
+  goog.vec.Mat4.scale(
+      this.model_,
+      this.scale_[0], this.scale_[1], this.scale_[2]);
   goog.vec.Quaternion.toRotationMatrix4(
       this.rotQuat_, this.rotation_);
   goog.vec.Mat4.multMat(
       this.model_, this.rotation_, this.model_);
-  goog.vec.Mat4.scale(
-      this.model_,
-      this.scale_[0], this.scale_[1], this.scale_[2]);
 
   goog.vec.Mat4.invert(this.model_, this.invModel_);
 };
