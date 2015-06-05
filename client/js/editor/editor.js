@@ -492,6 +492,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   // If we're extruding, stop
   if (this.rig_ == this.rigExtrude_) {
     this.rig(null);
+    return;
   }
 
   // If viewports want the event, give up.
@@ -590,7 +591,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
-  this.layout_.mouseDown(e);
+  // Only allow this click if we're not extruding
+  if (this.rig_ != this.rigExtrude_) {
+    this.layout_.mouseDown(e);
+  }
 };
 
 
