@@ -403,6 +403,53 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
 
 
 /**
+ * Renders the background of the UV editor.
+ *
+ * @param {!shapy.editor.Viewport} vp Current viewport.
+ */
+shapy.editor.Renderer.prototype.renderBackground = function(vp) {
+  var detail = 10;
+  var aspect = vp.rect.h / vp.rect.w;
+
+  var proj = goog.vec.Mat4.createFloat32();
+  var view = goog.vec.Mat4.createFloat32();
+
+  goog.vec.Mat4.setFromValues(view,
+    1 / detail, 0, 0, 0,
+    0, 0, 1 / detail, 0,
+    0, 1 / detail, 0, 0,
+    0, 0, 0, 1);
+  goog.vec.Mat4.makeOrtho(proj,
+      -vp.zoom,
+      +vp.zoom,
+      -vp.zoom * aspect,
+      +vp.zoom * aspect,
+      -1, 1);
+  goog.vec.Mat4.multMat(proj, view, view);
+
+  this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+  this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+
+  // Renders the border plane.
+  this.gl_.enable(goog.webgl.BLEND);
+  this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
+  {
+    this.shGround_.use();
+    this.shGround_.uniformMat4x4('u_vp', view);
+    this.shGround_.uniform2f('u_size', detail, detail);
+
+    this.gl_.lineWidth(1.0);
+    this.gl_.enableVertexAttribArray(0);
+    this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.bfGround_);
+    this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 12, 0);
+    this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, 6);
+    this.gl_.disableVertexAttribArray(0);
+  }
+  this.gl_.disable(goog.webgl.BLEND);
+};
+
+
+/**
  * Renders the border & selection box.
  *
  * @param {!shapy.editor.Viewport} vp Current viewport.

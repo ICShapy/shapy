@@ -16,6 +16,12 @@ goog.require('shapy.editor.Viewport');
  */
 shapy.editor.Viewport.UV = function(name) {
   shapy.editor.Viewport.call(this, name, shapy.editor.Viewport.Type.UV);
+
+  /**
+   * Zoom level.
+   * @public {number}
+   */
+  this.zoom = 1;
 };
 goog.inherits(shapy.editor.Viewport.UV, shapy.editor.Viewport);
 
@@ -96,4 +102,19 @@ shapy.editor.Viewport.UV.prototype.mouseUp = function(x, y) {
  * @param {number} delta Mouse wheel delta value.
  */
 shapy.editor.Viewport.UV.prototype.mouseWheel = function(delta) {
+  if (delta < 0) {
+    this.zoom /= shapy.editor.Camera.ZOOM_SPEED;
+  } else if (delta > 0) {
+    this.zoom *= shapy.editor.Camera.ZOOM_SPEED;
+  }
+
+  // Clip to MIN_ZOOM.
+  if (this.zoom <= shapy.editor.Camera.MIN_ZOOM) {
+    this.zoom = shapy.editor.Camera.MIN_ZOOM;
+  }
+
+  // Clip to MAX_ZOOM.
+  if (this.zoom >= shapy.editor.Camera.MAX_ZOOM) {
+    this.zoom = shapy.editor.Camera.MAX_ZOOM;
+  }
 };

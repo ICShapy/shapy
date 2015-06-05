@@ -314,6 +314,7 @@ shapy.editor.Editor.prototype.render = function() {
         break;
       }
       case shapy.editor.Viewport.Type.UV: {
+        this.renderer_.renderBackground(vp);
         this.renderer_.renderOverlay(vp);
         break;
       }
