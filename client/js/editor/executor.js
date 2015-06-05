@@ -137,6 +137,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyRotate(data);
             break;
           }
+          case 'scale': {
+            this.applyScale(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -281,7 +285,6 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
  * @param {number}                   dz  Delta on z.
  */
 shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
-
   var data = {
     type: 'edit',
     tool: 'translate',
@@ -312,7 +315,7 @@ shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
  * @param {!Object} data
  */
 shapy.editor.Executor.prototype.applyTranslate = function(data) {
-  // Ignore edits performed by current user.
+  // Ignore edits performed by the current user.
   if (data['userId'] == this.editor_.user.id) {
     return;
   }
@@ -377,7 +380,7 @@ shapy.editor.Executor.prototype.emitRotate = function(obj, x, y, z, w) {
  * @param {!Object} data
  */
 shapy.editor.Executor.prototype.applyRotate = function(data) {
-  // Ignore edits from gurrent user.
+  // Ignore edits performed by the current user.
   if (data['userId'] == this.editor_.user.id) {
     return;
   }
@@ -420,4 +423,69 @@ shapy.editor.Executor.prototype.applyRotate = function(data) {
   } else {
     // To be implemented.
   }
+};
+
+
+/**
+ * Executed the scale command.
+ *
+ * @param {shapy.editor.Object.Type} obj
+ * @param {number}                   sx
+ * @param {number}                   sy
+ * @param {number}                   sz
+ */
+shapy.editor.Executor.prototype.emitScale = function(obj, sx, sy, sz) {
+  var mid = obj.getPosition();
+
+  var data = {
+    type: 'edit',
+    tool: 'scale',
+    userId: this.editor_.user.id,
+
+    mx: mid[0],
+    my: mid[1],
+    mz: mid[2],
+
+    sx: sx,
+    sy: sy,
+    sz: sz,
+
+    objMode: this.editor_.mode.object
+  };
+
+  // Objects group
+  if (this.editor_.mode.object) {
+    data.ids = obj.getObjIds();
+  } else {
+    // Parts group rotation to be implemented.
+  }
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Handles scale command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyScale = function(data) {
+  // Ignore edits performed by the current user.
+  if (data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  var mid = goog.vec.Vec3.createFloat32FromValues(
+      data['mx'], data['my'], data['mz']);
+  var d = goog.vec.Vec3.createFloat32();
+
+  // Scale objects/ parts.
+  if (data['objMode']) {
+    goog.array.forEach(data.ids, function(id) {
+
+    }, this);
+  } else {
+    // To be implemented.
+  }
+
 };
