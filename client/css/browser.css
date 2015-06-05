@@ -186,7 +186,7 @@ sh-asset {
   cursor: pointer;
 }
 
-sh-asset > .name {
+sh-asset > div .name {
   display: block;
   position: absolute;
   bottom: 0; left: 0; right: 0; height: 16px;
@@ -202,11 +202,11 @@ sh-asset > .name {
   white-space: nowrap;
 }
 
-sh-asset > .name:focus {
+sh-asset > div .name:focus {
   outline: 0;
 }
 
-sh-asset > div {
+sh-asset > .image {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 25px;
   border: 1px solid #cccccc;
@@ -214,17 +214,17 @@ sh-asset > div {
   background-color: white;
 }
 
-sh-asset > div:hover {
+sh-asset > .image:hover {
   box-shadow: 2px 2px 2px #bbbbbb;
 }
 
-sh-asset.selected > div {
+sh-asset.selected > .image {
   background-color: #3399FF;
   border: 1px solid #0066FF;
   box-shadow: 1px 1px 1px #0066FF;
 }
 
-sh-asset.selected > .name {
+sh-asset.selected > div .name {
   font-weight: bold;
 }
 

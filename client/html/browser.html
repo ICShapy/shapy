@@ -74,19 +74,25 @@
           asset="asset"
           selected="browserCtrl.selected"
           ng-class="{selected: browserCtrl.selected==asset}">
-        <div
+        <div class="image"
             ng-click="browserCtrl.selected=asset"
             ng-dblclick="browserCtrl.select(asset, true)">
           <img ng-src="{{asset.image}}">
         </div>
-        <sh-editable
-            ng-click="browserCtrl.selected = null"
-            ng-init="name=asset.name"
-            default-name="{{browserCtrl.defaultName(asset.type)}}"
-            class="name"
-            ng-blur="browserCtrl.rename(asset, name)"
-            ng-model="name">
-        </sh-editable>
+        <div ng-switch on="asset.write">
+          <div ng-switch-when="true" class="name">
+            <sh-editable
+                ng-click="browserCtrl.selected = null"
+                ng-init="name=asset.name"
+                default-name="{{browserCtrl.defaultName(asset.type)}}"
+                ng-blur="browserCtrl.rename(asset, name)"
+                ng-model="name">
+            </sh-editable>
+          </div>
+          <div ng-switch-default class="name" >
+            {{asset.name}}
+          </div>
+        </div>
       </sh-asset>
     </div>
   </sh-assets>
