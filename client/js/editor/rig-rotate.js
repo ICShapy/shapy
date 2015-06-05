@@ -340,10 +340,8 @@ shapy.editor.Rig.Rotate.prototype.finish_ = function() {
  * @param {number}                    angle Start angle of the rotation.
  */
 shapy.editor.Rig.Rotate.prototype.computeRotQuater_ = function(q, angle) {
-  if ((this.currentAngle_ < 0 && angle > 0) ||
-      (this.currentAngle_ > 0 && angle < 0))
-  {
-    diff = this.currentAngle_ + angle;
+  if (this.currentAngle_ > 0 && angle < 0) {
+    diff = this.currentAngle_ + Math.abs(angle);
   } else {
     diff = this.currentAngle_ - angle;
   }
