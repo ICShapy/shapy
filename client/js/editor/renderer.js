@@ -106,6 +106,7 @@ shapy.editor.GROUND_FS =
   '#extension GL_OES_standard_derivatives : enable                      \n' +
 
   'precision mediump float;                                             \n' +
+  'uniform float u_zoom;                                                \n' +
 
   'varying vec3 v_vertex;\n' +
 
@@ -114,18 +115,18 @@ shapy.editor.GROUND_FS =
   '}\n' +
 
   'void main() {                                                      \n' +
-  '  float ax = alpha(distance(v_vertex.x, 0.0), 0.05);\n' +
-  '  float az = alpha(distance(v_vertex.z, 0.0), 0.05);\n' +
+  '  float ax = alpha(distance(v_vertex.x, 0.0), 0.05 * u_zoom);\n' +
+  '  float az = alpha(distance(v_vertex.z, 0.0), 0.05 * u_zoom);\n' +
 
   '  vec2 a1 = fract(v_vertex.xz);\n' +
   '  a1 = min(a1, 1.0 - a1);\n' +
-  '  float a1x = alpha(a1.x, 0.01);\n' +
-  '  float a1z = alpha(a1.y, 0.01);\n' +
+  '  float a1x = alpha(a1.x, 0.01 * u_zoom);\n' +
+  '  float a1z = alpha(a1.y, 0.01 * u_zoom);\n' +
 
   '  vec2 a5 = fract(v_vertex.xz / 5.0);\n' +
   '  a5 = min(a5, 1.0 - a5) * 5.0;\n' +
-  '  float a5x = alpha(a5.x, 0.02);\n' +
-  '  float a5z = alpha(a5.y, 0.02);\n' +
+  '  float a5x = alpha(a5.x, 0.02 * u_zoom);\n' +
+  '  float a5z = alpha(a5.y, 0.02 * u_zoom);\n' +
 
   '  vec4 colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
@@ -390,6 +391,7 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
     this.shGround_.use();
     this.shGround_.uniformMat4x4('u_vp', vp.camera.vp);
     this.shGround_.uniform2f('u_size', 35, 35);
+    this.shGround_.uniform1f('u_zoom', 1);
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);
@@ -437,6 +439,7 @@ shapy.editor.Renderer.prototype.renderBackground = function(vp) {
     this.shGround_.use();
     this.shGround_.uniformMat4x4('u_vp', view);
     this.shGround_.uniform2f('u_size', detail, detail);
+    this.shGround_.uniform1f('u_zoom', 1.5 * vp.zoom);
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);
