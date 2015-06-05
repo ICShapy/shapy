@@ -199,6 +199,26 @@ shapy.browser.BrowserToolbarController.prototype.path = function() {
 
 
 /**
+ * Returns the current directory.
+ *
+ * @return {!shapy.browser.Asset.Dir}
+ */
+shapy.browser.BrowserToolbarController.prototype.current = function() {
+  return this.shBrowser_.current;
+};
+
+
+/**
+ * Returns type of current directory.
+ *
+ * @return {boolean}
+ */
+shapy.browser.BrowserToolbarController.prototype.private = function() {
+  return this.shBrowser_.private;
+}
+
+
+/**
  * Enters public space.
  *
  */
