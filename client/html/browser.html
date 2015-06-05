@@ -73,6 +73,7 @@
       <sh-asset ng-style="(asset.write) ? null : {'border': '1px solid red'}"
           asset="asset"
           selected="browserCtrl.selected"
+          owner="asset.owner"
           ng-class="{selected: browserCtrl.selected==asset}">
         <div class="image"
             ng-click="browserCtrl.selected=asset"

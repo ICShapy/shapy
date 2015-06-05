@@ -346,7 +346,8 @@ shapy.browser.asset = function(shModal) {
     restrict: 'E',
     scope: {
       asset: '=',
-      selected: '='
+      selected: '=',
+      owner: '='
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
@@ -355,6 +356,9 @@ shapy.browser.asset = function(shModal) {
         }
         if ($scope.asset != $scope.selected) {
           return;
+        }
+        if (!($scope.owner)) {
+          return false;
         }
         $scope.$apply(function() {
           doDelete($scope.asset);
