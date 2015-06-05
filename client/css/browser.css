@@ -219,6 +219,11 @@ sh-asset > div .name:focus {
   outline: 0;
 }
 
+sh-asset > div .noneditable {
+  color: #888888;
+  font-style: italic;
+}
+
 sh-asset > .image {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 25px;

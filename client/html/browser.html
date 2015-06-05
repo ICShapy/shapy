@@ -70,7 +70,7 @@
         asset in browserCtrl.current().children |
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
-      <sh-asset ng-style="(asset.write) ? null : {'border': '1px solid red'}"
+      <sh-asset
           asset="asset"
           selected="browserCtrl.selected"
           owner="asset.owner"
@@ -90,7 +90,7 @@
                 ng-model="name">
             </sh-editable>
           </div>
-          <div ng-switch-default class="name" >
+          <div ng-switch-default class="name noneditable" >
             {{asset.name}}
           </div>
         </div>
