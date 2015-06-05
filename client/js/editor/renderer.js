@@ -115,8 +115,8 @@ shapy.editor.GROUND_FS =
   '}\n' +
 
   'void main() {                                                      \n' +
-  '  float ax = alpha(distance(v_vertex.x, 0.0), 0.05 * u_zoom);\n' +
-  '  float az = alpha(distance(v_vertex.z, 0.0), 0.05 * u_zoom);\n' +
+  '  float ax = alpha(distance(v_vertex.x, 0.0), 0.05);\n' +
+  '  float az = alpha(distance(v_vertex.z, 0.0), 0.05);\n' +
 
   '  vec2 a1 = fract(v_vertex.xz);\n' +
   '  a1 = min(a1, 1.0 - a1);\n' +
@@ -125,8 +125,8 @@ shapy.editor.GROUND_FS =
 
   '  vec2 a5 = fract(v_vertex.xz / 5.0);\n' +
   '  a5 = min(a5, 1.0 - a5) * 5.0;\n' +
-  '  float a5x = alpha(a5.x, 0.02 * u_zoom);\n' +
-  '  float a5z = alpha(a5.y, 0.02 * u_zoom);\n' +
+  '  float a5x = alpha(a5.x, 0.02);\n' +
+  '  float a5z = alpha(a5.y, 0.02);\n' +
 
   '  vec4 colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
