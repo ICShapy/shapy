@@ -88,7 +88,13 @@ shapy.editor.Viewport.UV.SIZE = 10;
  * @private
  */
 shapy.editor.Viewport.UV.prototype.compute_ = function() {
-  var d = 1.0 / this.zoom;
+  var d = 1.0 / this.zoom, w = shapy.editor.Viewport.UV.SIZE;
+
+  this.pan.x = Math.min(this.pan.x, w / this.zoom - 0.4);
+  this.pan.x = Math.max(this.pan.x, 0.4 - w / this.zoom);
+  this.pan.y = Math.min(this.pan.y, w / this.zoom - 0.4 / this.aspect);
+  this.pan.y = Math.max(this.pan.y, 0.4 / this.aspect - w / this.zoom);
+
   goog.vec.Mat4.setFromValues(this.view,
       d, 0, 0, 0,
       0, 0, d, 0,
@@ -114,7 +120,7 @@ shapy.editor.Viewport.UV.prototype.compute_ = function() {
  */
 shapy.editor.Viewport.UV.prototype.resize = function(x, y, w, h) {
   shapy.editor.Viewport.prototype.resize.call(this, x, y, w, h);
-  this.aspect = w / h;
+  this.aspect = h == 0 ? 1 : (w / h);
   this.compute_();
 };
 
@@ -202,20 +208,17 @@ shapy.editor.Viewport.UV.prototype.mouseWheel = function(delta) {
     this.zoom *= shapy.editor.Camera.ZOOM_SPEED;
   }
 
-  // Clip to MIN_ZOOM.
-  if (this.zoom <= shapy.editor.Camera.MIN_ZOOM) {
-    this.zoom = shapy.editor.Camera.MIN_ZOOM;
-  }
+  // Clip zoom.
+  this.zoom = Math.max(this.zoom, shapy.editor.Camera.MIN_ZOOM);
+  this.zoom = Math.min(this.zoom, shapy.editor.Camera.MAX_ZOOM);
+  this.zoom = Math.min(this.zoom, 2 * shapy.editor.Viewport.UV.SIZE + 0.4);
 
-  // Clip to MAX_ZOOM.
-  if (this.zoom >= shapy.editor.Camera.MAX_ZOOM) {
-    this.zoom = shapy.editor.Camera.MAX_ZOOM;
-  }
-
-  this.compute_();
-
+  // Adjust mouse to remain over the same point.
   var mx = this.currMousePos.x / this.rect.w - 0.5;
-  var my = this.currMousePos.y / this.rect.w - 0.5 / this.aspect;
   this.pan.x = mx - ((mx - this.pan.x) * old) / this.zoom;
+  var my = this.currMousePos.y / this.rect.w - 0.5 / this.aspect;
   this.pan.y = my - ((my - this.pan.y) * old) / this.zoom;
+
+  // Recompute matrices.
+  this.compute_();
 };
