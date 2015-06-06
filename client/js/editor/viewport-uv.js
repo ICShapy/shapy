@@ -10,7 +10,7 @@ goog.require('shapy.editor.Viewport');
 
 
 /**
- * Viewport for the 3D editor.
+ * UV viewport for the 3D editor.
  *
  * @constructor
  * @extends {shapy.editor.Viewport}

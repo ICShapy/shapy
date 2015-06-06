@@ -129,6 +129,12 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
   this.partGroup_ = new shapy.editor.PartsGroup();
 
   /**
+   * Currently selected uv group.
+   * @private {shapy.editor.UVGroup}
+   */
+  this.uvGroup_ = new shapy.editor.UVGroup();
+
+  /**
    * Object hovered by mouse.
    * @private {!Array<!shapy.editor.Editable>}
    */
@@ -525,6 +531,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         this.layout_.toggleUV();
         this.layout_.active.object = this.objectGroup_.editables[0];
         this.layout_.active.object.projectUV();
+        this.uvGroup_.clear();
       }
       break;
     }

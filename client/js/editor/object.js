@@ -1255,10 +1255,12 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
   var ab = goog.vec.Vec3.createFloat32();
   var ac = goog.vec.Vec3.createFloat32();
   var verts = this.getVertexPositions_();
+
   goog.vec.Vec3.subtract(verts[1], verts[0], ab);
   goog.vec.Vec3.subtract(verts[2], verts[0], ac);
   goog.vec.Vec3.cross(ac, ab, normal);
   goog.vec.Vec3.normalize(normal, normal);
+
   return normal;
 };
 
@@ -1283,6 +1285,7 @@ shapy.editor.Object.Face.prototype.delete = function() {
   goog.object.remove(this.object.faces, this.id);
   this.object.dirtyMesh = true;
 };
+
 
 
 /**
