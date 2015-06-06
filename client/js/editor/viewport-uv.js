@@ -24,7 +24,7 @@ shapy.editor.Viewport.UV = function(name) {
    * Zoom level.
    * @public {number}
    */
-  this.zoomLevel = 10;
+  this.zoomLevel = 30;
 
   /**
    * Zoom value.

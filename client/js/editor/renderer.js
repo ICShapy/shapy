@@ -34,7 +34,36 @@ shapy.editor.OBJECT_FS =
 
   'precision mediump float;                                           \n' +
 
-  'uniform vec4 u_border;                                             \n' +
+  'varying vec4 v_colour;                                             \n' +
+
+  'void main() {                                                      \n' +
+  '  gl_FragColor = vec4(v_colour.rgb, 1.0);                          \n' +
+  '}                                                                  \n';
+
+
+
+/** @type {string} @const */
+shapy.editor.UV_VS =
+  'attribute vec2 a_vertex;                                       \n' +
+  'attribute vec4 a_colour;                                       \n' +
+
+  'uniform mat4 u_mvp;                                            \n' +
+
+  'varying vec4 v_colour;                                         \n' +
+
+  'void main() {                                                  \n' +
+  '  v_colour = a_colour;                                         \n' +
+  '  gl_PointSize = 7.0;                                          \n' +
+  '  gl_Position = u_mvp * vec4(a_vertex.x, 0, a_vertex.y, 1);    \n' +
+  '}                                                              \n';
+
+
+/** @type {string} @const */
+shapy.editor.UV_FS =
+  '#extension GL_OES_standard_derivatives : enable                    \n' +
+
+  'precision mediump float;                                           \n' +
+
   'varying vec4 v_colour;                                             \n' +
 
   'void main() {                                                      \n' +
@@ -197,6 +226,12 @@ shapy.editor.Renderer = function(gl) {
   this.shObject_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_VS);
   this.shObject_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_FS);
   this.shObject_.link();
+
+  /** @private {!shapy.editor.Shader} @const */
+  this.shUV_ = new shapy.editor.Shader(this.gl_);
+  this.shUV_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.UV_VS);
+  this.shUV_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.UV_FS);
+  this.shUV_.link();
 
   /** @private {!shapy.editor.Shader} @const */
   this.shOverlay_ = new shapy.editor.Shader(this.gl_);
@@ -550,4 +585,32 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
   }
 
   this.gl_.disable(goog.webgl.STENCIL_TEST);
+};
+
+
+/**
+ * Renders the UV mesh.
+ *
+ * @param {!shapy.editor.Viewport.UV} vp
+ */
+shapy.editor.Renderer.prototype.renderUVMesh = function(vp) {
+  if (!vp.object || !goog.object.containsKey(this.objectCache_, vp.object.id)) {
+    return;
+  }
+  var mesh = this.objectCache_[vp.object.id];
+  var mvp = goog.vec.Mat4.createFloat32();
+
+  this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+  this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
+
+  this.gl_.disable(goog.webgl.DEPTH_TEST);
+  {
+    this.shUV_.use();
+    goog.vec.Mat4.makeIdentity(mvp);
+    goog.vec.Mat4.multMat(mvp, vp.proj, mvp);
+    goog.vec.Mat4.multMat(mvp, vp.view, mvp);
+    this.shUV_.uniformMat4x4('u_mvp', mvp);
+    mesh[0].renderUV();
+  }
+  this.gl_.enable(goog.webgl.DEPTH_TEST);
 };

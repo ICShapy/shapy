@@ -233,7 +233,10 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
   this.rig(this.rigTranslate_);
+
   this.layout_.toggleUV();
+  this.layout_.active.object = goog.object.getAnyValue(this.scene_.objects);
+  this.layout_.active.object.projectUV();
 };
 
 
@@ -313,6 +316,7 @@ shapy.editor.Editor.prototype.render = function() {
       }
       case shapy.editor.Viewport.Type.UV: {
         this.renderer_.renderBackground(vp);
+        this.renderer_.renderUVMesh(vp);
         this.renderer_.renderOverlay(vp);
         break;
       }
@@ -496,6 +500,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       }
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.object = this.objectGroup_.editables[0];
+        this.layout_.active.object.projectUV();
         this.layout_.toggleUV();
       }
       break;
