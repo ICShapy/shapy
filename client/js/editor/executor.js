@@ -554,11 +554,15 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
           break;
         }
         case 'edge': {
-          obj.edges[t[1]].delete();
+          if (obj.edges[t[1]]) {
+            obj.edges[t[1]].delete();
+          }
           break;
         }
         case 'face': {
-          obj.faces[t[1]].delete();
+          if (obj.faces[t[1]]) {
+            obj.faces[t[1]].delete();
+          }
           break;
         }
         default: {
