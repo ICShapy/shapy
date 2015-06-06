@@ -96,20 +96,19 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
 
 /**
  * Changes a viewport to UV mode.
- *
- * @private
  */
-shapy.editor.Layout.prototype.toggleViewport_ = function() {
-  goog.object.forEach(this.viewports, function(vp, name) {
-    vp.destroy();
-    if (name != this.active.name) {
-      this[name] = this.viewports[name] = new shapy.editor.Viewport.Edit(name);
-    } else {
-      this[name] = this.viewports[name] = new shapy.editor.Viewport.UV(name);
-      this.active = this[name];
-      this.active.active = true;
-    }
-  }, this);
+shapy.editor.Layout.prototype.toggleUV = function() {
+  var name = this.active.name;
+
+  if (this.active.type == shapy.editor.Viewport.Type.UV) {
+    this[name] = this.viewports[name] = new shapy.editor.Viewport.Edit(name);
+  } else {
+    this[name] = this.viewports[name] = new shapy.editor.Viewport.UV(name);
+  }
+
+  this.active = this[name];
+  this.active.active = true;
+
   this.resize(this.size.width, this.size.height);
 };
 
@@ -120,12 +119,6 @@ shapy.editor.Layout.prototype.toggleViewport_ = function() {
  * @param {KeyboardEvent} e
  */
 shapy.editor.Layout.prototype.keyDown = function(e) {
-  switch (String.fromCharCode(e.keyCode)) {
-    case 'U': {
-      this.toggleViewport_();
-      return;
-    }
-  }
   if (this.active) {
     this.active.keyDown(e);
   }

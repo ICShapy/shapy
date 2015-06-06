@@ -70,8 +70,15 @@ shapy.editor.Viewport.UV = function(name) {
 
   /**
    * Aspect ratio.
+   * @public {number}
    */
   this.aspect = 1.0;
+
+  /**
+   * Object being edited.
+   * @public {!shapy.editor.Object}
+   */
+  this.object = null;
 };
 goog.inherits(shapy.editor.Viewport.UV, shapy.editor.Viewport);
 

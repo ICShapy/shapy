@@ -233,9 +233,6 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Double();
   this.rig(this.rigTranslate_);
-
-  // TODO: this is debugging only.
-  this.layout_.toggleViewport_();
 };
 
 
@@ -488,6 +485,17 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.camera = new shapy.editor.Camera.Persp();
         this.layout_.resize(this.vp_.width, this.vp_.height);
+      }
+      break;
+    }
+    case 'U': {
+      // Only one object must be selected.
+      if (this.objectGroup_.editables.length != 1) {
+        return;
+      }
+      if (this.layout_ && this.layout_.active) {
+        this.layout_.active.object = this.objectGroup_.editables[0];
+        this.layout_.toggleUV();
       }
       break;
     }
