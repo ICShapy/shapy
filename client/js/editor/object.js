@@ -1002,18 +1002,21 @@ shapy.editor.Object.Vertex.prototype.getVertices = function() {
  */
 shapy.editor.Object.Vertex.prototype.delete = function() {
   goog.object.remove(this.object.verts, this.id);
+
   this.object.edges = goog.object.filter(this.object.edges, function(edge) {
     return (
       goog.object.containsKey(this.object.verts, edge.start) &&
       goog.object.containsKey(this.object.verts, edge.end)
     );
   }, this);
+
   this.object.faces = goog.object.filter(this.object.faces, function(face) {
     return (
-      goog.object.containsKey(this.object.edges, face.e0) &&
-      goog.object.containsKey(this.object.edges, face.e1) &&
-      goog.object.containsKey(this.object.edges, face.e2));
+      goog.object.containsKey(this.object.edges, Math.abs(face.e0)) &&
+      goog.object.containsKey(this.object.edges, Math.abs(face.e1)) &&
+      goog.object.containsKey(this.object.edges, Math.abs(face.e2)));
   }, this);
+
   this.object.dirtyMesh = true;
 };
 
@@ -1089,12 +1092,14 @@ shapy.editor.Object.Edge.prototype.getVertices = function() {
  */
 shapy.editor.Object.Edge.prototype.delete = function() {
   goog.object.remove(this.object.edges, this.id);
+
   this.object.faces = goog.object.filter(this.object.faces, function(face) {
     return (
       goog.object.containsKey(this.object.edges, Math.abs(face.e0)) &&
       goog.object.containsKey(this.object.edges, Math.abs(face.e1)) &&
       goog.object.containsKey(this.object.edges, Math.abs(face.e2)));
   }, this);
+
   this.object.dirtyMesh = true;
 };
 
