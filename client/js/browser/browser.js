@@ -416,7 +416,7 @@ shapy.browser.asset = function(shModal) {
       });
       // Hide menu, deselect
       $(window).on('mousedown', function(evt) {
-        $('.asset-menu').hide(300);
+        $('.asset-menu').hide(200);
         $scope.$apply(function() {
           $scope.selected = null;
         });
