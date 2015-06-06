@@ -520,7 +520,7 @@ shapy.editor.Executor.prototype.emitDelete = function(obj) {
     data.ids = obj.getObjIds();
   } else {
     // Parts group.
-    data.ids = obj.getObjVertIds();
+    data.ids = obj.getObjPartIds();
   }
 
   this.sendCommand(data);
@@ -545,8 +545,26 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
     }, this);
   } else {
     // Delete parts.
-    goog.array.forEach(data['ids'], function(p) {
-      this.scene_.objects[p[0]].verts[p[1]].delete();
+    goog.array.forEach(data['ids'], function(t) {
+      var obj = this.scene_.objects[t[0]];
+
+      switch (t[2]) {
+        case 'vertex': {
+          obj.verts[t[1]].delete();
+          break;
+        }
+        case 'edge': {
+          obj.edges[t[1]].delete();
+          break;
+        }
+        case 'face': {
+          obj.faces[t[1]].delete();
+          break;
+        }
+        default: {
+          console.error('Invalid part type "' + t[2] + '"');
+        }
+      }
     }, this);
   }
-}
+};

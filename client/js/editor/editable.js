@@ -365,6 +365,7 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
     return e.getVertices();
   }, this));
   goog.array.removeDuplicates(verts);
+
   return verts;
 };
 
@@ -388,6 +389,15 @@ shapy.editor.PartsGroup.prototype.getObjVertIds = function() {
   }, this);
 };
 
+
+/**
+ * Retrieves [obj id, part id, part type] triples forming the group.
+ */
+shapy.editor.PartsGroup.prototype.getObjPartIds = function() {
+  return goog.array.map(this.editables, function(editable) {
+    return [editable.object.id, editable.id, editable.type];
+  }, this);
+};
 
 
 /**
