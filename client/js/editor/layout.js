@@ -100,17 +100,21 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
 shapy.editor.Layout.prototype.toggleUV = function() {
   var name = this.active.name;
 
-  this.viewports = goog.object.map(this.viewports, function(vp, vpName) {
-    if (vpName != name && vp.type != shapy.editor.Viewport.Type.UV) {
-      return vp;
-    }
-    if (vpName != name) {
-      this[vpName] = new shapy.editor.Viewport.Edit(vpName);
-    } else {
-      this[vpName] = new shapy.editor.Viewport.UV(vpName);
-    }
-    return this[vpName];
-  }, this);
+  if (this.active.type == shapy.editor.Viewport.Type.UV) {
+    this[name] = this.viewports[name] = new shapy.editor.Viewport.Edit(name);
+  } else {
+    this.viewports = goog.object.map(this.viewports, function(vp, vpName) {
+      if (vpName != name && vp.type != shapy.editor.Viewport.Type.UV) {
+        return vp;
+      }
+      if (vpName != name) {
+        this[vpName] = new shapy.editor.Viewport.Edit(vpName);
+      } else {
+        this[vpName] = new shapy.editor.Viewport.UV(vpName);
+      }
+      return this[vpName];
+    }, this);
+  }
 
   this.active = this[name];
   this.active.active = true;

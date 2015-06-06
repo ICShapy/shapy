@@ -494,6 +494,14 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       break;
     }
     case 'U': {
+      // Switch back to normal mode.
+      if (this.layout_ &&
+          this.layout_.active.type == shapy.editor.Viewport.Type.UV)
+      {
+        this.layout_.toggleUV();
+        return;
+      }
+
       // Only one object must be selected.
       if (this.objectGroup_.editables.length != 1) {
         return;
