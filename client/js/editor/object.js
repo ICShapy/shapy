@@ -140,7 +140,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
 
    /**
     * True if the object has a UV map.
-    * @public {boolean}
+    * @public {!Object<number, !shapy.editor.Object.UV>}
     */
   this.uvs = {};
   this.nextUV_ = 1;
@@ -154,6 +154,12 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  */
 shapy.editor.Object.EDGE_DIST_TRESHOLD = 0.01;
 
+
+/**
+ * UV distance treshold.
+ * @type {number} @const
+ */
+shapy.editor.Object.UV_DIST_TRESHOLD = 0.05;
 
 
 /**
@@ -461,6 +467,31 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
     };
   }, this), goog.isDefAndNotNull, this);
   return goog.object.getValues(v);
+};
+
+
+/**
+ * Finds vertices that match given UV coordinate.
+ *
+ * @param {!{x: number, y: number}} coord
+ */
+shapy.editor.Object.prototype.pickUVCoord = function(coord) {
+  return goog.object.getValues(goog.object.filter(this.uvs, function(uv) {
+    return shapy.editor.geom.dist2D(coord, uv.u, uv.v) <
+        shapy.editor.Object.UV_DIST_TRESHOLD;
+  }, this));
+};
+
+
+/**
+ * Finds parts that fall into the given UV region.
+ *
+ * @param {!{x0: number, x1: number, y0: number, y1: number}} group
+ */
+shapy.editor.Object.prototype.pickUVGroup = function(group) {
+  return goog.object.getValues(goog.object.filter(this.uvs, function(uv) {
+    return shapy.editor.geom.intersectSquare(group, uv.u, uv.v);
+  }, this));
 };
 
 

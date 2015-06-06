@@ -277,7 +277,7 @@ shapy.editor.geom.quatFromEulerAngles = function(x, y, z, q) {
 
   var pitch = y * pi180 / 2.0;
   var yaw   = z * pi180 / 2.0;
-  var roll  = x * pi180 / 2.0; 
+  var roll  = x * pi180 / 2.0;
 
   var sinp = Math.sin(pitch);
   var siny = Math.sin(yaw);
@@ -295,4 +295,31 @@ shapy.editor.geom.quatFromEulerAngles = function(x, y, z, q) {
   );
 
   goog.vec.Quaternion.normalize(q, q);
+};
+
+
+/**
+ * Computes euclidean distance between 2 points in 2D.
+ *
+ * @param {!goog.vec.Vec2.Type} p0
+ * @param {number} x
+ * @param {number} y
+ */
+shapy.editor.geom.dist2D = function(p0, x, y) {
+  return Math.sqrt(Math.pow(p0.x - x, 2) + Math.pow(p0.y - y, 2));
+};
+
+
+/**
+ * Determines if a 2D point lies whithin a square.
+ *
+ * @param {!{x0: number, x1: number, y0: number, y1: number}} square
+ * @param {number} x
+ * @param {number} y
+ */
+shapy.editor.geom.intersectSquare = function(square, x, y) {
+  return (
+    square.x0 <= x && x <= square.x1 &&
+    square.y0 <= y && y <= square.y1
+  );
 };
