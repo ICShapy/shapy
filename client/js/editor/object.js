@@ -1091,9 +1091,9 @@ shapy.editor.Object.Edge.prototype.delete = function() {
   goog.object.remove(this.object.edges, this.id);
   this.object.faces = goog.object.filter(this.object.faces, function(face) {
     return (
-      goog.object.containsKey(this.object.edges, face.e0) &&
-      goog.object.containsKey(this.object.edges, face.e1) &&
-      goog.object.containsKey(this.object.edges, face.e2));
+      goog.object.containsKey(this.object.edges, Math.abs(face.e0)) &&
+      goog.object.containsKey(this.object.edges, Math.abs(face.e1)) &&
+      goog.object.containsKey(this.object.edges, Math.abs(face.e2)));
   }, this);
   this.object.dirtyMesh = true;
 };
