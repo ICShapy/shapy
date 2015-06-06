@@ -177,7 +177,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   // Create a mesh for rendering all UV edges & faces.
   this.uvEdgeCount_ = 0;
   this.uvFaceCount_ = 0;
-  goog.object.forEach(this.object_.uvs, function(uv) {
+  goog.object.forEach(this.object_.faces, function(face) {
     this.uvEdgeCount_ += 6;
     this.uvFaceCount_ += 3;
   }, this);

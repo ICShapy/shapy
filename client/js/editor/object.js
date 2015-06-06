@@ -537,6 +537,7 @@ shapy.editor.Object.prototype.projectUV = function() {
   ];
 
   var project = goog.bind(function(v) {
+    this.dirtyMesh = true;
     var id = this.nextUV_;
     this.nextUV_++;
     ray.setDir(v.position);
@@ -571,11 +572,9 @@ shapy.editor.Object.prototype.projectUV = function() {
   goog.object.forEach(this.faces, function(f) {
     var verts = f.getVertices();
     f.uv0 = f.uv0 || project(verts[0]);
-    f.uv1 = f.uv2 || project(verts[1]);
-    f.uv2 = f.uv3 || project(verts[2]);
+    f.uv1 = f.uv1 || project(verts[1]);
+    f.uv2 = f.uv2 || project(verts[2]);
   }, this);
-
-  this.dirtyMesh = true;
 };
 
 
