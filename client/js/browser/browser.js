@@ -71,7 +71,7 @@ shapy.browser.BrowserController.prototype.select = function(asset, enter) {
       break;
     }
     default :
-      console.log('assetEnter - unimplemented case!');
+      console.log('select - unimplemented case!');
   }
 };
 
@@ -328,11 +328,12 @@ shapy.browser.assets = function() {
 /**
  * Asset directive.
  *
- * @param {!shapy.modal.Service} shModal
+ * @param {!shapy.modal.Service}     shModal
+ * @param {!shapy.browser.Service}   shBrowser The browser service.
  *
  * @return {!angular.Directive}
  */
-shapy.browser.asset = function(shModal) {
+shapy.browser.asset = function(shModal, shBrowser) {
   /**
    * Handles the deletion of an asset.
    * @param {!shapy.browser.Asset} asset
@@ -367,7 +368,8 @@ shapy.browser.asset = function(shModal) {
     scope: {
       asset: '=',
       selected: '=',
-      owner: '='
+      owner: '=',
+      assetWithMenu: '='
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
@@ -389,6 +391,35 @@ shapy.browser.asset = function(shModal) {
       });
       $scope.$on('$destroy', function() {
         $(window).off('keydown');
+      });
+      // Show context menu
+      $elem.bind('contextmenu', function(evt) {
+        // No context menu fot dirs
+        if ($scope.asset.type == shapy.browser.Asset.Type.DIRECTORY) {
+          return false;
+        }
+        // Select
+        $scope.$apply(function() {
+          $scope.selected = $scope.asset;
+        });
+        // Block default
+        evt.stopPropagation();
+        evt.preventDefault();
+        // Show
+        var y = evt.pageY - 30;
+        $('.asset-menu').show().
+          css({
+              top: y + 'px',
+              left: evt.pageX + 'px'
+          });
+        return false;
+      });
+      // Hide menu, deselect
+      $(window).on('mousedown', function(evt) {
+        $('.asset-menu').hide(300);
+        $scope.$apply(function() {
+          $scope.selected = null;
+        });
       });
     }
   };
