@@ -24,7 +24,7 @@ shapy.editor.Viewport.UV = function(name) {
    * Zoom level.
    * @public {number}
    */
-  this.zoom = 20.0;
+  this.zoom = shapy.editor.Viewport.UV.MAX_ZOOM;
 
   /**
    * True if view is being panned.
@@ -83,27 +83,39 @@ shapy.editor.Viewport.UV.SIZE = 10;
 
 
 /**
+ * Max zoom.
+ */
+shapy.editor.Viewport.UV.MAX_ZOOM = 40.0;
+
+/**
+ * Min zoom.
+ */
+shapy.editor.Viewport.UV.MIN_ZOOM = 2.0;
+
+
+/**
  * Computes the matrices.
  *
  * @private
  */
 shapy.editor.Viewport.UV.prototype.compute_ = function() {
-  var d = 1.0 / this.zoom, w = shapy.editor.Viewport.UV.SIZE;
+  var d, w = shapy.editor.Viewport.UV.SIZE;
 
-  this.pan.x = Math.min(this.pan.x, w / this.zoom - 0.4);
-  this.pan.x = Math.max(this.pan.x, 0.4 - w / this.zoom);
-  this.pan.y = Math.min(this.pan.y, w / this.zoom - 0.4 / this.aspect);
-  this.pan.y = Math.max(this.pan.y, 0.4 / this.aspect - w / this.zoom);
+  // Clip zoom level.
+  this.zoom = Math.max(this.zoom, shapy.editor.Viewport.UV.MIN_ZOOM);
+  this.zoom = Math.min(this.zoom, shapy.editor.Viewport.UV.MAX_ZOOM);
+  d = 1.0 / this.zoom;
 
+  // Compte matrices.
   goog.vec.Mat4.setFromValues(this.view,
       d, 0, 0, 0,
       0, 0, d, 0,
       0, d, 0, 0,
       this.pan.x + 0.5,
-      this.pan.y + 0.5 / this.aspect, 0, 1);
+      this.pan.y + 0.5, 0, 1);
   goog.vec.Mat4.makeOrtho(this.proj,
       0, 1,
-      0, 1.0 / this.aspect,
+      0, 1 / this.aspect,
       -1, 1);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
   goog.vec.Mat4.invert(this.vp, this.invVp);
@@ -208,17 +220,12 @@ shapy.editor.Viewport.UV.prototype.mouseWheel = function(delta) {
     this.zoom *= shapy.editor.Camera.ZOOM_SPEED;
   }
 
-  // Clip zoom.
-  this.zoom = Math.max(this.zoom, shapy.editor.Camera.MIN_ZOOM);
-  this.zoom = Math.min(this.zoom, shapy.editor.Camera.MAX_ZOOM);
-  this.zoom = Math.min(this.zoom, 2 * shapy.editor.Viewport.UV.SIZE + 0.4);
+  // Recompute matrices.
+  this.compute_();
 
   // Adjust mouse to remain over the same point.
   var mx = this.currMousePos.x / this.rect.w - 0.5;
   this.pan.x = mx - ((mx - this.pan.x) * old) / this.zoom;
   var my = this.currMousePos.y / this.rect.w - 0.5 / this.aspect;
   this.pan.y = my - ((my - this.pan.y) * old) / this.zoom;
-
-  // Recompute matrices.
-  this.compute_();
 };
