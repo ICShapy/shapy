@@ -207,9 +207,22 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   a.translate(0, 0, 0);
   a.scale(1, 1, 1);
 
-  // Set up the websocket connectio.
+  var b = scene.createCube(0.5, 0.5, 0.5);
+  b.translate(1, 0, 0);
+  b.scale(1, 1, 1);
+
+  var c = scene.createCube(0.5, 0.5, 0.5);
+  c.translate(-1, 0, 0);
+  c.scale(1, 1, 1);
+
+  // Set up the websocket connection.
   this.pending_ = [];
   this.exec_ = new shapy.editor.Executor(this.scene_, this);
+
+  // Attach onFinish emiters.
+  this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
+  this.rigRotate_.onFinish = goog.bind(this.exec_.emitRotate, this.exec_);
+  this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
 };
 
 
@@ -422,10 +435,12 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   switch (String.fromCharCode(e.keyCode)) {
     case 'D': {
       if (this.mode.object) {
+        this.exec_.emitDelete(this.objectGroup_);
         this.objectGroup_.delete();
         this.objectGroup_.clear();
         this.partGroup_.clear();
       } else {
+        this.exec_.emitDelete(this.partGroup_);
         this.partGroup_.delete();
         this.partGroup_.clear();
       }
@@ -541,6 +556,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   // If we're extruding, stop
   if (this.rig_ == this.rigExtrude_) {
     this.rig(null);
+    return;
   }
 
   // If viewports want the event, give up.
@@ -641,7 +657,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
-  this.layout_.mouseDown(e);
+  // Only allow this click if we're not extruding
+  if (this.rig_ != this.rigExtrude_) {
+    this.layout_.mouseDown(e);
+  }
 };
 
 

@@ -20,7 +20,17 @@ shapy.editor.Rig.Translate = function() {
   /**
    * @private {goog.vec.Vec3.Type}
    */
+  this.currPos_ = goog.vec.Vec3.createFloat32();
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
   this.lastPos_ = goog.vec.Vec3.createFloat32();
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.startPos_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Translate, shapy.editor.Rig);
 
@@ -193,9 +203,10 @@ shapy.editor.Rig.Translate.prototype.mouseMove = function(ray) {
   if (this.select_.x || this.select_.y || this.select_.z) {
     // Calculate the translation.
     var t = goog.vec.Vec3.createFloat32();
-    var currPos = this.getClosest_(ray);
-    goog.vec.Vec3.subtract(currPos, this.lastPos_, t);
-    this.lastPos_ = currPos;
+    this.currPos_ = this.getClosest_(ray);
+
+    goog.vec.Vec3.subtract(this.currPos_, this.lastPos_, t);
+    goog.vec.Vec3.setFromArray(this.lastPos_, this.currPos_);
 
     // Update the position.
     this.object.translate(t[0], t[1], t[2]);
@@ -240,7 +251,10 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
   this.select_.x = this.hover_.x;
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
-  this.lastPos_ = this.getClosest_(ray);
+
+  this.currPos_ = this.getClosest_(ray);
+  goog.vec.Vec3.setFromArray(this.lastPos_, this.currPos_);
+  goog.vec.Vec3.setFromArray(this.startPos_, this.currPos_);
 
   return this.hover_.x || this.hover_.y || this.hover_.z;
 };
@@ -255,11 +269,10 @@ shapy.editor.Rig.Translate.prototype.mouseDown = function(ray) {
  */
 shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.y || this.select_.z;
+
+  this.finish_(captured);
   this.select_.x = this.select_.y = this.select_.z = false;
-  if (this.onFinish) {
-    var pos = this.object.getPosition();
-    this.onFinish(this.object, pos[0], pos[1], pos[2]);
-  }
+
   return captured;
 };
 
@@ -268,5 +281,23 @@ shapy.editor.Rig.Translate.prototype.mouseUp = function(ray) {
  * Handles mouse leave event.
  */
 shapy.editor.Rig.Translate.prototype.mouseLeave = function() {
+  this.finish_(this.select_.x || this.select_.y || this.select_.z);
   this.select_.x = this.select_.y = this.select_.z = false;
+};
+
+
+/**
+ * Handles onFinish call.
+ *
+ * @param {boolean} captured
+ */
+shapy.editor.Rig.Translate.prototype.finish_ = function(captured) {
+  if (this.onFinish && captured) {
+    this.onFinish(
+        this.object,
+        this.currPos_[0] - this.startPos_[0],
+        this.currPos_[1] - this.startPos_[1],
+        this.currPos_[2] - this.startPos_[2]
+    );
+  }
 };

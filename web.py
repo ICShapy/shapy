@@ -38,8 +38,10 @@ def main(args):
   app = tornado.web.Application([
     # API for accessing assets.
     (r'/api/assets/dir$',                     shapy.assets.DirHandler),
+    (r'/api/assets/filtered$',                shapy.assets.FilteredHandler),
     (r'/api/assets/public',                   shapy.assets.PublicHandler),
     (r'/api/assets/scene$',                   shapy.assets.SceneHandler),
+    (r'/api/assets/shared',                   shapy.assets.SharedHandler),
     (r'/api/assets/texture$',                 shapy.assets.TextureHandler),
 
     # Authentication.
