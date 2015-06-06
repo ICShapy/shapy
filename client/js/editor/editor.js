@@ -420,10 +420,12 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   switch (String.fromCharCode(e.keyCode)) {
     case 'D': {
       if (this.mode.object) {
+        this.exec_.emitDelete(this.objectGroup_);
         this.objectGroup_.delete();
         this.objectGroup_.clear();
         this.partGroup_.clear();
       } else {
+        this.exec_.emitDelete(this.partGroup_);
         this.partGroup_.delete();
         this.partGroup_.clear();
       }
