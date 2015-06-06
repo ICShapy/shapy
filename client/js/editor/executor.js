@@ -475,6 +475,8 @@ shapy.editor.Executor.prototype.applyScale = function(data) {
     return;
   }
 
+  console.log("apply", data['sx'], data['sy'], data['sz']);
+
   var mid = goog.vec.Vec3.createFloat32FromValues(
       data['mx'], data['my'], data['mz']);
   var d = goog.vec.Vec3.createFloat32();
