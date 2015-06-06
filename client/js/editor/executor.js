@@ -457,7 +457,7 @@ shapy.editor.Executor.prototype.emitScale = function(obj, sx, sy, sz) {
   if (this.editor_.mode.object) {
     data.ids = obj.getObjIds();
   } else {
-    // Parts group rotation to be implemented.
+    // Parts group scaling to be implemented.
   }
 
   this.sendCommand(data);
@@ -482,10 +482,16 @@ shapy.editor.Executor.prototype.applyScale = function(data) {
   // Scale objects/ parts.
   if (data['objMode']) {
     goog.array.forEach(data.ids, function(id) {
+      goog.vec.Vec3.subtract(this.scene_.objects[id].getPosition(), mid, d);
 
+      this.scene_.objects[id].translate(
+          d[0] * data['sx'] - d[0],
+          d[1] * data['sy'] - d[1],
+          d[2] * data['sz'] - d[2]
+      );
+      this.scene_.objects[id].scale(data['sx'], data['sy'], data['sz']);
     }, this);
   } else {
     // To be implemented.
   }
-
 };

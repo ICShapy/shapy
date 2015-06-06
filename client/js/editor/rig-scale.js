@@ -20,7 +20,22 @@ shapy.editor.Rig.Scale = function() {
   /**
    * @private {goog.vec.Vec3.Type}
    */
+  this.currPos_ = goog.vec.Vec3.createFloat32();
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
   this.lastPos_ = goog.vec.Vec3.createFloat32();
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.startPos_ = goog.vec.Vec3.createFloat32();
+
+  /**
+   * @private {goog.vec.Vec3.Type}
+   */
+  this.startScale_ = goog.vec.Vec3.createFloat32();
 
   /**
    * @private {goog.vec.Vec3.Type}
@@ -209,10 +224,10 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
 shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
   if (this.select_.x || this.select_.y || this.select_.z) {
     // Calculate the movement.
+    this.currPos_ = this.getClosest_(ray);
     var d = goog.vec.Vec3.createFloat32();
-    var currPos = this.getClosest_(ray);
-    goog.vec.Vec3.subtract(currPos, this.lastPos_, d);
-    this.lastPos_ = currPos;
+    goog.vec.Vec3.subtract(this.currPos_, this.lastPos_, d);
+    this.lastPos_ = this.currPos_;
 
     // Update the scale.
     goog.vec.Vec3.scale(d, 1 / this.size_, d);
@@ -259,9 +274,16 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.select_.x = this.hover_.x;
   this.select_.y = this.hover_.y;
   this.select_.z = this.hover_.z;
-  this.lastPos_ = this.getClosest_(ray);
+
+  this.currPos_ = this.getClosest_(ray);
+  this.lastPos_ = this.currPos_;
+
+  this.startPos_ = this.currPos_;
+  this.startScale_ = this.scale_;
+
   goog.vec.Vec3.setFromArray(
     this.scaleRelativeTo_, this.object.getScale());
+
   return this.hover_.x || this.hover_.y || this.hover_.z;
 };
 
@@ -273,6 +295,7 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
  */
 shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.x || this.select_.z;
+  this.finish_(captured);
   this.select_.x = this.select_.y = this.select_.z = false;
   goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
   return captured;
@@ -283,8 +306,34 @@ shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
  * Handles mouse leave event.
  */
 shapy.editor.Rig.Scale.prototype.mouseLeave = function() {
+  this.finish_(this.select_.x || this.select_.y || this.select_.z);
   this.select_.x = this.select_.y = this.select_.z = false;
 
   // Reset the scale.
   goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
+};
+
+
+/**
+ * Handles onFinish call.
+ *
+ * @param {boolean} captured
+ */
+shapy.editor.Rig.Scale.prototype.finish_ = function(captured) {
+  if (!this.onFinish || !captured) {
+    return;
+  }
+
+  // Calculate the movement.
+  var d = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(this.currPos_, this.startPos_, d);
+
+  // Update the scale.
+  goog.vec.Vec3.scale(d, 1 / this.size_, d);
+  var sx = (this.startScale_[0] + d[0]) / this.startScale_[0];
+  var sy = (this.startScale_[1] + d[1]) / this.startScale_[1];
+  var sz = (this.startScale_[2] + d[2]) / this.startScale_[2];
+
+  // Update the scale of the model to be the relative scale
+  this.onFinish(this.object, sx, sy, sz);
 };
