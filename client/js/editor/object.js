@@ -593,14 +593,19 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   // internal edges are defined to be edges shared by 2 faces).
   var edgeCounts = {};
   goog.array.forEach(edges, function(e) {
-    if (!Object.prototype.hasOwnProperty.call(edgeCounts, e.id)) {
+    if (!goog.object.containsKey(edgeCounts, e.id)) {
       edgeCounts[e.id] = 0;
     }
     edgeCounts[e.id]++;
   });
-  var boundaryEdges = goog.array.filter(edges, function(e) {
-    return edgeCounts[e.id] == 1;
+  var sortedEdges = goog.array.bucket(edges, function(e) {
+    if (edgeCounts[e.id] == 1) {
+      return 'boundary';
+    } else {
+      return 'internal';
+    }
   });
+  goog.array.removeDuplicates(sortedEdges.internal);
 
   // Compute the vertices
   var verts = goog.array.flatten(goog.array.map(edges, function(e) {
@@ -610,7 +615,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
 
   // Compute the boundary vertices
   var boundaryVerts =
-    goog.array.flatten(goog.array.map(boundaryEdges, function(e) {
+    goog.array.flatten(goog.array.map(sortedEdges.boundary, function(e) {
       return e.getVertices();
     }, this));
   goog.array.removeDuplicates(boundaryVerts);
@@ -667,7 +672,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     }
     return null;
   };
-  goog.array.forEach(boundaryEdges, function(e, i) {
+  goog.array.forEach(sortedEdges.boundary, function(e, i) {
     // If ab is not flipped, it looks like:
     //    B<---A <- extruded
     //    ^ \  ^
@@ -733,6 +738,11 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     f.delete(); // Delete original face
     return this.faces[faceID];
   }, this);
+
+  // Delete internal edges
+  goog.array.forEach(sortedEdges.internal, function(e) {
+    e.delete();
+  });
 
   this.dirtyMesh = true;
 
