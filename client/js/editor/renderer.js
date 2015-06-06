@@ -480,6 +480,7 @@ shapy.editor.Renderer.prototype.renderOverlay = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
+  this.gl_.lineWidth(1.0);
   this.gl_.disable(goog.webgl.DEPTH_TEST);
   this.gl_.enable(goog.webgl.BLEND);
   this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
