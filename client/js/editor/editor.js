@@ -507,9 +507,9 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         return;
       }
       if (this.layout_ && this.layout_.active) {
+        this.layout_.toggleUV();
         this.layout_.active.object = this.objectGroup_.editables[0];
         this.layout_.active.object.projectUV();
-        this.layout_.toggleUV();
       }
       break;
     }
