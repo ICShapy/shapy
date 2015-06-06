@@ -423,7 +423,7 @@ shapy.editor.Renderer.prototype.renderBackground = function(vp) {
     this.shGround_.uniform2f('u_size',
         shapy.editor.Viewport.UV.SIZE,
         shapy.editor.Viewport.UV.SIZE);
-    this.shGround_.uniform1f('u_zoom', 3.0);
+    this.shGround_.uniform1f('u_zoom', 2.0);
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);

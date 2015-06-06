@@ -24,7 +24,13 @@ shapy.editor.Viewport.UV = function(name) {
    * Zoom level.
    * @public {number}
    */
-  this.zoom = shapy.editor.Viewport.UV.MAX_ZOOM;
+  this.zoomLevel = 10;
+
+  /**
+   * Zoom value.
+   * @public {number}
+   */
+  this.zoom = 0;
 
   /**
    * True if view is being panned.
@@ -94,10 +100,17 @@ shapy.editor.Viewport.UV.SIZE = 10;
  */
 shapy.editor.Viewport.UV.MAX_ZOOM = 40.0;
 
+
 /**
  * Min zoom.
  */
-shapy.editor.Viewport.UV.MIN_ZOOM = 2.0;
+shapy.editor.Viewport.UV.MIN_ZOOM = -1.0;
+
+
+/**
+ * Zoom speed.
+ */
+shapy.editor.Viewport.UV.ZOOM_SPEED = 1.0;
 
 
 /**
@@ -108,21 +121,38 @@ shapy.editor.Viewport.UV.MIN_ZOOM = 2.0;
 shapy.editor.Viewport.UV.prototype.compute_ = function() {
   var d, w = shapy.editor.Viewport.UV.SIZE;
 
-  // Clip zoom level.
-  this.zoom = Math.max(this.zoom, shapy.editor.Viewport.UV.MIN_ZOOM);
-  this.zoom = Math.min(this.zoom, shapy.editor.Viewport.UV.MAX_ZOOM);
-  d = 1.0 / this.zoom;
+  // Clamp zoom level.
+  this.zoomLevel = Math.max(this.zoomLevel, shapy.editor.Viewport.UV.MIN_ZOOM);
+  this.zoomLevel = Math.min(this.zoomLevel, shapy.editor.Viewport.UV.MAX_ZOOM);
+  this.zoom = Math.pow(1.1, this.zoomLevel);
+  d = 1000 / this.zoom;
+
+  // Clamp pan.
+  if (2 * w * d < this.rect.w) {
+    this.pan.x = Math.max(this.pan.x, +w * d - this.rect.w / 2);
+    this.pan.x = Math.min(this.pan.x, -w * d + this.rect.w / 2);
+  } else {
+    this.pan.x = Math.max(this.pan.x, -w * d + this.rect.w / 2);
+    this.pan.x = Math.min(this.pan.x, +w * d - this.rect.w / 2);
+  }
+  if (2 * w * d < this.rect.h) {
+    this.pan.y = Math.max(this.pan.y, +w * d - this.rect.h / 2);
+    this.pan.y = Math.min(this.pan.y, -w * d + this.rect.h / 2);
+  } else {
+    this.pan.y = Math.max(this.pan.y, -w * d + this.rect.h / 2);
+    this.pan.y = Math.min(this.pan.y, +w * d - this.rect.h / 2);
+  }
 
   // Compte matrices.
   goog.vec.Mat4.setFromValues(this.view,
       d, 0, 0, 0,
       0, 0, d, 0,
       0, d, 0, 0,
-      this.pan.x + 0.5,
-      this.pan.y + 0.5, 0, 1);
+      this.pan.x,
+      this.pan.y, 0, 1);
   goog.vec.Mat4.makeOrtho(this.proj,
-      0, 1,
-      0, 1 / this.aspect,
+      -this.rect.w / 2, this.rect.w / 2,
+      -this.rect.h / 2, this.rect.h / 2,
       -1, 1);
   goog.vec.Mat4.multMat(this.proj, this.view, this.vp);
   goog.vec.Mat4.invert(this.vp, this.invVp);
@@ -156,8 +186,8 @@ shapy.editor.Viewport.UV.prototype.resize = function(x, y, w, h) {
 shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y) {
   shapy.editor.Viewport.prototype.mouseMove.call(this, x, y);
   if (this.isPanning_) {
-    this.pan.x = this.initialPan_.x + (x - this.lastClick.x) / this.rect.w;
-    this.pan.y = this.initialPan_.y + (y - this.lastClick.y) / this.rect.w;
+    this.pan.x = this.initialPan_.x + x - this.lastClick.x;
+    this.pan.y = this.initialPan_.y + y - this.lastClick.y;
     this.compute_();
   }
   return true;
@@ -221,18 +251,18 @@ shapy.editor.Viewport.UV.prototype.mouseUp = function(x, y) {
 shapy.editor.Viewport.UV.prototype.mouseWheel = function(delta) {
   var old = this.zoom;
 
+  // Adjust zoom.
   if (delta < 0) {
-    this.zoom /= shapy.editor.Camera.ZOOM_SPEED;
+    this.zoomLevel += shapy.editor.Viewport.UV.ZOOM_SPEED;
   } else if (delta > 0) {
-    this.zoom *= shapy.editor.Camera.ZOOM_SPEED;
+    this.zoomLevel -= shapy.editor.Viewport.UV.ZOOM_SPEED;
   }
 
-  // Recompute matrices.
+  // Adjust panning.
   this.compute_();
-
-  // Adjust mouse to remain over the same point.
-  var mx = this.currMousePos.x / this.rect.w - 0.5;
+  var mx = this.currMousePos.x - this.rect.w / 2;
   this.pan.x = mx - ((mx - this.pan.x) * old) / this.zoom;
-  var my = this.currMousePos.y / this.rect.w - 0.5 / this.aspect;
+  var my = this.currMousePos.y - this.rect.h / 2;
   this.pan.y = my - ((my - this.pan.y) * old) / this.zoom;
+  this.compute_();
 };
