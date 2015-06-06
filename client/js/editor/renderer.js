@@ -67,7 +67,7 @@ shapy.editor.UV_FS =
   'varying vec4 v_colour;                                             \n' +
 
   'void main() {                                                      \n' +
-  '  gl_FragColor = vec4(v_colour.rgb, 1.0);                          \n' +
+  '  gl_FragColor = v_colour;                                         \n' +
   '}                                                                  \n';
 
 
@@ -605,6 +605,8 @@ shapy.editor.Renderer.prototype.renderUVMesh = function(vp) {
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
   this.gl_.disable(goog.webgl.DEPTH_TEST);
+  this.gl_.enable(goog.webgl.BLEND);
+  this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
   {
     this.shUV_.use();
     goog.vec.Mat4.makeIdentity(mvp);
@@ -614,4 +616,5 @@ shapy.editor.Renderer.prototype.renderUVMesh = function(vp) {
     mesh[0].renderUV();
   }
   this.gl_.enable(goog.webgl.DEPTH_TEST);
+  this.gl_.disable(goog.webgl.BLEND);
 };

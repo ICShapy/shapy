@@ -58,7 +58,7 @@ shapy.editor.Mesh = function(gl, object) {
  * @private
  */
 shapy.editor.Mesh.prototype.build_ = function() {
-  var r = 0, g = 0, b = 0;
+  var r = 0, g = 0, b = 0, a = 1;
 
   var add = function(d, pos) {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
@@ -70,7 +70,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   var addUV = function(d, pos) {
     d[k++] = (pos.u * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
     d[k++] = (pos.v * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
-    d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1;
+    d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = a;
   };
 
   // Create mesh for rendering all the edges.
@@ -197,7 +197,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
     addUV(e, this.object_.uvs[face.uv2]);
     addUV(e, this.object_.uvs[face.uv0]);
 
-    r = 0.7; g = 0.7; b = 0.7; a = 1.0;
+    r = 0.7; g = 0.7; b = 0.7; a = 0.4;
     addUV(f, this.object_.uvs[face.uv0]);
     addUV(f, this.object_.uvs[face.uv1]);
     addUV(f, this.object_.uvs[face.uv2]);
