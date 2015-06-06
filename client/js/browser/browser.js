@@ -144,17 +144,22 @@ shapy.browser.BrowserController.prototype.query = function() {
 
 
 /**
+ * Returns type of current directory.
+ *
+ * @return {boolean}
+ */
+shapy.browser.BrowserController.prototype.private = function() {
+  return this.shBrowser_.private;
+};
+
+
+/**
  * Returns default name for assets
  *
  * @param {shapy.browser.Asset.Type} type Type of asset for which we return name
  */
 shapy.browser.BrowserController.prototype.defaultName = function(type) {
-  switch (type) {
-    case shapy.browser.Asset.Type.DIRECTORY: return 'Untitled Folder';
-    case shapy.browser.Asset.Type.SCENE:     return 'Untitled Scene';
-    case shapy.browser.Asset.Type.TEXTURE:   return 'Untitled Texture';
-    default:                                 return 'Untitled';
-  }
+  return this.shBrowser_.defaultName(type);
 };
 
 
@@ -194,24 +199,54 @@ shapy.browser.BrowserToolbarController.prototype.path = function() {
 
 
 /**
- * Returns type of current directory.
- *
- * @return {boolean}
- */
-shapy.browser.BrowserToolbarController.prototype.public = function() {
-  return this.shBrowser_.public;
-};
-
-
-/**
- * Enters public assets space.
+ * Enters public space.
  *
  */
 shapy.browser.BrowserToolbarController.prototype.selectPublic = function() {
   this.shBrowser_.getPublic().then(goog.bind(function(dir) {
-    this.shBrowser_.public = true;
+    this.shBrowser_.private = false;
     this.shBrowser_.current = dir;
   }, this));
+};
+
+
+/**
+ * Enters filtered space.
+ *
+ * @param {number} id Id of the filtered space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectFiltered = function(id) {
+  this.shBrowser_.getFiltered(id).then(goog.bind(function(dir) {
+    this.shBrowser_.private = false;
+    this.shBrowser_.current = dir;
+  }, this));
+};
+
+
+/**
+ * Enters shared space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectShared = function() {
+  this.shBrowser_.getShared().then(goog.bind(function(dir) {
+    this.shBrowser_.private = false;
+    this.shBrowser_.current = dir;
+  }, this));
+};
+
+
+/**
+ * Enters textures space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectTextures = function() {
+  this.selectFiltered(shapy.browser.Asset.Space.TEXTURES);
+};
+
+
+/**
+ * Enters scenes space.
+ */
+shapy.browser.BrowserToolbarController.prototype.selectScenes = function() {
+  this.selectFiltered(shapy.browser.Asset.Space.SCENES);
 };
 
 
@@ -311,7 +346,8 @@ shapy.browser.asset = function(shModal) {
     restrict: 'E',
     scope: {
       asset: '=',
-      selected: '='
+      selected: '=',
+      owner: '='
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
@@ -320,6 +356,9 @@ shapy.browser.asset = function(shModal) {
         }
         if ($scope.asset != $scope.selected) {
           return;
+        }
+        if (!($scope.owner)) {
+          return false;
         }
         $scope.$apply(function() {
           doDelete($scope.asset);

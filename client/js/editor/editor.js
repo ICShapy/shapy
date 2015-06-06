@@ -244,7 +244,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Single();
+  this.layout_ = new shapy.editor.Layout.Double();
   this.rig(this.rigTranslate_);
 };
 
@@ -402,9 +402,9 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   this.rig_ = rig;
   if (this.rig_) {
     this.rig_.object = attach;
-    if (this.layout_) {
-      this.layout_.active.rig = rig;
-    }
+  }
+  if (this.layout_) {
+    this.layout_.active.rig = rig;
   }
 };
 
@@ -465,12 +465,18 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (faces.length <= 0) {
         return;
       }
+      var extrudeData = object.extrude(faces);
 
+      // Select extruded faces
+      this.partGroup_.clear();
+      this.partGroup_.add(extrudeData.faces);
+      goog.array.forEach(extrudeData.faces, function(e) {
+        e.setSelected(this.user);
+      }, this);
+
+      // Set up extrude rig
       this.rig(this.rigExtrude_);
-      this.rigExtrude_.setup({
-          faces: faces,
-          normal: object.extrude(faces).normal
-      });
+      this.rigExtrude_.setup(extrudeData.normal);
       return;
     }
     case 'T': this.rig(this.rigTranslate_); return;
@@ -497,6 +503,12 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
+
+  // If we're extruding, stop
+  if (this.rig_ == this.rigExtrude_) {
+    this.rig(null);
+    return;
+  }
 
   // If viewports want the event, give up.
   if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
@@ -594,7 +606,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
-  this.layout_.mouseDown(e);
+  // Only allow this click if we're not extruding
+  if (this.rig_ != this.rigExtrude_) {
+    this.layout_.mouseDown(e);
+  }
 };
 
 

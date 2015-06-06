@@ -15,12 +15,6 @@ goog.require('shapy.editor.Rig');
 shapy.editor.Rig.Extrude = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.EXTRUDE);
 
-  /** @private {!shapy.editor.PartsGroup} */
-  this.faces_ = null;
-
-  /** @private {!goog.vec.Vec3.Type} */
-  this.centre_ = null;
-
   /** @private {!goog.vec.Vec3.Type} */
   this.normal_ = null;
 };
@@ -51,21 +45,17 @@ shapy.editor.Rig.Extrude.prototype.build_ = function(gl) {
  * Sets up the rig using data returned from the extrude operation. A
  * precondition here is that the normal vector is normalised.
  *
- * @param {!Object} extrudeData
+ * @param {!goog.vec.Vec3.Type} normal
  */
-shapy.editor.Rig.Extrude.prototype.setup = function(extrudeData) {
-  this.faces_ = new shapy.editor.PartsGroup(extrudeData.faces);
-  this.centre_ = this.faces_.getPosition();
-  this.normal_ = extrudeData.normal;
+shapy.editor.Rig.Extrude.prototype.setup = function(normal) {
+  this.normal_ = normal;
 
   // Set up the model matrix
   // As we're using euler angles, apply rotation in a ZYX order
   var inclination = Math.asin(-this.normal_[1]);
   var azimuth = Math.atan2(this.normal_[0], this.normal_[2]);
-  goog.vec.Mat4.makeTranslate(this.model_,
-    this.centre_[0],
-    this.centre_[1],
-    this.centre_[2]);
+  var centre = this.object.getPosition();
+  goog.vec.Mat4.makeTranslate(this.model_, centre[0], centre[1], centre[2]);
   goog.vec.Mat4.rotateY(this.model_, azimuth, this.model_);
   goog.vec.Mat4.rotateX(this.model_, inclination, this.model_);
 };
@@ -100,17 +90,11 @@ shapy.editor.Rig.Extrude.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Extrude.prototype.mouseMove = function(ray) {
-  var currPos = shapy.editor.geom.getClosest(
-      new goog.vec.Ray(this.centre_, this.normal_), ray).p0;
-  var newPos = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.subtract(currPos, this.centre_, newPos);
-
-  // Translate along ray
-  var objPos = this.object.getPosition();
-  this.faces_.translate(
-    objPos[0] + newPos[0],
-    objPos[1] + newPos[1],
-    objPos[2] + newPos[2]);
+  var targetPos = shapy.editor.geom.getClosest(
+      new goog.vec.Ray(this.object.getPosition(), this.normal_), ray).p0;
+  var delta = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(targetPos, this.object.getPosition(), delta);
+  this.object.translate(delta[0], delta[1], delta[2]);
 };
 
 

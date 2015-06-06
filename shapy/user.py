@@ -72,7 +72,7 @@ class LogoutHandler(APIHandler):
     """Logs a user out by invalidating the session token."""
 
     token = self.get_secure_cookie('session')
-    yield Task(self.redis.hdel, 'session:%s' % token, 'user_id')
+    self.redis.delete('session:%s' % token, 'user_id')
     self.clear_all_cookies()
 
 

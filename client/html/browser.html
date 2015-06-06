@@ -1,27 +1,32 @@
 <div>
   <sh-sidebar>
     <!-- Top bar -->
-    <div class="create" ng-init="show=false">
-      <button
-          class="left"
-          ng-click="browserCtrl.createScene()">
-        NEW SCENE
-      </button>
-      <button
-          class="right"
-          ng-click="show=!show">
-        <img src="/img/arrow-right.svg"/>
-      </button>
-      <ul class="menu" ng-show="show">
-        <li
-            ng-click="show=false;browserCtrl.createDir();">
-          Folder
-        </li>
-        <li
-            ng-click="show=false;browserCtrl.createTexture();">
-          Texture
-        </li>
-      </ul>
+    <div ng-switch on="browserCtrl.private()">
+      <div ng-switch-when="true" class="create" ng-init="show=false">
+        <button
+            class="left"
+            ng-click="browserCtrl.createScene()">
+          NEW SCENE
+        </button>
+        <button
+            class="right"
+            ng-click="show=!show">
+          <img src="/img/arrow-right.svg"/>
+        </button>
+        <ul class="menu" ng-show="show">
+          <li
+              ng-click="show=false;browserCtrl.createDir();">
+            Folder
+          </li>
+          <li
+              ng-click="show=false;browserCtrl.createTexture();">
+            Texture
+          </li>
+        </ul>
+      </div>
+      <div ng-switch-default class="space">
+        <h2>{{browserCtrl.current().name}}</h2>
+      </div>
     </div>
 
     <!-- Directory tree. -->
@@ -65,23 +70,30 @@
         asset in browserCtrl.current().children |
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
-      <sh-asset
+      <sh-asset ng-style="(asset.write) ? null : {'border': '1px solid red'}"
           asset="asset"
           selected="browserCtrl.selected"
+          owner="asset.owner"
           ng-class="{selected: browserCtrl.selected==asset}">
-        <div
+        <div class="image"
             ng-click="browserCtrl.selected=asset"
             ng-dblclick="browserCtrl.select(asset, true)">
           <img ng-src="{{asset.image}}">
         </div>
-        <sh-editable
-            ng-click="browserCtrl.selected = null"
-            ng-init="name=asset.name"
-            default-name="{{browserCtrl.defaultName(asset.type)}}"
-            class="name"
-            ng-blur="browserCtrl.rename(asset, name)"
-            ng-model="name">
-        </sh-editable>
+        <div ng-switch on="asset.write">
+          <div ng-switch-when="true" class="name">
+            <sh-editable
+                ng-click="browserCtrl.selected = null"
+                ng-init="name=asset.name"
+                default-name="{{browserCtrl.defaultName(asset.type)}}"
+                ng-blur="browserCtrl.rename(asset, name)"
+                ng-model="name">
+            </sh-editable>
+          </div>
+          <div ng-switch-default class="name" >
+            {{asset.name}}
+          </div>
+        </div>
       </sh-asset>
     </div>
   </sh-assets>

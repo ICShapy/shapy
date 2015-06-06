@@ -141,11 +141,23 @@ sh-sidebar .name:active img.right {
   content: url('/img/arrow-right-press.svg');
 }
 
-sh-sidebar > h1 {
-  position: absolute;
-  height: 30px;
-  font-size: 30px;
-  left: 10px; top: 0px;
+sh-sidebar .space {
+  position: relative;
+  height: 28px;
+  padding: 0px 0px 0px 0px;
+  margin-top: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 119px;
+}
+
+sh-sidebar .space h2{
+  text-align: center;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
+  border: none;
+  z-index: 5000;
 }
 
 sh-sidebar-folders {
@@ -187,7 +199,7 @@ sh-asset {
   cursor: pointer;
 }
 
-sh-asset > .name {
+sh-asset > div .name {
   display: block;
   position: absolute;
   bottom: 0; left: 0; right: 0; height: 16px;
@@ -203,11 +215,11 @@ sh-asset > .name {
   white-space: nowrap;
 }
 
-sh-asset > .name:focus {
+sh-asset > div .name:focus {
   outline: 0;
 }
 
-sh-asset > div {
+sh-asset > .image {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 25px;
   border: 1px solid #cccccc;
@@ -215,17 +227,17 @@ sh-asset > div {
   background-color: white;
 }
 
-sh-asset > div:hover {
+sh-asset > .image:hover {
   box-shadow: 2px 2px 2px #bbbbbb;
 }
 
-sh-asset.selected > div {
+sh-asset.selected > .image {
   background-color: #3399FF;
   border: 1px solid #0066FF;
   box-shadow: 1px 1px 1px #0066FF;
 }
 
-sh-asset.selected > .name {
+sh-asset.selected > div .name {
   font-weight: bold;
 }
 
@@ -325,6 +337,9 @@ sh-sidebar-folder > div > img {
 }
 
 sh-asset > div > img {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
   max-width: 100%;
   max-height: 100%;
 }
