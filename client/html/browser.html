@@ -83,10 +83,12 @@
         <div class="image"
             ng-click="browserCtrl.selected=asset"
             ng-dblclick="browserCtrl.select(asset, true)">
-          <img ng-src="{{asset.image}}">
+          <img ng-class="{assetmenu: asset.type!=browserCtrl.home.type}" ng-src="{{asset.image}}">
         </div>
         <div ng-switch on="asset.write">
-          <div ng-switch-when="true" class="name">
+          <div ng-switch-when="true" 
+               class="name" 
+               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
             <sh-editable
                 ng-click="browserCtrl.selected = null"
                 ng-init="name=asset.name"
@@ -95,7 +97,9 @@
                 ng-model="name">
             </sh-editable>
           </div>
-          <div ng-switch-default class="name noneditable" >
+          <div ng-switch-default 
+               class="name noneditable"
+               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
             {{asset.name}}
           </div>
         </div>

@@ -369,7 +369,6 @@ shapy.browser.asset = function(shModal) {
       asset: '=',
       selected: '=',
       owner: '=',
-      assetWithMenu: '='
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
@@ -392,6 +391,7 @@ shapy.browser.asset = function(shModal) {
       $scope.$on('$destroy', function() {
         $(window).off('keydown');
       });
+
       // Show context menu
       $elem.bind('contextmenu', function(evt) {
         // No context menu fot dirs
@@ -414,12 +414,18 @@ shapy.browser.asset = function(shModal) {
           });
         return false;
       });
+
       // Hide menu, deselect
       $(window).on('mousedown', function(evt) {
+        if (($(evt.target).hasClass('assetmenu') && evt.which == 3)) {
+          return;
+        }
+
         $('.asset-menu').hide(200);
         $scope.$apply(function() {
           $scope.selected = null;
         });
+
       });
     }
   };
