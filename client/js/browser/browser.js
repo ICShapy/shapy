@@ -22,17 +22,17 @@ goog.require('shapy.browser.Asset.Texture');
  *
  * @constructor
  *
- * @param {!angular.$state}               $state    The angular state service.
- * @param {!angular.$http}                $http     The angular $http service.
- * @param {!shapy.browser.BrowserService} shBrowser The browser service.
- * @param {!shapy.browser.Asset.Dir}      home      The home directory.
+ * @param {!angular.$state}          $state    The angular state service.
+ * @param {!angular.$http}           $http     The angular $http service.
+ * @param {!shapy.browser.Service}   shBrowser The browser service.
+ * @param {!shapy.browser.Asset.Dir} home      The home directory.
  */
 shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
   /** @private {!angular.$state} @const */
   this.state_ = $state;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
-  /** @private {!shapy.browser.BrowserService} @const */
+  /** @private {!shapy.browser.Service} @const */
   this.shBrowser_ = shBrowser;
 
   /**
@@ -169,14 +169,14 @@ shapy.browser.BrowserController.prototype.defaultName = function(type) {
  *
  * @constructor
  *
- * @param {!angular.$scope} $scope The toolbar's scope.
- * @param {!shapy.browser.BrowserService} shBrowser The browser service.
+ * @param {!angular.$scope}        $scope    The toolbar's scope.
+ * @param {!shapy.browser.Service} shBrowser The browser service.
  */
 shapy.browser.BrowserToolbarController = function(
     $scope,
     shBrowser)
 {
-  /** @private {!shapy.browser.BrowserService} @const */
+  /** @private {!shapy.browser.Service} @const */
   this.shBrowser_ = shBrowser;
   /** @public {string} @const @export */
   this.query = '';

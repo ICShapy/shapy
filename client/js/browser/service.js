@@ -83,6 +83,18 @@ shapy.browser.Service = function($http, $q, shModal) {
   this.query = '';
 };
 
+
+/**
+ * Clears caches with assets.
+ *
+ */
+shapy.browser.Service.prototype.clearAllCache = function() {
+  this.scenes_ = {};
+  this.dirs_ = {};
+  this.textures_ = {};
+};
+
+
 /**
  * Updates data regarding current directory.
  *
