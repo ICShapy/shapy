@@ -88,6 +88,31 @@ shapy.editor.Rig.Scale.prototype.build_ = function(gl) {
 
 
 /**
+ * Handles onFinish call.
+ *
+ * @param {boolean} captured
+ */
+shapy.editor.Rig.Scale.prototype.finish_ = function(captured) {
+  if (!this.onFinish || !captured) {
+    return;
+  }
+
+  // Calculate the movement.
+  var d = goog.vec.Vec3.createFloat32();
+  goog.vec.Vec3.subtract(this.currPos_, this.startPos_, d);
+
+  // Update the scale.
+  goog.vec.Vec3.scale(d, 1 / this.size_, d);
+  var sx = (this.noScale_[0] + d[0]) / this.noScale_[0];
+  var sy = (this.noScale_[1] + d[1]) / this.noScale_[1];
+  var sz = (this.noScale_[2] + d[2]) / this.noScale_[2];
+
+  // Update the scale of the model to be the relative scale
+  this.onFinish(this.object, sx, sy, sz);
+};
+
+
+/**
  * Renders the rig.
  *
  * @param {!WebGLContext}        gl WebGL context.
@@ -222,6 +247,7 @@ shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
     // Calculate the movement.
     this.currPos_ = this.getClosest_(ray);
     var d = goog.vec.Vec3.createFloat32();
+
     goog.vec.Vec3.subtract(this.currPos_, this.lastPos_, d);
     goog.vec.Vec3.setFromArray(this.lastPos_, this.currPos_);
 
@@ -287,8 +313,11 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
 shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
   var captured = this.select_.x || this.select_.y || this.select_.z;
   this.finish_(captured);
+
+  // Reset select and scale.
   this.select_.x = this.select_.y = this.select_.z = false;
-  goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
+  goog.vec.Vec3.setFromArray(this.scale_, this.noScale_);
+
   return captured;
 };
 
@@ -301,30 +330,5 @@ shapy.editor.Rig.Scale.prototype.mouseLeave = function() {
   this.select_.x = this.select_.y = this.select_.z = false;
 
   // Reset the scale.
-  goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
-};
-
-
-/**
- * Handles onFinish call.
- *
- * @param {boolean} captured
- */
-shapy.editor.Rig.Scale.prototype.finish_ = function(captured) {
-  if (!this.onFinish || !captured) {
-    return;
-  }
-
-  // Calculate the movement.
-  var d = goog.vec.Vec3.createFloat32();
-  goog.vec.Vec3.subtract(this.currPos_, this.startPos_, d);
-
-  // Update the scale.
-  goog.vec.Vec3.scale(d, 1 / this.size_, d);
-  var sx = (this.noScale_[0] + d[0]) / this.noScale_[0];
-  var sy = (this.noScale_[1] + d[1]) / this.noScale_[1];
-  var sz = (this.noScale_[2] + d[2]) / this.noScale_[2];
-
-  // Update the scale of the model to be the relative scale
-  this.onFinish(this.object, sx, sy, sz);
+  goog.vec.Vec3.setFromArray(this.scale_, this.noScale_);
 };
