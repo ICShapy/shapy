@@ -194,7 +194,7 @@ shapy.editor.Executor.prototype.applyCreate = function(data) {
       return;
     }
   }
-  this.mode.setObject();
+  this.editor_.mode.setObject();
 };
 
 
