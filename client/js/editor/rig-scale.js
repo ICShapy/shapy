@@ -35,22 +35,13 @@ shapy.editor.Rig.Scale = function() {
   /**
    * @private {goog.vec.Vec3.Type}
    */
-  this.startScale_ = goog.vec.Vec3.createFloat32();
-
-  /**
-   * @private {number}
-   */
-  this.startSize_ = this.size_;
-
-  /**
-   * @private {goog.vec.Vec3.Type}
-   */
   this.scale_ = goog.vec.Vec3.createFloat32FromValues(1.0, 1.0, 1.0);
 
   /**
    * @private {goog.vec.Vec3.Type}
+   * @const
    */
-  this.scaleRelativeTo_ = goog.vec.Vec3.createFloat32();
+  this.noScale_ = goog.vec.Vec3.createFloat32FromValues(1.0, 1.0, 1.0);
 };
 goog.inherits(shapy.editor.Rig.Scale, shapy.editor.Rig);
 
@@ -282,13 +273,7 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
 
   this.currPos_ = this.getClosest_(ray);
   goog.vec.Vec3.setFromArray(this.lastPos_, this.currPos_);
-
   goog.vec.Vec3.setFromArray(this.startPos_, this.currPos_);
-  goog.vec.Vec3.setFromArray(this.startScale_, this.scale_);
-  this.startSize_ = this.size_;
-
-  goog.vec.Vec3.setFromArray(
-    this.scaleRelativeTo_, this.object.getScale());
 
   return this.hover_.x || this.hover_.y || this.hover_.z;
 };
@@ -300,7 +285,7 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Scale.prototype.mouseUp = function(ray) {
-  var captured = this.select_.x || this.select_.x || this.select_.z;
+  var captured = this.select_.x || this.select_.y || this.select_.z;
   this.finish_(captured);
   this.select_.x = this.select_.y = this.select_.z = false;
   goog.vec.Vec3.setFromValues(this.scale_, 1.0, 1.0, 1.0);
@@ -335,13 +320,10 @@ shapy.editor.Rig.Scale.prototype.finish_ = function(captured) {
   goog.vec.Vec3.subtract(this.currPos_, this.startPos_, d);
 
   // Update the scale.
-  console.log(this.startSize_);
-  goog.vec.Vec3.scale(d, 1 / this.startSize_, d);
-  var sx = (this.startScale_[0] + d[0]) / this.startScale_[0];
-  var sy = (this.startScale_[1] + d[1]) / this.startScale_[1];
-  var sz = (this.startScale_[2] + d[2]) / this.startScale_[2];
-
-  console.log("finish", sx, sy, sz);
+  goog.vec.Vec3.scale(d, 1 / this.size_, d);
+  var sx = (this.noScale_[0] + d[0]) / this.noScale_[0];
+  var sy = (this.noScale_[1] + d[1]) / this.noScale_[1];
+  var sz = (this.noScale_[2] + d[2]) / this.noScale_[2];
 
   // Update the scale of the model to be the relative scale
   this.onFinish(this.object, sx, sy, sz);
