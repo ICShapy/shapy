@@ -160,6 +160,46 @@ shapy.editor.Viewport.UV.prototype.compute_ = function() {
 
 
 /**
+ * Returns a selected UV coordinate.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @return {!{x: number, y: number}}
+ */
+shapy.editor.Viewport.prototype.raycast = function(x, y) {
+  var d = this.zoom / 1000, w = shapy.editor.Viewport.UV.SIZE;
+
+  return {
+    x: (((x - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    y: (((y - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w)
+  };
+};
+
+
+/**
+ * Selects a group of UV elements.
+ *
+ * @param {!goog.math.Rect} group
+ *
+ * @return {!{x0: number, x1: number, y0: number, y1: number}}
+ */
+shapy.editor.Viewport.prototype.groupcast = function(group) {
+  var d = this.zoom / 1000, w = shapy.editor.Viewport.UV.SIZE;
+
+  var x0 = group.left, x1 = group.left + group.width;
+  var y0 = group.top, y1 = group.top + group.height;
+
+  return {
+    x0: (((x0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    x1: (((x1 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    y0: (((y0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    y1: (((y1 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w)
+  };
+};
+
+
+/**
  * Resizes the viewport, specifying a new position and size.
  *
  * @param {number} x
