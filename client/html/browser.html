@@ -106,7 +106,9 @@
   <div class='asset-menu'>
     <ul>
       <li ng-click="">Download as STL</li>
-      <li ng-click="browserCtrl.select(browserCtrl.selected)">Share</li>
+      <sh-share asset="browserCtrl.selected">
+        <li>Share</li>
+      </sh-share>
       <li ng-click="">Unshare</li>
     </ul>
   </div>

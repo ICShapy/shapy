@@ -9,6 +9,7 @@ goog.provide('shapy.browser.assetOrder');
 goog.provide('shapy.browser.asset');
 goog.provide('shapy.browser.assets');
 goog.provide('shapy.browser.sidebar');
+goog.provide('shapy.browser.share');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Asset.Dir');
@@ -329,11 +330,10 @@ shapy.browser.assets = function() {
  * Asset directive.
  *
  * @param {!shapy.modal.Service}     shModal
- * @param {!shapy.browser.Service}   shBrowser The browser service.
  *
  * @return {!angular.Directive}
  */
-shapy.browser.asset = function(shModal, shBrowser) {
+shapy.browser.asset = function(shModal) {
   /**
    * Handles the deletion of an asset.
    * @param {!shapy.browser.Asset} asset
@@ -423,6 +423,50 @@ shapy.browser.asset = function(shModal, shBrowser) {
       });
     }
   };
+};
+
+
+
+/**
+ * Sharing directive.
+ *
+ * @param {!shapy.modal.Service}     shModal
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.share = function(shModal) {
+  /**
+   * Handles sharing of an asset.
+   * @param {!shapy.browser.Asset} asset
+   */
+  var share = function(asset) {
+    shModal.open({
+      size: 'small',
+      title: 'Share Asset',
+      template:
+          'Sharing: ' +
+          '<strong>{{asset.name}}</strong>',
+      controller: function($scope) {
+        $scope.asset = asset;
+        $scope.cancel = function() { return false; };
+        $scope.okay = function() { return false; };
+      }
+    });
+  };
+
+
+  return {
+    restrict: 'E',
+    scope: {
+     asset: '='
+    },
+    link: function($scope, $elem, $attrs) {
+      $elem.bind('mousedown', function(evt) {
+          share($scope.asset);
+      });
+    }
+  };
+
 };
 
 
