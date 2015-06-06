@@ -108,9 +108,8 @@ shapy.editor.Viewport.Edit.prototype.resize = function(x, y, w, h) {
  * @return {goog.vec.Ray}
  */
 shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y) {
-  if (shapy.editor.Viewport.prototype.mouseMove.call(this, x, y)) {
-    return null;
-  }
+  this.currMousePos.x = x;
+  this.currMousePos.y = y;
 
   if (this.camCube.mouseMove(x, y)) {
     return null;
@@ -124,8 +123,10 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y) {
     this.pan();
     return null;
   }
-
   if (this.rig && this.rig.mouseMove(ray)) {
+    return null;
+  }
+  if (shapy.editor.Viewport.prototype.mouseMove.call(this, x, y)) {
     return null;
   }
   return ray;
@@ -298,15 +299,15 @@ shapy.editor.Viewport.Edit.prototype.getArcballVector_ = function(pos) {
  * Computes the angle and axis of the camera rotation.
  */
 shapy.editor.Viewport.Edit.prototype.rotate = function() {
-  if (this.currMousePos_.equals(this.lastMousePos_)) {
+  if (this.currMousePos.equals(this.lastMousePos_)) {
     return;
   }
 
   // Compute the points at the ball surface that match the click.
   var va = this.getArcballVector_(this.lastMousePos_);
-  var vb = this.getArcballVector_(this.currMousePos_);
-  this.lastMousePos_.x = this.currMousePos_.x;
-  this.lastMousePos_.y = this.currMousePos_.y;
+  var vb = this.getArcballVector_(this.currMousePos);
+  this.lastMousePos_.x = this.currMousePos.x;
+  this.lastMousePos_.y = this.currMousePos.y;
 
   // Compute the angle.
   var angle = Math.acos(Math.min(1.0, goog.vec.Vec3.dot(va, vb)));
@@ -372,10 +373,10 @@ shapy.editor.Viewport.Edit.prototype.pan = function() {
 
   // Get movement.
   var dx =
-      (this.currMousePos_.x - this.lastMousePos_.x) / this.rect.w *
+      (this.currMousePos.x - this.lastMousePos_.x) / this.rect.w *
       shapy.editor.Camera.PAN_SPEED;
   var dy =
-      (this.currMousePos_.y - this.lastMousePos_.y) / this.rect.h *
+      (this.currMousePos.y - this.lastMousePos_.y) / this.rect.h *
       shapy.editor.Camera.PAN_SPEED;
 
   // Move along x.
@@ -389,8 +390,8 @@ shapy.editor.Viewport.Edit.prototype.pan = function() {
   goog.vec.Vec3.add(this.camera.center, v, this.camera.center);
   goog.vec.Vec3.add(this.camera.eye, v, this.camera.eye);
 
-  this.lastMousePos_.x = this.currMousePos_.x;
-  this.lastMousePos_.y = this.currMousePos_.y;
+  this.lastMousePos_.x = this.currMousePos.x;
+  this.lastMousePos_.y = this.currMousePos.y;
 };
 
 

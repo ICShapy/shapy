@@ -45,9 +45,9 @@ shapy.editor.Viewport = function(name, type) {
 
   /**
    * Last mouse click position.
-   * @private {!goog.math.Vec2}
+   * @protected {!goog.math.Vec2}
    */
-  this.lastClick_ = new goog.math.Vec2(0, 0);
+  this.lastClick = new goog.math.Vec2(0, 0);
 
   /**
    * The size and position of the viewport.
@@ -58,9 +58,9 @@ shapy.editor.Viewport = function(name, type) {
 
   /**
    * Current position of the mouse.
-   * @private {!goog.math.Vec2}
+   * @protected {!goog.math.Vec2}
    */
-  this.currMousePos_ = new goog.math.Vec2(0, 0);
+  this.currMousePos = new goog.math.Vec2(0, 0);
 
   /**
    * Last position of the mouse.
@@ -95,24 +95,24 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  * @return {boolean}
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
-  this.currMousePos_.x = x;
-  this.currMousePos_.y = y;
+  this.currMousePos.x = x;
+  this.currMousePos.y = y;
 
   if (!this.group) {
     return false;
   }
 
-  if (x > this.lastClick_.x) {
-    this.group.width = x - this.lastClick_.x;
+  if (x > this.lastClick.x) {
+    this.group.width = x - this.lastClick.x;
   } else {
-    this.group.width = this.lastClick_.x - x;
+    this.group.width = this.lastClick.x - x;
     this.group.left = x;
   }
 
-  if (y > this.lastClick_.y) {
-    this.group.height = y - this.lastClick_.y;
+  if (y > this.lastClick.y) {
+    this.group.height = y - this.lastClick.y;
   } else {
-    this.group.height = this.lastClick_.y - y;
+    this.group.height = this.lastClick.y - y;
     this.group.top = y;
   }
 
@@ -147,10 +147,10 @@ shapy.editor.Viewport.prototype.mouseLeave = function() {
  * @param {number} button Mouse button that was clicked.
  */
 shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
-  this.lastClick_.x = x;
-  this.lastClick_.y = y;
-  this.currMousePos_.x = x;
-  this.currMousePos_.y = y;
+  this.lastClick.x = x;
+  this.lastClick.y = y;
+  this.currMousePos.x = x;
+  this.currMousePos.y = y;
   this.lastMousePos_.x = x;
   this.lastMousePos_.y = y;
 

@@ -407,27 +407,9 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
 /**
  * Renders the background of the UV editor.
  *
- * @param {!shapy.editor.Viewport} vp Current viewport.
+ * @param {!shapy.editor.Viewport.UV} vp Current viewport.
  */
 shapy.editor.Renderer.prototype.renderBackground = function(vp) {
-  var detail = 10;
-  var aspect = vp.rect.h / vp.rect.w;
-
-  var proj = goog.vec.Mat4.createFloat32();
-  var view = goog.vec.Mat4.createFloat32();
-
-  goog.vec.Mat4.setFromValues(view,
-    1 / detail, 0, 0, 0,
-    0, 0, 1 / detail, 0,
-    0, 1 / detail, 0, 0,
-    0, 0, 0, 1);
-  goog.vec.Mat4.makeOrtho(proj,
-      -vp.zoom,
-      +vp.zoom,
-      -vp.zoom * aspect,
-      +vp.zoom * aspect,
-      -1, 1);
-  goog.vec.Mat4.multMat(proj, view, view);
 
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
@@ -437,9 +419,11 @@ shapy.editor.Renderer.prototype.renderBackground = function(vp) {
   this.gl_.blendFunc(goog.webgl.SRC_ALPHA, goog.webgl.ONE_MINUS_SRC_ALPHA);
   {
     this.shGround_.use();
-    this.shGround_.uniformMat4x4('u_vp', view);
-    this.shGround_.uniform2f('u_size', detail, detail);
-    this.shGround_.uniform1f('u_zoom', 1.5 * vp.zoom);
+    this.shGround_.uniformMat4x4('u_vp', vp.vp);
+    this.shGround_.uniform2f('u_size',
+        shapy.editor.Viewport.UV.SIZE,
+        shapy.editor.Viewport.UV.SIZE);
+    this.shGround_.uniform1f('u_zoom', 3.0);
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);

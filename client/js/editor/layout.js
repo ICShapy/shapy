@@ -177,7 +177,9 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
   var rig = this.active.rig;
   this.active.rig = null;
   this.active = result.vp;
-  this.active.rig = rig;
+  if (this.active.type == shapy.editor.Viewport.Type.EDIT) {
+    this.active.rig = rig;
+  }
   this.active.active = true;
 
   return ray;
