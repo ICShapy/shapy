@@ -183,7 +183,6 @@ shapy.editor.Mesh.prototype.build_ = function() {
   }, this);
   k = 0;
   var e = new Float32Array(this.uvEdgeCount_ * 24);
-  var f = new Float32Array(this.uvFaceCount_ * 24);
   goog.object.forEach(this.object_.faces, function(face) {
     if (!face.uv0 || !face.uv1 || !face.uv2) {
       return;
@@ -196,14 +195,23 @@ shapy.editor.Mesh.prototype.build_ = function() {
     addUV(e, this.object_.uvs[face.uv2]);
     addUV(e, this.object_.uvs[face.uv2]);
     addUV(e, this.object_.uvs[face.uv0]);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvEdges_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
+
+  k = 0;
+  var f = new Float32Array(this.uvFaceCount_ * 24);
+  goog.object.forEach(this.object_.faces, function(face) {
+    if (!face.uv0 || !face.uv1 || !face.uv2) {
+      return;
+    }
 
     r = 0.7; g = 0.7; b = 0.7; a = 0.4;
     addUV(f, this.object_.uvs[face.uv0]);
     addUV(f, this.object_.uvs[face.uv1]);
     addUV(f, this.object_.uvs[face.uv2]);
   }, this);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvEdges_);
-  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
+
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvFaces_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
 };

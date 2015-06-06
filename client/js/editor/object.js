@@ -538,46 +538,19 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
  * Projects UV coordinates over a cube.
  */
 shapy.editor.Object.prototype.projectUV = function() {
-  var ray = new goog.vec.Ray([0, 0, 0], [0, 1, 0]);
-  var planes = [
-    [+1, 0, 0],
-    [-1, 0, 0],
-    [0, +1, 0],
-    [0, -1, 0],
-    [0, 0, +1],
-    [0, 0, -1],
-  ];
+  var n = goog.vec.Vec3.createFloat32();
+  var project = goog.bind(function(vert) {
+    var u, v, id;
 
-  var project = goog.bind(function(v) {
+    // Find u & v.
+    goog.vec.Vec3.normalize(vert.position, n);
+    u = 0.5 + Math.atan2(n[2], n[0]) / (2 * Math.PI);
+    v = 0.5 - Math.asin(n[1]) / Math.PI;
+
     this.dirtyMesh = true;
-    var id = this.nextUV_;
+    id = this.nextUV_;
     this.nextUV_++;
-    ray.setDir(v.position);
-    goog.array.some(planes, function(p) {
-      var q = shapy.editor.geom.intersectPlane(ray, p, p);
-      if (q[0] < -1 || 1 < q[0] ||
-          q[1] < -1 || 1 < q[1] ||
-          q[2] < -1 || 1 < q[2])
-      {
-        return false;
-      }
-      if (Math.abs(q[0] - p[0]) <= 0.01) {
-        this.uvs[id] = new shapy.editor.Object.UV(id,
-          (q[1] + 1) / 2, (q[2] + 1) / 2);
-        return true;
-      }
-      if (Math.abs(q[1] - p[1]) <= 0.01) {
-        this.uvs[id] = new shapy.editor.Object.UV(id,
-          (q[0] + 1) / 2, (q[2] + 1) / 2);
-        return true;
-      }
-      if (Math.abs(q[2] - p[2]) <= 0.01) {
-        this.uvs[id] = new shapy.editor.Object.UV(id,
-          (q[0] + 1) / 2, (q[1] + 1) / 2);
-        return true;
-      }
-      return false;
-    }, this);
+    this.uvs[id] = new shapy.editor.Object.UV(id, u, v);
     return id;
   }, this);
 
