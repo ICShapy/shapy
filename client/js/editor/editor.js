@@ -633,7 +633,8 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   // If we're extruding, stop
   if (this.rig_ == this.rigExtrude_) {
-    this.rig(null);
+    this.partGroup_.getObject().projectUV();
+    this.rig(this.rigTranslate_);
     return;
   }
 
