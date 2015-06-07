@@ -451,18 +451,17 @@ shapy.editor.Editor.prototype.setRig = function(name) {
  * @private
  */
 shapy.editor.Editor.prototype.extrude_ = function() {
-  // Get all selected faces.
   if (!(object = this.partGroup_.getObject())) {
     return;
   }
-  faces = goog.array.filter(this.partGroup_.getEditables(), function(e) {
-    return e.type == shapy.editor.Editable.Type.FACE;
-  });
 
-  // Extrude.
-  if (faces.length <= 0) {
+  // Get all selected faces.
+  faces = this.partGroup_.getFaces();
+  if (goog.array.isEmpty(faces)) {
     return;
   }
+
+  // Extrude.
   var extrudeData = object.extrude(faces);
 
   // Select extruded faces
@@ -484,7 +483,7 @@ shapy.editor.Editor.prototype.extrude_ = function() {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
-  var object;
+  var object, faces;
 
   switch (String.fromCharCode(e.keyCode)) {
     case 'D': {
