@@ -83,6 +83,18 @@ shapy.browser.Service = function($http, $q, shModal) {
   this.query = '';
 };
 
+
+/**
+ * Clears caches with assets.
+ *
+ */
+shapy.browser.Service.prototype.clearAllCache = function() {
+  this.scenes_ = {};
+  this.dirs_ = {};
+  this.textures_ = {};
+};
+
+
 /**
  * Updates data regarding current directory.
  *
@@ -430,5 +442,58 @@ shapy.browser.Service.prototype.deleteDir = function(dir) {
  */
 shapy.browser.Service.prototype.deleteScene = function(scene) {
   this.delete_('/api/assets/scene', scene, this.scenes_);
+};
+
+
+/**
+ * Fetches permissions data for given asset.
+ *
+ * @param {!shapy.browser.Asset} asset Asset which sharing status we check.
+ */
+shapy.browser.Service.prototype.getPermissions = function(asset) {
+  // Request asset data from server.
+  return this.http_.get('/api/permissions', {params: { id: asset.id }})
+    .then(goog.bind(function(response) {
+      var emails = [[], []];
+      goog.array.forEach(response.data['available'], function(email) {
+        emails[0].push(email);
+      });
+      goog.array.forEach(response.data['shared'], function(permission) {
+        emails[1].push(new shapy.browser.Permission(permission['email'], permission['write']));
+      });
+
+      return emails;
+    }, this));
+
+};
+
+/**
+ * Sets permissions for given asset.
+ *
+ * @param {!shapy.browser.Asset}              asset       Asset which sharing status we check.
+ * @param {!Array.<shapy.browser.Permission>} permissions New permissions set.
+ */
+shapy.browser.Service.prototype.setPermissions = function(asset, permissions) {
+  var permJSON = permissions.map(function(permission) {
+    return [permission.email, permission.write];
+  });
+  return this.http_.post('/api/permissions', {id: asset.id, permissions: JSON.stringify(permJSON)});
+};
+
+
+
+/**
+ * Class representing permission type of user for an asset.
+ *
+ *
+ * @constructor
+ *
+ * @param {string}  email Email of the user.
+ * @param {boolean} write Write permission
+
+ */
+shapy.browser.Permission = function(email, write) {
+  this.email = email;
+  this.write = write;
 };
 

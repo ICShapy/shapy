@@ -335,6 +335,11 @@ input.ng-invalid.ng-touched {
   height: 140px;
 }
 
+#modal > .dialog.medium {
+  width: 500px;
+  height: 350px;
+}
+
 #modal > .dialog > .title {
   position: absolute;
   left: 0;
