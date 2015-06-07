@@ -50,7 +50,7 @@ shapy.editor.canvas = function(shEditor) {
           return false;
         })
         .bind('selectstart', function(e) {
-          $elem.css('cursor', 'default');
+          $(window).css('cursor', 'default');
           return false;
         })
         .bind('mousewheel', wrap(shEditor.mouseWheel))
