@@ -153,6 +153,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
     */
   this.uvs = {};
   this.nextUV_ = 1;
+  this.projectUV();
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
 

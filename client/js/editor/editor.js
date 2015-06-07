@@ -176,6 +176,18 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
    */
   this.exec_ = null;
 
+  /**
+   * Brush size from 1 to 100.
+   * @private {number}
+   */
+  this.brushRadius_ = 0;
+
+  /**
+   * Brush colour.
+   * @private {!goog.vec.Vec3.Type}
+   */
+  this.brushColour_ = goog.vec.Vec3.createFloat32(0, 0, 0);
+
   // Watch for changes in the name.
   $rootScope.$watch(goog.bind(function() {
     return this.scene_ && this.scene_.name;
@@ -585,7 +597,9 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  * @param {number} b
  */
 shapy.editor.Editor.prototype.setBrushColour = function(r, g, b) {
-  console.log(r, g, b);
+  this.brushColour_[0] = r;
+  this.brushColour_[1] = g;
+  this.brushColour_[2] = b;
 };
 
 
@@ -595,7 +609,7 @@ shapy.editor.Editor.prototype.setBrushColour = function(r, g, b) {
  * @param {number} radius
  */
 shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
-  console.log(radius);
+  this.brushRadius_ = radius;
 };
 
 
@@ -719,8 +733,12 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
     }, this);
   }
 
-  if (this.mode.paint && !goog.array.isEmpty(pick)) {
-    pick[0].pickUV(ray, this.layout_.hover.camera);
+  if (this.mode.paint && !goog.array.isEmpty(pick) && e.which == 1) {
+    var uv = pick[0].pickUV(ray, this.layout_.hover.camera);
+    if (pick[0].object.texture) {
+      pick[0].object.texture.paint(
+          uv.u, uv.v, this.brushColour_, this.brushRadius_);
+    }
   }
 
   // Highlight the current object.

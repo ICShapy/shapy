@@ -147,14 +147,14 @@ shapy.editor.Face.prototype.delete = function() {
 /**
  * Picks UV of the face.
  *
- * @private
- *
  * @param {!goog.vec.Ray}       ray
  * @param {shapy.editor.Camera} camera
+ *
+ * @return {!{u: number, v: number}}
  */
 shapy.editor.Face.prototype.pickUV = function(ray, camera) {
   if (!this.uv0 || !this.uv1 || !this.uv2) {
-    return;
+    return {u: 0, v: 0};
   }
 
   var verts = this.getVertices();
@@ -189,7 +189,7 @@ shapy.editor.Face.prototype.pickUV = function(ray, camera) {
   goog.vec.Mat4.multVec4(camera.vp, p24, p24);
 
   // Interpolate.
-  var d =  bary.a / p04[3] + bary.b / p14[3] + bary.c / p24[3];
+  var d = bary.a / p04[3] + bary.b / p14[3] + bary.c / p24[3];
 
   var u = (bary.a * uv0.u) / p04[3] +
           (bary.b * uv1.u) / p14[3] +
@@ -201,5 +201,5 @@ shapy.editor.Face.prototype.pickUV = function(ray, camera) {
           (bary.c * uv2.v) / p24[3];
   v = v / d;
 
-  console.log(u, v);
+  return {u: u, v: v};
 };

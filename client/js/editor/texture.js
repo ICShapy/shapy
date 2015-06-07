@@ -25,6 +25,8 @@ shapy.editor.Texture = function(opt_width, opt_height) {
   for (var i = 0; i < this.width * this.height * 3; ++i) {
     this.data_[i] = 0xFF;
   }
+  /** @private {boolean} */
+  this.dirty_ = true;
 };
 
 
@@ -38,15 +40,6 @@ shapy.editor.Texture = function(opt_width, opt_height) {
 shapy.editor.Texture.prototype.build_ = function(gl) {
   this.texture_ = gl.createTexture();
   gl.bindTexture(goog.webgl.TEXTURE_2D, this.texture_);
-  gl.texImage2D(
-      goog.webgl.TEXTURE_2D,
-      0,
-      goog.webgl.RGB,
-      this.width, this.height,
-      0,
-      goog.webgl.RGB,
-      goog.webgl.UNSIGNED_BYTE,
-      this.data_);
   gl.texParameteri(
       goog.webgl.TEXTURE_2D,
       goog.webgl.TEXTURE_MAG_FILTER,
@@ -67,5 +60,47 @@ shapy.editor.Texture.prototype.bind = function(gl) {
   if (!this.texture_) {
     this.build_(gl);
   }
+
   gl.bindTexture(goog.webgl.TEXTURE_2D, this.texture_);
+
+  if (this.dirty_) {
+    gl.texImage2D(
+        goog.webgl.TEXTURE_2D,
+        0,
+        goog.webgl.RGB,
+        this.width, this.height,
+        0,
+        goog.webgl.RGB,
+        goog.webgl.UNSIGNED_BYTE,
+        this.data_);
+    this.dirty_ = false;
+  }
+};
+
+
+/**
+ * Very badass method which uses a brush to paint an object.
+ *
+ * @param {number} u
+ * @param {number} v
+ * @param {number} colour
+ * @param {number} size
+ */
+shapy.editor.Texture.prototype.paint = function(u, v, colour, size) {
+  var x = Math.floor(u * this.width);
+  var y = Math.floor(v * this.height);
+
+  size = 2;
+  for (var i = y - size; i <= y + size; ++i) {
+    for (var j = x - size; j <= x + size; ++j) {
+      if (i < 0 || this.width <= i || j < 0 || this.height <= j) {
+        continue;
+      }
+      var idx = i * this.width + j;
+      this.data_[idx * 3 + 0] = colour[0];
+      this.data_[idx * 3 + 1] = colour[1];
+      this.data_[idx * 3 + 2] = colour[2];
+    }
+  }
+  this.dirty_ = true;
 };
