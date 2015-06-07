@@ -414,7 +414,7 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
 shapy.editor.Object.prototype.pickFaces_ = function(ray) {
   // Find all intersecting faces.
   var v = goog.object.filter(goog.object.map(this.faces, function(face) {
-    var t = face.getVertexPositions_();
+    var t = face.getVertexPositions();
     var inter = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
     var ed;
 
@@ -1269,11 +1269,9 @@ shapy.editor.Object.Face.prototype.getObject = function() {
 /**
  * Retrives the positions of vertices forming a face.
  *
- * @private
- *
  * @return {!Array<shapy.editor.Object.Edge>}
  */
-shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
+shapy.editor.Object.Face.prototype.getVertexPositions = function() {
   var verts = this.getVertices();
   return [
       verts[0].position,
@@ -1292,7 +1290,7 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
   var normal = goog.vec.Vec3.createFloat32();
   var ab = goog.vec.Vec3.createFloat32();
   var ac = goog.vec.Vec3.createFloat32();
-  var verts = this.getVertexPositions_();
+  var verts = this.getVertexPositions();
 
   goog.vec.Vec3.subtract(verts[1], verts[0], ab);
   goog.vec.Vec3.subtract(verts[2], verts[0], ac);
@@ -1309,7 +1307,7 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Face.prototype.getPosition = function() {
-  var t = this.getVertexPositions_();
+  var t = this.getVertexPositions();
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
   goog.vec.Mat4.multVec3(this.object.model_, c, c);
   return c;
