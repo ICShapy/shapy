@@ -599,7 +599,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
     }, this);
   }
 
-  // Send a command to the sever to lock on objects or adjust part group.
+  // Send a command to the server to lock on objects or adjust part group.
   if (this.mode.object) {
     this.exec_.emitSelect(toSelect, toDeselect);
   } else {
@@ -639,13 +639,12 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   } else {
     if (group && group.width > 3 && group.height > 3) {
       hits = this.layout_.active.object.pickUVGroup(
-              this.layout_.active.groupcast(group));
+          this.layout_.active.groupcast(group));
     } else {
       hits = this.layout_.active.object.pickUVCoord(
-              this.layout_.active.raycast(e.clientX, e.clientY));
+          this.layout_.active.raycast(e.clientX, e.clientY));
     }
-
-    hits = [];
+    //console.log(hits);
   }
 
   // Filter out all parts that do not belong to the current object.

@@ -581,7 +581,7 @@ shapy.editor.Object.prototype.projectUV = function() {
     this.dirtyMesh = true;
     id = this.nextUV_;
     this.nextUV_++;
-    this.uvs[id] = new shapy.editor.Object.UV(id, u, v);
+    this.uvs[id] = new shapy.editor.Object.UV(this, id, u, v);
     return id;
   }, this);
 
@@ -1323,12 +1323,18 @@ shapy.editor.Object.Face.prototype.delete = function() {
  * UV coordinate.
  *
  * @constructor
+ * @extends {shapy.editor.Editable}
  *
- * @param {!shapy.editor.Object.Face} face
- * @param {=number}                   opt_u
- * @param {=number}                   opt_v
+ * @param {!shapy.editor.Object.Objecr} object
+ * @param {!shapy.editor.Object.Face}   face
+ * @param {=number}                     opt_u
+ * @param {=number}                     opt_v
  */
-shapy.editor.Object.UV = function(face, opt_u, opt_v) {
+shapy.editor.Object.UV = function(object, face, opt_u, opt_v) {
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.UV);
+
+  /** @public {!shapy.editor.Object} @const */
+  this.object = object;
   /** @public {!shapy.editor.Object.Face} */
   this.face = face;
   /** @public {number} */
@@ -1336,11 +1342,5 @@ shapy.editor.Object.UV = function(face, opt_u, opt_v) {
   /** @public {number} */
   this.v = opt_v || 0.0;
 };
+goog.inherits(shapy.editor.Object.UV, shapy.editor.Editable);
 
-
-/**
- *
- */
-shapy.editor.Object.UV.prototype = function() {
-
-};

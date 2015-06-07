@@ -515,5 +515,6 @@ shapy.editor.Editable.Type = {
   OBJECT: 'object',
   VERTEX: 'vertex',
   EDGE: 'edge',
-  FACE: 'face'
+  FACE: 'face',
+  UV: 'uv'
 };
