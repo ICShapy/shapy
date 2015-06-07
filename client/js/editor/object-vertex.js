@@ -68,14 +68,22 @@ shapy.editor.Vertex.prototype.getObject = function() {
  * @param {number} dz
  */
 shapy.editor.Vertex.prototype.translate = function(dx, dy, dz) {
+  // Convert to world space.
+  goog.vec.Mat4.multVec3NoTranslate(
+      this.object.model_, this.position, this.position);
+
+  // Apply translation.
   goog.vec.Vec3.setFromValues(
       this.position,
       this.position[0] + dx,
       this.position[1] + dy,
       this.position[2] + dz
   );
+
+  // Convert back to model space.
   goog.vec.Mat4.multVec3NoTranslate(
       this.object.invModel_, this.position, this.position);
+
   this.object.dirtyMesh = true;
 };
 
