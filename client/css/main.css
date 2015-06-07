@@ -167,7 +167,7 @@ sh-menu > div:hover {
   background-color: #555555;
 }
 
-sh-menu ul {
+sh-menu ul, sh-menu .content {
   background-color: #222222;
   display: block;
   position: absolute;
@@ -175,9 +175,13 @@ sh-menu ul {
   border: 1px solid black;
   top: 30px;
   left: 0px;
-  min-width: 200px;
   padding: 0;
   margin: 0;
+  min-width: 200px;
+}
+
+sh-menu .content {
+  min-width: 0 !important;
 }
 
 sh-menu ul > li {
