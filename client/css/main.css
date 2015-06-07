@@ -195,8 +195,9 @@ sh-menu .hint {
   display: block;
   float: right;
   height: 12px;
-  font-size: 12px;
+  font-size: 12px !important;
   padding: 0 !important;
+  margin: 1px 10px 1px 0;
   color: gray !important;
 }
 
