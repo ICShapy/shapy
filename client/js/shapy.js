@@ -8,17 +8,19 @@ goog.require('shapy.UserService');
 goog.require('shapy.browser.BrowserController');
 goog.require('shapy.browser.BrowserToolbarController');
 goog.require('shapy.browser.Service');
+goog.require('shapy.browser.asset');
 goog.require('shapy.browser.assetMatch');
 goog.require('shapy.browser.assetOrder');
-goog.require('shapy.browser.directories');
-goog.require('shapy.browser.asset');
 goog.require('shapy.browser.assets');
+goog.require('shapy.browser.directories');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.editable');
 goog.require('shapy.editor.Editor');
 goog.require('shapy.editor.EditorController');
 goog.require('shapy.editor.ToolbarController');
 goog.require('shapy.editor.canvas');
+goog.require('shapy.editor.colourPicker');
+goog.require('shapy.editor.slider');
 goog.require('shapy.email');
 goog.require('shapy.equals');
 goog.require('shapy.highlight');
@@ -253,6 +255,8 @@ shapy.module = angular
   .directive('shMenu', shapy.menu)
   .directive('shEditable', shapy.editable)
   .directive('shModalRoot', shapy.modal.root)
+  .directive('shColourPicker', shapy.editor.colourPicker)
+  .directive('shSlider', shapy.editor.slider)
 
   .factory('shHttp', shapy.HttpInterceptor)
 

@@ -351,10 +351,10 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e, noGroup) {
   }
 
   if (this.hover_) {
-    $('html,body').css('cursor', 'ew-resize');
+    $('canvas').css('cursor', 'ew-resize');
     return null;
   } else {
-    $('html,body').css('cursor', 'auto');
+    $('canvas').css('cursor', 'auto');
     return goog.base(this, 'mouseMove', e, noGroup);
   }
 };
@@ -514,13 +514,13 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e, noGroup) {
   }
 
   if (this.hoverX_ && this.hoverY_) {
-    $('html,body').css('cursor', 'move');
+    $('canvas').css('cursor', 'move');
   } else if (this.hoverX_) {
-    $('html,body').css('cursor', 'ew-resize');
+    $('canvas').css('cursor', 'ew-resize');
   } else if (this.hoverY_) {
-    $('html,body').css('cursor', 'ns-resize');
+    $('canvas').css('cursor', 'ns-resize');
   } else {
-    $('html,body').css('cursor', 'auto');
+    $('canvas').css('cursor', 'auto');
     return goog.base(this, 'mouseMove', e, noGroup);
   }
 };

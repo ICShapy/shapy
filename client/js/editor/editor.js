@@ -577,6 +577,28 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
 
 
 /**
+ * Sets the colour of the paint brush.
+ *
+ * @param {number} r
+ * @param {number} g
+ * @param {number} b
+ */
+shapy.editor.Editor.prototype.setBrushColour = function(r, g, b) {
+  console.log(r, g, b);
+};
+
+
+/**
+ * Sets the size of the brush.
+ *
+ * @param {number} radius
+ */
+shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
+  console.log(radius);
+};
+
+
+/**
  * Paints a face of a cube.
  *
  * @private
@@ -646,7 +668,8 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   // If we're extruding, stop
   if (this.rig_ == this.rigExtrude_) {
-    this.rig(null);
+    this.partGroup_.getObject().projectUV();
+    this.rig(this.rigTranslate_);
     return;
   }
 
