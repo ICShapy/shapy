@@ -450,7 +450,7 @@ shapy.browser.share = function(shModal, shBrowser) {
   var share = function(asset) {
     var available = [];
     var shared = [];
-    shBrowser.getEmails(asset).then(goog.bind(function(response) {
+    shBrowser.getPermissions(asset).then(goog.bind(function(response) {
       //retrieve available emails and those with which asset is already shared
       available = response[0];
       shared = response[1];
@@ -494,7 +494,9 @@ shapy.browser.share = function(shModal, shBrowser) {
           $scope.shared = shared;
 
           $scope.cancel = function() { return false; };
-          $scope.okay = function() { return false; };
+          $scope.okay = function() {
+            shBrowser.setPermissions(asset, $scope.shared);
+          };
           $scope.add = function() {
             // check if available
             if (!$scope.isAvailable()) {

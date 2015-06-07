@@ -65,3 +65,31 @@ class PermissionsHandler(APIHandler):
       'shared': [{'email': item[0], 'write': item[1]} for item in cursors[1].fetchall()]
     }))
     self.finish()
+
+  @session
+  @coroutine
+  @asynchronous
+  def post(self, user = None):
+    # Validate arguments.
+    if not user:
+      raise HTTPError(401, 'Not authorized.')
+    id = int(self.get_argument('id'))
+    perm = self.get_argument('permissions')
+
+    # Check if user owns a non-dir asset with given id
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT 1
+         FROM assets
+         WHERE type <> %s
+           AND owner = %s
+           AND id = %s
+      ''', (
+      'dir',
+      user.id,
+      id
+    ))
+    data = cursor.fetchone()
+    if not data:
+        raise HTTPError(404, 'Asset not owned by user.')
+
+    self.finish();

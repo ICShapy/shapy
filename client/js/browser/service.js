@@ -446,11 +446,11 @@ shapy.browser.Service.prototype.deleteScene = function(scene) {
 
 
 /**
- * Fetches available emails and those with which asset is already shared.
+ * Fetches permissions data for given asset.
  *
  * @param {!shapy.browser.Asset} asset Asset which sharing status we check.
  */
-shapy.browser.Service.prototype.getEmails = function(asset) {
+shapy.browser.Service.prototype.getPermissions = function(asset) {
   // Request asset data from server.
   return this.http_.get('/api/permissions', {params: { id: asset.id }})
     .then(goog.bind(function(response) {
@@ -465,6 +465,19 @@ shapy.browser.Service.prototype.getEmails = function(asset) {
       return emails;
     }, this));
 
+};
+
+/**
+ * Sets permissions for given asset.
+ *
+ * @param {!shapy.browser.Asset}              asset       Asset which sharing status we check.
+ * @param {!Array.<shapy.browser.Permission>} permissions New permissions set.
+ */
+shapy.browser.Service.prototype.setPermissions = function(asset, permissions) {
+  var permJSON = permissions.map(function(permission) {
+    return {'email': permission.email, 'write': permission.write};
+  });
+  return this.http_.post('/api/permissions', {id: asset.id, permissions: permJSON});
 };
 
 
