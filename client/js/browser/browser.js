@@ -462,21 +462,56 @@ shapy.browser.share = function(shModal, shBrowser) {
         template:
             '<div class="sharing-add">' +
             '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
-            '  <span id="new-write" ng-click="newWrite()"> Write</span>' +
-            '  <button id="add" ng-click="add()"> Add </button>' +
-            '</div>',
+            '  <span id="new-write" ng-click="newWrite()">Write</span>' +
+            '  <button id="add" ng-click="add()">Add</button>' +
+            '</div>' +
+            '<span id="shared-text">Shared with:</span> ' +
+            '<div class="permission-list">' +
+            '  <div ng-repeat="permission in shared">' +
+            '    <div class="permission">' +
+            '        <span id="email"' +
+            '               ng-click="select(permission)"' +
+            '               ng-class="{selectedperm: permission == whichSelected()}">' +
+            '          {{permission.email}}' +
+            '        </span>' +
+            '        <span id="write" ng-style="(permission.write) ? {{black}} : {{gray}}">Write</span>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>' +
+            '<button id="remove" ng-click="remove()">Remove</button>',
         controller: function($scope) {
+          $scope.black = "{'color':'black', 'font-weight': 'bold'}";
+          $scope.gray = "{'color': 'gray', 'font-weight': 'normal'}";
+          $scope.selected = null;
           $scope.asset = asset;
           $scope.write = false;
-          $("#shared-with").autocomplete({
-            source: available
-          });
+          $scope.available = available;
+          $scope.shared = shared;
 
           $scope.cancel = function() { return false; };
           $scope.okay = function() { return false; };
           $scope.add = function() {
             alert('ADD!!!');
           };
+          $scope.remove = function() {
+            alert('REMOVE!!!');
+          };
+          //autocomplete
+          $("#shared-with").autocomplete({
+            source: available,
+            default: 150
+          });
+          // Handle permission selection
+          $('#shared-with').bind('focus', function() {
+            $scope.selected = null;
+          });
+          $scope.select = function(permission) {
+            $scope.selected = permission;
+          };
+          $scope.whichSelected = function() {
+            return $scope.selected;
+          };
+          // Handle permission type choosing for new collaborator
           $scope.newWrite = function() {
             if ($scope.write) {
                $("#new-write").css('color', 'gray');

@@ -28,6 +28,7 @@ class PermissionsHandler(APIHandler):
                     'mich.sienkiewicz@gmail.com',
                     'ilija.radosavovic@gmail.com',
                     'trelemorele@gmail.com'],
-      'shared': [{'email': 'mich.sienkiewicz@gazeta.pl', 'write': True}]
+      'shared': [{'email': 'mich.sienkiewicz@gazeta.pl', 'write': True} for i in range(7)] +
+                [{'email': 'mich.sienkiewicz@gazeta.pl', 'write': False} for i in range(7)]
     }))
     self.finish()
