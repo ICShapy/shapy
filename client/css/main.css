@@ -191,6 +191,15 @@ sh-menu ul > li:hover {
   background-color: #555555;
 }
 
+sh-menu .hint {
+  display: block;
+  float: right;
+  height: 12px;
+  font-size: 12px;
+  padding: 0 !important;
+  color: gray !important;
+}
+
 /**
  * Register
  */
