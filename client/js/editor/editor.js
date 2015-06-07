@@ -578,10 +578,22 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  *
  * @private
  *
+ * @param {!shapy.editor.Object.Face} face
  * @param {!goog.vec.Ray} ray
  */
-shapy.editor.Editor.prototype.paintFace_ = function(ray) {
-  console.log('x');
+shapy.editor.Editor.prototype.paintFace_ = function(face, ray) {
+  if (!face.uv0 || !face.uv1 || !face.uv2) {
+    return;
+  }
+
+  var verts = face.getVertices();
+  var uv0 = this.object_.uvs[face.uv0];
+  var uv1 = this.object_.uvs[face.uv1];
+  var uv2 = this.object_.uvs[face.uv2];
+
+  // TODO: interpolate UVs using baricentric coordinates + do perspective
+  // correction on them base on the depth computed using the VP matrix
+  // of the current viewport.
 };
 
 
@@ -702,6 +714,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
     pick = goog.array.filter(hits, function(e) {
       return this.objectGroup_.contains(e.object);
     }, this);
+  }
+
+  if (this.mode.paint && !goog.array.isEmpty(pick)) {
+    this.paintFace_(pick[0], ray);
   }
 
   // Highlight the current object.
