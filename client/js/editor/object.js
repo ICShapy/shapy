@@ -1022,12 +1022,6 @@ shapy.editor.Object.Vertex = function(object, id, x, y, z) {
    * @public {!goog.vec.Vec3.Type} @const
    */
   this.position = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-
-  /**
-   * UV coordinate of the vertex.
-   * @public {!goog.vec.Vec2.Type} @const
-   */
-  this.uv = goog.vec.Vec2.createFloat32();
 };
 goog.inherits(shapy.editor.Object.Vertex, shapy.editor.Editable);
 
@@ -1393,7 +1387,7 @@ shapy.editor.Object.Face.prototype.pickUV = function(ray, camera) {
  * @constructor
  * @extends {shapy.editor.Editable}
  *
- * @param {!shapy.editor.Object.Objecr} object
+ * @param {!shapy.editor.Object.Object} object
  * @param {!shapy.editor.Object.Face}   face
  * @param {=number}                     opt_u
  * @param {=number}                     opt_v
