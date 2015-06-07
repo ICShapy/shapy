@@ -436,11 +436,13 @@ shapy.browser.asset = function(shModal) {
 /**
  * Sharing directive.
  *
- * @param {!shapy.modal.Service}     shModal
+ * @param {!shapy.modal.Service}       shModal
+ * @param {!shapy.browser.Service}     shBrowser
  *
  * @return {!angular.Directive}
  */
-shapy.browser.share = function(shModal) {
+shapy.browser.share = function(shModal, shBrowser) {
+
   /**
    * Handles sharing of an asset.
    * @param {!shapy.browser.Asset} asset
@@ -450,16 +452,40 @@ shapy.browser.share = function(shModal) {
       size: 'small',
       title: 'Share Asset',
       template:
-          'Sharing: ' +
-          '<strong>{{asset.name}}</strong>',
+          '<div class="sharing-add">' +
+          '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
+          '  <span id="new-write" ng-click="newWrite()"> Write<span>' +
+          '  <button id="add" ng-click="add()"> Add </button>' +
+          '</div>',
       controller: function($scope) {
+        var emails = ['mich.sienkiewicz@gazeta.pl', 'mich.sienkiewicz@gmail.com',
+                      'ilija.radosavovic@gmail.com', 'sthsth@gmail.com'];
         $scope.asset = asset;
+        $scope.write = false;
+        $("#shared-with").autocomplete({
+          source: emails
+        });
+
         $scope.cancel = function() { return false; };
         $scope.okay = function() { return false; };
+        $scope.add = function() {
+          alert('ADD!!!');
+        };
+        $scope.newWrite = function() {
+          if ($scope.write) {
+             $("#new-write").css('color', 'gray');
+             $("#new-write").css('font-weight', 'normal');
+             $scope.write = false;
+          } else {
+            $("#new-write").css('color', 'black');
+            $("#new-write").css('font-weight', 'bold');
+            $scope.write = true;
+          }
+        };
+
       }
     });
   };
-
 
   return {
     restrict: 'E',
@@ -467,6 +493,7 @@ shapy.browser.share = function(shModal) {
      asset: '='
     },
     link: function($scope, $elem, $attrs) {
+
       $elem.bind('mousedown', function(evt) {
           share($scope.asset);
       });
