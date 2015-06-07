@@ -1,0 +1,40 @@
+.sharing-add #shared-with {
+  width: 200px;
+}
+
+.sharing-add #new-write {
+  font-size: 12px;
+  font-weight: normal;
+  display: inline;
+  color: gray;
+  width: 30px;
+  cursor: pointer;
+}
+
+.sharing-add #add {
+  float: right;
+}
+
+.ui-autocomplete {
+  z-index:10000 !important;
+  list-style-type: none;
+  list-style-type: none;
+  padding: 0;
+  margin:  0;
+  white-space: nowrap;
+  overflow: hidden;
+  width:200px !important;
+  border: 1px solid #cccccc;
+  background-color: white;
+  box-shadow: 2px 2px 4px #aaa;
+  font-size: 12px;
+}
+
+.ui-autocomplete > li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.ui-autocomplete li:hover {
+  background: #3399FF;
+}

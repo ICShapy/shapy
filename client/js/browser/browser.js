@@ -448,43 +448,51 @@ shapy.browser.share = function(shModal, shBrowser) {
    * @param {!shapy.browser.Asset} asset
    */
   var share = function(asset) {
-    shModal.open({
-      size: 'small',
-      title: 'Share Asset',
-      template:
-          '<div class="sharing-add">' +
-          '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
-          '  <span id="new-write" ng-click="newWrite()"> Write<span>' +
-          '  <button id="add" ng-click="add()"> Add </button>' +
-          '</div>',
-      controller: function($scope) {
-        var emails = ['mich.sienkiewicz@gazeta.pl', 'mich.sienkiewicz@gmail.com',
-                      'ilija.radosavovic@gmail.com', 'sthsth@gmail.com'];
-        $scope.asset = asset;
-        $scope.write = false;
-        $("#shared-with").autocomplete({
-          source: emails
-        });
+    var available = [];
+    var shared = [];
+    shBrowser.getEmails(asset).then(goog.bind(function(response) {
+      //retrieve available emails and those with which asset is already shared
+      available = response[0];
+      shared = response[1];
 
-        $scope.cancel = function() { return false; };
-        $scope.okay = function() { return false; };
-        $scope.add = function() {
-          alert('ADD!!!');
-        };
-        $scope.newWrite = function() {
-          if ($scope.write) {
-             $("#new-write").css('color', 'gray');
-             $("#new-write").css('font-weight', 'normal');
-             $scope.write = false;
-          } else {
-            $("#new-write").css('color', 'black');
-            $("#new-write").css('font-weight', 'bold');
-            $scope.write = true;
-          }
-        };
+      //open sharing dialog
+      shModal.open({
+        size: 'small',
+        title: 'Share Asset',
+        template:
+            '<div class="sharing-add">' +
+            '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
+            '  <span id="new-write" ng-click="newWrite()"> Write<span>' +
+            '  <button id="add" ng-click="add()"> Add </button>' +
+            '</div>',
+        controller: function($scope) {
+          $scope.asset = asset;
+          $scope.write = false;
+          $("#shared-with").autocomplete({
+            source: available
+          });
 
-      }
-    });
+          $scope.cancel = function() { return false; };
+          $scope.okay = function() { return false; };
+          $scope.add = function() {
+            alert('ADD!!!');
+          };
+          $scope.newWrite = function() {
+            if ($scope.write) {
+               $("#new-write").css('color', 'gray');
+               $("#new-write").css('font-weight', 'normal');
+               $scope.write = false;
+            } else {
+              $("#new-write").css('color', 'black');
+              $("#new-write").css('font-weight', 'bold');
+              $scope.write = true;
+            }
+          };
+
+        }
+      });
+
+    }, this));
   };
 
   return {

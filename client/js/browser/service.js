@@ -444,3 +444,43 @@ shapy.browser.Service.prototype.deleteScene = function(scene) {
   this.delete_('/api/assets/scene', scene, this.scenes_);
 };
 
+
+/**
+ * Fetches available emails and those with which asset is already shared.
+ *
+ * @param {!shapy.browser.Asset} asset Asset which sharing status we check.
+ */
+shapy.browser.Service.prototype.getEmails = function(asset) {
+  // Request asset data from server.
+  return this.http_.get('/api/permissions', {params: { id: asset.id }})
+    .then(goog.bind(function(response) {
+      var emails = [[], []];
+      goog.array.forEach(response.data['available'], function(email) {
+        emails[0].push(email);
+      });
+      goog.array.forEach(response.data['shared'], function(permission) {
+        emails[1].push(new shapy.browser.Permission(permission['email'], permission['write']));
+      });
+
+      return emails;
+    }, this));
+
+};
+
+
+
+/**
+ * Class representing permission type of user for an asset.
+ *
+ *
+ * @constructor
+ *
+ * @param {string}  email Email of the user.
+ * @param {boolean} write Write permission
+
+ */
+shapy.browser.Permission = function(email, write) {
+  this.email = email;
+  this.write = write;
+};
+
