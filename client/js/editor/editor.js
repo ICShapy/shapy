@@ -216,6 +216,7 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   var b = scene.createCube(0.5, 0.5, 0.5);
   b.translate(1, 0, 0);
   b.scale(1, 1, 1);
+  b.texture = new shapy.editor.Texture(512, 512);
 
   var c = scene.createCube(0.5, 0.5, 0.5);
   c.translate(-1, 0, 0);

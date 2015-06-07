@@ -70,6 +70,7 @@
           'shapy.editor.Rig.Translate',
           'shapy.editor.Rig.Rotate',
           'shapy.editor.Rig.Scale',
+          'shapy.editor.Texture',
           'shapy.editor.Mode'
       ]);
       goog.addDependency('../editor/executor.js', [
@@ -94,7 +95,8 @@
           'shapy.editor.Object'
       ], [
           'shapy.editor.geom',
-          'shapy.editor.Editable'
+          'shapy.editor.Editable',
+          'shapy.editor.Texture'
       ]);
       goog.addDependency('../editor/renderer.js', [
           'shapy.editor.Renderer'
@@ -137,6 +139,9 @@
       ]);
       goog.addDependency('../editor/shader.js', [
           'shapy.editor.Shader'
+      ], []);
+      goog.addDependency('../editor/texture.js', [
+          'shapy.editor.Texture'
       ], []);
       goog.addDependency('../editor/toolbar.js', [
           'shapy.editor.ToolbarController'

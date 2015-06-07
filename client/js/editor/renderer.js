@@ -452,7 +452,8 @@ shapy.editor.Renderer.prototype.renderObjects = function(vp) {
     pair[0].renderPointsEdges(this.shObjectColour_);
 
     // Render faces
-    if (true) { // TODO(David): If there's a texture on this object
+    if (pair[2].texture) {
+      pair[2].texture.bind(this.gl_);
       this.shObjectTexture_.use();
       this.shObjectTexture_.uniformMat4x4('u_mvp', mvp);
       pair[0].render(this.shObjectTexture_);

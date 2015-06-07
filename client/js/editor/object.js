@@ -53,6 +53,12 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
   this.deleted = false;
 
   /**
+   * Texture attached to the object.
+   * @public {!shapy.editor.Texture}
+   */
+  this.texture = null;
+
+  /**
    * @private {goog.vec.Vec3}
    */
   this.position_ = goog.vec.Vec3.createFromValues(0, 0, 0);
