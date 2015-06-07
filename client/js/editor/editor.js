@@ -734,7 +734,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   }
 
   if (this.mode.paint && !goog.array.isEmpty(pick) && e.which == 1) {
-    var uv = pick[0].pickUV(ray, this.layout_.hover.camera);
+    var uv = pick[0].pickUV(ray);
     if (pick[0].object.texture) {
       pick[0].object.texture.paint(
           uv.u, uv.v, this.brushColour_, this.brushRadius_);
