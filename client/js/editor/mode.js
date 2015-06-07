@@ -65,7 +65,7 @@ shapy.editor.Mode.prototype.setObject = function() {
 shapy.editor.Mode.prototype.toggleFace = function() {
   this.face = !this.face;
   this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
+  this.object = this.paint = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -75,7 +75,7 @@ shapy.editor.Mode.prototype.toggleFace = function() {
 shapy.editor.Mode.prototype.toggleEdge = function() {
   this.edge = !this.edge;
   this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
+  this.object = this.paint = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -85,5 +85,5 @@ shapy.editor.Mode.prototype.toggleEdge = function() {
 shapy.editor.Mode.prototype.toggleVertex = function() {
   this.vertex = !this.vertex;
   this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
+  this.object = this.paint = this.objectGroup = !this.partsGroup;
 };
