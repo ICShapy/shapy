@@ -493,7 +493,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         this.objectGroup_.delete();
         this.objectGroup_.clear();
         this.partGroup_.clear();
-      } else {
+      } else if (!this.mode.paint) {
         this.exec_.emitDelete(this.partGroup_);
         this.partGroup_.delete();
         this.partGroup_.clear();
@@ -589,7 +589,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // If viewports want the event, give up.
-  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
+  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1 || this.mode.paint) {
     return;
   }
 
@@ -624,7 +624,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   // Send a command to the sever to lock on objects or adjust part group.
   if (this.mode.object) {
     this.exec_.emitSelect(toSelect, toDeselect);
-  } else {
+  } else if (!this.mode.paint) {
     // Adjust highlight.
     goog.array.forEach(toDeselect, function(e) {
       e.setSelected(null);
@@ -647,6 +647,11 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 shapy.editor.Editor.prototype.mouseMove = function(e) {
   var pick, hits = [], hit, ray, objs, frustum;
   var group = this.layout_.active.group;
+
+  // Paint mode.
+  if (this.mode.paint) {
+    return;
+  }
 
   // Find the entity under the mouse.
   ray = this.layout_.mouseMove(e);

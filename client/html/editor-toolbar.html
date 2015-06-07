@@ -70,8 +70,12 @@
   </div>
 
   <!-- Menu for paint colour picking. -->
-  <div>
-    <span> Paint </span>
+  <div
+      ng-click="editorCtrl.mode.togglePaint()"
+      ng-class="{select: editorCtrl.mode.paint}">
+    <span>
+      Paint
+    </span>
     <ul>
       <li>Painty Painty</li>
     </ul>
