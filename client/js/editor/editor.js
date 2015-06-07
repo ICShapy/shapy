@@ -250,12 +250,8 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Single();
+  this.layout_ = new shapy.editor.Layout.Double();
   this.rig(this.rigTranslate_);
-
-  this.layout_.toggleUV();
-  this.layout_.active.object = goog.object.getAnyValue(this.scene_.objects);
-  this.layout_.active.object.projectUV();
 };
 
 
