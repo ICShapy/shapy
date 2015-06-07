@@ -10,7 +10,7 @@ goog.require('shapy.editor.Viewport');
 
 
 /**
- * Viewport for the 3D editor.
+ * UV viewport for the 3D editor.
  *
  * @constructor
  * @extends {shapy.editor.Viewport}
@@ -172,7 +172,7 @@ shapy.editor.Viewport.prototype.raycast = function(x, y) {
 
   return {
     x: (((x - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
-    y: (((y - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w)
+    y: (((y - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w)
   };
 };
 
@@ -193,8 +193,8 @@ shapy.editor.Viewport.prototype.groupcast = function(group) {
   return {
     x0: (((x0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
     x1: (((x1 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
-    y0: (((y0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
-    y1: (((y1 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w)
+    y0: (((y0 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w),
+    y1: (((y1 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w)
   };
 };
 

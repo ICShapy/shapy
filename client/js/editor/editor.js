@@ -129,6 +129,12 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
   this.partGroup_ = new shapy.editor.PartsGroup();
 
   /**
+   * Currently selected uv group.
+   * @private {shapy.editor.UVGroup}
+   */
+  this.uvGroup_ = new shapy.editor.UVGroup();
+
+  /**
    * Object hovered by mouse.
    * @private {!Array<!shapy.editor.Editable>}
    */
@@ -546,6 +552,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         this.layout_.toggleUV();
         this.layout_.active.object = this.objectGroup_.editables[0];
         this.layout_.active.object.projectUV();
+        this.uvGroup_.clear();
       }
       break;
     }
@@ -652,11 +659,15 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
       hits = this.scene_.pickFrustum(frustum, this.mode);
     }
   } else {
-    if (!!ray) {
-      // use raycast
-    } else if (group && group.width > 3 && group.height > 3) {
-      // use groupcast
+    if (group && group.width > 3 && group.height > 3) {
+      hits = this.layout_.active.object.pickUVGroup(
+              this.layout_.active.groupcast(group));
+    } else {
+      hits = this.layout_.active.object.pickUVCoord(
+              this.layout_.active.raycast(e.clientX, e.clientY));
     }
+
+    hits = [];
   }
 
   // Filter out all parts that do not belong to the current object.
