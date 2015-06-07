@@ -109,11 +109,17 @@
 
   <div class='asset-menu'>
     <ul>
-      <li ng-click="">Download as STL</li>
-      <sh-share asset="browserCtrl.selected">
-        <li>Share</li>
+      <li ng-click=""
+          ng-style="{'cursor': 'pointer'}">
+        Download as STL
+      </li>
+      <sh-share 
+          asset="browserCtrl.selected"
+          ng-style="(browserCtrl.selected.owner)? {'cursor': 'pointer'} : {'color': 'gray', 'cursor': 'default'}">
+        <li>
+          Share
+        </li>
       </sh-share>
-      <li ng-click="">Unshare</li>
     </ul>
   </div>
 </div>

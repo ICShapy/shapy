@@ -299,7 +299,6 @@ sh-asset.selected > div .name {
 
 .asset-menu li {
   padding: 8px 12px;
-  cursor: pointer;
 }
 
 .asset-menu li:hover {

@@ -538,6 +538,10 @@ shapy.browser.share = function(shModal, shBrowser) {
     link: function($scope, $elem, $attrs) {
 
       $elem.bind('mousedown', function(evt) {
+          // Block if not owner
+          if (!$scope.asset.owner) {
+            return;
+          }
           share($scope.asset);
       });
     }
