@@ -44,7 +44,9 @@
       goog.addDependency('../browser/scene.js', [
           'shapy.browser.Asset.Scene'
       ], [
-          'shapy.browser.Asset'
+          'shapy.browser.Asset',
+          'shapy.editor.create',
+          'shapy.editor.Object'
       ]);
       goog.addDependency('../browser/service.js', [
           'shapy.browser.Service'
@@ -94,9 +96,32 @@
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
       ], [
-          'shapy.editor.geom',
           'shapy.editor.Editable',
+          'shapy.editor.geom',
+          'shapy.editor.Edge',
+          'shapy.editor.Face',
+          'shapy.editor.Vertex',
           'shapy.editor.Texture'
+      ]);
+      goog.addDependency('../editor/object-factory.js', [
+          'shapy.editor.create'
+      ], [
+          'shapy.editor.Object'
+      ]);
+      goog.addDependency('../editor/object-vertex.js', [
+          'shapy.editor.Vertex'
+      ], [
+          'shapy.editor.Editable'
+      ]);
+      goog.addDependency('../editor/object-edge.js', [
+          'shapy.editor.Edge'
+      ], [
+          'shapy.editor.Editable'
+      ]);
+      goog.addDependency('../editor/object-face.js', [
+          'shapy.editor.Face'
+      ], [
+          'shapy.editor.Editable'
       ]);
       goog.addDependency('../editor/renderer.js', [
           'shapy.editor.Renderer'

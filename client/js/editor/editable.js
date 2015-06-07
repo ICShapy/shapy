@@ -100,7 +100,7 @@ shapy.editor.Editable.prototype.delete = function() { };
 /**
  * Retrives the vertices forming this editable.
  *
- * @return {!Array<!shapy.editor.Object.Vertex>}
+ * @return {!Array<!shapy.editor.Vertex>}
  */
 shapy.editor.Editable.prototype.getVertices = function() { return []; };
 
@@ -358,7 +358,7 @@ shapy.editor.PartsGroup.prototype.getObject = function() {
 /**
  * Retrives the vertices forming this group.
  *
- * @return {!Array<!shapy.editor.Object.Vertex>}
+ * @return {!Array<!shapy.editor.Vertex>}
  */
 shapy.editor.PartsGroup.prototype.getVertices = function() {
   var verts = goog.array.flatten(goog.array.map(this.editables, function(e) {
