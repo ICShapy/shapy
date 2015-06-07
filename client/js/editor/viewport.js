@@ -91,14 +91,15 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
+ * @param {boolean} noGroup Ignore group selection.
  *
  * @return {boolean}
  */
-shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
+shapy.editor.Viewport.prototype.mouseMove = function(x, y, noGroup) {
   this.currMousePos.x = x;
   this.currMousePos.y = y;
 
-  if (!this.group) {
+  if (!this.group || noGroup) {
     return false;
   }
 

@@ -56,14 +56,12 @@ goog.inherits(shapy.editor.Viewport.Edit, shapy.editor.Viewport);
 /**
  * Returns the ray that corresponds to the current mouse position.
  *
- * @private
- *
  * @param {number} x Mouse X position.
  * @param {number} y Mouse Y position.
  *
  * @return {!goog.vec.Ray.Type} Ray passing through point.
  */
-shapy.editor.Viewport.Edit.prototype.raycast_ = function(x, y) {
+shapy.editor.Viewport.Edit.prototype.raycast = function(x, y) {
   return this.camera.raycast(2 * x / this.rect.w - 1, 2 * y / this.rect.h - 1);
 };
 
@@ -104,17 +102,18 @@ shapy.editor.Viewport.Edit.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
+ * @param {boolean} noGroup Ignore group selection.
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y) {
+shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, noGroup) {
   this.currMousePos.x = x;
   this.currMousePos.y = y;
 
   if (this.camCube.mouseMove(x, y)) {
     return null;
   }
-  var ray = this.raycast_(x, y);
+  var ray = this.raycast(x, y);
   if (this.isRotating_) {
     this.rotate();
     return null;
@@ -126,7 +125,7 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y) {
   if (this.rig && this.rig.mouseMove(ray)) {
     return null;
   }
-  if (shapy.editor.Viewport.prototype.mouseMove.call(this, x, y)) {
+  if (shapy.editor.Viewport.prototype.mouseMove.call(this, x, y, noGroup)) {
     return null;
   }
   return ray;
@@ -142,7 +141,7 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y) {
 shapy.editor.Viewport.Edit.prototype.mouseEnter = function(x, y) {
   shapy.editor.Viewport.prototype.mouseEnter.call(this, x, y);
   if (this.rig) {
-    this.rig.mouseEnter(this.raycast_(x, y));
+    this.rig.mouseEnter(this.raycast(x, y));
   }
 };
 
@@ -172,7 +171,7 @@ shapy.editor.Viewport.Edit.prototype.mouseLeave = function() {
 shapy.editor.Viewport.Edit.prototype.mouseDown = function(x, y, button) {
   shapy.editor.Viewport.prototype.mouseDown.call(this, x, y, button);
 
-  var ray = this.raycast_(x, y);
+  var ray = this.raycast(x, y);
 
   if (this.camCube.mouseDown(x, y)) {
     return null;
@@ -189,7 +188,7 @@ shapy.editor.Viewport.Edit.prototype.mouseDown = function(x, y, button) {
     case 3: this.isRotating_ = true; return null;
   }
 
-  return this.raycast_(x, y);
+  return this.raycast(x, y);
 };
 
 
@@ -204,7 +203,7 @@ shapy.editor.Viewport.Edit.prototype.mouseDown = function(x, y, button) {
 shapy.editor.Viewport.Edit.prototype.mouseUp = function(x, y) {
   shapy.editor.Viewport.prototype.mouseUp.call(this, x, y);
 
-  var ray = this.raycast_(x, y);
+  var ray = this.raycast(x, y);
 
   if (this.camCube.mouseUp(x, y)) {
     return null;

@@ -139,17 +139,18 @@ shapy.editor.Layout.prototype.keyDown = function(e) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ * @param {boolean} noGroup Ignore group selection.
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.prototype.mouseMove = function(e) {
+shapy.editor.Layout.prototype.mouseMove = function(e, noGroup) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
     return null;
   }
 
   if (this.hover && result.vp == this.hover) {
-    return this.hover.mouseMove(result.x, result.y);
+    return this.hover.mouseMove(result.x, result.y, noGroup);
   } else {
     if (this.hover) {
       this.hover.mouseLeave();
@@ -336,10 +337,11 @@ shapy.editor.Layout.Double.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ * @param {boolean} noGroup
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
+shapy.editor.Layout.Double.prototype.mouseMove = function(e, noGroup) {
   this.hover_ = Math.abs(e.offsetX - this.bar_) < 5;
 
   if (this.resize_) {
@@ -353,7 +355,7 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
     return null;
   } else {
     $('html,body').css('cursor', 'auto');
-    return goog.base(this, 'mouseMove', e);
+    return goog.base(this, 'mouseMove', e, noGroup);
   }
 };
 
@@ -490,10 +492,11 @@ shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ * @param {boolean} noGroup
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
+shapy.editor.Layout.Quad.prototype.mouseMove = function(e, noGroup) {
   this.hoverX_ = Math.abs(e.offsetX - this.barX_) < 5;
   this.hoverY_ = Math.abs(e.offsetY - this.barY_) < 5;
 
@@ -518,7 +521,7 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
     $('html,body').css('cursor', 'ns-resize');
   } else {
     $('html,body').css('cursor', 'auto');
-    return goog.base(this, 'mouseMove', e);
+    return goog.base(this, 'mouseMove', e, noGroup);
   }
 };
 

@@ -574,6 +574,18 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
 
 
 /**
+ * Paints a face of a cube.
+ *
+ * @private
+ *
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Editor.prototype.paintFace_ = function(ray) {
+  console.log('x');
+};
+
+
+/**
  * Handles a mouse button release event.
  *
  * @param {Event} e
@@ -660,13 +672,8 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   var pick, hits = [], hit, ray, objs, frustum;
   var group = this.layout_.active.group;
 
-  // Paint mode.
-  if (this.mode.paint) {
-    return;
-  }
-
   // Find the entity under the mouse.
-  ray = this.layout_.mouseMove(e);
+  ray = this.layout_.mouseMove(e, this.mode.paint);
   if (this.layout_.hover.type == shapy.editor.Viewport.Type.EDIT) {
     if (!!ray) {
       hit = this.scene_.pickRay(ray, this.mode);
@@ -676,7 +683,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
       hits = this.scene_.pickFrustum(frustum, this.mode);
     }
   } else {
-    if (group && group.width > 3 && group.height > 3) {
+    if (group && group.width > 3 && group.height > 3 && !this.mode.paint) {
       hits = this.layout_.active.object.pickUVGroup(
           this.layout_.active.groupcast(group));
     } else {

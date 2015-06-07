@@ -46,8 +46,13 @@ shapy.editor.canvas = function(shEditor) {
 
       // Listen to key press events.
       $elem
-        .bind('contextmenu', function(e) { return false; })
-        .bind('selectstart', function(e) { return false; })
+        .bind('contextmenu', function(e) {
+          return false;
+        })
+        .bind('selectstart', function(e) {
+          $elem.css('cursor', 'default');
+          return false;
+        })
         .bind('mousewheel', wrap(shEditor.mouseWheel))
         .mouseenter(wrap(shEditor.mouseEnter))
         .mouseleave(wrap(shEditor.mouseLeave))
