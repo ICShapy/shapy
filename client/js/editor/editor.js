@@ -584,6 +584,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
+  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV;
 
   // If we're extruding, stop
   if (this.rig_ == this.rigExtrude_) {
@@ -592,18 +593,11 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // TOOD: do it nicer.
-  if (this.layout_.active.type == shapy.editor.Viewport.Type.UV) {
-    this.layout_.mouseUp(e);
-    if (e.which != 1) {
-      return;
-    }
-    console.log(this.hover_);
-    console.log('UV!');
-    return;
-  }
-
   // If viewports want the event, give up.
-  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1 || this.mode.paint) {
+  if ((!(ray = this.layout_.mouseUp(e)) && !selectUV) ||
+      e.which != 1 ||
+      this.mode.paint)
+  {
     return;
   }
 
@@ -613,7 +607,15 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // Find out which group is going to be affected.
-  group = this.mode.object ? this.objectGroup_ : this.partGroup_;
+  if (selectUV) {
+    group = this.uvGroup_;
+  } else if (this.mode.object) {
+    group = this.objectGroup_;
+  } else if (!this.mode.paint) {
+    group = this.partGroup_;
+  } else {
+    return;
+  }
 
   // Find out what is going to be selected & what is going to be selected.
   if (e.ctrlKey) {
@@ -636,7 +638,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // Send a command to the server to lock on objects or adjust part group.
-  if (this.mode.object) {
+  if (!selectUV && this.mode.object) {
     this.exec_.emitSelect(toSelect, toDeselect);
   } else if (!this.mode.paint) {
     // Adjust highlight.
