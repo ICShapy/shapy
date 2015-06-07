@@ -415,12 +415,14 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
   // Find all intersecting faces.
   var v = goog.object.filter(goog.object.map(this.faces, function(face) {
     var t = face.getVertexPositions_();
-    var i = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
+    var inter = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
     var ed;
 
-    if (!i) {
+    if (!inter) {
       return null;
     }
+
+    var i = inter.i;
 
     // Convert the intersection point to world space.
     var p = goog.vec.Vec3.createFloat32();
