@@ -14,7 +14,7 @@
     </ul>
   </div>
 
-  <!-- Static display of scene name -->
+  <!-- Static display of scene name. -->
   <div>
     <sh-editable
         id="editor-title"
@@ -23,7 +23,7 @@
     </sh-editable>
   </div>
 
-  <!-- Toggles between layouts -->
+  <!-- Toggles between layouts. -->
   <div>
     <span>View</span>
     <ul>
@@ -33,7 +33,7 @@
     </ul>
   </div>
 
-  <!-- Menu for adding objects -->
+  <!-- Menu for adding objects. -->
   <div>
     <span> Add </span>
     <ul>
@@ -42,7 +42,27 @@
     </ul>
   </div>
 
-  <!-- Menu for selection modes -->
+  <!-- Menu for rig selection. -->
+  <div>
+    <span> Rig </span>
+    <ul>
+      <li ng-click="editorCtrl.rig('translate')"> Translate </li>
+      <li ng-click="editorCtrl.rig('rotate')"> Rotate </li>
+      <li ng-click="editorCtrl.rig('scale')"> Scale </li>
+      <li ng-click="editorCtrl.rig('cut')"> Cut </li>
+      <li ng-click="editorCtrl.rig('extrude')"> Extrude </li>
+    </ul>
+  </div>
+
+  <!-- Menu for paint colour picking. -->
+  <div>
+    <span> Paint </span>
+    <ul>
+      <li>Painty Painty</li>
+    </ul>
+  </div>
+
+  <!-- Menu for selection modes. -->
   <div
       ng-click="editorCtrl.mode.toggleObject()"
       ng-class="{select: editorCtrl.mode.object}">
@@ -63,5 +83,4 @@
       ng-class="{select: editorCtrl.mode.vertex}">
     Vertex
   </div>
-
 </sh-menu>

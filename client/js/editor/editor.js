@@ -423,6 +423,54 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   }
 };
 
+/**
+ * Sets a new rig.
+ *
+ * @param {string} name
+ */
+shapy.editor.Editor.prototype.setRig = function(name) {
+  switch (name) {
+    case 'extrude': this.extrude_(); return;
+    case 'translate': this.rig(this.rigTranslate_); return;
+    case 'rotate': this.rig(this.rigRotate_); return;
+    case 'scale': this.rig(this.rigScale_); return;
+    case 'cut': this.rig(this.rigCut_); return;
+  }
+};
+
+
+/**
+ * Extrudes the current selection.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.extrude_ = function() {
+  // Get all selected faces.
+  if (!(object = this.partGroup_.getObject())) {
+    return;
+  }
+  faces = goog.array.filter(this.partGroup_.getEditables(), function(e) {
+    return e.type == shapy.editor.Editable.Type.FACE;
+  });
+
+  // Extrude.
+  if (faces.length <= 0) {
+    return;
+  }
+  var extrudeData = object.extrude(faces);
+
+  // Select extruded faces
+  this.partGroup_.clear();
+  this.partGroup_.add(extrudeData.faces);
+  goog.array.forEach(extrudeData.faces, function(e) {
+    e.setSelected(this.user);
+  }, this);
+
+  // Set up extrude rig
+  this.rig(this.rigExtrude_);
+  this.rigExtrude_.setup(extrudeData.normal);
+};
+
 
 /**
  * Handles a key down event.
@@ -467,33 +515,6 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       this.rig(null);
       return;
     }
-    case 'E': {
-      // Get all selected faces.
-      if (!(object = this.partGroup_.getObject())) {
-        return;
-      }
-      faces = goog.array.filter(this.partGroup_.getEditables(), function(e) {
-        return e.type == shapy.editor.Editable.Type.FACE;
-      });
-
-      // Extrude.
-      if (faces.length <= 0) {
-        return;
-      }
-      var extrudeData = object.extrude(faces);
-
-      // Select extruded faces
-      this.partGroup_.clear();
-      this.partGroup_.add(extrudeData.faces);
-      goog.array.forEach(extrudeData.faces, function(e) {
-        e.setSelected(this.user);
-      }, this);
-
-      // Set up extrude rig
-      this.rig(this.rigExtrude_);
-      this.rigExtrude_.setup(extrudeData.normal);
-      return;
-    }
     case 'O': {
       if (this.layout_ && this.layout_.active) {
         this.layout_.active.camera = new shapy.editor.Camera.Ortho();
@@ -528,6 +549,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       }
       break;
     }
+    case 'E': this.extrude_(); return;
     case 'T': this.rig(this.rigTranslate_); return;
     case 'R': this.rig(this.rigRotate_); return;
     case 'S': this.rig(this.rigScale_); return;
