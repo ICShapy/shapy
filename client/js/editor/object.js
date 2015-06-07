@@ -685,7 +685,10 @@ shapy.editor.Object.prototype.extrude = function(faces) {
       return 'internal';
     }
   });
-  goog.array.removeDuplicates(sortedEdges.internal);
+
+  if (sortedEdges.internal) {
+    goog.array.removeDuplicates(sortedEdges.internal);
+  }
 
   // Compute the vertices
   var verts = goog.array.flatten(goog.array.map(edges, function(e) {
@@ -820,9 +823,11 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   }, this);
 
   // Delete internal edges
-  goog.array.forEach(sortedEdges.internal, function(e) {
-    e.delete();
-  });
+  if (sortedEdges.internal) {
+    goog.array.forEach(sortedEdges.internal, function(e) {
+      e.delete();
+    });
+  }
 
   this.dirtyMesh = true;
 
