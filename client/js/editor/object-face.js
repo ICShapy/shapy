@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Object.Face');
+goog.provide('shapy.editor.Face');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec2');
@@ -23,7 +23,7 @@ goog.require('shapy.editor.geom');
  * @param {number}               e1
  * @param {number}               e2
  */
-shapy.editor.Object.Face = function(object, id, e0, e1, e2) {
+shapy.editor.Face = function(object, id, e0, e1, e2) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.FACE);
 
   /** @public {!shapy.editor.Object} @const */
@@ -43,15 +43,15 @@ shapy.editor.Object.Face = function(object, id, e0, e1, e2) {
   /** @public {number} @const */
   this.uv2 = 0;
 };
-goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
+goog.inherits(shapy.editor.Face, shapy.editor.Editable);
 
 
 /**
  * Retrieves the edges forming a face.
  *
- * @return {!Array<!shapy.editor.Object.Edge>}
+ * @return {!Array<!shapy.editor.Edge>}
  */
-shapy.editor.Object.Face.prototype.getEdges = function() {
+shapy.editor.Face.prototype.getEdges = function() {
   return [
     this.object.edges[this.e0 >= 0 ? this.e0 : -this.e0],
     this.object.edges[this.e1 >= 0 ? this.e1 : -this.e1],
@@ -63,9 +63,9 @@ shapy.editor.Object.Face.prototype.getEdges = function() {
 /**
  * Retrives the vertices forming a face.
  *
- * @return {!Array<!shapy.editor.Object.Vertex>}
+ * @return {!Array<!shapy.editor.Vertex>}
  */
-shapy.editor.Object.Face.prototype.getVertices = function() {
+shapy.editor.Face.prototype.getVertices = function() {
   var e = this.getEdges();
   return [
     this.object.verts[this.e0 >= 0 ? e[0].start : e[0].end],
@@ -80,7 +80,7 @@ shapy.editor.Object.Face.prototype.getVertices = function() {
  *
  * @return {shapy.editor.Object}
  */
-shapy.editor.Object.Face.prototype.getObject = function() {
+shapy.editor.Face.prototype.getObject = function() {
   return this.object;
 };
 
@@ -90,9 +90,9 @@ shapy.editor.Object.Face.prototype.getObject = function() {
  *
  * @private
  *
- * @return {!Array<shapy.editor.Object.Edge>}
+ * @return {!Array<shapy.editor.Edge>}
  */
-shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
+shapy.editor.Face.prototype.getVertexPositions_ = function() {
   var verts = this.getVertices();
   return [
       verts[0].position,
@@ -107,7 +107,7 @@ shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
  *
  * @return {!goog.vec.Vec3.Type}
  */
-shapy.editor.Object.Face.prototype.calculateNormal = function() {
+shapy.editor.Face.prototype.calculateNormal = function() {
   var normal = goog.vec.Vec3.createFloat32();
   var ab = goog.vec.Vec3.createFloat32();
   var ac = goog.vec.Vec3.createFloat32();
@@ -127,7 +127,7 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
  *
  * @return {!goog.vec.Vec3.Type}
  */
-shapy.editor.Object.Face.prototype.getPosition = function() {
+shapy.editor.Face.prototype.getPosition = function() {
   var t = this.getVertexPositions_();
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
   goog.vec.Mat4.multVec3(this.object.model_, c, c);
@@ -138,7 +138,7 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
 /**
  * Deletes the face.
  */
-shapy.editor.Object.Face.prototype.delete = function() {
+shapy.editor.Face.prototype.delete = function() {
   goog.object.remove(this.object.faces, this.id);
   this.object.dirtyMesh = true;
 };
@@ -152,7 +152,7 @@ shapy.editor.Object.Face.prototype.delete = function() {
  * @param {!goog.vec.Ray}       ray
  * @param {shapy.editor.Camera} camera
  */
-shapy.editor.Object.Face.prototype.pickUV = function(ray, camera) {
+shapy.editor.Face.prototype.pickUV = function(ray, camera) {
   if (!this.uv0 || !this.uv1 || !this.uv2) {
     return;
   }

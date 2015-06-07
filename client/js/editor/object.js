@@ -8,6 +8,9 @@ goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
 goog.require('shapy.editor.Editable');
 goog.require('shapy.editor.geom');
+goog.require('shapy.editor.Edge');
+goog.require('shapy.editor.Face');
+goog.require('shapy.editor.Vertex');
 
 
 
@@ -100,41 +103,41 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
 
   /**
    * Object Vertex List
-   * @public {!Array<shapy.editor.Object.Vertex>}
+   * @public {!Array<shapy.editor.Vertex>}
    * @const
    */
   this.verts = {};
   this.nextVert_ = 0;
   goog.array.forEach(verts, function(v, i) {
     this.nextVert_ = Math.max(this.nextVert_, i + 2);
-    this.verts[i + 1] = new shapy.editor.Object.Vertex(
+    this.verts[i + 1] = new shapy.editor.Vertex(
         this, i + 1, v[0], v[1], v[2]);
   }, this);
 
   /**
    * Edge List.
-   * @public {!Array<shapy.editor.Object.Edge>}
+   * @public {!Array<shapy.editor.Edge>}
    * @const
    */
   this.edges = {};
   this.nextEdge_ = 0;
   goog.array.forEach(edges, function(e, i) {
     this.nextEdge_ = Math.max(this.nextEdge_, i + 2);
-    this.edges[i + 1] = new shapy.editor.Object.Edge(
+    this.edges[i + 1] = new shapy.editor.Edge(
         this, i + 1, e[0], e[1]);
   }, this);
 
   /**
    * Face List
    * Expressed as triples of edge indices indexing this.edges
-   * @public {!Array<Array<shapy.editor.Object.Edge>>}
+   * @public {!Array<Array<shapy.editor.Edge>>}
    * @const
    */
    this.faces = {};
    this.nextFace_ = 0;
    goog.array.forEach(faces, function(f, i) {
     this.nextFace_ = Math.max(this.nextFace_, i + 2);
-    this.faces[i + 1] = new shapy.editor.Object.Face(
+    this.faces[i + 1] = new shapy.editor.Face(
         this, i + 1, f[0], f[1], f[2]);
    }, this);
 
@@ -500,9 +503,9 @@ shapy.editor.Object.prototype.pickUVGroup = function(group) {
 /**
  * Merges a set of points into a single point.
  *
- * @param {!Array<shapy.editor.Object.Vertex>} verts
+ * @param {!Array<shapy.editor.Vertex>} verts
  *
- * @return {!shapy.editor.Object.Vertex}
+ * @return {!shapy.editor.Vertex}
  */
 shapy.editor.Object.prototype.mergeVertices = function(verts) {
   var center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
@@ -519,7 +522,7 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
   this.verts = goog.object.filter(this.verts, function(v) {
     return !goog.array.contains(vertIDs, v.id);
   }, this);
-  this.verts[vertID] = new shapy.editor.Object.Vertex(
+  this.verts[vertID] = new shapy.editor.Vertex(
       this, vertID, center[0], center[1], center[2]);
 
   // Remove all edges & convert some to vertices.
@@ -599,7 +602,7 @@ shapy.editor.Object.prototype.projectUV = function() {
 /**
  * Connects vertices and edges in order to create new edges or faces.
  *
- * @param {!Array<shapy.editor.Object.Vertex>} verts Vertices to connect.
+ * @param {!Array<shapy.editor.Vertex>} verts Vertices to connect.
  */
 shapy.editor.Object.prototype.connect = function(verts) {
   var pairs;
@@ -626,7 +629,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
     }
 
     var edgeID = this.nextEdge_++;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
         v[0], v[1]);
     this.dirtyMesh = true;
     return edgeID;
@@ -643,7 +646,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
       return;
     }
     var faceID = this.nextFace_++;
-    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+    this.faces[faceID] = new shapy.editor.Face(this, faceID,
         e[0], e[1], e[2]);
     this.dirtyMesh = true;
   }
@@ -653,7 +656,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
 /**
  * Extrude a group of faces
  *
- * @param {!Array<!shapy.editor.Object.Face>} faces
+ * @param {!Array<!shapy.editor.Face>} faces
  *
  * @return {!Object} An object containing the extruded faces and the normal
  */
@@ -714,7 +717,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.array.map(verts, function(v) {
     var vertID = this.nextVert_++;
     vertMap[v.id] = vertID;
-    this.verts[vertID] = new shapy.editor.Object.Vertex(this, vertID,
+    this.verts[vertID] = new shapy.editor.Vertex(this, vertID,
       v.position[0],
       v.position[1],
       v.position[2]);
@@ -726,7 +729,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.array.map(edges, function(e) {
     var edgeID = this.nextEdge_++;
     edgeMap[e.id] = edgeID;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
       vertMap[e.start], vertMap[e.end]);
     return this.edges[edgeID];
   }, this);
@@ -743,7 +746,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   // Join pairs of vertices with edges
   var joinEdges = goog.array.map(vertPairs, function(p) {
     var edgeID = this.nextEdge_++;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
       p[0].id, p[1].id);
     return this.edges[edgeID];
   }, this);
@@ -789,14 +792,14 @@ shapy.editor.Object.prototype.extrude = function(faces) {
 
     // Create diagonal edge
     var edgeID = this.nextEdge_++;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
       AB.end, ab.start);
     var diagonal = this.edges[edgeID];
 
     // Fill out faces
     var emitFace = goog.bind(function(a, b, c) {
       var faceID = this.nextFace_++;
-      this.faces[faceID] = new shapy.editor.Object.Face(this, faceID, a, b, c);
+      this.faces[faceID] = new shapy.editor.Face(this, faceID, a, b, c);
     }, this);
     if (flipped) {
       emitFace(aA.id, AB.id, diagonal.id);
@@ -816,7 +819,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   var clonedFaces = goog.array.map(faces, function(f) {
     var faceID = this.nextFace_++;
     faceMap[f.id] = faceID;
-    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+    this.faces[faceID] = new shapy.editor.Face(this, faceID,
         f.e0 >= 0 ? edgeMap[f.e0] : -edgeMap[-f.e0],
         f.e1 >= 0 ? edgeMap[f.e1] : -edgeMap[-f.e1],
         f.e2 >= 0 ? edgeMap[f.e2] : -edgeMap[-f.e2]);
@@ -1003,17 +1006,17 @@ shapy.editor.Object.createSphere = function(id, scene, r, slices, stacks) {
  * @constructor
  * @extends {shapy.editor.Editable}
  *
- * @param {!shapy.editor.Object.Object} object
- * @param {!shapy.editor.Object.Face}   face
- * @param {=number}                     opt_u
- * @param {=number}                     opt_v
+ * @param {!shapy.editor.Object} object
+ * @param {!shapy.editor.Face}   face
+ * @param {=number}              opt_u
+ * @param {=number}              opt_v
  */
 shapy.editor.Object.UV = function(object, face, opt_u, opt_v) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.UV);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
-  /** @public {!shapy.editor.Object.Face} */
+  /** @public {!shapy.editor.Face} */
   this.face = face;
   /** @public {number} */
   this.u = opt_u || 0.0;

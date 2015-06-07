@@ -1,11 +1,12 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Object.Vertex');
+goog.provide('shapy.editor.Vertex');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec3');
 goog.require('shapy.editor.Editable');
+
 
 
 /**
@@ -20,7 +21,7 @@ goog.require('shapy.editor.Editable');
  * @param {number} y
  * @param {number} z
  */
-shapy.editor.Object.Vertex = function(object, id, x, y, z) {
+shapy.editor.Vertex = function(object, id, x, y, z) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.VERTEX);
 
   /** @public {!shapy.editor.Object} @const */
@@ -34,7 +35,7 @@ shapy.editor.Object.Vertex = function(object, id, x, y, z) {
    */
   this.position = goog.vec.Vec3.createFloat32FromValues(x, y, z);
 };
-goog.inherits(shapy.editor.Object.Vertex, shapy.editor.Editable);
+goog.inherits(shapy.editor.Vertex, shapy.editor.Editable);
 
 
 /**
@@ -42,7 +43,7 @@ goog.inherits(shapy.editor.Object.Vertex, shapy.editor.Editable);
  *
  * @return {!goog.vec.Vec3.Type}
  */
-shapy.editor.Object.Vertex.prototype.getPosition = function() {
+shapy.editor.Vertex.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32();
   goog.vec.Mat4.multVec3(this.object.model_, this.position, position);
   return position;
@@ -54,7 +55,7 @@ shapy.editor.Object.Vertex.prototype.getPosition = function() {
  *
  * @return {shapy.editor.Object}
  */
-shapy.editor.Object.Vertex.prototype.getObject = function() {
+shapy.editor.Vertex.prototype.getObject = function() {
   return this.object;
 };
 
@@ -66,7 +67,7 @@ shapy.editor.Object.Vertex.prototype.getObject = function() {
  * @param {number} dy
  * @param {number} dz
  */
-shapy.editor.Object.Vertex.prototype.translate = function(dx, dy, dz) {
+shapy.editor.Vertex.prototype.translate = function(dx, dy, dz) {
   goog.vec.Vec3.setFromValues(
       this.position,
       this.position[0] + dx,
@@ -82,9 +83,9 @@ shapy.editor.Object.Vertex.prototype.translate = function(dx, dy, dz) {
 /**
  * Retrives the vertices forming this vertex (pretty trivial).
  *
- * @return {!Array<shapy.editor.Object.Vertex>}
+ * @return {!Array<shapy.editor.Vertex>}
  */
-shapy.editor.Object.Vertex.prototype.getVertices = function() {
+shapy.editor.Vertex.prototype.getVertices = function() {
   return [this];
 };
 
@@ -92,7 +93,7 @@ shapy.editor.Object.Vertex.prototype.getVertices = function() {
 /**
  * Deletes the edge and all faces that use it.
  */
-shapy.editor.Object.Vertex.prototype.delete = function() {
+shapy.editor.Vertex.prototype.delete = function() {
   goog.object.remove(this.object.verts, this.id);
 
   this.object.edges = goog.object.filter(this.object.edges, function(edge) {

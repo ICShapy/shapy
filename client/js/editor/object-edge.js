@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Object.Edge');
+goog.provide('shapy.editor.Edge');
 
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec3');
@@ -20,7 +20,7 @@ goog.require('shapy.editor.Editable');
  * @param {number}               start
  * @param {number}               end
  */
-shapy.editor.Object.Edge = function(object, id, start, end) {
+shapy.editor.Edge = function(object, id, start, end) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDGE);
 
   /** @public {!shapy.editor.Object} @const */
@@ -32,7 +32,7 @@ shapy.editor.Object.Edge = function(object, id, start, end) {
   /** @public {number} @const */
   this.end = end;
 };
-goog.inherits(shapy.editor.Object.Edge, shapy.editor.Editable);
+goog.inherits(shapy.editor.Edge, shapy.editor.Editable);
 
 
 /**
@@ -40,7 +40,7 @@ goog.inherits(shapy.editor.Object.Edge, shapy.editor.Editable);
  *
  * @return {!goog.vec.Vec3.Type}
  */
-shapy.editor.Object.Edge.prototype.getPosition = function() {
+shapy.editor.Edge.prototype.getPosition = function() {
   var a = this.object.verts[this.start].position;
   var b = this.object.verts[this.end].position;
   var t = goog.vec.Vec3.createFloat32();
@@ -58,7 +58,7 @@ shapy.editor.Object.Edge.prototype.getPosition = function() {
  *
  * @return {shapy.editor.Object}
  */
-shapy.editor.Object.Edge.prototype.getObject = function() {
+shapy.editor.Edge.prototype.getObject = function() {
   return this.object;
 };
 
@@ -66,7 +66,7 @@ shapy.editor.Object.Edge.prototype.getObject = function() {
 /**
  * Retrives the vertices forming an edge.
  */
-shapy.editor.Object.Edge.prototype.getVertices = function() {
+shapy.editor.Edge.prototype.getVertices = function() {
   return [
     this.object.verts[this.start],
     this.object.verts[this.end]
@@ -77,7 +77,7 @@ shapy.editor.Object.Edge.prototype.getVertices = function() {
 /**
  * Deletes the edge and all faces that use it.
  */
-shapy.editor.Object.Edge.prototype.delete = function() {
+shapy.editor.Edge.prototype.delete = function() {
   goog.object.remove(this.object.edges, this.id);
 
   this.object.faces = goog.object.filter(this.object.faces, function(face) {

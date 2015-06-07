@@ -93,7 +93,25 @@
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
       ], [
+          'shapy.editor.Editable',
           'shapy.editor.geom',
+          'shapy.editor.Edge',
+          'shapy.editor.Face',
+          'shapy.editor.Vertex'
+      ]);
+      goog.addDependency('../editor/object-vertex.js', [
+          'shapy.editor.Vertex'
+      ], [
+          'shapy.editor.Editable'
+      ]);
+      goog.addDependency('../editor/object-edge.js', [
+          'shapy.editor.Edge'
+      ], [
+          'shapy.editor.Editable'
+      ]);
+      goog.addDependency('../editor/object-face.js', [
+          'shapy.editor.Face'
+      ], [
           'shapy.editor.Editable'
       ]);
       goog.addDependency('../editor/renderer.js', [
