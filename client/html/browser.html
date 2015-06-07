@@ -25,7 +25,12 @@
         </ul>
       </div>
       <div ng-switch-default class="space">
-        <h2>{{browserCtrl.current().name}}</h2>
+        <button class="left" disabled>
+          NEW SCENE
+        </button>
+        <button class="right" disabled>
+          <img src="/img/arrow-right.svg"/>
+        </button>
       </div>
     </div>
 
@@ -70,7 +75,7 @@
         asset in browserCtrl.current().children |
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
-      <sh-asset ng-style="(asset.write) ? null : {'border': '1px solid red'}"
+      <sh-asset
           asset="asset"
           selected="browserCtrl.selected"
           owner="asset.owner"
@@ -78,10 +83,12 @@
         <div class="image"
             ng-click="browserCtrl.selected=asset"
             ng-dblclick="browserCtrl.select(asset, true)">
-          <img ng-src="{{asset.image}}">
+          <img ng-class="{assetmenu: asset.type!=browserCtrl.home.type}" ng-src="{{asset.image}}">
         </div>
         <div ng-switch on="asset.write">
-          <div ng-switch-when="true" class="name">
+          <div ng-switch-when="true" 
+               class="name" 
+               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
             <sh-editable
                 ng-click="browserCtrl.selected = null"
                 ng-init="name=asset.name"
@@ -90,11 +97,29 @@
                 ng-model="name">
             </sh-editable>
           </div>
-          <div ng-switch-default class="name" >
+          <div ng-switch-default 
+               class="name noneditable"
+               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
             {{asset.name}}
           </div>
         </div>
       </sh-asset>
     </div>
   </sh-assets>
+
+  <div class='asset-menu'>
+    <ul>
+      <li ng-click=""
+          ng-style="{'cursor': 'pointer'}">
+        Download as STL
+      </li>
+      <sh-share 
+          asset="browserCtrl.selected"
+          ng-style="(browserCtrl.selected.owner)? {'cursor': 'pointer'} : {'color': 'gray', 'cursor': 'default'}">
+        <li>
+          Share
+        </li>
+      </sh-share>
+    </ul>
+  </div>
 </div>
