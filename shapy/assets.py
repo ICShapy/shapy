@@ -10,6 +10,7 @@ from tornado.gen import coroutine
 from tornado.web import HTTPError, asynchronous
 
 from shapy.common import APIHandler, session
+from shapy.account import Account
 
 
 class SharedHandler(APIHandler):
@@ -135,7 +136,7 @@ class PublicHandler(APIHandler):
     # Validate arguments.
     if not user:
       # Set special id for not logged in users
-      user = {'id' : -1}
+      user = Account(-1)
 
     # Initialise public space data.
     data = (-1, 'Public')
@@ -441,7 +442,7 @@ class SceneHandler(AssetHandler):
     # Validate arguments.
     if not user:
       # Set special id for not logged in users
-      user = {'id' : -1}
+      user = Account(-1)
     id = int(self.get_argument('id'))
 
     # Fetch asset data.
