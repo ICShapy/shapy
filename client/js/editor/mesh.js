@@ -59,11 +59,12 @@ shapy.editor.Mesh = function(gl, object) {
  */
 shapy.editor.Mesh.prototype.build_ = function() {
   var r = 0, g = 0, b = 0, a = 1;
+  var zero = goog.vec.Vec2.createFloat32FromValues(0, 0);
 
-  var add = function(d, pos) {
+  var add = function(d, pos, uv) {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
     d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
-    d[k++] = 0; d[k++] = 0;                               // UV.
+    d[k++] = uv[0]; d[k++] = uv[1];                       // UV.
     d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1;       // Diffuse.
   };
 
@@ -90,7 +91,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
       r *= 1.2; g *= 1.2; b *= 1.5;
     }
 
-    add(v, vert.position);
+    add(v, vert.position, zero);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, v, goog.webgl.STATIC_DRAW);
@@ -112,7 +113,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
     if (edge.hover) {
       r *= 1.2; g *= 1.2; b *= 1.2;
     }
-    add(e, v[0].position);
+    add(e, v[0].position, zero);
     if (edge.selected || v[1].selected) {
       r = 0.9; g = 0.9; b = 0.0;
     } else {
@@ -122,7 +123,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
     if (edge.hover) {
       r *= 1.2; g *= 1.2; b *= 1.2;
     }
-    add(e, v[1].position);
+    add(e, v[1].position, zero);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
@@ -153,9 +154,9 @@ shapy.editor.Mesh.prototype.build_ = function() {
     if (face.hover) {
       r *= 1.2; g *= 1.2; b *= 1.2;
     }
-    add(f, v[0].position);
-    add(f, v[1].position);
-    add(f, v[2].position);
+    add(f, v[0].position, v[0].uv);
+    add(f, v[1].position, v[1].uv);
+    add(f, v[2].position, v[2].uv);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
