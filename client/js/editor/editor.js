@@ -339,7 +339,10 @@ shapy.editor.Editor.prototype.render = function() {
   }, this);
 
   // Second pass - render rigs.
-  if (this.layout_.active && this.layout_.active.rig) {
+  if (this.layout_.active &&
+      this.layout_.active.rig &&
+      this.layout_.active.camera)
+  {
     this.renderer_.renderRig(this.layout_.active, this.layout_.active.rig);
   }
 
