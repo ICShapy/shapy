@@ -502,14 +502,32 @@ shapy.editor.ObjectGroup.prototype.getObjIds = function() {
 
 
 /**
+ * UV group.
+ *
+ * @param {!Array<shapy.editor.Object.UV>} uvs
+ *
+ * @constructor
+ * @extends {shapy.editor.Editable}
+ */
+shapy.editor.UVGroup = function(uvs) {
+  shapy.editor.EditableGroup.call(
+      this, uvs, shapy.editor.Editable.Type.UV_GROUP);
+};
+goog.inherits(shapy.editor.UVGroup, shapy.editor.EditableGroup);
+
+
+
+/**
  * List of editable types.
  * @enum {string}
  */
 shapy.editor.Editable.Type = {
   OBJECT_GROUP: 'objectGroup',
   PARTS_GROUP: 'partsGroup',
+  UV_GROUP: 'uvGroup',
   OBJECT: 'object',
   VERTEX: 'vertex',
   EDGE: 'edge',
-  FACE: 'face'
+  FACE: 'face',
+  UV: 'uv'
 };

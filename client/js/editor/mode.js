@@ -12,6 +12,7 @@ goog.provide('shapy.editor.Mode');
  */
 shapy.editor.Mode = function() {
   this.object = true;
+  this.paint = false;
   this.vertex = false;
   this.edge = false;
   this.face = false;
@@ -29,7 +30,21 @@ shapy.editor.Mode.prototype.toggleObject = function() {
     this.vertex = this.edge = this.face = this.partsGroup = true;
   } else {
     this.object = this.objectGroup = true;
-    this.vertex = this.edge = this.face = this.partsGroup = false;
+    this.vertex = this.edge = this.face = this.partsGroup = this.paint = false;
+  }
+};
+
+
+/**
+ * Toggle paint mode.
+ */
+shapy.editor.Mode.prototype.togglePaint = function() {
+  if (this.paint) {
+    this.object = true;
+    this.paint = false;
+  } else {
+    this.object = this.vertex = this.edge = this.face = false;
+    this.paint = true;
   }
 };
 
@@ -50,7 +65,7 @@ shapy.editor.Mode.prototype.setObject = function() {
 shapy.editor.Mode.prototype.toggleFace = function() {
   this.face = !this.face;
   this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
+  this.object = this.paint = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -60,7 +75,7 @@ shapy.editor.Mode.prototype.toggleFace = function() {
 shapy.editor.Mode.prototype.toggleEdge = function() {
   this.edge = !this.edge;
   this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
+  this.object = this.paint = this.objectGroup = !this.partsGroup;
 };
 
 
@@ -70,5 +85,5 @@ shapy.editor.Mode.prototype.toggleEdge = function() {
 shapy.editor.Mode.prototype.toggleVertex = function() {
   this.vertex = !this.vertex;
   this.partsGroup = this.face || this.edge || this.vertex;
-  this.object = this.objectGroup = !this.partsGroup;
+  this.object = this.paint = this.objectGroup = !this.partsGroup;
 };

@@ -129,6 +129,12 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
   this.partGroup_ = new shapy.editor.PartsGroup();
 
   /**
+   * Currently selected uv group.
+   * @private {shapy.editor.UVGroup}
+   */
+  this.uvGroup_ = new shapy.editor.UVGroup();
+
+  /**
    * Object hovered by mouse.
    * @private {!Array<!shapy.editor.Editable>}
    */
@@ -258,7 +264,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   // Clean up after the old layout.
   if (this.layout_) {
     goog.object.forEach(this.layout_.viewports, function(vp) {
-      vp.camCube.destroy();
+      vp.destroy();
     }, this);
   }
 
@@ -313,16 +319,30 @@ shapy.editor.Editor.prototype.render = function() {
 
   // First pass - compute view/proj matrices and render objects.
   goog.object.forEach(this.layout_.viewports, function(vp, name) {
-    vp.camera.compute();
-    vp.camCube.compute();
-    this.renderer_.renderObjects(vp);
-    this.renderer_.renderGround(vp);
-    this.renderer_.renderCamCube(vp);
-    this.renderer_.renderOverlay(vp);
+    switch (vp.type) {
+      case shapy.editor.Viewport.Type.EDIT: {
+        vp.camera.compute();
+        vp.camCube.compute();
+        this.renderer_.renderObjects(vp);
+        this.renderer_.renderGround(vp);
+        this.renderer_.renderCamCube(vp);
+        this.renderer_.renderOverlay(vp);
+        break;
+      }
+      case shapy.editor.Viewport.Type.UV: {
+        this.renderer_.renderBackground(vp);
+        this.renderer_.renderUVMesh(vp);
+        this.renderer_.renderOverlay(vp);
+        break;
+      }
+    }
   }, this);
 
   // Second pass - render rigs.
-  if (this.layout_.active && this.layout_.active.rig) {
+  if (this.layout_.active &&
+      this.layout_.active.rig &&
+      this.layout_.active.camera)
+  {
     this.renderer_.renderRig(this.layout_.active, this.layout_.active.rig);
   }
 
@@ -408,6 +428,53 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   }
 };
 
+/**
+ * Sets a new rig.
+ *
+ * @param {string} name
+ */
+shapy.editor.Editor.prototype.setRig = function(name) {
+  switch (name) {
+    case 'extrude': this.extrude_(); return;
+    case 'translate': this.rig(this.rigTranslate_); return;
+    case 'rotate': this.rig(this.rigRotate_); return;
+    case 'scale': this.rig(this.rigScale_); return;
+    case 'cut': this.rig(this.rigCut_); return;
+  }
+};
+
+
+/**
+ * Extrudes the current selection.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.extrude_ = function() {
+  if (!(object = this.partGroup_.getObject())) {
+    return;
+  }
+
+  // Get all selected faces.
+  faces = this.partGroup_.getFaces();
+  if (goog.array.isEmpty(faces)) {
+    return;
+  }
+
+  // Extrude.
+  var extrudeData = object.extrude(faces);
+
+  // Select extruded faces
+  this.partGroup_.clear();
+  this.partGroup_.add(extrudeData.faces);
+  goog.array.forEach(extrudeData.faces, function(e) {
+    e.setSelected(this.user);
+  }, this);
+
+  // Set up extrude rig
+  this.rig(this.rigExtrude_);
+  this.rigExtrude_.setup(extrudeData.normal);
+};
+
 
 /**
  * Handles a key down event.
@@ -424,7 +491,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         this.objectGroup_.delete();
         this.objectGroup_.clear();
         this.partGroup_.clear();
-      } else {
+      } else if (!this.mode.paint) {
         this.exec_.emitDelete(this.partGroup_);
         this.partGroup_.delete();
         this.partGroup_.clear();
@@ -452,37 +519,49 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       this.rig(null);
       return;
     }
-    case 'E': {
-      if (!(object = this.partGroup_.getObject())) {
+    case 'O': {
+      if (!this.layout_ || !this.layout_.active) {
         return;
       }
-
-      // Get all selected faces.
-      faces = this.partGroup_.getFaces();
-
-      if (goog.array.isEmpty(faces)) {
+      if (!this.layout_.active.camera) {
         return;
       }
+      if (this.layout_.active.camera.constructor == shapy.editor.Camera.Ortho) {
+        this.layout_.active.camera = new shapy.editor.Camera.Persp();
+      } else {
+        this.layout_.active.camera = new shapy.editor.Camera.Ortho();
+      }
 
-      // Extrude.
-      var extrudeData = object.extrude(faces);
-
-      // Select extruded faces
-      this.partGroup_.clear();
-      this.partGroup_.add(extrudeData.faces);
-      goog.array.forEach(extrudeData.faces, function(e) {
-        e.setSelected(this.user);
-      }, this);
-
-      // Set up extrude rig
-      this.rig(this.rigExtrude_);
-      this.rigExtrude_.setup(extrudeData.normal);
-      return;
+      this.layout_.resize(this.vp_.width, this.vp_.height);
+      break;
     }
+    case 'U': {
+      // Switch back to normal mode.
+      if (this.layout_ &&
+          this.layout_.active.type == shapy.editor.Viewport.Type.UV)
+      {
+        this.layout_.toggleUV();
+        return;
+      }
+
+      // Only one object must be selected.
+      if (this.objectGroup_.editables.length != 1) {
+        return;
+      }
+      if (this.layout_ && this.layout_.active) {
+        this.layout_.toggleUV();
+        this.layout_.active.object = this.objectGroup_.editables[0];
+        this.layout_.active.object.projectUV();
+        this.uvGroup_.clear();
+      }
+      break;
+    }
+    case 'E': this.extrude_(); return;
     case 'T': this.rig(this.rigTranslate_); return;
     case 'R': this.rig(this.rigRotate_); return;
     case 'S': this.rig(this.rigScale_); return;
     case 'C': this.rig(this.rigCut_); return;
+    case 'P': this.mode.togglePaint(); return;
     case '1': this.mode.toggleObject(); return;
     case '2': this.mode.toggleFace(); return;
     case '3': this.mode.toggleEdge(); return;
@@ -490,9 +569,33 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   }
 
   // Delegate event to viewport.
-  if (this.layout_ && this.layout_.active) {
-    this.layout_.active.keyDown(e.keyCode);
+  if (this.layout_) {
+    this.layout_.keyDown(e);
   }
+};
+
+
+/**
+ * Paints a face of a cube.
+ *
+ * @private
+ *
+ * @param {!shapy.editor.Object.Face} face
+ * @param {!goog.vec.Ray} ray
+ */
+shapy.editor.Editor.prototype.paintFace_ = function(face, ray) {
+  if (!face.uv0 || !face.uv1 || !face.uv2) {
+    return;
+  }
+
+  var verts = face.getVertices();
+  var uv0 = this.object_.uvs[face.uv0];
+  var uv1 = this.object_.uvs[face.uv1];
+  var uv2 = this.object_.uvs[face.uv2];
+
+  // TODO: interpolate UVs using baricentric coordinates + do perspective
+  // correction on them base on the depth computed using the VP matrix
+  // of the current viewport.
 };
 
 
@@ -503,6 +606,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
+  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV;
 
   // If we're extruding, stop
   if (this.rig_ == this.rigExtrude_) {
@@ -510,8 +614,12 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
     return;
   }
 
+  // TOOD: do it nicer.
   // If viewports want the event, give up.
-  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
+  if ((!(ray = this.layout_.mouseUp(e)) && !selectUV) ||
+      e.which != 1 ||
+      this.mode.paint)
+  {
     return;
   }
 
@@ -521,7 +629,15 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // Find out which group is going to be affected.
-  group = this.mode.object ? this.objectGroup_ : this.partGroup_;
+  if (selectUV) {
+    group = this.uvGroup_;
+  } else if (this.mode.object) {
+    group = this.objectGroup_;
+  } else if (!this.mode.paint) {
+    group = this.partGroup_;
+  } else {
+    return;
+  }
 
   // Find out what is going to be selected & what is going to be selected.
   if (e.ctrlKey) {
@@ -543,10 +659,10 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
     }, this);
   }
 
-  // Send a command to the sever to lock on objects or adjust part group.
-  if (this.mode.object) {
+  // Send a command to the server to lock on objects or adjust part group.
+  if (!selectUV && this.mode.object) {
     this.exec_.emitSelect(toSelect, toDeselect);
-  } else {
+  } else if (!this.mode.paint) {
     // Adjust highlight.
     goog.array.forEach(toDeselect, function(e) {
       e.setSelected(null);
@@ -567,17 +683,30 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, hits, hit, ray, group = this.layout_.active.group, objs, frustum;
+  var pick, hits = [], hit, ray, objs, frustum;
+  var group = this.layout_.hover && this.layout_.hover.group;
 
   // Find the entity under the mouse.
-  if (!!(ray = this.layout_.mouseMove(e))) {
-    hit = this.scene_.pickRay(ray, this.mode);
-    hits = hit ? [hit] : [];
-  } else if (group && group.width > 3 && group.height > 3) {
-    frustum = this.layout_.active.groupcast(group);
-    hits = this.scene_.pickFrustum(frustum, this.mode);
+  ray = this.layout_.mouseMove(e, this.mode.paint);
+  if (this.layout_.hover.type == shapy.editor.Viewport.Type.EDIT) {
+    if (!!ray) {
+      hit = this.scene_.pickRay(ray, this.mode);
+      hits = hit ? [hit] : [];
+    } else if (group && group.width > 3 && group.height > 3) {
+      frustum = this.layout_.hover.groupcast(group);
+      hits = this.scene_.pickFrustum(frustum, this.mode);
+    }
   } else {
-    hits = [];
+    if (group && group.width > 3 && group.height > 3 && !this.mode.paint) {
+      hits = this.layout_.hover.object.pickUVGroup(
+          this.layout_.hover.groupcast(group));
+    } else {
+      hits = this.layout_.hover.object.pickUVCoord(
+          this.layout_.hover.raycast(e.offsetX, e.offsetY));
+      if (hits.length > 1) {
+        hits = [hits[hits.length - 1]];
+      }
+    }
   }
 
   // Filter out all parts that do not belong to the current object.
@@ -587,6 +716,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
     pick = goog.array.filter(hits, function(e) {
       return this.objectGroup_.contains(e.object);
     }, this);
+  }
+
+  if (this.mode.paint && !goog.array.isEmpty(pick)) {
+    this.paintFace_(pick[0], ray);
   }
 
   // Highlight the current object.

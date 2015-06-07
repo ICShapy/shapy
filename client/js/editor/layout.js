@@ -95,20 +95,62 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
 
 
 /**
+ * Changes a viewport to UV mode.
+ */
+shapy.editor.Layout.prototype.toggleUV = function() {
+  var name = this.active.name;
+
+  if (this.active.type == shapy.editor.Viewport.Type.UV) {
+    this[name] = this.viewports[name] = new shapy.editor.Viewport.Edit(name);
+  } else {
+    this.viewports = goog.object.map(this.viewports, function(vp, vpName) {
+      if (vpName != name && vp.type != shapy.editor.Viewport.Type.UV) {
+        return vp;
+      }
+      if (vpName != name) {
+        this[vpName] = new shapy.editor.Viewport.Edit(vpName);
+      } else {
+        this[vpName] = new shapy.editor.Viewport.UV(vpName);
+      }
+      return this[vpName];
+    }, this);
+  }
+
+  this.active = this[name];
+  this.active.active = true;
+
+  this.resize(this.size.width, this.size.height);
+};
+
+
+/**
+ * Handles a key press.
+ *
+ * @param {KeyboardEvent} e
+ */
+shapy.editor.Layout.prototype.keyDown = function(e) {
+  if (this.active) {
+    this.active.keyDown(e);
+  }
+};
+
+
+/**
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ * @param {boolean} noGroup Ignore group selection.
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.prototype.mouseMove = function(e) {
+shapy.editor.Layout.prototype.mouseMove = function(e, noGroup) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
     return null;
   }
 
   if (this.hover && result.vp == this.hover) {
-    return this.hover.mouseMove(result.x, result.y);
+    return this.hover.mouseMove(result.x, result.y, noGroup);
   } else {
     if (this.hover) {
       this.hover.mouseLeave();
@@ -139,7 +181,9 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
   var rig = this.active.rig;
   this.active.rig = null;
   this.active = result.vp;
-  this.active.rig = rig;
+  if (this.active.type == shapy.editor.Viewport.Type.EDIT) {
+    this.active.rig = rig;
+  }
   this.active.active = true;
 
   return ray;
@@ -223,7 +267,7 @@ shapy.editor.Layout.prototype.mouseLeave = function(e) {
  */
 shapy.editor.Layout.Single = function() {
   /** @public {!shapy.editor.Viewport} @const */
-  this.viewport = new shapy.editor.Viewport('viewport');
+  this.viewport = new shapy.editor.Viewport.Edit('viewport');
 
   shapy.editor.Layout.call(this, {
       'viewport': this.viewport
@@ -253,9 +297,9 @@ shapy.editor.Layout.Single.prototype.resize = function(w, h) {
  */
 shapy.editor.Layout.Double = function() {
   /** @public {!shapy.editor.Viewport} @const */
-  this.left = new shapy.editor.Viewport('left');
+  this.left = new shapy.editor.Viewport.Edit('left');
   /** @public {!shapy.editor.Viewport} @const */
-  this.right = new shapy.editor.Viewport('right');
+  this.right = new shapy.editor.Viewport.Edit('right');
 
   /** @private {number} */
   this.split_ = 0.5;
@@ -293,10 +337,11 @@ shapy.editor.Layout.Double.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ * @param {boolean} noGroup
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
+shapy.editor.Layout.Double.prototype.mouseMove = function(e, noGroup) {
   this.hover_ = Math.abs(e.offsetX - this.bar_) < 5;
 
   if (this.resize_) {
@@ -310,7 +355,7 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
     return null;
   } else {
     $('html,body').css('cursor', 'auto');
-    return goog.base(this, 'mouseMove', e);
+    return goog.base(this, 'mouseMove', e, noGroup);
   }
 };
 
@@ -372,13 +417,13 @@ shapy.editor.Layout.Double.prototype.mouseLeave = function(e) {
  */
 shapy.editor.Layout.Quad = function() {
   /** @public {!shapy.editor.Viewport} @const */
-  this.topLeft = new shapy.editor.Viewport('top-left');
+  this.topLeft = new shapy.editor.Viewport.Edit('topLeft');
   /** @public {!shapy.editor.Viewport} @const */
-  this.topRight = new shapy.editor.Viewport('top-right');
+  this.topRight = new shapy.editor.Viewport.Edit('topRight');
   /** @public {!shapy.editor.Viewport} @const */
-  this.bottomLeft = new shapy.editor.Viewport('bottom-left');
+  this.bottomLeft = new shapy.editor.Viewport.Edit('bottomLeft');
   /** @public {!shapy.editor.Viewport} @const */
-  this.bottomRight = new shapy.editor.Viewport('bottom-right');
+  this.bottomRight = new shapy.editor.Viewport.Edit('bottomRight');
 
   /** @private {number} */
   this.splitX_ = 0.5;
@@ -399,10 +444,10 @@ shapy.editor.Layout.Quad = function() {
   this.hoverY_ = false;
 
   shapy.editor.Layout.call(this, {
-      'top-left': this.topLeft,
-      'top-right': this.topRight,
-      'bottom-left': this.bottomLeft,
-      'bottom-right': this.bottomRight
+      'topLeft': this.topLeft,
+      'topRight': this.topRight,
+      'bottomLeft': this.bottomLeft,
+      'bottomRight': this.bottomRight
   });
 };
 goog.inherits(shapy.editor.Layout.Quad, shapy.editor.Layout);
@@ -447,10 +492,11 @@ shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
+ * @param {boolean} noGroup
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
+shapy.editor.Layout.Quad.prototype.mouseMove = function(e, noGroup) {
   this.hoverX_ = Math.abs(e.offsetX - this.barX_) < 5;
   this.hoverY_ = Math.abs(e.offsetY - this.barY_) < 5;
 
@@ -475,7 +521,7 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
     $('html,body').css('cursor', 'ns-resize');
   } else {
     $('html,body').css('cursor', 'auto');
-    return goog.base(this, 'mouseMove', e);
+    return goog.base(this, 'mouseMove', e, noGroup);
   }
 };
 

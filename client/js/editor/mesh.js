@@ -36,6 +36,18 @@ shapy.editor.Mesh = function(gl, object) {
   /** @private {number} @const */
   this.vertCount_ = 0;
 
+  /** @private {!WebGLBuffer} @const */
+  this.uvs_ = this.gl_.createBuffer();
+  this.uvCount_ = 0;
+
+  /** @private {!WebGLBuffer} @const */
+  this.uvEdges_ = this.gl_.createBuffer();
+  this.uvEdgeCount_ = 0;
+
+  /** @private {!WebGLBuffer} @const */
+  this.uvFaces_ = this.gl_.createBuffer();
+  this.uvFaceCount_ = 0;
+
   this.build_();
 };
 
@@ -46,13 +58,19 @@ shapy.editor.Mesh = function(gl, object) {
  * @private
  */
 shapy.editor.Mesh.prototype.build_ = function() {
-  var r = 0, g = 0, b = 0;
+  var r = 0, g = 0, b = 0, a = 1;
 
   var add = function(d, pos) {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
     d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
     d[k++] = 0; d[k++] = 0;                               // UV.
     d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1;       // Diffuse.
+  };
+
+  var addUV = function(d, pos) {
+    d[k++] = (pos.u * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
+    d[k++] = (pos.v * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
+    d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = a;
   };
 
   // Create mesh for rendering all the edges.
@@ -141,6 +159,69 @@ shapy.editor.Mesh.prototype.build_ = function() {
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
+
+  // Create a mesh for rendering all UV points.
+  this.uvCount_ = 0;
+  goog.object.forEach(this.object_.uvs, function(uv) {
+    this.uvCount_++;
+  }, this);
+  k = 0;
+  var u = new Float32Array(this.uvCount_ * 24);
+  goog.object.forEach(this.object_.uvs, function(uv) {
+    if (uv.selected && uv.hover) {
+      r = 1.0; g = 1.0; b = 0.0;
+    } else if (uv.selected) {
+      r = 0.0; g = 1.0; b = 1.0;
+    } else if (uv.hover) {
+      r = 0.0; g = 0.0; b = 1.0;
+    } else {
+      r = 0.0; g = 1.0; b = 0.0;
+    }
+    addUV(u, uv);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvs_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, u, goog.webgl.STATIC_DRAW);
+
+  // Create a mesh for rendering all UV edges & faces.
+  this.uvEdgeCount_ = 0;
+  this.uvFaceCount_ = 0;
+  goog.object.forEach(this.object_.faces, function(face) {
+    this.uvEdgeCount_ += 6;
+    this.uvFaceCount_ += 3;
+  }, this);
+  k = 0;
+  var e = new Float32Array(this.uvEdgeCount_ * 24);
+  goog.object.forEach(this.object_.faces, function(face) {
+    if (!face.uv0 || !face.uv1 || !face.uv2) {
+      return;
+    }
+
+    r = 0.4; g = 0.4; b = 0.4; a = 1.0;
+    addUV(e, this.object_.uvs[face.uv0]);
+    addUV(e, this.object_.uvs[face.uv1]);
+    addUV(e, this.object_.uvs[face.uv1]);
+    addUV(e, this.object_.uvs[face.uv2]);
+    addUV(e, this.object_.uvs[face.uv2]);
+    addUV(e, this.object_.uvs[face.uv0]);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvEdges_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
+
+  k = 0;
+  var f = new Float32Array(this.uvFaceCount_ * 24);
+  goog.object.forEach(this.object_.faces, function(face) {
+    if (!face.uv0 || !face.uv1 || !face.uv2) {
+      return;
+    }
+
+    r = 0.7; g = 0.7; b = 0.7; a = 0.4;
+    addUV(f, this.object_.uvs[face.uv0]);
+    addUV(f, this.object_.uvs[face.uv1]);
+    addUV(f, this.object_.uvs[face.uv2]);
+  }, this);
+
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvFaces_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
 };
 
 
@@ -159,6 +240,18 @@ shapy.editor.Mesh.prototype.destroy = function() {
   if (this.vertices_) {
     this.gl_.deleteBuffer(this.vertices_);
     this.vertices_ = null;
+  }
+  if (this.uvs_) {
+    this.gl_.deleteBuffer(this.uvs_);
+    this.uvs_ = null;
+  }
+  if (this.uvEdges_) {
+    this.gl_.deleteBuffer(this.uvEdges_);
+    this.uvEdges_ = null;
+  }
+  if (this.uvFaces_) {
+    this.gl_.deleteBuffer(this.uvFaces_);
+    this.uvFaces_ = null;
   }
 };
 
@@ -187,6 +280,35 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 48, 0);
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
   this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.faceCount_);
+
+  this.gl_.disableVertexAttribArray(3);
+  this.gl_.disableVertexAttribArray(0);
+};
+
+
+/**
+ * Renders all UV components.
+ */
+shapy.editor.Mesh.prototype.renderUV = function() {
+  this.gl_.enableVertexAttribArray(0);
+  this.gl_.enableVertexAttribArray(3);
+
+
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvFaces_);
+  this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 24, 0);
+  this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 24, 8);
+  this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.uvFaceCount_);
+
+  this.gl_.lineWidth(2.0);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvEdges_);
+  this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 24, 0);
+  this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 24, 8);
+  this.gl_.drawArrays(goog.webgl.LINES, 0, this.uvEdgeCount_);
+
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvs_);
+  this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 24, 0);
+  this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 24, 8);
+  this.gl_.drawArrays(goog.webgl.POINTS, 0, this.uvCount_);
 
   this.gl_.disableVertexAttribArray(3);
   this.gl_.disableVertexAttribArray(0);

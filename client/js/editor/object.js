@@ -137,6 +137,13 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
     this.faces[i + 1] = new shapy.editor.Object.Face(
         this, i + 1, f[0], f[1], f[2]);
    }, this);
+
+   /**
+    * True if the object has a UV map.
+    * @public {!Object<number, !shapy.editor.Object.UV>}
+    */
+  this.uvs = {};
+  this.nextUV_ = 1;
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
 
@@ -146,6 +153,13 @@ goog.inherits(shapy.editor.Object, shapy.editor.Editable);
  * @type {number} @const
  */
 shapy.editor.Object.EDGE_DIST_TRESHOLD = 0.01;
+
+
+/**
+ * UV distance treshold.
+ * @type {number} @const
+ */
+shapy.editor.Object.UV_DIST_TRESHOLD = 0.01;
 
 
 /**
@@ -457,6 +471,31 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
 
 
 /**
+ * Finds vertices that match given UV coordinate.
+ *
+ * @param {!{x: number, y: number}} coord
+ */
+shapy.editor.Object.prototype.pickUVCoord = function(coord) {
+  return goog.object.getValues(goog.object.filter(this.uvs, function(uv) {
+    return shapy.editor.geom.dist2D(coord, uv.u, uv.v) <
+        shapy.editor.Object.UV_DIST_TRESHOLD;
+  }, this));
+};
+
+
+/**
+ * Finds parts that fall into the given UV region.
+ *
+ * @param {!{x0: number, x1: number, y0: number, y1: number}} group
+ */
+shapy.editor.Object.prototype.pickUVGroup = function(group) {
+  return goog.object.getValues(goog.object.filter(this.uvs, function(uv) {
+    return shapy.editor.geom.intersectSquare(group, uv.u, uv.v);
+  }, this));
+};
+
+
+/**
  * Merges a set of points into a single point.
  *
  * @param {!Array<shapy.editor.Object.Vertex>} verts
@@ -523,6 +562,35 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
 
   this.dirtyMesh = true;
   return this.verts[vertID];
+};
+
+
+/**
+ * Projects UV coordinates over a cube.
+ */
+shapy.editor.Object.prototype.projectUV = function() {
+  var n = goog.vec.Vec3.createFloat32();
+  var project = goog.bind(function(vert) {
+    var u, v, id;
+
+    // Find u & v.
+    goog.vec.Vec3.normalize(vert.position, n);
+    u = 0.5 + Math.atan2(n[2], n[0]) / (2 * Math.PI);
+    v = 0.5 - Math.asin(n[1]) / Math.PI;
+
+    this.dirtyMesh = true;
+    id = this.nextUV_;
+    this.nextUV_++;
+    this.uvs[id] = new shapy.editor.Object.UV(this, id, u, v);
+    return id;
+  }, this);
+
+  goog.object.forEach(this.faces, function(f) {
+    var verts = f.getVertices();
+    f.uv0 = f.uv0 || project(verts[0]);
+    f.uv1 = f.uv1 || project(verts[1]);
+    f.uv2 = f.uv2 || project(verts[2]);
+  }, this);
 };
 
 
@@ -1141,12 +1209,18 @@ shapy.editor.Object.Face = function(object, id, e0, e1, e2) {
   this.object = object;
   /** @public {!number} @const */
   this.id = id;
-  /** @public {number}  @const */
+  /** @public {number} @const */
   this.e0 = e0;
-  /** @public {number}  @const */
+  /** @public {number} @const */
   this.e1 = e1;
-  /** @public {number}  @const */
+  /** @public {number} @const */
   this.e2 = e2;
+  /** @public {number} @const */
+  this.uv0 = 0;
+  /** @public {number} @const */
+  this.uv1 = 0;
+  /** @public {number} @const */
+  this.uv2 = 0;
 };
 goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
 
@@ -1217,10 +1291,12 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
   var ab = goog.vec.Vec3.createFloat32();
   var ac = goog.vec.Vec3.createFloat32();
   var verts = this.getVertexPositions_();
+
   goog.vec.Vec3.subtract(verts[1], verts[0], ab);
   goog.vec.Vec3.subtract(verts[2], verts[0], ac);
   goog.vec.Vec3.cross(ac, ab, normal);
   goog.vec.Vec3.normalize(normal, normal);
+
   return normal;
 };
 
@@ -1245,3 +1321,31 @@ shapy.editor.Object.Face.prototype.delete = function() {
   goog.object.remove(this.object.faces, this.id);
   this.object.dirtyMesh = true;
 };
+
+
+
+/**
+ * UV coordinate.
+ *
+ * @constructor
+ * @extends {shapy.editor.Editable}
+ *
+ * @param {!shapy.editor.Object.Objecr} object
+ * @param {!shapy.editor.Object.Face}   face
+ * @param {=number}                     opt_u
+ * @param {=number}                     opt_v
+ */
+shapy.editor.Object.UV = function(object, face, opt_u, opt_v) {
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.UV);
+
+  /** @public {!shapy.editor.Object} @const */
+  this.object = object;
+  /** @public {!shapy.editor.Object.Face} */
+  this.face = face;
+  /** @public {number} */
+  this.u = opt_u || 0.0;
+  /** @public {number} */
+  this.v = opt_v || 0.0;
+};
+goog.inherits(shapy.editor.Object.UV, shapy.editor.Editable);
+

@@ -144,7 +144,13 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
   // Find all allowed objects in the current mode.
   if (!mode.object) {
     hits = goog.array.filter(hits, function(hit) {
-      return mode[hit.item.type];
+      if (hit.item.type == 'object') {
+        return mode.object;
+      } else if (hit.item.type == 'face') {
+        return mode[hit.item.type] || mode.paint;
+      } else {
+        return mode[hit.item.type];
+      }
     });
   }
 
