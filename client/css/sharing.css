@@ -1,9 +1,10 @@
 .sharing-add #shared-with {
-  width: 200px;
+  width: 300px;
+  font-size: 14px;
 }
 
 .sharing-add #new-write {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: normal;
   display: inline;
   color: gray;
@@ -13,6 +14,7 @@
 
 .sharing-add #add {
   float: right;
+  font-size: 14px;
 }
 
 .ui-autocomplete {
@@ -27,7 +29,7 @@
   border: 1px solid #cccccc;
   background-color: white;
   box-shadow: 2px 2px 4px #aaa;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .ui-autocomplete > li {

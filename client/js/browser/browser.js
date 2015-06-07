@@ -457,12 +457,12 @@ shapy.browser.share = function(shModal, shBrowser) {
 
       //open sharing dialog
       shModal.open({
-        size: 'small',
+        size: 'medium',
         title: 'Share Asset',
         template:
             '<div class="sharing-add">' +
             '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
-            '  <span id="new-write" ng-click="newWrite()"> Write<span>' +
+            '  <span id="new-write" ng-click="newWrite()"> Write</span>' +
             '  <button id="add" ng-click="add()"> Add </button>' +
             '</div>',
         controller: function($scope) {
