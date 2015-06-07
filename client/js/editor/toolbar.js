@@ -62,6 +62,16 @@ shapy.editor.ToolbarController.prototype.layout = function(name) {
 
 
 /**
+ * Called when the rig has to be changed.
+ *
+ * @param {string} name Name of the new rig.
+ */
+shapy.editor.ToolbarController.prototype.rig = function(name) {
+  this.shEditor_.setRig(name);
+};
+
+
+/**
  * Called when new object has to be added.
  *
  * @param {string} name Name of the object.

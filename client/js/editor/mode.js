@@ -12,6 +12,7 @@ goog.provide('shapy.editor.Mode');
  */
 shapy.editor.Mode = function() {
   this.object = true;
+  this.paint = false;
   this.vertex = false;
   this.edge = false;
   this.face = false;
@@ -29,7 +30,21 @@ shapy.editor.Mode.prototype.toggleObject = function() {
     this.vertex = this.edge = this.face = this.partsGroup = true;
   } else {
     this.object = this.objectGroup = true;
-    this.vertex = this.edge = this.face = this.partsGroup = false;
+    this.vertex = this.edge = this.face = this.partsGroup = this.paint = false;
+  }
+};
+
+
+/**
+ * Toggle paint mode.
+ */
+shapy.editor.Mode.prototype.togglePaint = function() {
+  if (this.paint) {
+    this.object = true;
+    this.paint = false;
+  } else {
+    this.object = this.vertex = this.edge = this.face = false;
+    this.paint = true;
   }
 };
 

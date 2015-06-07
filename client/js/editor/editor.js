@@ -429,6 +429,54 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   }
 };
 
+/**
+ * Sets a new rig.
+ *
+ * @param {string} name
+ */
+shapy.editor.Editor.prototype.setRig = function(name) {
+  switch (name) {
+    case 'extrude': this.extrude_(); return;
+    case 'translate': this.rig(this.rigTranslate_); return;
+    case 'rotate': this.rig(this.rigRotate_); return;
+    case 'scale': this.rig(this.rigScale_); return;
+    case 'cut': this.rig(this.rigCut_); return;
+  }
+};
+
+
+/**
+ * Extrudes the current selection.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.extrude_ = function() {
+  // Get all selected faces.
+  if (!(object = this.partGroup_.getObject())) {
+    return;
+  }
+  faces = goog.array.filter(this.partGroup_.getEditables(), function(e) {
+    return e.type == shapy.editor.Editable.Type.FACE;
+  });
+
+  // Extrude.
+  if (faces.length <= 0) {
+    return;
+  }
+  var extrudeData = object.extrude(faces);
+
+  // Select extruded faces
+  this.partGroup_.clear();
+  this.partGroup_.add(extrudeData.faces);
+  goog.array.forEach(extrudeData.faces, function(e) {
+    e.setSelected(this.user);
+  }, this);
+
+  // Set up extrude rig
+  this.rig(this.rigExtrude_);
+  this.rigExtrude_.setup(extrudeData.normal);
+};
+
 
 /**
  * Handles a key down event.
@@ -445,7 +493,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         this.objectGroup_.delete();
         this.objectGroup_.clear();
         this.partGroup_.clear();
-      } else {
+      } else if (!this.mode.paint) {
         this.exec_.emitDelete(this.partGroup_);
         this.partGroup_.delete();
         this.partGroup_.clear();
@@ -473,45 +521,20 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       this.rig(null);
       return;
     }
-    case 'E': {
-      // Get all selected faces.
-      if (!(object = this.partGroup_.getObject())) {
-        return;
-      }
-      faces = goog.array.filter(this.partGroup_.getEditables(), function(e) {
-        return e.type == shapy.editor.Editable.Type.FACE;
-      });
-
-      // Extrude.
-      if (faces.length <= 0) {
-        return;
-      }
-      var extrudeData = object.extrude(faces);
-
-      // Select extruded faces
-      this.partGroup_.clear();
-      this.partGroup_.add(extrudeData.faces);
-      goog.array.forEach(extrudeData.faces, function(e) {
-        e.setSelected(this.user);
-      }, this);
-
-      // Set up extrude rig
-      this.rig(this.rigExtrude_);
-      this.rigExtrude_.setup(extrudeData.normal);
-      return;
-    }
     case 'O': {
-      if (this.layout_ && this.layout_.active) {
-        this.layout_.active.camera = new shapy.editor.Camera.Ortho();
-        this.layout_.resize(this.vp_.width, this.vp_.height);
+      if (!this.layout_ || !this.layout_.active) {
+        return;
       }
-      break;
-    }
-    case 'P': {
-      if (this.layout_ && this.layout_.active) {
+      if (!this.layout_.active.camera) {
+        return;
+      }
+      if (this.layout_.active.camera.constructor == shapy.editor.Camera.Ortho) {
         this.layout_.active.camera = new shapy.editor.Camera.Persp();
-        this.layout_.resize(this.vp_.width, this.vp_.height);
+      } else {
+        this.layout_.active.camera = new shapy.editor.Camera.Ortho();
       }
+
+      this.layout_.resize(this.vp_.width, this.vp_.height);
       break;
     }
     case 'U': {
@@ -535,10 +558,12 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       }
       break;
     }
+    case 'E': this.extrude_(); return;
     case 'T': this.rig(this.rigTranslate_); return;
     case 'R': this.rig(this.rigRotate_); return;
     case 'S': this.rig(this.rigScale_); return;
     case 'C': this.rig(this.rigCut_); return;
+    case 'P': this.mode.togglePaint(); return;
     case '1': this.mode.toggleObject(); return;
     case '2': this.mode.toggleFace(); return;
     case '3': this.mode.toggleEdge(); return;
@@ -567,7 +592,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // If viewports want the event, give up.
-  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1) {
+  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1 || this.mode.paint) {
     return;
   }
 
@@ -602,7 +627,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   // Send a command to the server to lock on objects or adjust part group.
   if (this.mode.object) {
     this.exec_.emitSelect(toSelect, toDeselect);
-  } else {
+  } else if (!this.mode.paint) {
     // Adjust highlight.
     goog.array.forEach(toDeselect, function(e) {
       e.setSelected(null);
@@ -625,6 +650,11 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 shapy.editor.Editor.prototype.mouseMove = function(e) {
   var pick, hits = [], hit, ray, objs, frustum;
   var group = this.layout_.active.group;
+
+  // Paint mode.
+  if (this.mode.paint) {
+    return;
+  }
 
   // Find the entity under the mouse.
   ray = this.layout_.mouseMove(e);
