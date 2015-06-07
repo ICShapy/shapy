@@ -17,7 +17,6 @@ goog.require('shapy.editor.Layout.Double');
 goog.require('shapy.editor.Layout.Quad');
 goog.require('shapy.editor.Layout.Single');
 goog.require('shapy.editor.Mode');
-//goog.require('')
 goog.require('shapy.editor.Renderer');
 goog.require('shapy.editor.Rig');
 goog.require('shapy.editor.Rig.Cut');

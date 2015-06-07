@@ -4,6 +4,7 @@
 goog.provide('shapy.browser.Asset.Scene');
 
 goog.require('shapy.browser.Asset');
+goog.require('shapy.editor.create');
 goog.require('shapy.editor.Object');
 
 
@@ -197,7 +198,7 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
  */
 shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createCube(id, this, w, h, d);
+  var object = shapy.editor.create.cube(id, this, w, h, d);
   this.objects[id] = object;
   return object;
 };
@@ -214,7 +215,7 @@ shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
  */
 shapy.browser.Asset.Scene.prototype.createSphere = function(r, slices, stacks) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createSphere(id, this, r, slices, stacks);
+  var object = shapy.editor.create.sphere(id, this, r, slices, stacks);
   this.objects[id] = object;
   return object;
 };
