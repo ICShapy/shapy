@@ -682,7 +682,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
   var pick, hits = [], hit, ray, objs, frustum;
-  var group = this.layout_.active.group;
+  var group = this.layout_.hover && this.layout_.hover.group;
 
   // Find the entity under the mouse.
   ray = this.layout_.mouseMove(e, this.mode.paint);
@@ -691,16 +691,16 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
       hit = this.scene_.pickRay(ray, this.mode);
       hits = hit ? [hit] : [];
     } else if (group && group.width > 3 && group.height > 3) {
-      frustum = this.layout_.active.groupcast(group);
+      frustum = this.layout_.hover.groupcast(group);
       hits = this.scene_.pickFrustum(frustum, this.mode);
     }
   } else {
     if (group && group.width > 3 && group.height > 3 && !this.mode.paint) {
-      hits = this.layout_.active.object.pickUVGroup(
-          this.layout_.active.groupcast(group));
+      hits = this.layout_.hover.object.pickUVGroup(
+          this.layout_.hover.groupcast(group));
     } else {
-      hits = this.layout_.active.object.pickUVCoord(
-          this.layout_.active.raycast(e.offsetX, e.offsetY));
+      hits = this.layout_.hover.object.pickUVCoord(
+          this.layout_.hover.raycast(e.offsetX, e.offsetY));
       if (hits.length > 1) {
         hits = [hits[hits.length - 1]];
       }
