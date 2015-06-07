@@ -123,7 +123,7 @@ shapy.editor.geom.intersectCube = function(ray, c, a) {
  * Computes the intersection point of a ray and a triangle if present.
  * Returns null if the ray does not intersect the triangle.
  *
- * @param {!goog.vec.Ray.Type}  ray
+ * @param {!goog.vec.Ray}       ray
  * @param {!goog.vec.Vec3.Type} p0
  * @param {!goog.vec.Vec3.Type} p1
  * @param {!goog.vec.Vec3.Type} p2
@@ -198,7 +198,7 @@ shapy.editor.geom.intersectTriangle = function(ray, p0, p1, p2) {
  * Computes the barycentric coordinates of the ray triangle intersection,
  * if present.
  *
- * @param {!goog.vec.Ray.Type}  ray
+ * @param {!goog.vec.Ray}       ray
  * @param {!goog.vec.Vec3.Type} a
  * @param {!goog.vec.Vec3.Type} b
  * @param {!goog.vec.Vec3.Type} c

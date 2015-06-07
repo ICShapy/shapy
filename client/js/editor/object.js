@@ -414,7 +414,7 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
 shapy.editor.Object.prototype.pickFaces_ = function(ray) {
   // Find all intersecting faces.
   var v = goog.object.filter(goog.object.map(this.faces, function(face) {
-    var t = face.getVertexPositions();
+    var t = face.getVertexPositions_();
     var inter = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
     var ed;
 
@@ -1269,9 +1269,11 @@ shapy.editor.Object.Face.prototype.getObject = function() {
 /**
  * Retrives the positions of vertices forming a face.
  *
+ * @private
+ *
  * @return {!Array<shapy.editor.Object.Edge>}
  */
-shapy.editor.Object.Face.prototype.getVertexPositions = function() {
+shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
   var verts = this.getVertices();
   return [
       verts[0].position,
@@ -1290,7 +1292,7 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
   var normal = goog.vec.Vec3.createFloat32();
   var ab = goog.vec.Vec3.createFloat32();
   var ac = goog.vec.Vec3.createFloat32();
-  var verts = this.getVertexPositions();
+  var verts = this.getVertexPositions_();
 
   goog.vec.Vec3.subtract(verts[1], verts[0], ab);
   goog.vec.Vec3.subtract(verts[2], verts[0], ac);
@@ -1307,7 +1309,7 @@ shapy.editor.Object.Face.prototype.calculateNormal = function() {
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Object.Face.prototype.getPosition = function() {
-  var t = this.getVertexPositions();
+  var t = this.getVertexPositions_();
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
   goog.vec.Mat4.multVec3(this.object.model_, c, c);
   return c;
@@ -1320,6 +1322,67 @@ shapy.editor.Object.Face.prototype.getPosition = function() {
 shapy.editor.Object.Face.prototype.delete = function() {
   goog.object.remove(this.object.faces, this.id);
   this.object.dirtyMesh = true;
+};
+
+
+/**
+ * Picks UV of the face.
+ *
+ * @private
+ *
+ * @param {!goog.vec.Ray}       ray
+ * @param {shapy.editor.Camera} camera
+ */
+shapy.editor.Object.Face.prototype.pickUV = function(ray, camera) {
+  if (!this.uv0 || !this.uv1 || !this.uv2) {
+    return;
+  }
+
+  var verts = this.getVertices();
+  var uv0 = this.object.uvs[this.uv0];
+  var uv1 = this.object.uvs[this.uv1];
+  var uv2 = this.object.uvs[this.uv2];
+
+  // Get vertex position.
+  var p0 = goog.vec.Vec3.cloneFloat32(verts[0].position);
+  var p1 = goog.vec.Vec3.cloneFloat32(verts[1].position);
+  var p2 = goog.vec.Vec3.cloneFloat32(verts[2].position);
+
+  // Transform points into worlds space.
+  goog.vec.Mat4.multVec3(this.object.model_, p0, p0);
+  goog.vec.Mat4.multVec3(this.object.model_, p1, p1);
+  goog.vec.Mat4.multVec3(this.object.model_, p2, p2);
+
+  // Get bary coords.
+  var bary = shapy.editor.geom.intersectTriangleBary(ray, p0, p1, p2);
+
+  if (!bary) {
+    return;
+  }
+
+  // Project the points.
+  var p04 = goog.vec.Vec4.createFloat32FromValues(p0[0], p0[1], p0[2], 1.0);
+  var p14 = goog.vec.Vec4.createFloat32FromValues(p1[0], p1[1], p1[2], 1.0);
+  var p24 = goog.vec.Vec4.createFloat32FromValues(p2[0], p2[1], p2[2], 1.0);
+
+  goog.vec.Mat4.multVec4(camera.vp, p04, p04);
+  goog.vec.Mat4.multVec4(camera.vp, p14, p14);
+  goog.vec.Mat4.multVec4(camera.vp, p24, p24);
+
+  // Interpolate.
+  var d =  bary.a / p04[3] + bary.b / p14[3] + bary.c / p24[3];
+
+  var u = (bary.a * uv0.u) / p04[3] +
+          (bary.b * uv1.u) / p14[3] +
+          (bary.c * uv2.u) / p24[3];
+  u = u / d;
+
+  var v = (bary.a * uv0.v) / p04[3] +
+          (bary.b * uv1.v) / p14[3] +
+          (bary.c * uv2.v) / p24[3];
+  v = v / d;
+
+  console.log(u, v);
 };
 
 
@@ -1348,4 +1411,3 @@ shapy.editor.Object.UV = function(object, face, opt_u, opt_v) {
   this.v = opt_v || 0.0;
 };
 goog.inherits(shapy.editor.Object.UV, shapy.editor.Editable);
-

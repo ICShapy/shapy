@@ -599,65 +599,6 @@ shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
 
 
 /**
- * Paints a face of a cube.
- *
- * @private
- *
- * @param {!shapy.editor.Object.Face} face
- * @param {!goog.vec.Ray} ray
- */
-shapy.editor.Editor.prototype.paintFace_ = function(face, ray) {
-  if (!face.uv0 || !face.uv1 || !face.uv2) {
-    return;
-  }
-
-  var verts = face.getVertices();
-  var uv0 = face.object.uvs[face.uv0];
-  var uv1 = face.object.uvs[face.uv1];
-  var uv2 = face.object.uvs[face.uv2];
-
-  // Get vertex position.
-  var p0 = goog.vec.Vec3.cloneFloat32(verts[0].position);
-  var p1 = goog.vec.Vec3.cloneFloat32(verts[1].position);
-  var p2 = goog.vec.Vec3.cloneFloat32(verts[2].position);
-
-  // Transform points intor worlds space.
-  goog.vec.Mat4.multVec3(face.object.model_, p0, p0);
-  goog.vec.Mat4.multVec3(face.object.model_, p1, p1);
-  goog.vec.Mat4.multVec3(face.object.model_, p2, p2);
-
-  // Get bary coords.
-  var bary = shapy.editor.geom.intersectTriangleBary(ray, p0, p1, p2);
-
-  if (!bary) {
-    return;
-  }
-
-  // Project the points.
-  var p04 = goog.vec.Vec4.createFloat32FromValues(p0[0], p0[1], p0[2], 1.0);
-  var p14 = goog.vec.Vec4.createFloat32FromValues(p1[0], p1[1], p1[2], 1.0);
-  var p24 = goog.vec.Vec4.createFloat32FromValues(p2[0], p2[1], p2[2], 1.0);
-
-  goog.vec.Mat4.multVec4(this.layout_.hover.camera.vp, p04, p04);
-  goog.vec.Mat4.multVec4(this.layout_.hover.camera.vp, p14, p14);
-  goog.vec.Mat4.multVec4(this.layout_.hover.camera.vp, p24, p24);
-
-  // Interpolate.
-  var d =  bary.a / p04[3] + bary.b / p14[3] + bary.c / p24[3];
-
-  var u = (bary.a * uv0.u) / p04[3] +
-          (bary.b * uv1.u) / p14[3] +
-          (bary.c * uv2.u) / p24[3];
-  u = u / d;
-
-  var v = (bary.a * uv0.v) / p04[3] +
-          (bary.b * uv1.v) / p14[3] +
-          (bary.c * uv2.v) / p24[3];
-  v = v / d;
-};
-
-
-/**
  * Handles a mouse button release event.
  *
  * @param {Event} e
@@ -778,7 +719,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   }
 
   if (this.mode.paint && !goog.array.isEmpty(pick)) {
-    this.paintFace_(pick[0], ray);
+    pick[0].pickUV(ray, this.layout_.hover.camera);
   }
 
   // Highlight the current object.
