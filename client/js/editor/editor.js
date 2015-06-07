@@ -522,17 +522,19 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       return;
     }
     case 'O': {
-      if (this.layout_ && this.layout_.active) {
-        this.layout_.active.camera = new shapy.editor.Camera.Ortho();
-        this.layout_.resize(this.vp_.width, this.vp_.height);
+      if (!this.layout_ || !this.layout_.active) {
+        return;
       }
-      break;
-    }
-    case 'P': {
-      if (this.layout_ && this.layout_.active) {
+      if (!this.layout_.active.camera) {
+        return;
+      }
+      if (this.layout_.active.camera.constructor == shapy.editor.Camera.Ortho) {
         this.layout_.active.camera = new shapy.editor.Camera.Persp();
-        this.layout_.resize(this.vp_.width, this.vp_.height);
+      } else {
+        this.layout_.active.camera = new shapy.editor.Camera.Ortho();
       }
+
+      this.layout_.resize(this.vp_.width, this.vp_.height);
       break;
     }
     case 'U': {
@@ -561,6 +563,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
     case 'R': this.rig(this.rigRotate_); return;
     case 'S': this.rig(this.rigScale_); return;
     case 'C': this.rig(this.rigCut_); return;
+    case 'P': this.mode.togglePaint(); return;
     case '1': this.mode.toggleObject(); return;
     case '2': this.mode.toggleFace(); return;
     case '3': this.mode.toggleEdge(); return;
