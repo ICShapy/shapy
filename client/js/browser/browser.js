@@ -463,7 +463,11 @@ shapy.browser.share = function(shModal, shBrowser) {
             '<div class="sharing-add">' +
             '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
             '  <span id="new-write" ng-click="newWrite()">Write</span>' +
-            '  <button id="add" ng-click="add()">Add</button>' +
+            '  <button id="add"' +
+            '          ng-click="add()"' +
+            '          ng-style="(isAvailable())? {{style}}">' +
+            '    Add' +
+            '  </button>' +
             '</div>' +
             '<span id="shared-text">Shared with:</span> ' +
             '<div class="permission-list">' +
@@ -480,6 +484,7 @@ shapy.browser.share = function(shModal, shBrowser) {
             '</div>' +
             '<button id="remove" ng-click="remove()">Remove</button>',
         controller: function($scope) {
+          $scope.style = "{'cursor' : 'pointer'} : {'color' : 'gray'}";
           $scope.black = "{'color':'black', 'font-weight': 'bold'}";
           $scope.gray = "{'color': 'gray', 'font-weight': 'normal'}";
           $scope.selected = null;
@@ -491,16 +496,48 @@ shapy.browser.share = function(shModal, shBrowser) {
           $scope.cancel = function() { return false; };
           $scope.okay = function() { return false; };
           $scope.add = function() {
-            alert('ADD!!!');
+            // check if available
+            if (!$scope.isAvailable()) {
+              return;
+            }
+
+            var newCollab = document.getElementById('shared-with');
+            var newEmail = newCollab.value;
+            for (var i = 0; i < $scope.shared.length; i++) {
+              // update if in list
+              if ($scope.shared[i].email === newEmail) {
+                $scope.shared[i].write = $scope.write;
+                // Clean
+                $scope.write = true;
+                $scope.newWrite();
+                newCollab.value = '';
+                return;
+              }
+            }
+            //Add new entry
+            $scope.shared.push(new shapy.browser.Permission(newEmail, $scope.write));
+            // Clean
+            $scope.write = true;
+            $scope.newWrite();
+            newCollab.value = '';
           };
           $scope.remove = function() {
-            alert('REMOVE!!!');
+            $scope.shared = goog.array.filter($scope.shared, function(permission) {
+              return permission != $scope.selected;
+            });
+            $scope.selected = null;
           };
           //autocomplete
           $("#shared-with").autocomplete({
             source: available,
             default: 150
           });
+          //Check availability
+          $scope.isAvailable = function() {
+            return goog.array.some($scope.available, function(email) {
+              return email == document.getElementById('shared-with').value;
+            });
+          };
           // Handle permission selection
           $('#shared-with').bind('focus', function() {
             $scope.selected = null;
