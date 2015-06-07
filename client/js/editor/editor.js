@@ -415,7 +415,7 @@ shapy.editor.Editor.prototype.rig = function(rig) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
-  var object;
+  var object, faces;
 
   switch (String.fromCharCode(e.keyCode)) {
     case 'D': {
@@ -453,18 +453,18 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       return;
     }
     case 'E': {
-      // Get all selected faces.
       if (!(object = this.partGroup_.getObject())) {
         return;
       }
-      faces = goog.array.filter(this.partGroup_.getEditables(), function(e) {
-        return e.type == shapy.editor.Editable.Type.FACE;
-      });
 
-      // Extrude.
-      if (faces.length <= 0) {
+      // Get all selected faces.
+      faces = this.partGroup_.getFaces();
+
+      if (goog.array.isEmpty(faces)) {
         return;
       }
+
+      // Extrude.
       var extrudeData = object.extrude(faces);
 
       // Select extruded faces

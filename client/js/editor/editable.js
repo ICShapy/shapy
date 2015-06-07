@@ -308,6 +308,16 @@ shapy.editor.EditableGroup.prototype.delete = function() {
 };
 
 
+/**
+ * Retrives the editables forming this group
+ *
+ * @return {!Array<!shapy.editor.Editable>}
+ */
+shapy.editor.EditableGroup.prototype.getEditables = function() {
+  return this.editables;
+};
+
+
 
 /**
  * Collection of object parts.
@@ -371,12 +381,14 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
 
 
 /**
- * Retrives the editables forming this group
+ * Retrieves the faces forming the group.
  *
- * @return {!Array<!shapy.editor.Editable>}
+ * @return {!Array<!shapy.editor.Vertex}
  */
-shapy.editor.PartsGroup.prototype.getEditables = function() {
-  return this.editables;
+shapy.editor.PartsGroup.prototype.getFaces = function() {
+  return goog.array.filter(this.editables, function(e) {
+    return e.type == shapy.editor.Editable.Type.FACE;
+  });
 };
 
 
@@ -398,6 +410,7 @@ shapy.editor.PartsGroup.prototype.getObjPartIds = function() {
     return [editable.object.id, editable.id, editable.type];
   }, this);
 };
+
 
 
 /**
