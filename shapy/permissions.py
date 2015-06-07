@@ -44,7 +44,11 @@ class PermissionsHandler(APIHandler):
     (
     '''SELECT email
        FROM users
-    '''
+       WHERE id <> %s
+    ''',
+      (
+        user.id,
+      )
     ),
     (
     '''SELECT users.email, permissions.write
@@ -52,9 +56,11 @@ class PermissionsHandler(APIHandler):
        INNER JOIN permissions
        ON users.id = permissions.user_id
        WHERE permissions.asset_id = %s
+         AND users.id <> %s
     ''',
       (
         id,
+        user.id,
       )
     )
     ))
