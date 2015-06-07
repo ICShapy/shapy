@@ -159,7 +159,7 @@ shapy.editor.Object.EDGE_DIST_TRESHOLD = 0.01;
  * UV distance treshold.
  * @type {number} @const
  */
-shapy.editor.Object.UV_DIST_TRESHOLD = 0.05;
+shapy.editor.Object.UV_DIST_TRESHOLD = 0.01;
 
 
 /**

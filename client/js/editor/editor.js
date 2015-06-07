@@ -591,20 +591,19 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
     return;
   }
 
-  if (e.which != 1) {
-    return;
-  }
-
   // TOOD: do it nicer.
   if (this.layout_.active.type == shapy.editor.Viewport.Type.UV) {
     this.layout_.mouseUp(e);
+    if (e.which != 1) {
+      return;
+    }
     console.log(this.hover_);
     console.log('UV!');
     return;
   }
 
   // If viewports want the event, give up.
-  if (!(ray = this.layout_.mouseUp(e)) || this.mode.paint) {
+  if (!(ray = this.layout_.mouseUp(e)) || e.which != 1 || this.mode.paint) {
     return;
   }
 
@@ -684,7 +683,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
           this.layout_.active.groupcast(group));
     } else {
       hits = this.layout_.active.object.pickUVCoord(
-          this.layout_.active.raycast(e.clientX, e.clientY));
+          this.layout_.active.raycast(e.offsetX, e.offsetY));
+      if (hits.length > 1) {
+        hits = [hits[hits.length - 1]];
+      }
     }
   }
 

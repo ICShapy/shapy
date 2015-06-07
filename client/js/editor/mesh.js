@@ -168,7 +168,15 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var u = new Float32Array(this.uvCount_ * 24);
   goog.object.forEach(this.object_.uvs, function(uv) {
-    r = 1; g = 1; b = 0;
+    if (uv.selected && uv.hover) {
+      r = 1.0; g = 1.0; b = 0.0;
+    } else if (uv.selected) {
+      r = 0.0; g = 1.0; b = 1.0;
+    } else if (uv.hover) {
+      r = 0.0; g = 0.0; b = 1.0;
+    } else {
+      r = 0.0; g = 1.0; b = 0.0;
+    }
     addUV(u, uv);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvs_);
