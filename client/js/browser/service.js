@@ -475,9 +475,9 @@ shapy.browser.Service.prototype.getPermissions = function(asset) {
  */
 shapy.browser.Service.prototype.setPermissions = function(asset, permissions) {
   var permJSON = permissions.map(function(permission) {
-    return {'email': permission.email, 'write': permission.write};
+    return [permission.email, permission.write];
   });
-  return this.http_.post('/api/permissions', {id: asset.id, permissions: permJSON});
+  return this.http_.post('/api/permissions', {id: asset.id, permissions: JSON.stringify(permJSON)});
 };
 
 

@@ -80,7 +80,7 @@ class PermissionsHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'Not authorized.')
     id = int(self.get_argument('id'))
-    perm = self.get_argument('permissions')
+    permissions = [(str(perm[0]), perm[1]) for perm in json.loads(self.get_argument('permissions'))]
 
     # Check if user owns a non-dir asset with given id
     cursor = yield momoko.Op(self.db.execute,
@@ -96,6 +96,47 @@ class PermissionsHandler(APIHandler):
     ))
     data = cursor.fetchone()
     if not data:
-        raise HTTPError(404, 'Asset not owned by user.')
+      raise HTTPError(404, 'Asset not owned by user.')
+
+    if len(permissions) > 0:
+      # get owner email
+      cursor = yield momoko.Op(self.db.execute,
+        '''SELECT email
+           FROM users
+           WHERE id = %s
+        ''', (
+        user.id,
+      ))
+      data = cursor.fetchone()
+      if not data:
+        raise HTTPError(400, 'Permissions setting failed.')
+      ownerEmail = data[0]
+
+    # Delete previous permissions
+    cursor = yield momoko.Op(self.db.execute,
+      '''DELETE
+         FROM permissions
+         WHERE asset_id = %s
+      ''', (
+      id,
+    ))
+
+    # Insert new permissions if needed
+    if len(permissions) > 0:
+      permissions.append((ownerEmail, True))
+      queries = []
+      for perm in permissions:
+        queries.append((
+          '''INSERT INTO permissions (asset_id, user_id, write)
+             SELECT %s AS asset_id, id, %s AS write
+             FROM users
+             WHERE email = %s
+             RETURNING user_id
+          ''',(id, perm[1], perm[0])))
+      cursors = yield momoko.Op(self.db.transaction, tuple(queries))
+      for x in range(len(permissions)):
+        data = cursors[x].fetchone()
+        if not data:
+          raise HTTPError(400, 'Permissions setting failed.')
 
     self.finish();
