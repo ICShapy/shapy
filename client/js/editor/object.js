@@ -277,10 +277,11 @@ shapy.editor.Object.prototype.delete = function() {
  * Finds all parts that intersect a ray.
  *
  * @param {!goog.vec.Ray} ray
+ * @param {!shapy.editor.Mode} mode Selection mode.
  *
  * @return {!Array<shapy.editor.Editable>}
  */
-shapy.editor.Object.prototype.pickRay = function(ray) {
+shapy.editor.Object.prototype.pickRay = function(ray, mode) {
   var q = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
   var obj = [];
@@ -292,9 +293,9 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
 
   // Pick individual components.
   return [
-      this.pickVertices_(r),
-      this.pickEdges_(r),
-      this.pickFaces_(r),
+      this.pickVertices_(r, mode),
+      this.pickEdges_(r, mode),
+      this.pickFaces_(r, mode),
   ];
 };
 
@@ -418,10 +419,11 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
  * @private
  *
  * @param {!goog.vec.Ray} ray Ray converted to model space.
+ * @param {!shapy.editor.Mode} mode Selection mode.
  *
  * @return {!Array<shapy.editor.Editable>}
  */
-shapy.editor.Object.prototype.pickFaces_ = function(ray) {
+shapy.editor.Object.prototype.pickFaces_ = function(ray, mode) {
   // Find all intersecting faces.
   var v = goog.object.filter(goog.object.map(this.faces, function(face) {
     var t = face.getVertexPositions_();
@@ -458,25 +460,17 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
     }, this);
 
     // Determine if the intersection point is close to an edge.
-    ed = edgeDist(face.e0);
-    if (ed) {
-      return ed;
-    }
-
-    ed = edgeDist(face.e1);
-    if (ed) {
-      return ed;
-    }
-
-    ed = edgeDist(face.e2);
-    if (ed) {
-      return ed;
-    }
-
-    return {
-      item: face,
-      point: p
-    };
+    return (
+      (!mode || !mode.paint) && (
+        edgeDist(face.e0) ||
+        edgeDist(face.e1) ||
+        edgeDist(face.e2)
+      ) ||
+      {
+        item: face,
+        point: p
+      }
+    );
   }, this), goog.isDefAndNotNull, this);
   return goog.object.getValues(v);
 };

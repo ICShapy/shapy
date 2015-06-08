@@ -221,18 +221,10 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   this.partGroup_.clear();
   this.rig(null);
 
-  var a = scene.createCube(0.5, 0.5, 0.5);
-  a.translate(0, 0, 0);
-  a.scale(1, 1, 1);
-
-  var b = scene.createCube(0.5, 0.5, 0.5);
-  b.translate(1, 0, 0);
+  var b = scene.createSphere(0.5, 16, 16);
+  b.translate(0, 0, 0);
   b.scale(1, 1, 1);
   b.texture = new shapy.editor.Texture(512, 512);
-
-  var c = scene.createCube(0.5, 0.5, 0.5);
-  c.translate(-1, 0, 0);
-  c.scale(1, 1, 1);
 
   // Set up the websocket connection.
   this.pending_ = [];
@@ -735,6 +727,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   if (this.mode.paint && !goog.array.isEmpty(pick) && e.which == 1) {
     var uv = pick[0].pickUV(ray);
     if (pick[0].object.texture) {
+      console.log(uv.u, uv.v);
       pick[0].object.texture.paint(
           uv.u, uv.v, this.brushColour_, this.brushRadius_);
     }

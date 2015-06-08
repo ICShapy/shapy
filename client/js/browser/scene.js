@@ -138,7 +138,7 @@ shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
 shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
   // Find all the editable parts that intersect the ray.
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
-    return obj.pickRay(ray);
+    return obj.pickRay(ray, mode);
   });
   hits = goog.array.flatten(hits);
 
