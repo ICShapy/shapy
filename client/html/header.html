@@ -1,6 +1,7 @@
 <nav id="header" sh-highlight>
   <a ui-sref="main">Home</a>
-  <a ui-sref="main.browser">Assets</a>
+  <a ng-show="headerCtrl.user" ui-sref="main.browser">Assets</a>
+  <a ng-show="!headerCtrl.user" ui-sref="main.public">Assets</a>
   <a ui-sref="main.help">Help</a>
   <div id="toolbar" ui-view="toolbar"></div>
   <div ng-show="headerCtrl.user" class="profile">

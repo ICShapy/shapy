@@ -99,6 +99,26 @@ shapy.configStates_ = function(
         }
       }
     })
+    .state('main.public', {
+      url: 'public',
+      resolve: {
+        home: function(shBrowser) {
+          return shBrowser.getPublic();
+        }
+      },
+      views: {
+        'body@': {
+          templateUrl: '/html/public.html',
+          controller: shapy.browser.BrowserController,
+          controllerAs: 'browserCtrl'
+        },
+        'toolbar': {
+          templateUrl: '/html/public-toolbar.html',
+          controller: shapy.browser.BrowserToolbarController,
+          controllerAs: 'browserCtrl'
+        }
+      }
+    })
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {

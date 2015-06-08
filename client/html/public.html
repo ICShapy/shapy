@@ -1,0 +1,37 @@
+<div>
+  <!-- Main navigator view. -->
+  <sh-assets class="assets-public">
+    <div
+        ng-repeat="
+        asset in browserCtrl.current().children |
+        shAssetMatch:browserCtrl.query() |
+        shAssetOrder">
+      <sh-asset
+          asset="asset"
+          selected="browserCtrl.selected"
+          owner="asset.owner"
+          ng-class="{selected: browserCtrl.selected==asset}">
+        <div class="image"
+            ng-click="browserCtrl.selected=asset"
+            ng-dblclick="browserCtrl.select(asset, true)">
+          <img ng-class="{assetmenu: asset.type!=browserCtrl.home.type}" ng-src="{{asset.image}}">
+        </div>
+        <div>
+          <div class="name noneditable"
+               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
+            {{asset.name}}
+          </div>
+        </div>
+      </sh-asset>
+    </div>
+  </sh-assets>
+
+  <div class='asset-menu'>
+    <ul>
+      <li ng-click=""
+          ng-style="{'cursor': 'pointer'}">
+        Download as STL
+      </li>
+    </ul>
+  </div>
+</div>
