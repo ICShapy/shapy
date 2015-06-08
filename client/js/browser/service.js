@@ -342,6 +342,8 @@ shapy.browser.Service.prototype.getFiltered = function(id) {
 /**
  * Renames asset.
  *
+ * @private
+ *
  * @param {string}               url   URL of the resource.
  * @param {!shapy.browser.Asset} asset Asset to rename.
  * @param {string}               name  New name.
@@ -380,6 +382,8 @@ shapy.browser.Service.prototype.renameScene = function(scene, name) {
 
 /**
  * Deletes asset.
+ *
+ * @private
  *
  * @param {string}                  url   URL of the resource.
  * @param {!shapy.browser.Asset}    asset Asset to rename.

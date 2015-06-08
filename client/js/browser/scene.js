@@ -83,7 +83,7 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
  * Saves the asset data.
  */
 shapy.browser.Asset.Scene.prototype.save = function() {
-
+  this.http_.put('/api/assets/scene', this.toJSON());
 };
 
 
@@ -93,9 +93,12 @@ shapy.browser.Asset.Scene.prototype.save = function() {
  * @return {Object} Serializable JSON.
  */
 shapy.browser.Asset.Scene.prototype.toJSON = function() {
-  return goog.object.map(this.objects, function(object) {
-    return object.toJSON();
-  });
+  return {
+    id: this.id,
+    objects: goog.object.map(this.objects, function(object) {
+      return object.toJSON();
+    })
+  };
 };
 
 
