@@ -344,7 +344,7 @@ class AssetHandler(APIHandler):
              RETURNING id
           ''', (
             name,
-            psycopg2.extras.Json(data),
+            psycopg2.Binary(str(data)),
             id
           ))
     else:
@@ -465,7 +465,7 @@ class SceneHandler(AssetHandler):
     # Fetch asset data.
     cursors = yield momoko.Op(self.db.transaction, (
       (
-        '''SELECT id, name, preview, data, public, owner
+        '''SELECT id, name, preview, data::bytea, public, owner
            FROM assets
            WHERE id = %s
              AND type = %s
@@ -514,7 +514,7 @@ class SceneHandler(AssetHandler):
         'id': dataAssets[0],
         'name': dataAssets[1],
         'preview': str(dataAssets[2]) if dataAssets[2] else '',
-        'data': dataAssets[3],
+        'data': json.loads(str(dataAssets[3] if dataAssets[3] else '{}')),
         'owner': owner,
         'write': write
     }))

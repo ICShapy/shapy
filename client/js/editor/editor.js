@@ -47,7 +47,6 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
 
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_, this.user);
-  scene.save();
 };
 
 
@@ -414,6 +413,7 @@ shapy.editor.Editor.prototype.render = function() {
 shapy.editor.Editor.prototype.destroy = function() {
   // Take a snapshot.
   this.snapshot_();
+  this.scene_.save();
 
   // Stop rendering.
   if (this.frame_) {

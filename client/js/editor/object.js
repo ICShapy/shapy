@@ -880,8 +880,8 @@ shapy.editor.Object.prototype.toJSON = function() {
 
     uvs: goog.object.map(this.uvs, function(uv) {
       return [
-        uv.u,
-        uv.v
+        trunc(uv.u),
+        trunc(uv.v)
       ];
     }),
 
