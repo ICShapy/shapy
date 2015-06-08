@@ -14,6 +14,7 @@ import momoko
 import shapy.editor
 import shapy.user
 import shapy.assets
+import shapy.permissions
 
 
 
@@ -44,6 +45,9 @@ def main(args):
     (r'/api/assets/shared$',                  shapy.assets.SharedHandler),
     (r'/api/assets/texture$',                 shapy.assets.TextureHandler),
     (r'/api/assets/preview$',                 shapy.assets.PreviewHandler),
+
+    # Permissions
+    (r'/api/permissions$',                    shapy.permissions.PermissionsHandler),
 
     # Authentication.
     (r'/api/user/auth',                       shapy.user.AuthHandler),

@@ -3,7 +3,7 @@
     <input
         id="browser-search-input"
         type="text"
-        placeholder="Search assets"
+        placeholder="{{(browserCtrl.private()) ? 'Search assets' : 'Search ' + browserCtrl.current().name}}"
         ng-model="browserCtrl.query">
     <img
         id="browser-search-settings"

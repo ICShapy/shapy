@@ -10,6 +10,10 @@ sh-sidebar {
   overflow: scroll;
 }
 
+/**
+ * Clickable creation button
+ */
+
 sh-sidebar .create img {
   width: 9px;
   height: 9px;
@@ -94,6 +98,51 @@ sh-sidebar .create > button:active {
   background: linear-gradient(to bottom, #2f566f 0%,#232652 99%);
 }
 
+/**
+ * Faded creation button
+ */
+
+sh-sidebar .space img {
+  width: 9px;
+  height: 9px;
+}
+
+sh-sidebar .space {
+  position: relative;
+  height: 28px;
+  padding: 7px 0px 7px 0px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 119px;
+}
+
+sh-sidebar .space > button {
+  display: block;
+  float: left;
+  height: 28px;
+  background: linear-gradient(to bottom, #bbbbbb 0%,#bbbbbb 99%);
+  border: none;
+  z-index: 5000;
+}
+
+sh-sidebar .space > button.left {
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
+  width: 99px;
+  border-right: 1px solid #a0a0a0;
+  color: white;
+  font-weight: bold;
+}
+
+sh-sidebar .space > button.right {
+  border-bottom-right-radius: 2px;
+  border-top-right-radius: 2px;
+  width: 20px;
+}
+
+/**
+ * Dir tree
+ */
 
 sh-sidebar .directory {
   position: relative;
@@ -139,25 +188,6 @@ sh-sidebar .name:hover img.right {
 
 sh-sidebar .name:active img.right {
   content: url('/img/arrow-right-press.svg');
-}
-
-sh-sidebar .space {
-  position: relative;
-  height: 28px;
-  padding: 0px 0px 0px 0px;
-  margin-top: 0;
-  margin-left: auto;
-  margin-right: auto;
-  width: 119px;
-}
-
-sh-sidebar .space h2{
-  text-align: center;
-  font-weight: bold;
-  color: white;
-  background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
-  border: none;
-  z-index: 5000;
 }
 
 sh-sidebar-folders {
@@ -219,6 +249,11 @@ sh-asset > div .name:focus {
   outline: 0;
 }
 
+sh-asset > div .noneditable {
+  color: #888888;
+  font-style: italic;
+}
+
 sh-asset > .image {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 25px;
@@ -239,6 +274,35 @@ sh-asset.selected > .image {
 
 sh-asset.selected > div .name {
   font-weight: bold;
+}
+
+/**
+ * Context menu
+ */
+
+.asset-menu {
+  display: none;
+  z-index: 1000;
+  position: absolute;
+  overflow: hidden;
+  border: 1px solid #cccccc;
+  background-color: white;
+  box-shadow: 2px 2px 4px #aaa;
+}
+
+.asset-menu ul {
+  list-style-type: none;
+  padding: 0;
+  margin:  0;
+  white-space: nowrap;
+}
+
+.asset-menu li {
+  padding: 8px 12px;
+}
+
+.asset-menu li:hover {
+   background-color: #3399FF;
 }
 
 /**

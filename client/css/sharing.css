@@ -1,0 +1,101 @@
+.sharing-add #shared-with {
+  width: 350px;
+  font-size: 14px;
+}
+
+.sharing-add #new-write {
+  margin-left: 5px;
+  font-size: 14px;
+  font-weight: normal;
+  display: inline;
+  color: gray;
+  width: 30px;
+  cursor: pointer;
+}
+
+.sharing-add #add {
+  width: 65px;
+  float: right;
+  font-size: 14px;
+}
+
+#shared-text {
+  float: left;
+  font-size: 14px;
+  padding-top: 16px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  height: 20px;
+  width: 400px;
+  border-bottom: 1px solid #cccccc;
+}
+
+.permission-list {
+  position: absolute;
+  left: 0;
+  top: 70px;
+  margin-left: 5px;
+  height: 200px;
+  overflow: scroll;
+  line-height: 20px;
+  list-style-type: none;
+}
+
+.permission-list .permission {
+  display: block;
+  width: 400px;
+  font-size: 14px;
+}
+
+.permission-list .permission .selectedperm {
+  background: #3399FF;
+}
+
+.permission-list .permission #email:hover {
+  background: #3399FF;
+  cursor: pointer;
+}
+
+
+.permission-list .permission #email {
+  float: left;
+  text-overflow: ellipsis;
+  width: 350px
+}
+
+.permission-list .permission #write {
+  float: right;
+}
+
+#remove {
+  width: 65px;
+  position: absolute;
+  top: 70px;
+  right: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ui-autocomplete {
+  z-index:10000 !important;
+  list-style-type: none;
+  list-style-type: none;
+  padding: 0;
+  margin:  0;
+  white-space: nowrap;
+  overflow: hidden;
+  width:300px !important;
+  border: 1px solid #cccccc;
+  background-color: white;
+  box-shadow: 2px 2px 4px #aaa;
+  font-size: 14px;
+}
+
+.ui-autocomplete > li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.ui-autocomplete li:hover {
+  background: #3399FF;
+}
