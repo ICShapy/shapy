@@ -57,11 +57,12 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
  * @constructor
  * @ngInject
  *
- * @param {!angular.$location} $location Angular location service.
+ * @param {!angular.$http}     $http      The Angular HTTP service.
+ * @param {!angular.$location} $location  The Angular location service.
  * @param {!angular.$scope}    $rootScope
  * @param {!shapy.UserService} shUser
  */
-shapy.editor.Editor = function($location, $rootScope, shUser) {
+shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
   /** @private {!shapy.editor.Rig} @const */
@@ -79,6 +80,8 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
   this.rootScope_ = $rootScope;
   /** @private {!shapy.UserService} @const */
   this.shUser_ = shUser;
+  /** @private {!angular.$http} @const */
+  this.http_ = $http;
 
   /**
    * Canvas.
@@ -208,6 +211,45 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
 
 
 /**
+ * Width of a preview image.
+ * @type {number} @const
+ */
+shapy.editor.Editor.PREVIEW_WIDTH = 145;
+
+
+/**
+ * Height of a preview image.
+ * @type {number} @const
+ */
+shapy.editor.Editor.PREVIEW_HEIGHT = 100;
+
+
+/**
+ * Takes a snapshot of a scene.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.snapshot_ = function() {
+  var image = new Image();
+  image.onload = goog.bind(function() {
+
+    // Resize the image.
+    var canvas = document.createElement('canvas');
+    canvas.width = shapy.editor.Editor.PREVIEW_WIDTH;
+    canvas.height = shapy.editor.Editor.PREVIEW_HEIGHT;
+    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    // Upload.
+    var data = canvas.toDataURL('image/jpeg');
+    this.http_.post('/api/assets/preview', data, {
+        params: {id: this.scene_.id}
+    });
+  }, this);
+  image.src = this.canvas_.toDataURL('image/jpeg');
+};
+
+
+/**
  * Resets the scene after it changes.
  *
  * @param {!shapy.Scene} scene
@@ -224,7 +266,7 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   var b = scene.createSphere(0.5, 16, 16);
   b.translate(0, 0, 0);
   b.scale(1, 1, 1);
-  b.texture = new shapy.editor.Texture(512, 512);
+  b.texture = new shapy.editor.Texture(128, 128);
 
   // Set up the websocket connection.
   this.pending_ = [];
@@ -248,7 +290,8 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.parent_ = goog.dom.getParentElement(this.canvas_);
   this.gl_ = this.canvas_.getContext('webgl', {
       stencil: true,
-      antialias: true
+      antialias: true,
+      preserveDrawingBuffer: true
   });
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
@@ -360,6 +403,9 @@ shapy.editor.Editor.prototype.render = function() {
  * Called when everything should be closed.
  */
 shapy.editor.Editor.prototype.destroy = function() {
+  // Take a snapshot.
+  this.snapshot_();
+
   // Stop rendering.
   if (this.frame_) {
     cancelAnimationFrame(this.frame_);

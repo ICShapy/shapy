@@ -59,7 +59,7 @@ shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
   this.nextID_ = 0;
 
   // Preview image.
-  this.image = data['preview'] || '/img/scene.svg';
+  this.image = '/api/assets/preview?id=' + this.id;
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 
@@ -75,12 +75,6 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   // Fill in permission flags
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
-
-  // Preview image.
-  this.image = data['preview'] || '/img/scene.svg';
-
-  // Load data.data into this.objects
-
   this.loaded = true;
 };
 
