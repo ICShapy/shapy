@@ -17,6 +17,9 @@ shapy.editor.Rig.Extrude = function() {
 
   /** @private {!goog.vec.Vec3.Type} */
   this.normal_ = null;
+
+  /** @private {!goog.vec.Vec3.Type} */
+  this.startPos_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Extrude, shapy.editor.Rig);
 
@@ -55,6 +58,8 @@ shapy.editor.Rig.Extrude.prototype.setup = function(normal) {
   var inclination = Math.asin(-this.normal_[1]);
   var azimuth = Math.atan2(this.normal_[0], this.normal_[2]);
   var centre = this.object.getPosition();
+
+  goog.vec.Vec3.setFromArray(this.startPos_, centre);
   goog.vec.Mat4.makeTranslate(this.model_, centre[0], centre[1], centre[2]);
   goog.vec.Mat4.rotateY(this.model_, azimuth, this.model_);
   goog.vec.Mat4.rotateX(this.model_, inclination, this.model_);
@@ -104,6 +109,7 @@ shapy.editor.Rig.Extrude.prototype.mouseMove = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Extrude.prototype.mouseDown = function(ray) {
+  //console.log("down");
 };
 
 
@@ -113,6 +119,8 @@ shapy.editor.Rig.Extrude.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Extrude.prototype.mouseUp = function(ray) {
+  this.notmal_ = null;
+  console.log("up");
 };
 
 

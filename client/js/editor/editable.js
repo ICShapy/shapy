@@ -403,6 +403,16 @@ shapy.editor.PartsGroup.prototype.getObjVertIds = function() {
 
 
 /**
+ * Retrieves [obj id, face id] pairs forming the group.
+ */
+shapy.editor.PartsGroup.prototype.getObjFaceIds = function() {
+  return goog.array.map(this.getFaces(), function(face) {
+    return [face.object.id, face.id];
+  }, this);
+};
+
+
+/**
  * Retrieves [obj id, part id, part type] triples forming the group.
  */
 shapy.editor.PartsGroup.prototype.getObjPartIds = function() {

@@ -145,6 +145,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyDelete(data);
             break;
           }
+          case 'extrude': {
+            this.applyExtrude(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -571,4 +575,34 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
       }
     }, this);
   }
+};
+
+
+/**
+ * Executes extrude command.
+ *
+ * @param {shapy.editor.Editable} obj
+ */
+shapy.editor.Executor.prototype.emitExtrude = function(obj) {
+  var data = {
+    type: 'edit',
+    tool: 'delete',
+    userId: this.editor_.user.id,
+  };
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Handles extrude command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyExtrude = function(data) {
+  // Ignore edits performed by the current user.
+  if (data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
 };
