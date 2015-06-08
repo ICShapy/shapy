@@ -77,7 +77,35 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   this.write = !(!(data.write));
   this.loaded = true;
 
-  console.log(data);
+  // Read objects.
+  if (!data.data) {
+    return;
+  }
+
+  this.objects = goog.object.map(data.data.objects || {}, function(data) {
+    var obj = new shapy.editor.Object(
+        data.id,
+        this,
+        data.verts || {},
+        data.edges || {},
+        data.faces || {},
+        data.uvs || {});
+
+    obj.translate_[0] = data.tx;
+    obj.translate_[1] = data.ty;
+    obj.translate_[2] = data.tz;
+
+    obj.scale_[0] = data.sx;
+    obj.scale_[1] = data.sy;
+    obj.scale_[2] = data.sz;
+
+    obj.rotation_[0] = data.rx;
+    obj.rotation_[1] = data.ry;
+    obj.rotation_[2] = data.rz;
+    obj.rotation_[3] = data.rw;
+
+    return obj;
+  }, this);
 };
 
 
@@ -85,9 +113,6 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
  * Saves the asset data.
  */
 shapy.browser.Asset.Scene.prototype.save = function() {
-  // TODO(nandor): remove me
-  return;
-
   this.shBrowser_.http_.put('/api/assets/scene', {
     id: this.id,
     name: this.name,
