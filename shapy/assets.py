@@ -11,8 +11,10 @@ import psycopg2
 from tornado.gen import coroutine
 from tornado.web import HTTPError, asynchronous
 
-from shapy.common import APIHandler, BaseHandler, session
 from shapy.account import Account
+from shapy.common import APIHandler, BaseHandler, session
+from shapy.scene import Scene
+
 
 
 class SharedHandler(APIHandler):
@@ -197,12 +199,13 @@ class AssetHandler(APIHandler):
   @coroutine
   @asynchronous
   def post(self, user=None):
-    """Creates a new scene."""
+    """Creates a new asset."""
 
     # Validate arguments.
     if not user:
       raise HTTPError(401, 'User not logged in.')
     parent = int(self.get_argument('parent'))
+    preview = None
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
     # Reject parent dirs not owned by user
@@ -224,14 +227,12 @@ class AssetHandler(APIHandler):
 
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
-      '''INSERT INTO assets (name, type, preview, data, owner, parent, public)
-         VALUES (%s, %s, %s, %s, %s, %s, %s)
+      '''INSERT INTO assets (name, type, owner, parent, public)
+         VALUES (%s, %s, %s, %s, %s)
          RETURNING id, name
       ''', (
       self.NEW_NAME,
       self.TYPE,
-      preview,
-      mainData,
       user.id,
       parent,
       False

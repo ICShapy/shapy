@@ -44,6 +44,7 @@ class Scene(object):
     @property
     def __dict__(self):
       """Converts the object to a serializable dictionary."""
+
       return  {
         'tx': self.tx, 'ty': self.ty, 'tz': self.tz,
         'sx': self.sx, 'sy': self.sy, 'sz': self.sz,
@@ -51,10 +52,9 @@ class Scene(object):
       }
 
 
-  def __init__(self, data={}):
+  def __init__(self, name, data={}):
     """Initializes an empty scene."""
 
-    self.name = data.get('name', 'New Scene')
     self.objects = dict(
       (k, Scene.Object(v)) for k, v in (data['objects'] or {}).iteritems())
 
@@ -62,19 +62,7 @@ class Scene(object):
   @property
   def __dict__(self):
     """Converts the scene to a serializable dictionary."""
+
     return {
-      'name': self.name,
       'objects': dict((k, v.__dict__) for k, v in self.objects.iteritems())
     }
-
-
-  @classmethod
-  def new(cls):
-    """Creates a new empty scene."""
-    return Scene({
-      'name': 'New Scene',
-      'objects': {
-        'obj_0': {
-        }
-      }
-    })
