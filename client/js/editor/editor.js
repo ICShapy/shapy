@@ -240,8 +240,8 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
     canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
 
     // Upload.
-    var data = canvas.toDataURL('image/jpeg');
-    this.http_.post('/api/assets/preview', data, {
+    this.scene_.image = canvas.toDataURL('image/jpeg');
+    this.http_.post('/api/assets/preview', this.scene_.image, {
         params: {id: this.scene_.id}
     });
   }, this);
