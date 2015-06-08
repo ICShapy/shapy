@@ -123,7 +123,6 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
         break;
       }
       case 'meta': {
-        this.scene_.name = data['name'];
         this.scene_.setUsers(data['users']);
         break;
       }

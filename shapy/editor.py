@@ -79,9 +79,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     # Broadcast join message.
     self.write_message(json.dumps({
         'type': 'meta',
-        'name': scene.name,
-        'users': scene.users,
-        'objects': []
+        'users': scene.users
     }))
 
     # Get all the existing locks.

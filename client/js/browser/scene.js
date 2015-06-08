@@ -71,6 +71,7 @@ goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 shapy.browser.Asset.Scene.prototype.load = function(data) {
   // Fill in the name if unknown.
   this.name = data.name || this.shBrowser_.defaultName(this.type);
+
   // Fill in permission flags
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
