@@ -122,6 +122,16 @@ shapy.browser.Asset.Scene.prototype.save = function() {
 
 
 /**
+ * Cleans buffers.
+ */
+shapy.browser.Asset.Scene.prototype.destroy = function() {
+  goog.object.forEach(this.objects, function(object) {
+    object.dirtyMesh = true;
+  }, this);
+};
+
+
+/**
  * Serializes the scene.
  *
  * @return {Object} Serializable JSON.

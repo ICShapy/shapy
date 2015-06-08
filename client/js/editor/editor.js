@@ -414,6 +414,7 @@ shapy.editor.Editor.prototype.destroy = function() {
   // Take a snapshot.
   this.snapshot_();
   this.scene_.save();
+  this.scene_.destroy();
 
   // Stop rendering.
   if (this.frame_) {
@@ -455,9 +456,6 @@ shapy.editor.Editor.prototype.destroy = function() {
   this.rigCut_.destroy();
   this.rigExtrude_.destroy();
   this.rig_ = null;
-
-  // Save the scene.
-  this.scene_.save();
 };
 
 
