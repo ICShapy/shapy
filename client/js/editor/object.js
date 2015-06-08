@@ -844,6 +844,57 @@ shapy.editor.Object.prototype.extrude = function(faces) {
 };
 
 
+/**
+ * Converts the object to JSON.
+ *
+ * @return {Object} Serializable object.
+ */
+shapy.editor.Object.prototype.toJSON = function() {
+  var trunc = function(f) {
+    return Math.floor(f * 1000) / 1000;
+  };
+
+  return {
+    id: this.id,
+
+    tx: this.translate_[0],
+    ty: this.translate_[1],
+    tz: this.translate_[2],
+
+    sx: this.scale_[0],
+    sy: this.scale_[1],
+    sz: this.scale_[2],
+
+    rx: this.rotation_[0],
+    ry: this.rotation_[1],
+    rz: this.rotation_[2],
+    rw: this.rotation_[3],
+
+    verts: goog.object.map(this.verts, function(v) {
+      return [
+        trunc(v.position[0]),
+        trunc(v.position[1]),
+        trunc(v.position[2])
+      ];
+    }, this),
+
+    uvs: goog.object.map(this.uvs, function(uv) {
+      return [
+        uv.u,
+        uv.v
+      ];
+    }),
+
+    edges: goog.object.map(this.edges, function(e) {
+      return [e.start, e.end];
+    }, this),
+
+    faces: goog.object.map(this.faces, function(f) {
+      return [f.e0, f.e1, f.e2, f.uv0, f.uv1, f.uv2];
+    }, this)
+  };
+};
+
 
 /**
  * UV coordinate.

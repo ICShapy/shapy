@@ -4,8 +4,8 @@
 goog.provide('shapy.browser.Asset.Scene');
 
 goog.require('shapy.browser.Asset');
-goog.require('shapy.editor.create');
 goog.require('shapy.editor.Object');
+goog.require('shapy.editor.create');
 
 
 
@@ -75,6 +75,26 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
   this.loaded = true;
+};
+
+
+/**
+ * Saves the asset data.
+ */
+shapy.browser.Asset.Scene.prototype.save = function() {
+
+};
+
+
+/**
+ * Serializes the scene.
+ *
+ * @return {Object} Serializable JSON.
+ */
+shapy.browser.Asset.Scene.prototype.toJSON = function() {
+  return goog.object.map(this.objects, function(object) {
+    return object.toJSON();
+  });
 };
 
 
