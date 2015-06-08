@@ -58,8 +58,7 @@ shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
    */
   this.nextID_ = 0;
 
-  // Preview image.
-  this.image = '/api/assets/preview?id=' + this.id;
+  this.image = opt_data['preview'] || '/img/scene.svg';
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 

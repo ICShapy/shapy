@@ -418,6 +418,7 @@ class DirHandler(AssetHandler):
           'id': item[0],
           'name': item[1],
           'type': item[2],
+          'preview': str(item[3]) if item[3] else '',
           'owner': True,
           'write': True
         }
@@ -497,6 +498,7 @@ class SceneHandler(AssetHandler):
     self.write(json.dumps({
         'id': dataAssets[0],
         'name': dataAssets[1],
+        'preview': str(dataAssets[2]) if dataAssets[2] else '',
         'data': dataAssets[3],
         'owner': owner,
         'write': write
