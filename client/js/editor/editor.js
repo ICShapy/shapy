@@ -57,11 +57,12 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
  * @constructor
  * @ngInject
  *
- * @param {!angular.$location} $location Angular location service.
+ * @param {!angular.$http}     $http      The Angular HTTP service.
+ * @param {!angular.$location} $location  The Angular location service.
  * @param {!angular.$scope}    $rootScope
  * @param {!shapy.UserService} shUser
  */
-shapy.editor.Editor = function($location, $rootScope, shUser) {
+shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
   /** @private {!shapy.editor.Rig} @const */
@@ -79,6 +80,8 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
   this.rootScope_ = $rootScope;
   /** @private {!shapy.UserService} @const */
   this.shUser_ = shUser;
+  /** @private {!angular.$http} @const */
+  this.http_ = $http;
 
   /**
    * Canvas.
@@ -176,6 +179,18 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
    */
   this.exec_ = null;
 
+  /**
+   * Brush size from 1 to 100.
+   * @private {number}
+   */
+  this.brushRadius_ = 0;
+
+  /**
+   * Brush colour.
+   * @private {!goog.vec.Vec3.Type}
+   */
+  this.brushColour_ = goog.vec.Vec3.createFloat32(0, 0, 0);
+
   // Watch for changes in the name.
   $rootScope.$watch(goog.bind(function() {
     return this.scene_ && this.scene_.name;
@@ -196,6 +211,45 @@ shapy.editor.Editor = function($location, $rootScope, shUser) {
 
 
 /**
+ * Width of a preview image.
+ * @type {number} @const
+ */
+shapy.editor.Editor.PREVIEW_WIDTH = 145;
+
+
+/**
+ * Height of a preview image.
+ * @type {number} @const
+ */
+shapy.editor.Editor.PREVIEW_HEIGHT = 100;
+
+
+/**
+ * Takes a snapshot of a scene.
+ *
+ * @private
+ */
+shapy.editor.Editor.prototype.snapshot_ = function() {
+  var image = new Image();
+  image.onload = goog.bind(function() {
+
+    // Resize the image.
+    var canvas = document.createElement('canvas');
+    canvas.width = shapy.editor.Editor.PREVIEW_WIDTH;
+    canvas.height = shapy.editor.Editor.PREVIEW_HEIGHT;
+    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    // Upload.
+    this.scene_.image = canvas.toDataURL('image/jpeg');
+    this.http_.post('/api/assets/preview', this.scene_.image, {
+        params: {id: this.scene_.id}
+    });
+  }, this);
+  image.src = this.canvas_.toDataURL('image/jpeg');
+};
+
+
+/**
  * Resets the scene after it changes.
  *
  * @param {!shapy.Scene} scene
@@ -209,18 +263,10 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   this.partGroup_.clear();
   this.rig(null);
 
-  var a = scene.createCube(0.5, 0.5, 0.5);
-  a.translate(0, 0, 0);
-  a.scale(1, 1, 1);
-
-  var b = scene.createCube(0.5, 0.5, 0.5);
-  b.translate(1, 0, 0);
+  var b = scene.createSphere(0.5, 16, 16);
+  b.translate(0, 0, 0);
   b.scale(1, 1, 1);
-  b.texture = new shapy.editor.Texture(512, 512);
-
-  var c = scene.createCube(0.5, 0.5, 0.5);
-  c.translate(-1, 0, 0);
-  c.scale(1, 1, 1);
+  b.texture = new shapy.editor.Texture(128, 128);
 
   // Set up the websocket connection.
   this.pending_ = [];
@@ -244,7 +290,8 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.parent_ = goog.dom.getParentElement(this.canvas_);
   this.gl_ = this.canvas_.getContext('webgl', {
       stencil: true,
-      antialias: true
+      antialias: true,
+      preserveDrawingBuffer: true
   });
   this.gl_.getExtension('OES_standard_derivatives');
   this.renderer_ = new shapy.editor.Renderer(this.gl_);
@@ -356,6 +403,9 @@ shapy.editor.Editor.prototype.render = function() {
  * Called when everything should be closed.
  */
 shapy.editor.Editor.prototype.destroy = function() {
+  // Take a snapshot.
+  this.snapshot_();
+
   // Stop rendering.
   if (this.frame_) {
     cancelAnimationFrame(this.frame_);
@@ -589,7 +639,9 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
  * @param {number} b
  */
 shapy.editor.Editor.prototype.setBrushColour = function(r, g, b) {
-  console.log(r, g, b);
+  this.brushColour_[0] = r;
+  this.brushColour_[1] = g;
+  this.brushColour_[2] = b;
 };
 
 
@@ -599,7 +651,7 @@ shapy.editor.Editor.prototype.setBrushColour = function(r, g, b) {
  * @param {number} radius
  */
 shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
-  console.log(radius);
+  this.brushRadius_ = radius;
 };
 
 
@@ -723,8 +775,12 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
     }, this);
   }
 
-  if (this.mode.paint && !goog.array.isEmpty(pick)) {
-    pick[0].pickUV(ray, this.layout_.hover.camera);
+  if (this.mode.paint && !goog.array.isEmpty(pick) && e.which == 1) {
+    var uv = pick[0].pickUV(ray);
+    if (pick[0].object.texture) {
+      pick[0].object.texture.paint(
+          uv.u, uv.v, this.brushColour_, this.brushRadius_);
+    }
   }
 
   // Highlight the current object.

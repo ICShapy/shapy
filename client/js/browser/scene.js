@@ -4,8 +4,8 @@
 goog.provide('shapy.browser.Asset.Scene');
 
 goog.require('shapy.browser.Asset');
-goog.require('shapy.editor.create');
 goog.require('shapy.editor.Object');
+goog.require('shapy.editor.create');
 
 
 
@@ -58,8 +58,7 @@ shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
    */
   this.nextID_ = 0;
 
-  // Preview image.
-  this.image = data['preview'] || '/img/scene.svg';
+  this.image = (opt_data && opt_data['preview']) || '/img/scene.svg';
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 
@@ -75,13 +74,27 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   // Fill in permission flags
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
-
-  // Preview image.
-  this.image = data['preview'] || '/img/scene.svg';
-
-  // Load data.data into this.objects
-
   this.loaded = true;
+};
+
+
+/**
+ * Saves the asset data.
+ */
+shapy.browser.Asset.Scene.prototype.save = function() {
+
+};
+
+
+/**
+ * Serializes the scene.
+ *
+ * @return {Object} Serializable JSON.
+ */
+shapy.browser.Asset.Scene.prototype.toJSON = function() {
+  return goog.object.map(this.objects, function(object) {
+    return object.toJSON();
+  });
 };
 
 
@@ -138,7 +151,7 @@ shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
 shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
   // Find all the editable parts that intersect the ray.
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
-    return obj.pickRay(ray);
+    return obj.pickRay(ray, mode);
   });
   hits = goog.array.flatten(hits);
 

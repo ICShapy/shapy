@@ -147,14 +147,13 @@ shapy.editor.Face.prototype.delete = function() {
 /**
  * Picks UV of the face.
  *
- * @private
- *
  * @param {!goog.vec.Ray}       ray
- * @param {shapy.editor.Camera} camera
+ *
+ * @return {!{u: number, v: number}}
  */
-shapy.editor.Face.prototype.pickUV = function(ray, camera) {
+shapy.editor.Face.prototype.pickUV = function(ray) {
   if (!this.uv0 || !this.uv1 || !this.uv2) {
-    return;
+    return {u: 0, v: 0};
   }
 
   var verts = this.getVertices();
@@ -174,32 +173,11 @@ shapy.editor.Face.prototype.pickUV = function(ray, camera) {
 
   // Get bary coords.
   var bary = shapy.editor.geom.intersectTriangleBary(ray, p0, p1, p2);
-
   if (!bary) {
-    return;
+    return {u: 0, v: 0};
   }
-
-  // Project the points.
-  var p04 = goog.vec.Vec4.createFloat32FromValues(p0[0], p0[1], p0[2], 1.0);
-  var p14 = goog.vec.Vec4.createFloat32FromValues(p1[0], p1[1], p1[2], 1.0);
-  var p24 = goog.vec.Vec4.createFloat32FromValues(p2[0], p2[1], p2[2], 1.0);
-
-  goog.vec.Mat4.multVec4(camera.vp, p04, p04);
-  goog.vec.Mat4.multVec4(camera.vp, p14, p14);
-  goog.vec.Mat4.multVec4(camera.vp, p24, p24);
-
-  // Interpolate.
-  var d =  bary.a / p04[3] + bary.b / p14[3] + bary.c / p24[3];
-
-  var u = (bary.a * uv0.u) / p04[3] +
-          (bary.b * uv1.u) / p14[3] +
-          (bary.c * uv2.u) / p24[3];
-  u = u / d;
-
-  var v = (bary.a * uv0.v) / p04[3] +
-          (bary.b * uv1.v) / p14[3] +
-          (bary.c * uv2.v) / p24[3];
-  v = v / d;
-
-  console.log(u, v);
+  return {
+    u: (bary.a * uv0.u) + (bary.b * uv1.u) + (bary.c * uv2.u),
+    v: (bary.a * uv0.v) + (bary.b * uv1.v) + (bary.c * uv2.v)
+  };
 };

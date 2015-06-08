@@ -153,6 +153,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
     */
   this.uvs = {};
   this.nextUV_ = 1;
+  this.projectUV();
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
 
@@ -276,10 +277,11 @@ shapy.editor.Object.prototype.delete = function() {
  * Finds all parts that intersect a ray.
  *
  * @param {!goog.vec.Ray} ray
+ * @param {!shapy.editor.Mode} mode Selection mode.
  *
  * @return {!Array<shapy.editor.Editable>}
  */
-shapy.editor.Object.prototype.pickRay = function(ray) {
+shapy.editor.Object.prototype.pickRay = function(ray, mode) {
   var q = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
   var obj = [];
@@ -291,9 +293,9 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
 
   // Pick individual components.
   return [
-      this.pickVertices_(r),
-      this.pickEdges_(r),
-      this.pickFaces_(r),
+      this.pickVertices_(r, mode),
+      this.pickEdges_(r, mode),
+      this.pickFaces_(r, mode),
   ];
 };
 
@@ -417,10 +419,11 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
  * @private
  *
  * @param {!goog.vec.Ray} ray Ray converted to model space.
+ * @param {!shapy.editor.Mode} mode Selection mode.
  *
  * @return {!Array<shapy.editor.Editable>}
  */
-shapy.editor.Object.prototype.pickFaces_ = function(ray) {
+shapy.editor.Object.prototype.pickFaces_ = function(ray, mode) {
   // Find all intersecting faces.
   var v = goog.object.filter(goog.object.map(this.faces, function(face) {
     var t = face.getVertexPositions_();
@@ -457,25 +460,17 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
     }, this);
 
     // Determine if the intersection point is close to an edge.
-    ed = edgeDist(face.e0);
-    if (ed) {
-      return ed;
-    }
-
-    ed = edgeDist(face.e1);
-    if (ed) {
-      return ed;
-    }
-
-    ed = edgeDist(face.e2);
-    if (ed) {
-      return ed;
-    }
-
-    return {
-      item: face,
-      point: p
-    };
+    return (
+      (!mode || !mode.paint) && (
+        edgeDist(face.e0) ||
+        edgeDist(face.e1) ||
+        edgeDist(face.e2)
+      ) ||
+      {
+        item: face,
+        point: p
+      }
+    );
   }, this), goog.isDefAndNotNull, this);
   return goog.object.getValues(v);
 };
@@ -848,6 +843,57 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   };
 };
 
+
+/**
+ * Converts the object to JSON.
+ *
+ * @return {Object} Serializable object.
+ */
+shapy.editor.Object.prototype.toJSON = function() {
+  var trunc = function(f) {
+    return Math.floor(f * 1000) / 1000;
+  };
+
+  return {
+    id: this.id,
+
+    tx: this.translate_[0],
+    ty: this.translate_[1],
+    tz: this.translate_[2],
+
+    sx: this.scale_[0],
+    sy: this.scale_[1],
+    sz: this.scale_[2],
+
+    rx: this.rotation_[0],
+    ry: this.rotation_[1],
+    rz: this.rotation_[2],
+    rw: this.rotation_[3],
+
+    verts: goog.object.map(this.verts, function(v) {
+      return [
+        trunc(v.position[0]),
+        trunc(v.position[1]),
+        trunc(v.position[2])
+      ];
+    }, this),
+
+    uvs: goog.object.map(this.uvs, function(uv) {
+      return [
+        uv.u,
+        uv.v
+      ];
+    }),
+
+    edges: goog.object.map(this.edges, function(e) {
+      return [e.start, e.end];
+    }, this),
+
+    faces: goog.object.map(this.faces, function(f) {
+      return [f.e0, f.e1, f.e2, f.uv0, f.uv1, f.uv2];
+    }, this)
+  };
+};
 
 
 /**

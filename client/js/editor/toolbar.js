@@ -98,7 +98,6 @@ shapy.editor.colourPicker = function(shEditor) {
     restrict: 'E',
     link: function($scope, $elem, $attrs) {
       var picker = new goog.ui.HsvPalette(null, null, 'goog-hsv-palette-sm');
-      picker.render($elem[0]);
       goog.events.listen(picker, 'action', function(evt) {
         var colour = picker.getColor();
         shEditor.setBrushColour(
@@ -107,6 +106,8 @@ shapy.editor.colourPicker = function(shEditor) {
             parseInt(colour[5] + colour[6], 16)
         );
       });
+      picker.render($elem[0]);
+      picker.setColor('#00ff00');
     }
   };
 };
@@ -124,11 +125,12 @@ shapy.editor.slider = function(shEditor) {
     restrict: 'E',
     link: function($scope, $elem, $attrs) {
       var slider = new goog.ui.Slider();
-      slider.render($elem[0]);
       goog.events.listen(slider, 'change', function() {
         shEditor.setBrushRadius(slider.getValue());
       });
-      slider.setValue(50);
+      slider.setMoveToPointEnabled(true);
+      slider.render($elem[0]);
+      slider.setValue(8);
     }
   };
 };
