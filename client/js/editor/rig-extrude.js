@@ -119,7 +119,6 @@ shapy.editor.Rig.Extrude.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Extrude.prototype.mouseUp = function(ray) {
-  this.notmal_ = null;
   console.log("up");
 };
 

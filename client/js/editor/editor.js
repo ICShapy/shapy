@@ -382,11 +382,13 @@ shapy.editor.Editor.prototype.destroy = function() {
     this.renderer_ = null;
   }
 
+  // TODO(Ilija): make these do something actually.
   // Clean up buffers from rigs.
   this.rigTranslate_.destroy();
   this.rigRotate_.destroy();
   this.rigScale_.destroy();
   this.rigCut_.destroy();
+  this.rigExtrude_.destroy();
   this.rig_ = null;
 };
 
