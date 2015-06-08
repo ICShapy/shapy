@@ -90,7 +90,7 @@ shapy.editor.Texture.prototype.paint = function(u, v, colour, size) {
   var x = Math.floor(u * this.width);
   var y = Math.floor(v * this.height);
 
-  size = 5;
+  size = Math.floor(Math.max(Math.min(10 * size / 100, 10), 1));
   for (var i = y - size; i <= y + size; ++i) {
     for (var j = x - size; j <= x + size; ++j) {
       if (i < 0 || this.width <= i || j < 0 || this.height <= j) {
