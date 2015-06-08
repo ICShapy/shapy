@@ -66,9 +66,7 @@ shapy.browser.BrowserController.prototype.select = function(asset, enter) {
       break;
     }
     case shapy.browser.Asset.Type.SCENE: {
-      this.shBrowser_.getScene(asset.id).then(goog.bind(function(asset) {
-        this.state_.go('main.editor', { sceneID: asset.id });
-      }, this));
+      this.state_.go('main.editor', { sceneID: asset.id });
       break;
     }
     default :
