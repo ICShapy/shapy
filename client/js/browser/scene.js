@@ -83,7 +83,11 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
  * Saves the asset data.
  */
 shapy.browser.Asset.Scene.prototype.save = function() {
-  this.http_.put('/api/assets/scene', this.toJSON());
+  this.shBrowser_.http_.put('/api/assets/scene', {
+    id: this.id,
+    name: this.name,
+    data: this.toJSON()
+  });
 };
 
 

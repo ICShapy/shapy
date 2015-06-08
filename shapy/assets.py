@@ -301,6 +301,7 @@ class AssetHandler(APIHandler):
       raise HTTPError(401, 'User not logged in.')
     id = int(self.get_argument('id'))
     name = self.get_argument('name')
+    data = self.get_argument('data', None)
 
     # Check if user has write permission
     cursors = yield momoko.Op(self.db.transaction, (
@@ -334,17 +335,30 @@ class AssetHandler(APIHandler):
       raise HTTPError(400, 'Asset update failed.')
 
     # Update the name.
-    cursor = yield momoko.Op(self.db.execute,
-      '''UPDATE assets
-         SET name = %s
-         WHERE id = %s
-           AND type = %s
-         RETURNING id
-      ''', (
-      name,
-      id,
-      self.TYPE
-      ))
+    if data:
+      cursor = yield momoko.Op(self.db.execute,
+          '''UPDATE assets
+             SET name = %s,
+                 data = %s
+             WHERE id = %s
+             RETURNING id
+          ''', (
+            name,
+            psycopg2.extras.Json(data),
+            id
+          ))
+    else:
+      cursor = yield momoko.Op(self.db.execute,
+        '''UPDATE assets
+           SET name = %s
+           WHERE id = %s
+             AND type = %s
+           RETURNING id
+        ''', (
+        name,
+        id,
+        self.TYPE
+        ))
 
     # Check if update successful
     data = cursor.fetchone()

@@ -47,6 +47,7 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
 
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_, this.user);
+  scene.save();
 };
 
 
