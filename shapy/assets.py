@@ -447,7 +447,7 @@ class SceneHandler(AssetHandler):
     if not data:
       raise HTTPError(404, 'Asset not found.')
 
-    if data['owner'] == user.id:
+    if user and data['owner'] == user.id:
       # Owner - full permissions.
       owner = True
       write = True
@@ -462,7 +462,7 @@ class SceneHandler(AssetHandler):
     else:
       # Shared asset - permission in table.
       owner = False
-      write = data['write']
+      write = user is not None and data['write']
 
     self.write(json.dumps({
         'id': data['id'],
