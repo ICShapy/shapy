@@ -59,7 +59,7 @@ class SharedHandler(APIHandler):
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3],
+          'preview': str(item[3]) if item[3] else '',
           'owner': item[4] == int(user.id),
           'public': item[5],
           'write': item[6]
@@ -120,7 +120,7 @@ class FilteredHandler(APIHandler):
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3],
+          'preview': str(item[3]) if item[3] else '',
           'public': item[4],
           'owner': True,
           'write': True
@@ -181,7 +181,7 @@ class PublicHandler(APIHandler):
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3],
+          'preview': str(item[3]) if item[3] else '',
           'public': True,
           'owner': item[4] == int(user.id),
           'write': item[4] == int(user.id) or item[0] in assetsWrite
@@ -203,7 +203,7 @@ class AssetHandler(APIHandler):
   @coroutine
   @asynchronous
   def post(self, user=None):
-    """Creates a new scene."""
+    """Creates a new asset."""
 
     # Validate arguments.
     if not user:
