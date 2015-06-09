@@ -426,6 +426,10 @@ class SceneHandler(AssetHandler):
   def get(self, user):
     """Retrieves a scene from the database."""
 
+    id = self.get_argument('id')
+    if not id:
+      raise HTTPError(400, 'Invalid asset ID')
+
     # Fetch data from the asset and permission table.
     # The write flag will have 3 possible values: None, True, False
     cursor = yield momoko.Op(self.db.execute,
@@ -438,7 +442,7 @@ class SceneHandler(AssetHandler):
            AND (permissions.user_id = %(user)s OR
                 permissions.user_id IS NULL)
       ''', {
-        'id': self.get_argument('id'),
+        'id': id,
         'user': user.id if user else -1,
         'type': self.TYPE
     })

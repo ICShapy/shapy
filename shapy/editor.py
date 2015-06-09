@@ -18,17 +18,13 @@ from shapy.common import APIHandler, BaseHandler, session
 class Scene(object):
   """Wraps common information about a scene."""
 
-  def __init__(self, scene_id, data):
+  def __init__(self, scene_id, name='New Scene', users=[]):
     """Creates a new scene object."""
-
-    def arg(key, default):
-      val = data[key] if key in data else default
-      return val or default
 
     self.id = scene_id
     self.scene_id = scene_id
-    self.name = arg('name', 'New Scene')
-    self.users = json.loads(arg('users', '[]'))
+    self.name = name
+    self.users = users
 
   def add_user(self, user):
     """Adds a user to the scene."""
@@ -190,14 +186,21 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'name',
         'users'
     ])
+
     if data:
-      scene = Scene(self.scene_id, data)
+      scene = Scene(self.scene_id,
+        name=data[0],
+        users=json.loads(data[1])
+      )
     else:
       cursor = yield momoko.Op(self.db.execute,
         '''SELECT name FROM assets WHERE id = %(id)s''', {
         'id': self.scene_id
       })
-      scene = Scene(self.scene_id, {'name': cursor.fetchone()['name']})
+      scene = Scene(self.scene_id,
+        name=cursor.fetchone()['name'],
+        users=[]
+      )
 
     # Apply changes.
     func(scene)
