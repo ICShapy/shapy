@@ -287,9 +287,9 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
  * Executes the translate command.
  *
  * @param {shapy.editor.Editable.Type} obj Object to be translated.
- * @param {number}                   dx    Delta on x.
- * @param {number}                   dy    Delta on y.
- * @param {number}                   dz    Delta on z.
+ * @param {number}                     dx  Delta on x.
+ * @param {number}                     dy  Delta on y.
+ * @param {number}                     dz  Delta on z.
  */
 shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
   var data = {
@@ -586,7 +586,7 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
 shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
   var data = {
     type: 'edit',
-    tool: 'delete',
+    tool: 'extrude',
     userId: this.editor_.user.id,
 
     objId: obj.id,
@@ -608,15 +608,13 @@ shapy.editor.Executor.prototype.applyExtrude = function(data) {
     return;
   }
 
-  var obj = this.scene_.objects[data['objId']];
+  var object = this.scene_.objects[data['objId']];
   
-  // TODO(Ilija): Improve this.
   // Get faces to extrude.
-  var faces = goog.array.filter(obj.faces, function(face) {
-    return goog.array.contains(data['faceIds'], face.id);
+  var faces = goog.array.map(data['faceIds'], function(faceId) {
+    return object.faces[faceId];
   }, this);
 
-  console.log("faces in apply");
-  console.log(faces);
-
+  // Extrude the faces.
+  object.extrude(faces);
 };

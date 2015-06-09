@@ -533,9 +533,6 @@ shapy.editor.Editor.prototype.extrude_ = function() {
   // Send a message to the server to extrude.
   this.exec_.emitExtrude(object, this.partGroup_);
 
-  console.log("faces in extrude_");
-  console.log(face);
-
   // Extrude.
   var extrudeData = object.extrude(faces);
 

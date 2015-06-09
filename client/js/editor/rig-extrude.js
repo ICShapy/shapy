@@ -150,14 +150,14 @@ shapy.editor.Rig.Extrude.prototype.mouseLeave = function() {
  *
  * @param {boolean} captured
  */
-shapy.editor.Rig.Translate.prototype.finish_ = function(captured) {
+shapy.editor.Rig.Extrude.prototype.finish_ = function(captured) {
   if (this.onFinish && captured) {
     var pos = this.object.getPosition();
     this.onFinish(
         this.object,
-        this.pos - this.startPos_[0],
-        this.pos - this.startPos_[1],
-        this.pos - this.startPos_[2]
+        pos[0] - this.startPos_[0],
+        pos[1] - this.startPos_[1],
+        pos[2] - this.startPos_[2]
     );
   }
 };
