@@ -50,6 +50,12 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
   this.write = !(!(data['write']));
 
   /**
+   * Flag showing if asset is public.
+   * @public {bolean} @const
+   */
+  this.public = !(!(data['public']));
+
+  /**
    * Promise resolved when the asset is loaded.
    * @public {!angular.$q}
    */
@@ -173,6 +179,7 @@ shapy.browser.Asset.Dir.prototype.load = function(data) {
   // Fill in permission flags
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
+  this.public = !(!(data.public));
 
   // Fill in child assets.
   goog.array.forEach(data['data'], function(child) {

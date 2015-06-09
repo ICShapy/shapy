@@ -120,6 +120,16 @@
           Share
         </li>
       </sh-share>
+      <sh-public
+          asset="browserCtrl.selected"
+          ng-style="(browserCtrl.selected.owner)? {'cursor': 'pointer'} : {'color': 'gray', 'cursor': 'default'}">
+        <li ng-show="browserCtrl.selected.public">
+          Make private
+        </li>
+        <li ng-show="!browserCtrl.selected.public">
+          Make public
+        </li>
+      </sh-public>
     </ul>
   </div>
 </div>

@@ -38,7 +38,7 @@ class SharedHandler(APIHandler):
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
       '''SELECT assets.id, assets.name, assets.type, assets.preview,
-                assets.owner, permissions.write
+                assets.owner, assets.public, permissions.write
          FROM assets
          INNER JOIN permissions
          ON assets.id = permissions.asset_id
@@ -53,6 +53,7 @@ class SharedHandler(APIHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
@@ -60,7 +61,8 @@ class SharedHandler(APIHandler):
           'type': item[2],
           'preview': item[3],
           'owner': item[4] == int(user.id),
-          'write': item[5]
+          'public': item[5],
+          'write': item[6]
         }
         for item in cursor.fetchall()
       ]
@@ -97,7 +99,7 @@ class FilteredHandler(APIHandler):
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview
+      '''SELECT id, name, type, preview, public
          FROM assets
          WHERE type = %s
            AND owner = %s
@@ -112,12 +114,14 @@ class FilteredHandler(APIHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
           'preview': item[3],
+          'public': item[4],
           'owner': True,
           'write': True
         }
@@ -171,12 +175,14 @@ class PublicHandler(APIHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
           'preview': item[3],
+          'public': True,
           'owner': item[4] == int(user.id),
           'write': item[4] == int(user.id) or item[0] in assetsWrite
         }
@@ -248,6 +254,7 @@ class AssetHandler(APIHandler):
         'name': data[1],
         'owner': True,
         'write': True,
+        'public': False,
         'data': []
     }))
     self.finish()
@@ -398,7 +405,7 @@ class DirHandler(AssetHandler):
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview
+      '''SELECT id, name, type, preview, public
          FROM assets
          WHERE parent = %s
            AND owner = %s
@@ -413,12 +420,14 @@ class DirHandler(AssetHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
           'preview': str(item[3]) if item[3] else '',
+          'public': item[4],
           'owner': True,
           'write': True
         }
@@ -500,6 +509,7 @@ class SceneHandler(AssetHandler):
         'name': dataAssets[1],
         'preview': str(dataAssets[2]) if dataAssets[2] else '',
         'data': dataAssets[3],
+        'public': dataAssets[4],
         'owner': owner,
         'write': write
     }))

@@ -74,6 +74,7 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   // Fill in permission flags
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
+  this.public = !(!(data.public));
   this.loaded = true;
 };
 
