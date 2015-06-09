@@ -132,6 +132,7 @@ shapy.editor.Rig.Extrude.prototype.mouseDown = function(ray) {
  */
 shapy.editor.Rig.Extrude.prototype.mouseUp = function(ray) {
   var captured = this.isExtruding_;
+  this.finish_(captured);
   this.isExtruding_ = false;
   return captured;
 };
@@ -141,4 +142,22 @@ shapy.editor.Rig.Extrude.prototype.mouseUp = function(ray) {
  * Handles mouse leave event.
  */
 shapy.editor.Rig.Extrude.prototype.mouseLeave = function() {
+};
+
+
+/**
+ * Handles onFinish call.
+ *
+ * @param {boolean} captured
+ */
+shapy.editor.Rig.Translate.prototype.finish_ = function(captured) {
+  if (this.onFinish && captured) {
+    var pos = this.object.getPosition();
+    this.onFinish(
+        this.object,
+        this.pos - this.startPos_[0],
+        this.pos - this.startPos_[1],
+        this.pos - this.startPos_[2]
+    );
+  }
 };
