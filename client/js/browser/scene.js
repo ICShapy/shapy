@@ -73,8 +73,8 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   this.name = data.name || this.shBrowser_.defaultName(this.type);
 
   // Fill in permission flags
-  this.owner = !(!(data.owner));
-  this.write = !(!(data.write));
+  this.owner = !!data.owner;
+  this.write = !!data.write;
   this.loaded = true;
 
   // Read objects.

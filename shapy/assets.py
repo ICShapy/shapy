@@ -300,71 +300,41 @@ class AssetHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'User not logged in.')
     id = int(self.get_argument('id'))
-    name = self.get_argument('name')
+    name = self.get_argument('name', None)
     data = self.get_argument('data', None)
 
     # Check if user has write permission
-    cursors = yield momoko.Op(self.db.transaction, (
-      (
+    cursor = yield momoko.Op(self.db.execute,
       '''SELECT 1
          FROM assets
-         WHERE id = %s
-           AND owner = %s
-      ''',
-        (
-          id,
-          user.id,
-        )
-      ),
-      (
-      '''SELECT 1
-         FROM permissions
-         WHERE user_id = %s
-           AND asset_id = %s
-           AND write = %s
-      ''',
-        (
-          user.id,
-          id,
-          True,
-        )
-      )
-      ))
+         LEFT OUTER JOIN permissions
+         ON permissions.asset_id = assets.id
+         WHERE assets.id = %(id)s
+           AND ((permissions.user_id = %(user)s AND
+                 permissions.write IS TRUE) OR
+                (assets.owner = %(user)s))
+      ''', {
+      'id': id,
+      'user': user.id
+    })
 
-    if not cursors[0].fetchone() and not cursors[1].fetchone():
-      raise HTTPError(400, 'Asset update failed.')
+    if not cursor.fetchone():
+      raise HTTPErorr(400, 'Asset cannot be edited.')
 
-    # Update the name.
-    if data:
-      cursor = yield momoko.Op(self.db.execute,
-          '''UPDATE assets
-             SET name = %s,
-                 data = %s
-             WHERE id = %s
-             RETURNING id
-          ''', (
-            name,
-            psycopg2.Binary(str(data)),
-            id
-          ))
-    else:
-      cursor = yield momoko.Op(self.db.execute,
-        '''UPDATE assets
-           SET name = %s
-           WHERE id = %s
-             AND type = %s
-           RETURNING id
-        ''', (
-        name,
-        id,
-        self.TYPE
-        ))
+    cursor = yield momoko.Op(self.db.execute,
+      '''UPDATE assets
+         SET name = COALESCE(%(name)s, name),
+             data = COALESCE(%(data)s, data)
+         WHERE id = %(id)s
+         RETURNING id
+      ''', {
+      'id': id,
+      'name': name,
+      'data': psycopg2.extras.Json(data) if data else None
+    })
 
-    # Check if update successful
-    data = cursor.fetchone()
-    if not data:
-      raise HTTPError(400, 'Asset update failed.')
-
+    if not cursor.fetchone():
+      raise HTTPError(500, 'Asset update failed.')
     self.finish()
 
 
@@ -498,7 +468,7 @@ class SceneHandler(AssetHandler):
         'id': data['id'],
         'name': data['name'],
         'preview': str(data['preview'] or ''),
-        'data': data['data'],
+        'data': json.loads(data['data'] or 'null'),
         'owner': owner,
         'write': write
     }))
