@@ -306,7 +306,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.checkpoint_ = setInterval(goog.bind(function() {
     console.log('Saved to server.');
     this.snapshot_();
-    //this.scene_.save();
+    this.scene_.save();
   }, this), 10000);
 };
 
