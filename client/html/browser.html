@@ -130,6 +130,13 @@
           Make public
         </li>
       </sh-public>
+      <sh-delete
+          asset="browserCtrl.selected"
+          ng-style="(browserCtrl.selected.owner)? {'cursor': 'pointer'} : {'color': 'gray', 'cursor': 'default'}">
+        <li>
+          Delete
+        </li>
+      </sh-delete>
     </ul>
   </div>
 </div>
