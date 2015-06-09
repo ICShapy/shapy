@@ -162,6 +162,12 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   this.frame_ = null;
 
   /**
+   * setInterval id.
+   * @private {number}
+   */
+  this.checkpoint_ = null;
+
+  /**
    * Size of the canvas.
    * @private {!goog.math.Size} @const
    */
@@ -263,11 +269,6 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   this.partGroup_.clear();
   this.rig(null);
 
-  var b = scene.createSphere(0.5, 16, 16);
-  b.translate(0, 0, 0);
-  b.scale(1, 1, 1);
-  b.texture = new shapy.editor.Texture(128, 128);
-
   // Set up the websocket connection.
   this.pending_ = [];
   this.exec_ = new shapy.editor.Executor(this.scene_, this);
@@ -300,6 +301,13 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
   this.rig(this.rigTranslate_);
+
+  // Start checkpointing.
+  this.checkpoint_ = setInterval(goog.bind(function() {
+    console.log('Saved to server.');
+    this.snapshot_();
+    this.scene_.save();
+  }, this), 10000);
 };
 
 
@@ -405,11 +413,19 @@ shapy.editor.Editor.prototype.render = function() {
 shapy.editor.Editor.prototype.destroy = function() {
   // Take a snapshot.
   this.snapshot_();
+  this.scene_.save();
+  this.scene_.destroy();
 
   // Stop rendering.
   if (this.frame_) {
     cancelAnimationFrame(this.frame_);
     this.frame_ = null;
+  }
+
+  // Cancel checkpointing.
+  if (this.checkpoint_) {
+    clearInterval(this.checkpoint_);
+    this.checkpoint_ = null;
   }
 
   // Close the websocket connection.
@@ -432,11 +448,13 @@ shapy.editor.Editor.prototype.destroy = function() {
     this.renderer_ = null;
   }
 
+  // TODO(Ilija): make these do something actually.
   // Clean up buffers from rigs.
   this.rigTranslate_.destroy();
   this.rigRotate_.destroy();
   this.rigScale_.destroy();
   this.rigCut_.destroy();
+  this.rigExtrude_.destroy();
   this.rig_ = null;
 };
 
@@ -510,6 +528,9 @@ shapy.editor.Editor.prototype.extrude_ = function() {
   if (goog.array.isEmpty(faces)) {
     return;
   }
+
+  // Send a message to the server to extrude.
+  this.exec_.emitExtrude(this.partGroup_);
 
   // Extrude.
   var extrudeData = object.extrude(faces);
