@@ -142,6 +142,8 @@ shapy.editor.Rig.Extrude.prototype.mouseUp = function(ray) {
  * Handles mouse leave event.
  */
 shapy.editor.Rig.Extrude.prototype.mouseLeave = function() {
+  this.finish_(this.isExtruding_);
+  this.isExtruding_ = false;
 };
 
 
