@@ -161,5 +161,8 @@ shapy.editor.Rig.Extrude.prototype.finish_ = function(captured) {
         pos[1] - this.startPos_[1],
         pos[2] - this.startPos_[2]
     );
+
+    // Project UV.
+    this.object.projectUV();
   }
 };

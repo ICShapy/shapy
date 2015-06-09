@@ -422,6 +422,15 @@ shapy.editor.PartsGroup.prototype.getObjPartIds = function() {
 };
 
 
+/**
+ * Delegates project UV to the owner of the group
+ * PRE: All parts of the group belong to the same object.
+ */
+shapy.editor.PartsGroup.prototype.projectUV = function() {
+  this.editables[0].object.projectUV();
+};
+
+
 
 /**
  * Collection of objects.
