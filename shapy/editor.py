@@ -79,6 +79,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     # Broadcast join message.
     self.write_message(json.dumps({
         'type': 'meta',
+        'name': scene.name,
         'users': scene.users
     }))
 
@@ -189,7 +190,14 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'name',
         'users'
     ])
-    scene = Scene(self.scene_id, data if data else {})
+    if data:
+      scene = Scene(self.scene_id, data)
+    else:
+      cursor = yield momoko.Op(self.db.execute,
+        '''SELECT name FROM assets WHERE id = %(id)s''', {
+        'id': self.scene_id
+      })
+      scene = Scene(self.scene_id, {'name': cursor.fetchone()['name']})
 
     # Apply changes.
     func(scene)

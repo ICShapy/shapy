@@ -204,7 +204,9 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
     if (newName == oldName) {
       return;
     }
-    this.exec_.sendCommand({ type: 'name', value: newName });
+    if (this.exec_) {
+      this.exec_.sendCommand({ type: 'name', value: newName });
+    }
   }, this));
 
   // Watch for changes in the mode.
@@ -307,7 +309,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.checkpoint_ = setInterval(goog.bind(function() {
     console.log('Saved to server.');
     this.snapshot_();
-    //this.scene_.save();
+    this.scene_.save();
   }, this), 10000);
 };
 
