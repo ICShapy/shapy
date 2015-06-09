@@ -683,8 +683,6 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   // If we're extruding, stop
   if (this.rig_ == this.rigExtrude_) {
     this.partGroup_.getObject().projectUV();
-    this.rig(this.rigTranslate_);
-    return;
   }
 
   // TOOD: do it nicer.
@@ -695,6 +693,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   {
     return;
   }
+
 
   // If nothing selected, ignore event.
   if (!this.hover_ || goog.array.isEmpty(this.hover_)) {
@@ -816,10 +815,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
-  // Only allow this click if we're not extruding
-  if (this.rig_ != this.rigExtrude_) {
-    this.layout_.mouseDown(e);
-  }
+  this.layout_.mouseDown(e);
 };
 
 

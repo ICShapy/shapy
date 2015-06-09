@@ -20,6 +20,9 @@ shapy.editor.Rig.Extrude = function() {
 
   /** @private {!goog.vec.Vec3.Type} */
   this.startPos_ = goog.vec.Vec3.createFloat32();
+
+  /** @private {boolean} */
+  this.isExtruding_ = false;
 };
 goog.inherits(shapy.editor.Rig.Extrude, shapy.editor.Rig);
 
@@ -52,6 +55,7 @@ shapy.editor.Rig.Extrude.prototype.build_ = function(gl) {
  */
 shapy.editor.Rig.Extrude.prototype.setup = function(normal) {
   this.normal_ = normal;
+  this.isExtruding_ = true;
 
   // Set up the model matrix
   // As we're using euler angles, apply rotation in a ZYX order
@@ -73,6 +77,10 @@ shapy.editor.Rig.Extrude.prototype.setup = function(normal) {
  * @param {!shapy.editor.Shader} sh Current shader.
  */
 shapy.editor.Rig.Extrude.prototype.render = function(gl, sh) {
+  if (!this.isExtruding_) {
+    return;
+  }
+
   if (!this.mesh_) {
     this.build_(gl);
   }
@@ -95,6 +103,10 @@ shapy.editor.Rig.Extrude.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Extrude.prototype.mouseMove = function(ray) {
+  if (!this.isExtruding_) {
+    return;
+  }
+
   var targetPos = shapy.editor.geom.getClosest(
       new goog.vec.Ray(this.object.getPosition(), this.normal_), ray).p0;
   var delta = goog.vec.Vec3.createFloat32();
@@ -119,7 +131,9 @@ shapy.editor.Rig.Extrude.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Extrude.prototype.mouseUp = function(ray) {
-  console.log("up");
+  var captured = this.isExtruding_;
+  this.isExtruding_ = false;
+  return captured;
 };
 
 
