@@ -403,11 +403,11 @@ shapy.editor.PartsGroup.prototype.getObjVertIds = function() {
 
 
 /**
- * Retrieves [obj id, face id] pairs forming the group.
+ * Retrieves ids of the faces forming the group.
  */
-shapy.editor.PartsGroup.prototype.getObjFaceIds = function() {
+shapy.editor.PartsGroup.prototype.getFaceIds = function() {
   return goog.array.map(this.getFaces(), function(face) {
-    return [face.object.id, face.id];
+    return face.id;
   }, this);
 };
 

@@ -580,13 +580,17 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
 /**
  * Executes extrude command.
  *
- * @param {shapy.editor.Editable} obj
+ * @param {shapy.editor.Editable} obj   Object the group belonds to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
-shapy.editor.Executor.prototype.emitExtrude = function(obj) {
+shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
   var data = {
     type: 'edit',
     tool: 'delete',
     userId: this.editor_.user.id,
+
+    objId: obj.id,
+    faceIds: group.getFaceIds()
   };
 
   this.sendCommand(data);
@@ -603,5 +607,16 @@ shapy.editor.Executor.prototype.applyExtrude = function(data) {
   if (data['userId'] == this.editor_.user.id) {
     return;
   }
+
+  var obj = this.scene_.objects[data['objId']];
+  
+  // TODO(Ilija): Improve this.
+  // Get faces to extrude.
+  var faces = goog.array.filter(obj.faces, function(face) {
+    return goog.array.contains(data['faceIds'], face.id);
+  }, this);
+
+  console.log("faces in apply");
+  console.log(faces);
 
 };
