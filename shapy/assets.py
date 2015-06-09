@@ -441,65 +441,49 @@ class SceneHandler(AssetHandler):
   def get(self, user):
     """Retrieves a scene from the database."""
 
-    # Validate arguments.
-    if not user:
-      # Set special id for not logged in users
-      user = Account(-1)
-    id = int(self.get_argument('id'))
+    # Fetch data from the asset and permission table.
+    # The write flag will have 3 possible values: None, True, False
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, preview, data::json, public, owner, write
+         FROM assets
+         LEFT OUTER JOIN permissions
+         ON permissions.asset_id = assets.id
+         WHERE assets.id = %(id)s
+           AND assets.type = %(type)s
+           AND (permissions.user_id = %(user)s OR
+                permissions.user_id IS NULL)
+      ''', {
+        'id': self.get_argument('id'),
+        'user': user.id if user else -1,
+        'type': self.TYPE
+    })
 
-    # Fetch asset data.
-    cursors = yield momoko.Op(self.db.transaction, (
-      (
-        '''SELECT id, name, preview, data, public, owner
-           FROM assets
-           WHERE id = %s
-             AND type = %s
-        ''',
-        (
-          id,
-          self.TYPE
-        )
-      ),
-      (
-        '''SELECT write
-           FROM permissions
-           WHERE user_id = %s
-             AND asset_id = %s
-        ''',
-        (
-          user.id,
-          id
-        )
-      )
-    ))
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(404, 'Asset not found.')
 
-    dataAssets = cursors[0].fetchone()
-    dataPerm = cursors[1].fetchone()
-
-    if not dataAssets:
-      raise HTTPError(404, 'Scene not found.')
-
-    if dataAssets[5] == int(user.id):
-      # User is owner
+    if data['owner'] == user.id:
+      # Owner - full permissions.
       owner = True
       write = True
-    elif dataPerm:
-      # User shares asset with owner
-      owner = False
-      write = dataPerm[0]
-    elif dataAssets[4]:
-      # Just read perm. as asset public
-      owner = False
-      write = False
+    elif data['write'] is None:
+      if not data['public']:
+        # No permissions.
+        raise HTTPError(400, 'Asset not found.')
+      else:
+        # Public asset - read only.
+        owner = False
+        write = False
     else:
-      # Illegal access
-      raise HTTPError(400, 'Asset access not granted.')
+      # Shared asset - permission in table.
+      owner = False
+      write = data['write']
 
     self.write(json.dumps({
-        'id': dataAssets[0],
-        'name': dataAssets[1],
-        'preview': str(dataAssets[2]) if dataAssets[2] else '',
-        'data': dataAssets[3],
+        'id': data['id'],
+        'name': data['name'],
+        'preview': str(data['preview'] or ''),
+        'data': data['data'],
         'owner': owner,
         'write': write
     }))
