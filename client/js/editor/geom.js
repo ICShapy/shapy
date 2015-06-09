@@ -123,7 +123,7 @@ shapy.editor.geom.intersectCube = function(ray, c, a) {
  * Computes the intersection point of a ray and a triangle if present.
  * Returns null if the ray does not intersect the triangle.
  *
- * @param {!goog.vec.Ray} ray
+ * @param {!goog.vec.Ray}       ray
  * @param {!goog.vec.Vec3.Type} p0
  * @param {!goog.vec.Vec3.Type} p1
  * @param {!goog.vec.Vec3.Type} p2
@@ -184,7 +184,77 @@ shapy.editor.geom.intersectTriangle = function(ray, p0, p1, p2) {
     return null;
   }
 
-  return i;
+  // Normalize n
+  goog.vec.Vec3.normalize(n, n);
+
+  return {
+    i: i,
+    n: n
+  };
+};
+
+
+/**
+ * Computes the barycentric coordinates of the ray triangle intersection,
+ * if present.
+ *
+ * @param {!goog.vec.Ray}       ray
+ * @param {!goog.vec.Vec3.Type} a
+ * @param {!goog.vec.Vec3.Type} b
+ * @param {!goog.vec.Vec3.Type} c
+ */
+shapy.editor.geom.intersectTriangleBary = function(ray, a, b, c) {
+  var inter = shapy.editor.geom.intersectTriangle(ray, a, b, c);
+
+  if (!inter) {
+    return null;
+  }
+
+  var n = inter.n;
+  var i = inter.i;
+
+  var ba = goog.vec.Vec3.createFloat32();
+  var ca = goog.vec.Vec3.createFloat32();
+  var cb = goog.vec.Vec3.createFloat32();
+  var ib = goog.vec.Vec3.createFloat32();
+  var ac = goog.vec.Vec3.createFloat32();
+  var ic = goog.vec.Vec3.createFloat32();
+  var ia = goog.vec.Vec3.createFloat32();
+
+  var baca = goog.vec.Vec3.createFloat32();
+  var cbib = goog.vec.Vec3.createFloat32();
+  var acic = goog.vec.Vec3.createFloat32();
+  var baia = goog.vec.Vec3.createFloat32();
+
+  goog.vec.Vec3.subtract(b, a, ba);
+  goog.vec.Vec3.subtract(c, a, ca);
+  goog.vec.Vec3.subtract(c, b, cb);
+  goog.vec.Vec3.subtract(i, b, ib);
+  goog.vec.Vec3.subtract(a, c, ac);
+  goog.vec.Vec3.subtract(i, c, ic);
+  goog.vec.Vec3.subtract(i, a, ia);
+
+  goog.vec.Vec3.cross(ba, ca, baca);
+  goog.vec.Vec3.cross(cb, ib, cbib);
+  goog.vec.Vec3.cross(ac, ic, acic);
+  goog.vec.Vec3.cross(ba, ia, baia);
+
+  var d = goog.vec.Vec3.dot(baca, n);
+
+  //  alpha = Area(ibc) / Area(abc)
+  var alpha = goog.vec.Vec3.dot(cbib, n) / d;
+
+  // beta = Area(aic) / Area(abc)
+  var beta  = goog.vec.Vec3.dot(acic, n) / d;
+
+  // gamma = Area(abi) / Area(abc)
+  var gamma = goog.vec.Vec3.dot(baia, n) / d;
+
+  return {
+    a: alpha,
+    b: beta,
+    c: gamma
+  };
 };
 
 

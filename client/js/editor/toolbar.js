@@ -2,6 +2,11 @@
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
 goog.provide('shapy.editor.ToolbarController');
+goog.provide('shapy.editor.colourPicker');
+goog.provide('shapy.editor.slider');
+
+goog.require('goog.ui.HsvPalette');
+goog.require('goog.ui.Slider');
 
 
 
@@ -79,3 +84,54 @@ shapy.editor.ToolbarController.prototype.rig = function(name) {
 shapy.editor.ToolbarController.prototype.addObject = function(name) {
   this.shEditor_.create(name);
 };
+
+
+/**
+ * Color picker directive.
+ *
+ * @param {!shapy.editor.Editor} shEditor Editor.
+ *
+ * @return {!angular.Directive}
+ */
+shapy.editor.colourPicker = function(shEditor) {
+  return {
+    restrict: 'E',
+    link: function($scope, $elem, $attrs) {
+      var picker = new goog.ui.HsvPalette(null, null, 'goog-hsv-palette-sm');
+      goog.events.listen(picker, 'action', function(evt) {
+        var colour = picker.getColor();
+        shEditor.setBrushColour(
+            parseInt(colour[1] + colour[2], 16),
+            parseInt(colour[3] + colour[4], 16),
+            parseInt(colour[5] + colour[6], 16)
+        );
+      });
+      picker.render($elem[0]);
+      picker.setColor('#00ff00');
+    }
+  };
+};
+
+
+/**
+ * Slider directive.
+ *
+ * @param {!shapy.editor.Editor} shEditor Editor.
+ *
+ * @return {!angular.Directive}
+ */
+shapy.editor.slider = function(shEditor) {
+  return {
+    restrict: 'E',
+    link: function($scope, $elem, $attrs) {
+      var slider = new goog.ui.Slider();
+      goog.events.listen(slider, 'change', function() {
+        shEditor.setBrushRadius(slider.getValue());
+      });
+      slider.setMoveToPointEnabled(true);
+      slider.render($elem[0]);
+      slider.setValue(8);
+    }
+  };
+};
+

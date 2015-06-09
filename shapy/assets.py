@@ -2,14 +2,16 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
+from binascii import a2b_base64
 import hashlib
 import json
 
 import momoko
+import psycopg2
 from tornado.gen import coroutine
 from tornado.web import HTTPError, asynchronous
 
-from shapy.common import APIHandler, session
+from shapy.common import APIHandler, BaseHandler, session
 from shapy.account import Account
 
 
@@ -416,7 +418,7 @@ class DirHandler(AssetHandler):
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3],
+          'preview': str(item[3]) if item[3] else '',
           'owner': True,
           'write': True
         }
@@ -496,7 +498,7 @@ class SceneHandler(AssetHandler):
     self.write(json.dumps({
         'id': dataAssets[0],
         'name': dataAssets[1],
-        'preview': dataAssets[2],
+        'preview': str(dataAssets[2]) if dataAssets[2] else '',
         'data': dataAssets[3],
         'owner': owner,
         'write': write
@@ -510,3 +512,50 @@ class TextureHandler(AssetHandler):
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
+
+
+
+class PreviewHandler(BaseHandler):
+  """Handles a preview image upload."""
+
+  @coroutine
+  @asynchronous
+  def get(self):
+    """Retrieves the preview of the scene."""
+
+    data = yield momoko.Op(self.db.execute,
+        '''SELECT preview::bytea
+           FROM assets
+           WHERE id=%s
+        ''', (
+        self.get_argument('id'),
+    ))
+    data = data.fetchone()
+    if not data:
+      raise HTTPError(404, 'Preview not found')
+
+    image = a2b_base64(str(data[0])[23:])
+    self.set_header('Content-Type', 'image/jpeg')
+    self.set_header('Content-Length', len(image))
+    self.write(image)
+    self.finish()
+
+
+  @session
+  @coroutine
+  @asynchronous
+  def post(self, user):
+    """Updates the preview image of a scene."""
+
+    yield momoko.Op(self.db.execute,
+      '''UPDATE assets
+         SET preview=%s::bytea
+         WHERE id=%s
+           AND owner=%s
+      ''', (
+      psycopg2.Binary(self.request.body),
+      self.get_argument('id'),
+      user.id
+    ))
+
+    self.finish()

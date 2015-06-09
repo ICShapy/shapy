@@ -4,6 +4,7 @@
 goog.provide('shapy.browser.Asset.Scene');
 
 goog.require('shapy.browser.Asset');
+goog.require('shapy.editor.create');
 goog.require('shapy.editor.Object');
 
 
@@ -57,8 +58,7 @@ shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
    */
   this.nextID_ = 0;
 
-  // Preview image.
-  this.image = data['preview'] || '/img/scene.svg';
+  this.image = (opt_data && opt_data['preview']) || '/img/scene.svg';
 };
 goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
 
@@ -74,12 +74,6 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   // Fill in permission flags
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
-
-  // Preview image.
-  this.image = data['preview'] || '/img/scene.svg';
-
-  // Load data.data into this.objects
-
   this.loaded = true;
 };
 
@@ -137,7 +131,7 @@ shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
 shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
   // Find all the editable parts that intersect the ray.
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
-    return obj.pickRay(ray);
+    return obj.pickRay(ray, mode);
   });
   hits = goog.array.flatten(hits);
 
@@ -197,7 +191,7 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
  */
 shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createCube(id, this, w, h, d);
+  var object = shapy.editor.create.cube(id, this, w, h, d);
   this.objects[id] = object;
   return object;
 };
@@ -214,7 +208,7 @@ shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
  */
 shapy.browser.Asset.Scene.prototype.createSphere = function(r, slices, stacks) {
   var id = this.getNextID();
-  var object = shapy.editor.Object.createSphere(id, this, r, slices, stacks);
+  var object = shapy.editor.create.sphere(id, this, r, slices, stacks);
   this.objects[id] = object;
   return object;
 };

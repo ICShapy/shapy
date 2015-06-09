@@ -60,10 +60,14 @@ shapy.editor.Mesh = function(gl, object) {
 shapy.editor.Mesh.prototype.build_ = function() {
   var r = 0, g = 0, b = 0, a = 1;
 
-  var add = function(d, pos) {
+  var add = function(d, pos, uv) {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
     d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
-    d[k++] = 0; d[k++] = 0;                               // UV.
+    if (uv) {
+      d[k++] = uv.u; d[k++] = uv.v;                       // UV.
+    } else {
+      d[k++] = 0.0; d[k++] = 0.0;
+    }
     d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1;       // Diffuse.
   };
 
@@ -153,9 +157,9 @@ shapy.editor.Mesh.prototype.build_ = function() {
     if (face.hover) {
       r *= 1.2; g *= 1.2; b *= 1.2;
     }
-    add(f, v[0].position);
-    add(f, v[1].position);
-    add(f, v[2].position);
+    add(f, v[0].position, face.uv0 ? this.object_.uvs[face.uv0] : null);
+    add(f, v[1].position, face.uv1 ? this.object_.uvs[face.uv1] : null);
+    add(f, v[2].position, face.uv2 ? this.object_.uvs[face.uv2] : null);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
@@ -257,11 +261,11 @@ shapy.editor.Mesh.prototype.destroy = function() {
 
 
 /**
- * Renders the mesh.
+ * Renders the points and edges.
  *
- * @param {!shapy.editor.Shader} sh Shader program.
+ * @param {!shapy.editor.Shader} sh Shader program
  */
-shapy.editor.Mesh.prototype.render = function(sh) {
+shapy.editor.Mesh.prototype.renderPointsEdges = function(sh) {
   this.gl_.enableVertexAttribArray(0);
   this.gl_.enableVertexAttribArray(3);
 
@@ -276,12 +280,29 @@ shapy.editor.Mesh.prototype.render = function(sh) {
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
   this.gl_.drawArrays(goog.webgl.LINES, 0, this.edgeCount_);
 
+  this.gl_.disableVertexAttribArray(3);
+  this.gl_.disableVertexAttribArray(0);
+};
+
+
+/**
+ * Renders the mesh.
+ *
+ * @param {!shapy.editor.Shader} sh Shader program
+ */
+shapy.editor.Mesh.prototype.render = function(sh) {
+  this.gl_.enableVertexAttribArray(0);
+  this.gl_.enableVertexAttribArray(2);
+  this.gl_.enableVertexAttribArray(3);
+
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.vertexAttribPointer(0, 3, goog.webgl.FLOAT, false, 48, 0);
+  this.gl_.vertexAttribPointer(2, 2, goog.webgl.FLOAT, false, 48, 24);
   this.gl_.vertexAttribPointer(3, 4, goog.webgl.FLOAT, false, 48, 32);
   this.gl_.drawArrays(goog.webgl.TRIANGLES, 0, this.faceCount_);
 
   this.gl_.disableVertexAttribArray(3);
+  this.gl_.disableVertexAttribArray(2);
   this.gl_.disableVertexAttribArray(0);
 };
 
@@ -292,7 +313,6 @@ shapy.editor.Mesh.prototype.render = function(sh) {
 shapy.editor.Mesh.prototype.renderUV = function() {
   this.gl_.enableVertexAttribArray(0);
   this.gl_.enableVertexAttribArray(3);
-
 
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvFaces_);
   this.gl_.vertexAttribPointer(0, 2, goog.webgl.FLOAT, false, 24, 0);

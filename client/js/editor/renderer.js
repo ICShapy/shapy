@@ -12,7 +12,44 @@ goog.require('shapy.editor.Shader');
 
 
 /** @type {string} @const */
-shapy.editor.OBJECT_VS =
+shapy.editor.OBJECT_TEXTURE_VS =
+  'attribute vec3 a_vertex;                         \n' +
+  'attribute vec4 a_colour;                         \n' +
+  'attribute vec2 a_uv;                             \n' +
+  'attribute vec3 a_bary;                           \n' +
+
+  'uniform mat4 u_mvp;                              \n' +
+
+  'varying vec4 v_colour;                           \n' +
+  'varying vec2 v_uv;                               \n' +
+
+  'void main() {                                    \n' +
+  '  v_colour = a_colour;                           \n' +
+  '  v_uv = a_uv;                                   \n' +
+  '  gl_PointSize = 7.0;                            \n' +
+  '  gl_Position = u_mvp * vec4(a_vertex, 1);       \n' +
+  '}                                                \n';
+
+
+/** @type {string} @const */
+shapy.editor.OBJECT_TEXTURE_FS =
+  '#extension GL_OES_standard_derivatives : enable          \n' +
+
+  'precision mediump float;                                 \n' +
+
+  'uniform sampler2D u_texture;                             \n' +
+
+  'varying vec4 v_colour;                                   \n' +
+  'varying vec2 v_uv;                                       \n' +
+
+  'void main() {                                            \n' +
+  '  vec4 texture = texture2D(u_texture, v_uv);             \n' +
+  '  gl_FragColor = vec4(v_colour.rgb * texture.rgb, 1.0);  \n' +
+  '}                                                        \n';
+
+
+/** @type {string} @const */
+shapy.editor.OBJECT_COLOUR_VS =
   'attribute vec3 a_vertex;                         \n' +
   'attribute vec4 a_colour;                         \n' +
   'attribute vec3 a_bary;                           \n' +
@@ -29,17 +66,16 @@ shapy.editor.OBJECT_VS =
 
 
 /** @type {string} @const */
-shapy.editor.OBJECT_FS =
-  '#extension GL_OES_standard_derivatives : enable                    \n' +
+shapy.editor.OBJECT_COLOUR_FS =
+  '#extension GL_OES_standard_derivatives : enable  \n' +
 
-  'precision mediump float;                                           \n' +
+  'precision mediump float;                         \n' +
 
-  'varying vec4 v_colour;                                             \n' +
+  'varying vec4 v_colour;                           \n' +
 
-  'void main() {                                                      \n' +
-  '  gl_FragColor = vec4(v_colour.rgb, 1.0);                          \n' +
-  '}                                                                  \n';
-
+  'void main() {                                    \n' +
+  '  gl_FragColor = vec4(v_colour.rgb, 1.0);        \n' +
+  '}                                                \n';
 
 
 /** @type {string} @const */
@@ -222,10 +258,16 @@ shapy.editor.Renderer = function(gl) {
   this.gl_ = gl;
 
   /** @private {!shapy.editor.Shader} @const */
-  this.shObject_ = new shapy.editor.Shader(this.gl_);
-  this.shObject_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_VS);
-  this.shObject_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_FS);
-  this.shObject_.link();
+  this.shObjectTexture_ = new shapy.editor.Shader(this.gl_);
+  this.shObjectTexture_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_TEXTURE_VS);
+  this.shObjectTexture_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_TEXTURE_FS);
+  this.shObjectTexture_.link();
+
+  /** @private {!shapy.editor.Shader} @const */
+  this.shObjectColour_ = new shapy.editor.Shader(this.gl_);
+  this.shObjectColour_.compile(goog.webgl.VERTEX_SHADER, shapy.editor.OBJECT_COLOUR_VS);
+  this.shObjectColour_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.OBJECT_COLOUR_FS);
+  this.shObjectColour_.link();
 
   /** @private {!shapy.editor.Shader} @const */
   this.shUV_ = new shapy.editor.Shader(this.gl_);
@@ -399,13 +441,26 @@ shapy.editor.Renderer.prototype.renderObjects = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  this.shObject_.use();
-
   goog.object.forEach(this.objectCache_, function(pair, id, meshes) {
     var mvp = goog.vec.Mat4.createFloat32();
     goog.vec.Mat4.multMat(vp.camera.vp, pair[1], mvp);
-    this.shObject_.uniformMat4x4('u_mvp', mvp);
-    pair[0].render(this.shObject_);
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txCube_);
+
+    // Render points and edges
+    this.shObjectColour_.use();
+    this.shObjectColour_.uniformMat4x4('u_mvp', mvp);
+    pair[0].renderPointsEdges(this.shObjectColour_);
+
+    // Render faces
+    if (pair[2].texture) {
+      pair[2].texture.bind(this.gl_);
+      this.shObjectTexture_.use();
+      this.shObjectTexture_.uniformMat4x4('u_mvp', mvp);
+      pair[0].render(this.shObjectTexture_);
+    } else {
+      pair[0].render(this.shObjectColour_);
+    }
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, null);
   }, this);
 };
 

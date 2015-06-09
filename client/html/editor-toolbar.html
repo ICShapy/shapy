@@ -71,14 +71,14 @@
 
   <!-- Menu for paint colour picking. -->
   <div
-      ng-click="editorCtrl.mode.togglePaint()"
       ng-class="{select: editorCtrl.mode.paint}">
-    <span>
-      Paint
-    </span>
-    <ul>
-      <li>Painty Painty</li>
-    </ul>
+    <span ng-click="editorCtrl.mode.togglePaint()"> Paint </span>
+    <div class="content">
+      <span>Brush Size</span>
+      <sh-slider></sh-slider>
+      <span>Brush Colour</span>
+      <sh-colour-picker></sh-colour-picker>
+    </div>
   </div>
 
   <!-- Menu for selection modes. -->

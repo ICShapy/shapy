@@ -8,6 +8,9 @@ goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
 goog.require('shapy.editor.Editable');
 goog.require('shapy.editor.geom');
+goog.require('shapy.editor.Edge');
+goog.require('shapy.editor.Face');
+goog.require('shapy.editor.Vertex');
 
 
 
@@ -51,6 +54,12 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
    * True if the object was deleted.
    */
   this.deleted = false;
+
+  /**
+   * Texture attached to the object.
+   * @public {!shapy.editor.Texture}
+   */
+  this.texture = null;
 
   /**
    * @private {goog.vec.Vec3}
@@ -100,41 +109,41 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
 
   /**
    * Object Vertex List
-   * @public {!Array<shapy.editor.Object.Vertex>}
+   * @public {!Array<shapy.editor.Vertex>}
    * @const
    */
   this.verts = {};
   this.nextVert_ = 0;
   goog.array.forEach(verts, function(v, i) {
     this.nextVert_ = Math.max(this.nextVert_, i + 2);
-    this.verts[i + 1] = new shapy.editor.Object.Vertex(
+    this.verts[i + 1] = new shapy.editor.Vertex(
         this, i + 1, v[0], v[1], v[2]);
   }, this);
 
   /**
    * Edge List.
-   * @public {!Array<shapy.editor.Object.Edge>}
+   * @public {!Array<shapy.editor.Edge>}
    * @const
    */
   this.edges = {};
   this.nextEdge_ = 0;
   goog.array.forEach(edges, function(e, i) {
     this.nextEdge_ = Math.max(this.nextEdge_, i + 2);
-    this.edges[i + 1] = new shapy.editor.Object.Edge(
+    this.edges[i + 1] = new shapy.editor.Edge(
         this, i + 1, e[0], e[1]);
   }, this);
 
   /**
    * Face List
    * Expressed as triples of edge indices indexing this.edges
-   * @public {!Array<Array<shapy.editor.Object.Edge>>}
+   * @public {!Array<Array<shapy.editor.Edge>>}
    * @const
    */
    this.faces = {};
    this.nextFace_ = 0;
    goog.array.forEach(faces, function(f, i) {
     this.nextFace_ = Math.max(this.nextFace_, i + 2);
-    this.faces[i + 1] = new shapy.editor.Object.Face(
+    this.faces[i + 1] = new shapy.editor.Face(
         this, i + 1, f[0], f[1], f[2]);
    }, this);
 
@@ -144,6 +153,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
     */
   this.uvs = {};
   this.nextUV_ = 1;
+  this.projectUV();
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
 
@@ -267,10 +277,11 @@ shapy.editor.Object.prototype.delete = function() {
  * Finds all parts that intersect a ray.
  *
  * @param {!goog.vec.Ray} ray
+ * @param {!shapy.editor.Mode} mode Selection mode.
  *
  * @return {!Array<shapy.editor.Editable>}
  */
-shapy.editor.Object.prototype.pickRay = function(ray) {
+shapy.editor.Object.prototype.pickRay = function(ray, mode) {
   var q = goog.vec.Vec3.createFloat32();
   var v = goog.vec.Vec3.createFloat32();
   var obj = [];
@@ -282,9 +293,9 @@ shapy.editor.Object.prototype.pickRay = function(ray) {
 
   // Pick individual components.
   return [
-      this.pickVertices_(r),
-      this.pickEdges_(r),
-      this.pickFaces_(r),
+      this.pickVertices_(r, mode),
+      this.pickEdges_(r, mode),
+      this.pickFaces_(r, mode),
   ];
 };
 
@@ -408,19 +419,22 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
  * @private
  *
  * @param {!goog.vec.Ray} ray Ray converted to model space.
+ * @param {!shapy.editor.Mode} mode Selection mode.
  *
  * @return {!Array<shapy.editor.Editable>}
  */
-shapy.editor.Object.prototype.pickFaces_ = function(ray) {
+shapy.editor.Object.prototype.pickFaces_ = function(ray, mode) {
   // Find all intersecting faces.
   var v = goog.object.filter(goog.object.map(this.faces, function(face) {
     var t = face.getVertexPositions_();
-    var i = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
+    var inter = shapy.editor.geom.intersectTriangle(ray, t[0], t[1], t[2]);
     var ed;
 
-    if (!i) {
+    if (!inter) {
       return null;
     }
+
+    var i = inter.i;
 
     // Convert the intersection point to world space.
     var p = goog.vec.Vec3.createFloat32();
@@ -446,25 +460,17 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray) {
     }, this);
 
     // Determine if the intersection point is close to an edge.
-    ed = edgeDist(face.e0);
-    if (ed) {
-      return ed;
-    }
-
-    ed = edgeDist(face.e1);
-    if (ed) {
-      return ed;
-    }
-
-    ed = edgeDist(face.e2);
-    if (ed) {
-      return ed;
-    }
-
-    return {
-      item: face,
-      point: p
-    };
+    return (
+      (!mode || !mode.paint) && (
+        edgeDist(face.e0) ||
+        edgeDist(face.e1) ||
+        edgeDist(face.e2)
+      ) ||
+      {
+        item: face,
+        point: p
+      }
+    );
   }, this), goog.isDefAndNotNull, this);
   return goog.object.getValues(v);
 };
@@ -498,9 +504,9 @@ shapy.editor.Object.prototype.pickUVGroup = function(group) {
 /**
  * Merges a set of points into a single point.
  *
- * @param {!Array<shapy.editor.Object.Vertex>} verts
+ * @param {!Array<shapy.editor.Vertex>} verts
  *
- * @return {!shapy.editor.Object.Vertex}
+ * @return {!shapy.editor.Vertex}
  */
 shapy.editor.Object.prototype.mergeVertices = function(verts) {
   var center = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
@@ -517,7 +523,7 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
   this.verts = goog.object.filter(this.verts, function(v) {
     return !goog.array.contains(vertIDs, v.id);
   }, this);
-  this.verts[vertID] = new shapy.editor.Object.Vertex(
+  this.verts[vertID] = new shapy.editor.Vertex(
       this, vertID, center[0], center[1], center[2]);
 
   // Remove all edges & convert some to vertices.
@@ -597,7 +603,7 @@ shapy.editor.Object.prototype.projectUV = function() {
 /**
  * Connects vertices and edges in order to create new edges or faces.
  *
- * @param {!Array<shapy.editor.Object.Vertex>} verts Vertices to connect.
+ * @param {!Array<shapy.editor.Vertex>} verts Vertices to connect.
  */
 shapy.editor.Object.prototype.connect = function(verts) {
   var pairs;
@@ -624,7 +630,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
     }
 
     var edgeID = this.nextEdge_++;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
         v[0], v[1]);
     this.dirtyMesh = true;
     return edgeID;
@@ -641,7 +647,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
       return;
     }
     var faceID = this.nextFace_++;
-    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+    this.faces[faceID] = new shapy.editor.Face(this, faceID,
         e[0], e[1], e[2]);
     this.dirtyMesh = true;
   }
@@ -651,7 +657,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
 /**
  * Extrude a group of faces
  *
- * @param {!Array<!shapy.editor.Object.Face>} faces
+ * @param {!Array<!shapy.editor.Face>} faces
  *
  * @return {!Object} An object containing the extruded faces and the normal
  */
@@ -712,7 +718,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.array.map(verts, function(v) {
     var vertID = this.nextVert_++;
     vertMap[v.id] = vertID;
-    this.verts[vertID] = new shapy.editor.Object.Vertex(this, vertID,
+    this.verts[vertID] = new shapy.editor.Vertex(this, vertID,
       v.position[0],
       v.position[1],
       v.position[2]);
@@ -724,7 +730,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.array.map(edges, function(e) {
     var edgeID = this.nextEdge_++;
     edgeMap[e.id] = edgeID;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
       vertMap[e.start], vertMap[e.end]);
     return this.edges[edgeID];
   }, this);
@@ -741,7 +747,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   // Join pairs of vertices with edges
   var joinEdges = goog.array.map(vertPairs, function(p) {
     var edgeID = this.nextEdge_++;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
       p[0].id, p[1].id);
     return this.edges[edgeID];
   }, this);
@@ -787,14 +793,14 @@ shapy.editor.Object.prototype.extrude = function(faces) {
 
     // Create diagonal edge
     var edgeID = this.nextEdge_++;
-    this.edges[edgeID] = new shapy.editor.Object.Edge(this, edgeID,
+    this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
       AB.end, ab.start);
     var diagonal = this.edges[edgeID];
 
     // Fill out faces
     var emitFace = goog.bind(function(a, b, c) {
       var faceID = this.nextFace_++;
-      this.faces[faceID] = new shapy.editor.Object.Face(this, faceID, a, b, c);
+      this.faces[faceID] = new shapy.editor.Face(this, faceID, a, b, c);
     }, this);
     if (flipped) {
       emitFace(aA.id, AB.id, diagonal.id);
@@ -814,7 +820,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   var clonedFaces = goog.array.map(faces, function(f) {
     var faceID = this.nextFace_++;
     faceMap[f.id] = faceID;
-    this.faces[faceID] = new shapy.editor.Object.Face(this, faceID,
+    this.faces[faceID] = new shapy.editor.Face(this, faceID,
         f.e0 >= 0 ? edgeMap[f.e0] : -edgeMap[-f.e0],
         f.e1 >= 0 ? edgeMap[f.e1] : -edgeMap[-f.e1],
         f.e2 >= 0 ? edgeMap[f.e2] : -edgeMap[-f.e2]);
@@ -838,491 +844,6 @@ shapy.editor.Object.prototype.extrude = function(faces) {
 };
 
 
-/**
- * Build an cube object from triangles.
- *
- * @param {string}      id
- * @param {shapy.Scene} scene
- * @param {number}      w
- * @param {number}      h
- * @param {number}      d
- *
- * @return {!shapy.editor.Object}
- */
-shapy.editor.Object.createCube = function(id, scene, w, h, d) {
-  // Vertex layout:
-  //   5-----6
-  //  /     /|
-  // 1-----2 |
-  // | 7   | 8
-  // |     |/
-  // 3-----4
-  var vertices = [
-    [-w, +h, +d], // 1
-    [+w, +h, +d], // 2
-    [-w, -h, +d], // 3
-    [+w, -h, +d], // 4
-    [-w, +h, -d], // 5
-    [+w, +h, -d], // 6
-    [-w, -h, -d], // 7
-    [+w, -h, -d], // 8
-  ];
-
-  var edges = [
-    [1, 2], //  1
-    [2, 3], //  2
-    [3, 1], //  3
-    [2, 4], //  4
-    [4, 3], //  5
-    [6, 8], //  6
-    [8, 7], //  7
-    [7, 5], //  8
-    [5, 8], //  9
-    [6, 5], // 10
-    [1, 5], // 11
-    [2, 5], // 12
-    [6, 2], // 13
-    [1, 7], // 14
-    [3, 7], // 15
-    [4, 6], // 16
-    [4, 8], // 17
-    [3, 8], // 18
-  ];
-
-  // Faces
-  var faces = [
-    [+1, +2, +3], [+4, +5, -2],      // +Z
-    [+10, +9, -6], [-9, -8, -7],     // -Z
-    [-1, +11, -12], [+12, -10, +13], // +Y
-    [+18, +7, -15], [-18, -5, +17],  // -Y
-    [-16, -4, -13], [+16, +6, -17],  // +X
-    [+14, +8, -11], [-3, +15, -14],  // -X
-  ];
-
-  return new shapy.editor.Object(id, scene, vertices, edges, faces);
-};
-
-
-/**
- * Builds an sphere object from triangles.
- *
- * @param {string}      id
- * @param {shapy.Scene} scene
- * @param {number}      r
- * @param {number}      slices
- * @param {number}      stacks
- *
- * @return {!shapy.editor.Object}
- */
-shapy.editor.Object.createSphere = function(id, scene, r, slices, stacks) {
-  var verts = [], edges = [], faces = [];
-
-  // Create all verts.
-  var dPhi = Math.PI / stacks, dTheta = 2 * Math.PI / slices;
-  verts.push([0, r, 0]);
-  for (var i = 1; i < stacks; ++i) {
-    var phi = Math.PI / 2.0 - dPhi * i;
-    for (var j = 0; j < slices; ++j) {
-      var theta = dTheta * j;
-      verts.push([
-        r * Math.cos(phi) * Math.sin(theta),
-        r * Math.sin(phi),
-        r * Math.cos(phi) * Math.cos(theta)
-      ]);
-    }
-  }
-  verts.push([0, -r, 0]);
-
-  for (var j = 0; j < slices; ++j) {
-    var v00 = 1;
-    var v01 = 2 + j;
-
-    edges.push([1, 2 + j]);
-    faces.push([
-        -(1 + (j + 0) % slices),
-        +(1 + (j + 1) % slices),
-        -(1 + slices + j * 3),
-    ]);
-  }
-
-  for (var i = 1; i < stacks - 1; ++i) {
-    for (var j = 0; j < slices; ++j) {
-      var v00 = 2 + (i - 1) * slices + (j + 0) % slices;
-      var v01 = 2 + (i - 1) * slices + (j + 1) % slices;
-      var v10 = 2 + (i - 0) * slices + (j + 0) % slices;
-      var v11 = 2 + (i - 0) * slices + (j + 1) % slices;
-
-      edges.push([v00, v01]);
-      edges.push([v01, v11]);
-      edges.push([v11, v00]);
-      faces.push([
-          slices + (i - 1) * 3 * slices + j * 3 + 1,
-          slices + (i - 1) * 3 * slices + j * 3 + 2,
-          slices + (i - 1) * 3 * slices + j * 3 + 3
-      ]);
-      if (i < stacks - 2) {
-        faces.push([
-            slices + (i - 1) * 3 * slices + j * 3 + 3,
-            slices + (i - 0) * 3 * slices + j * 3 + 1,
-            slices + (i - 1) * 3 * slices + (j - 1 + slices) % slices * 3 + 2,
-        ]);
-      } else {
-        faces.push([
-            slices + (i - 1) * 3 * slices + j * 3 + 3,
-            slices + (stacks - 2) * 3 * slices + j % slices * 2 + 1,
-            slices + (i - 1) * 3 * slices + (j - 1 + slices) % slices * 3 + 2,
-        ]);
-      }
-    }
-  }
-
-  for (var j = 0; j < slices; ++j) {
-    var v00 = 2 + (stacks - 1) * slices;
-    var v01 = 2 + (stacks - 2) * slices + j;
-    var v10 = 2 + (stacks - 2) * slices + (j + 1) % slices;
-
-    edges.push([v01, v10]);
-    edges.push([v00, v01]);
-    faces.push([
-      -(slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 1),
-      +(slices + (stacks - 2) * slices * 3 + (j + 1) % slices * 2 + 2),
-      -(slices + (stacks - 2) * slices * 3 + (j + 0) % slices * 2 + 2),
-    ]);
-  }
-
-  return new shapy.editor.Object(id, scene, verts, edges, faces);
-};
-
-
-
-/**
- * Vertex of an object.
- *
- * @constructor
- * @extends {shapy.editor.Editable}
- *
- * @param {!shapy.editor.Object} object
- * @param {number} id
- * @param {number} x
- * @param {number} y
- * @param {number} z
- */
-shapy.editor.Object.Vertex = function(object, id, x, y, z) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.VERTEX);
-
-  /** @public {!shapy.editor.Object} @const */
-  this.object = object;
-  /** @public {!number} @const */
-  this.id = id;
-
-  /**
-   * Position of the vertex.
-   * @public {!goog.vec.Vec3.Type} @const
-   */
-  this.position = goog.vec.Vec3.createFloat32FromValues(x, y, z);
-
-  /**
-   * UV coordinate of the vertex.
-   * @public {!goog.vec.Vec2.Type} @const
-   */
-  this.uv = goog.vec.Vec2.createFloat32();
-};
-goog.inherits(shapy.editor.Object.Vertex, shapy.editor.Editable);
-
-
-/**
- * Retrieves the vertex position.
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.Object.Vertex.prototype.getPosition = function() {
-  var position = goog.vec.Vec3.createFloat32();
-  goog.vec.Mat4.multVec3(this.object.model_, this.position, position);
-  return position;
-};
-
-
-/**
- * Retrieves the object edited.
- *
- * @return {shapy.editor.Object}
- */
-shapy.editor.Object.Vertex.prototype.getObject = function() {
-  return this.object;
-};
-
-
-/**
- * Translate the Vertex.
- *
- * @param {number} dx
- * @param {number} dy
- * @param {number} dz
- */
-shapy.editor.Object.Vertex.prototype.translate = function(dx, dy, dz) {
-  goog.vec.Vec3.setFromValues(
-      this.position,
-      this.position[0] + dx,
-      this.position[1] + dy,
-      this.position[2] + dz
-  );
-  goog.vec.Mat4.multVec3NoTranslate(
-      this.object.invModel_, this.position, this.position);
-  this.object.dirtyMesh = true;
-};
-
-
-/**
- * Retrives the vertices forming this vertex (pretty trivial).
- *
- * @return {!Array<shapy.editor.Object.Vertex>}
- */
-shapy.editor.Object.Vertex.prototype.getVertices = function() {
-  return [this];
-};
-
-
-/**
- * Deletes the edge and all faces that use it.
- */
-shapy.editor.Object.Vertex.prototype.delete = function() {
-  goog.object.remove(this.object.verts, this.id);
-
-  this.object.edges = goog.object.filter(this.object.edges, function(edge) {
-    return (
-      goog.object.containsKey(this.object.verts, edge.start) &&
-      goog.object.containsKey(this.object.verts, edge.end)
-    );
-  }, this);
-
-  this.object.faces = goog.object.filter(this.object.faces, function(face) {
-    return (
-      goog.object.containsKey(this.object.edges, Math.abs(face.e0)) &&
-      goog.object.containsKey(this.object.edges, Math.abs(face.e1)) &&
-      goog.object.containsKey(this.object.edges, Math.abs(face.e2)));
-  }, this);
-
-  this.object.dirtyMesh = true;
-};
-
-
-
-/**
- * Edge of an object.
- *
- * @constructor
- * @extends {shapy.editor.Editable}
- *
- * @param {!shapy.editor.Object} object
- * @param {number}               id
- * @param {number}               start
- * @param {number}               end
- */
-shapy.editor.Object.Edge = function(object, id, start, end) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDGE);
-
-  /** @public {!shapy.editor.Object} @const */
-  this.object = object;
-  /** @public {!number} @const */
-  this.id = id;
-  /** @public {number} @const */
-  this.start = start;
-  /** @public {number} @const */
-  this.end = end;
-};
-goog.inherits(shapy.editor.Object.Edge, shapy.editor.Editable);
-
-
-/**
- * Retrieves the edge position.
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.Object.Edge.prototype.getPosition = function() {
-  var a = this.object.verts[this.start].position;
-  var b = this.object.verts[this.end].position;
-  var t = goog.vec.Vec3.createFloat32();
-
-  goog.vec.Vec3.add(a, b, t);
-  goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Mat4.multVec3(this.object.model_, t, t);
-
-  return t;
-};
-
-
-/**
- * Retrieves the object edited.
- *
- * @return {shapy.editor.Object}
- */
-shapy.editor.Object.Edge.prototype.getObject = function() {
-  return this.object;
-};
-
-
-/**
- * Retrives the vertices forming an edge.
- */
-shapy.editor.Object.Edge.prototype.getVertices = function() {
-  return [
-    this.object.verts[this.start],
-    this.object.verts[this.end]
-  ];
-};
-
-
-/**
- * Deletes the edge and all faces that use it.
- */
-shapy.editor.Object.Edge.prototype.delete = function() {
-  goog.object.remove(this.object.edges, this.id);
-
-  this.object.faces = goog.object.filter(this.object.faces, function(face) {
-    return (
-      goog.object.containsKey(this.object.edges, Math.abs(face.e0)) &&
-      goog.object.containsKey(this.object.edges, Math.abs(face.e1)) &&
-      goog.object.containsKey(this.object.edges, Math.abs(face.e2)));
-  }, this);
-
-  this.object.dirtyMesh = true;
-};
-
-
-
-/**
- * Face of an object.
- *
- * @constructor
- * @extends {shapy.editor.Editable}
- *
- * @param {!shapy.editor.Object} object
- * @param {number}               id
- * @param {number}               e0
- * @param {number}               e1
- * @param {number}               e2
- */
-shapy.editor.Object.Face = function(object, id, e0, e1, e2) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.FACE);
-
-  /** @public {!shapy.editor.Object} @const */
-  this.object = object;
-  /** @public {!number} @const */
-  this.id = id;
-  /** @public {number} @const */
-  this.e0 = e0;
-  /** @public {number} @const */
-  this.e1 = e1;
-  /** @public {number} @const */
-  this.e2 = e2;
-  /** @public {number} @const */
-  this.uv0 = 0;
-  /** @public {number} @const */
-  this.uv1 = 0;
-  /** @public {number} @const */
-  this.uv2 = 0;
-};
-goog.inherits(shapy.editor.Object.Face, shapy.editor.Editable);
-
-
-/**
- * Retrieves the edges forming a face.
- *
- * @return {!Array<!shapy.editor.Object.Edge>}
- */
-shapy.editor.Object.Face.prototype.getEdges = function() {
-  return [
-    this.object.edges[this.e0 >= 0 ? this.e0 : -this.e0],
-    this.object.edges[this.e1 >= 0 ? this.e1 : -this.e1],
-    this.object.edges[this.e2 >= 0 ? this.e2 : -this.e2]
-  ];
-};
-
-
-/**
- * Retrives the vertices forming a face.
- *
- * @return {!Array<!shapy.editor.Object.Vertex>}
- */
-shapy.editor.Object.Face.prototype.getVertices = function() {
-  var e = this.getEdges();
-  return [
-    this.object.verts[this.e0 >= 0 ? e[0].start : e[0].end],
-    this.object.verts[this.e1 >= 0 ? e[1].start : e[1].end],
-    this.object.verts[this.e2 >= 0 ? e[2].start : e[2].end],
-  ];
-};
-
-
-/**
- * Retrieves the object edited.
- *
- * @return {shapy.editor.Object}
- */
-shapy.editor.Object.Face.prototype.getObject = function() {
-  return this.object;
-};
-
-
-/**
- * Retrives the positions of vertices forming a face.
- *
- * @private
- *
- * @return {!Array<shapy.editor.Object.Edge>}
- */
-shapy.editor.Object.Face.prototype.getVertexPositions_ = function() {
-  var verts = this.getVertices();
-  return [
-      verts[0].position,
-      verts[1].position,
-      verts[2].position
-  ];
-};
-
-
-/**
- * Calculate the normal of the face
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.Object.Face.prototype.calculateNormal = function() {
-  var normal = goog.vec.Vec3.createFloat32();
-  var ab = goog.vec.Vec3.createFloat32();
-  var ac = goog.vec.Vec3.createFloat32();
-  var verts = this.getVertexPositions_();
-
-  goog.vec.Vec3.subtract(verts[1], verts[0], ab);
-  goog.vec.Vec3.subtract(verts[2], verts[0], ac);
-  goog.vec.Vec3.cross(ac, ab, normal);
-  goog.vec.Vec3.normalize(normal, normal);
-
-  return normal;
-};
-
-
-/**
- * Retrieves the face position.
- *
- * @return {!goog.vec.Vec3.Type}
- */
-shapy.editor.Object.Face.prototype.getPosition = function() {
-  var t = this.getVertexPositions_();
-  var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
-  goog.vec.Mat4.multVec3(this.object.model_, c, c);
-  return c;
-};
-
-
-/**
- * Deletes the face.
- */
-shapy.editor.Object.Face.prototype.delete = function() {
-  goog.object.remove(this.object.faces, this.id);
-  this.object.dirtyMesh = true;
-};
-
-
 
 /**
  * UV coordinate.
@@ -1330,17 +851,17 @@ shapy.editor.Object.Face.prototype.delete = function() {
  * @constructor
  * @extends {shapy.editor.Editable}
  *
- * @param {!shapy.editor.Object.Objecr} object
- * @param {!shapy.editor.Object.Face}   face
- * @param {=number}                     opt_u
- * @param {=number}                     opt_v
+ * @param {!shapy.editor.Object} object
+ * @param {!shapy.editor.Face}   face
+ * @param {=number}              opt_u
+ * @param {=number}              opt_v
  */
 shapy.editor.Object.UV = function(object, face, opt_u, opt_v) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.UV);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
-  /** @public {!shapy.editor.Object.Face} */
+  /** @public {!shapy.editor.Face} */
   this.face = face;
   /** @public {number} */
   this.u = opt_u || 0.0;
@@ -1348,4 +869,3 @@ shapy.editor.Object.UV = function(object, face, opt_u, opt_v) {
   this.v = opt_v || 0.0;
 };
 goog.inherits(shapy.editor.Object.UV, shapy.editor.Editable);
-

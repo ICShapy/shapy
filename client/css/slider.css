@@ -1,0 +1,31 @@
+
+.goog-slider-horizontal {
+  background-color: ThreeDFace;
+  position: relative;
+  overflow: hidden;
+  height: 10px;
+  margin: 10px;
+}
+
+.goog-slider-thumb {
+  position: absolute;
+  background-color: ThreeDShadow;
+  overflow: hidden;
+  height: 5px;
+}
+
+.goog-slider-vertical .goog-slider-thumb {
+  left: 0;
+  height: 20px;
+  width: 100%;
+}
+
+.goog-slider-horizontal .goog-slider-thumb {
+  top: 0;
+  width: 20px;
+  height: 100%;
+}
+
+.goog-hsv-palette-sm {
+  border: none !important;
+}

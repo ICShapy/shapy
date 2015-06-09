@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/editor.css" />
     <link rel="stylesheet" href="/css/browser.css" />
+    <link rel="stylesheet" href="/css/slider.css" />
+    <link rel="stylesheet" href="/js/goog/css/hsvpalette.css" />
     <link rel="stylesheet" href="/css/sharing.css" />
 
     <!-- External dependencies. -->
@@ -45,7 +47,9 @@
       goog.addDependency('../browser/scene.js', [
           'shapy.browser.Asset.Scene'
       ], [
-          'shapy.browser.Asset'
+          'shapy.browser.Asset',
+          'shapy.editor.create',
+          'shapy.editor.Object'
       ]);
       goog.addDependency('../browser/service.js', [
           'shapy.browser.Service'
@@ -71,6 +75,7 @@
           'shapy.editor.Rig.Translate',
           'shapy.editor.Rig.Rotate',
           'shapy.editor.Rig.Scale',
+          'shapy.editor.Texture',
           'shapy.editor.Mode'
       ]);
       goog.addDependency('../editor/executor.js', [
@@ -94,7 +99,31 @@
       goog.addDependency('../editor/object.js', [
           'shapy.editor.Object'
       ], [
+          'shapy.editor.Editable',
           'shapy.editor.geom',
+          'shapy.editor.Edge',
+          'shapy.editor.Face',
+          'shapy.editor.Vertex',
+          'shapy.editor.Texture'
+      ]);
+      goog.addDependency('../editor/object-factory.js', [
+          'shapy.editor.create'
+      ], [
+          'shapy.editor.Object'
+      ]);
+      goog.addDependency('../editor/object-vertex.js', [
+          'shapy.editor.Vertex'
+      ], [
+          'shapy.editor.Editable'
+      ]);
+      goog.addDependency('../editor/object-edge.js', [
+          'shapy.editor.Edge'
+      ], [
+          'shapy.editor.Editable'
+      ]);
+      goog.addDependency('../editor/object-face.js', [
+          'shapy.editor.Face'
+      ], [
           'shapy.editor.Editable'
       ]);
       goog.addDependency('../editor/renderer.js', [
@@ -138,6 +167,9 @@
       ]);
       goog.addDependency('../editor/shader.js', [
           'shapy.editor.Shader'
+      ], []);
+      goog.addDependency('../editor/texture.js', [
+          'shapy.editor.Texture'
       ], []);
       goog.addDependency('../editor/toolbar.js', [
           'shapy.editor.ToolbarController'
