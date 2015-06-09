@@ -92,6 +92,7 @@ def main(args):
 
   # Connect to the postgresql database.
   app.db = momoko.Pool(
+      cursor_factory=psycopg2.extras.DictCursor,
       dsn='dbname=%s user=%s password=%s host=%s port=%d' %
           (app.DB_NAME, app.DB_USER, app.DB_PASS, app.DB_HOST, app.DB_PORT),
       size=1)
