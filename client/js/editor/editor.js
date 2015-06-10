@@ -196,23 +196,6 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
    * @private {!goog.vec.Vec3.Type}
    */
   this.brushColour_ = goog.vec.Vec3.createFloat32(0, 0, 0);
-
-  // Watch for changes in the name.
-  $rootScope.$watch(goog.bind(function() {
-    return this.scene_ && this.scene_.name;
-  }, this), goog.bind(function(newName, oldName) {
-    if (newName == oldName) {
-      return;
-    }
-    this.exec_.sendCommand({ type: 'name', value: newName });
-  }, this));
-
-  // Watch for changes in the mode.
-  this.rootScope_.$watch(goog.bind(function() {
-    return this.mode;
-  }, this), goog.bind(function(newMode, oldMode) {
-    this.modeChange_();
-  }, this), true);
 };
 
 
@@ -277,6 +260,7 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
   this.rigRotate_.onFinish = goog.bind(this.exec_.emitRotate, this.exec_);
   this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
+  this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
 };
 
 
@@ -308,6 +292,36 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
     this.snapshot_();
     this.scene_.save();
   }, this), 10000);
+
+  // Watch for changes in the name.
+  var name = this.rootScope_.$watch(goog.bind(function() {
+    return this.scene_ && this.scene_.name;
+  }, this), goog.bind(function(newName, oldName) {
+    if (newName == oldName) {
+      return;
+    }
+    if (this.exec_) {
+      this.exec_.sendCommand({ type: 'name', value: newName });
+    }
+  }, this));
+
+  // Watch for changes in the mode.
+  var mode = this.rootScope_.$watch(goog.bind(function() {
+    return this.mode;
+  }, this), goog.bind(function(newMode, oldMode) {
+    this.modeChange_();
+  }, this), true);
+
+  var onClose = goog.bind(function() {
+    name();
+    mode();
+    location();
+  }, this);
+
+  // Watch for changes in location.
+  var location = this.rootScope_.$on('$locationChangeStart', function(e) {
+    onClose();
+  });
 };
 
 
@@ -530,7 +544,7 @@ shapy.editor.Editor.prototype.extrude_ = function() {
   }
 
   // Send a message to the server to extrude.
-  this.exec_.emitExtrude(this.partGroup_);
+  this.exec_.emitExtrude(object, this.partGroup_);
 
   // Extrude.
   var extrudeData = object.extrude(faces);
@@ -680,13 +694,6 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
   var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV;
 
-  // If we're extruding, stop
-  if (this.rig_ == this.rigExtrude_) {
-    this.partGroup_.getObject().projectUV();
-    this.rig(this.rigTranslate_);
-    return;
-  }
-
   // TOOD: do it nicer.
   // If viewports want the event, give up.
   if ((!(ray = this.layout_.mouseUp(e)) && !selectUV) ||
@@ -816,10 +823,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
-  // Only allow this click if we're not extruding
-  if (this.rig_ != this.rigExtrude_) {
-    this.layout_.mouseDown(e);
-  }
+  this.layout_.mouseDown(e);
 };
 
 

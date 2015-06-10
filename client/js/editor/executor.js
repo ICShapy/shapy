@@ -185,11 +185,11 @@ shapy.editor.Executor.prototype.emitCreate = function(type) {
 shapy.editor.Executor.prototype.applyCreate = function(data) {
   switch (data['object']) {
     case 'cube': {
-      this.scene_.createCube(0.5, 0.5, 0.5);
+      this.scene_.createCube(0.5, 0.5, 0.5, data['seq']);
       break;
     }
     case 'sphere': {
-      this.scene_.createSphere(0.5, 16, 16);
+      this.scene_.createSphere(0.5, 16, 16, data['seq']);
       break;
     }
     default: {
@@ -287,9 +287,9 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
  * Executes the translate command.
  *
  * @param {shapy.editor.Editable.Type} obj Object to be translated.
- * @param {number}                   dx    Delta on x.
- * @param {number}                   dy    Delta on y.
- * @param {number}                   dz    Delta on z.
+ * @param {number}                     dx  Delta on x.
+ * @param {number}                     dy  Delta on y.
+ * @param {number}                     dz  Delta on z.
  */
 shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
   var data = {
@@ -580,16 +580,18 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
 /**
  * Executes extrude command.
  *
- * @param {shapy.editor.Editable} obj
+ * @param {shapy.editor.Editable} obj   Object the group belonds to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
-shapy.editor.Executor.prototype.emitExtrude = function(obj) {
-  var data = {
+shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
+  this.sendCommand({
     type: 'edit',
-    tool: 'delete',
+    tool: 'extrude',
     userId: this.editor_.user.id,
-  };
 
-  this.sendCommand(data);
+    objId: obj.id,
+    faceIds: group.getFaceIds()
+  });
 };
 
 
@@ -604,4 +606,10 @@ shapy.editor.Executor.prototype.applyExtrude = function(data) {
     return;
   }
 
+  var object = this.scene_.objects[data['objId']];
+
+  // Extrude the faces.
+  object.extrude(goog.array.map(data['faceIds'], function(faceId) {
+    return object.faces[faceId];
+  }, this));
 };

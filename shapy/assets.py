@@ -40,7 +40,7 @@ class SharedHandler(APIHandler):
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
       '''SELECT assets.id, assets.name, assets.type, assets.preview,
-                assets.owner, permissions.write
+                assets.owner, assets.public, permissions.write
          FROM assets
          INNER JOIN permissions
          ON assets.id = permissions.asset_id
@@ -55,14 +55,16 @@ class SharedHandler(APIHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3],
+          'preview': str(item[3]) if item[3] else '',
           'owner': item[4] == int(user.id),
-          'write': item[5]
+          'public': item[5],
+          'write': item[6]
         }
         for item in cursor.fetchall()
       ]
@@ -99,7 +101,7 @@ class FilteredHandler(APIHandler):
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview
+      '''SELECT id, name, type, preview, public
          FROM assets
          WHERE type = %s
            AND owner = %s
@@ -114,12 +116,14 @@ class FilteredHandler(APIHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3],
+          'preview': str(item[3]) if item[3] else '',
+          'public': item[4],
           'owner': True,
           'write': True
         }
@@ -173,12 +177,14 @@ class PublicHandler(APIHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
-          'preview': item[3],
+          'preview': str(item[3]) if item[3] else '',
+          'public': True,
           'owner': item[4] == int(user.id),
           'write': item[4] == int(user.id) or item[0] in assetsWrite
         }
@@ -249,6 +255,7 @@ class AssetHandler(APIHandler):
         'name': data[1],
         'owner': True,
         'write': True,
+        'public': False,
         'data': []
     }))
     self.finish()
@@ -302,6 +309,13 @@ class AssetHandler(APIHandler):
     id = int(self.get_argument('id'))
     name = self.get_argument('name', None)
     data = self.get_argument('data', None)
+    public = self.get_argument('public', None)
+    if public is not None:
+      public = bool(int(public))
+
+    # Block changing public setting of a dir
+    if public is not None and self.TYPE == 'dir':
+      raise HTTPError(400, 'Asset update failed.')
 
     # Check if user has write permission
     cursor = yield momoko.Op(self.db.execute,
@@ -311,11 +325,13 @@ class AssetHandler(APIHandler):
          ON permissions.asset_id = assets.id
          WHERE assets.id = %(id)s
            AND ((permissions.user_id = %(user)s AND
-                 permissions.write IS TRUE) OR
+                 permissions.write IS TRUE AND
+                 %(public)s IS NULL) OR
                 (assets.owner = %(user)s))
       ''', {
       'id': id,
-      'user': user.id
+      'user': user.id,
+      'public': public
     })
 
     if not cursor.fetchone():
@@ -324,17 +340,17 @@ class AssetHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets
          SET name = COALESCE(%(name)s, name),
-             data = COALESCE(%(data)s, data)
+             data = COALESCE(%(data)s, data),
+             public = COALESCE(%(public)s, public)
          WHERE id = %(id)s
          RETURNING id
       ''', {
       'id': id,
       'name': name,
-      'data': psycopg2.extras.Json(data) if data else None
+      'data': psycopg2.extras.Json(data) if data else None,
+      'public': public
     })
 
-    if not cursor.fetchone():
-      raise HTTPError(500, 'Asset update failed.')
     self.finish()
 
 
@@ -383,7 +399,7 @@ class DirHandler(AssetHandler):
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview
+      '''SELECT id, name, type, preview, public
          FROM assets
          WHERE parent = %s
            AND owner = %s
@@ -398,12 +414,14 @@ class DirHandler(AssetHandler):
       'name': data[1],
       'owner': True,
       'write': True,
+      'public': False,
       'data': [
         {
           'id': item[0],
           'name': item[1],
           'type': item[2],
           'preview': str(item[3]) if item[3] else '',
+          'public': item[4],
           'owner': True,
           'write': True
         }
@@ -426,6 +444,10 @@ class SceneHandler(AssetHandler):
   def get(self, user):
     """Retrieves a scene from the database."""
 
+    id = self.get_argument('id')
+    if not id:
+      raise HTTPError(400, 'Invalid asset ID')
+
     # Fetch data from the asset and permission table.
     # The write flag will have 3 possible values: None, True, False
     cursor = yield momoko.Op(self.db.execute,
@@ -438,7 +460,7 @@ class SceneHandler(AssetHandler):
            AND (permissions.user_id = %(user)s OR
                 permissions.user_id IS NULL)
       ''', {
-        'id': self.get_argument('id'),
+        'id': id,
         'user': user.id if user else -1,
         'type': self.TYPE
     })
@@ -447,7 +469,7 @@ class SceneHandler(AssetHandler):
     if not data:
       raise HTTPError(404, 'Asset not found.')
 
-    if data['owner'] == user.id:
+    if user and data['owner'] == user.id:
       # Owner - full permissions.
       owner = True
       write = True
@@ -462,13 +484,14 @@ class SceneHandler(AssetHandler):
     else:
       # Shared asset - permission in table.
       owner = False
-      write = data['write']
+      write = user is not None and data['write']
 
     self.write(json.dumps({
         'id': data['id'],
         'name': data['name'],
         'preview': str(data['preview'] or ''),
         'data': json.loads(data['data'] or 'null'),
+        'public': data['public'],
         'owner': owner,
         'write': write
     }))

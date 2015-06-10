@@ -60,7 +60,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
    * Texture attached to the object.
    * @public {!shapy.editor.Texture}
    */
-  this.texture = null;
+  this.texture = new shapy.editor.Texture(512, 512);
 
   /**
    * @private {goog.vec.Vec3}

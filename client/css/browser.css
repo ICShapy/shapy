@@ -7,7 +7,7 @@ sh-sidebar {
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
   z-index: 1000;
-  overflow: scroll;
+  overflow: auto;
 }
 
 /**
@@ -207,12 +207,23 @@ sh-sidebar-folder {
  * Assets
  */
 
-sh-assets {
+.assets-browser {
   position: fixed;
   top: 31px;
   left: 222px;
   right: 0;
   bottom: 0;
+}
+
+.assets-public {
+  position: fixed;
+  top: 31px;
+  left: 0px;
+  right: 0;
+  bottom: 0;
+}
+
+sh-assets {
   padding: 20px 0 0 20px;
   display: grid;
   background-color: #eeeeee;

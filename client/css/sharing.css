@@ -36,7 +36,7 @@
   top: 70px;
   margin-left: 5px;
   height: 200px;
-  overflow: scroll;
+  overflow: auto;
   line-height: 20px;
   list-style-type: none;
 }

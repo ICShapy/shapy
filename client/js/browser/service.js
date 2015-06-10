@@ -406,6 +406,8 @@ shapy.browser.Service.prototype.delete_ = function(url, asset, cache) {
 };
 
 
+
+
 /**
  * Recursively removes assets from caches
  *
@@ -482,6 +484,33 @@ shapy.browser.Service.prototype.setPermissions = function(asset, permissions) {
     return [permission.email, permission.write];
   });
   return this.http_.post('/api/permissions', {id: asset.id, permissions: JSON.stringify(permJSON)});
+};
+
+
+/**
+ * Sets public/private setting of an asset.
+ *
+ * @param {string}               url    URL of the resource.
+ * @param {!shapy.browser.Asset} asset  Asset which public/private setting we change.
+ * @param {boolean}              public New public/private setting.
+ */
+shapy.browser.Service.prototype.setPublic_ = function(url, asset, public) {
+  return this.http_.put(url, {
+    id: asset.id,
+    public: (public) ? 1 : 0,
+  }).then(function() {
+      asset.public = public;
+  });
+};
+
+/**
+ * Sets public/private setting of a scene.
+ *
+ * @param {!shapy.browser.Asset.Scene} scene Scene which public setting we update.
+ * @param {boolean}                     name  New name.
+ */
+shapy.browser.Service.prototype.setPublicScene = function(scene, public) {
+  this.setPublic_('/api/assets/scene', scene, public);
 };
 
 

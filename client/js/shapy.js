@@ -13,6 +13,7 @@ goog.require('shapy.browser.assetMatch');
 goog.require('shapy.browser.assetOrder');
 goog.require('shapy.browser.assets');
 goog.require('shapy.browser.directories');
+goog.require('shapy.browser.public');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.browser.share');
 goog.require('shapy.editable');
@@ -101,16 +102,31 @@ shapy.configStates_ = function(
         }
       }
     })
+    .state('main.public', {
+      url: 'public',
+      resolve: {
+        home: function(shBrowser) {
+          return shBrowser.getPublic();
+        }
+      },
+      views: {
+        'body@': {
+          templateUrl: '/html/public.html',
+          controller: shapy.browser.BrowserController,
+          controllerAs: 'browserCtrl'
+        },
+        'toolbar': {
+          templateUrl: '/html/public-toolbar.html',
+          controller: shapy.browser.BrowserToolbarController,
+          controllerAs: 'browserCtrl'
+        }
+      }
+    })
     .state('main.editor', {
       url: 'editor/:sceneID',
       resolve: {
         user: function($q, shUser) {
-          return shUser.auth().then(function(user) {
-            if (!user) {
-              return $q.reject();
-            }
-            return user;
-          });
+          return shUser.auth();
         },
         scene: function(shBrowser, $stateParams) {
           return shBrowser.getScene($stateParams['sceneID']);
@@ -245,6 +261,7 @@ shapy.module = angular
   .service('shEditor', shapy.editor.Editor)
   .service('shModal', shapy.modal.Service)
 
+  .directive('shPublic', shapy.browser.public)
   .directive('shShare', shapy.browser.share)
   .directive('shSidebar', shapy.browser.sidebar)
   .directive('shAssets', shapy.browser.assets)

@@ -8,6 +8,7 @@ goog.provide('shapy.browser.assetMatch');
 goog.provide('shapy.browser.assetOrder');
 goog.provide('shapy.browser.asset');
 goog.provide('shapy.browser.assets');
+goog.provide('shapy.browser.public');
 goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.share');
 
@@ -66,9 +67,7 @@ shapy.browser.BrowserController.prototype.select = function(asset, enter) {
       break;
     }
     case shapy.browser.Asset.Type.SCENE: {
-      this.shBrowser_.getScene(asset.id).then(goog.bind(function(asset) {
-        this.state_.go('main.editor', { sceneID: asset.id });
-      }, this));
+      this.state_.go('main.editor', { sceneID: asset.id });
       break;
     }
     default :
@@ -123,6 +122,7 @@ shapy.browser.BrowserController.prototype.rename = function(asset, name) {
       break;
   }
 };
+
 
 /**
  * Returns the current directory.
@@ -582,6 +582,39 @@ shapy.browser.share = function(shModal, shBrowser) {
             return;
           }
           share($scope.asset);
+      });
+    }
+  };
+
+};
+
+
+
+/**
+ * Public setting directive.
+ *
+ * @param {!shapy.browser.Service}     shBrowser
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.public = function(shBrowser) {
+  return {
+    restrict: 'E',
+    scope: {
+     asset: '='
+    },
+    link: function($scope, $elem, $attrs) {
+
+      $elem.bind('mousedown', function(evt) {
+          // Block if not owner
+          if (!$scope.asset.owner) {
+            return;
+          }
+          switch($scope.asset.type) {
+            case shapy.browser.Asset.Type.SCENE:
+              shBrowser.setPublicScene($scope.asset, !$scope.asset.public);
+              break;
+          }
       });
     }
   };
