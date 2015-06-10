@@ -171,8 +171,8 @@ shapy.editor.Viewport.prototype.raycast = function(x, y) {
   var d = this.zoom / 1000, w = shapy.editor.Viewport.UV.SIZE;
 
   return {
-    x: (((x - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
-    y: (((y - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w)
+    u: (((x - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    v: (((y - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w)
   };
 };
 
@@ -191,10 +191,10 @@ shapy.editor.Viewport.prototype.groupcast = function(group) {
   var y0 = group.top, y1 = group.top + group.height;
 
   return {
-    x0: (((x0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
-    x1: (((x1 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
-    y0: (((y0 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w),
-    y1: (((y1 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w)
+    u0: (((x0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    u1: (((x1 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    v0: (((y0 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w),
+    v1: (((y1 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w)
   };
 };
 
@@ -220,11 +220,12 @@ shapy.editor.Viewport.UV.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
+ * @param {boolean} isPainting
  *
  * @return {boolean}
  */
-shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y) {
-  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y);
+shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, isPainting) {
+  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y, isPainting);
   if (this.isPanning_) {
     this.pan.x = this.initialPan_.x + x - this.lastClick.x;
     this.pan.y = this.initialPan_.y + y - this.lastClick.y;

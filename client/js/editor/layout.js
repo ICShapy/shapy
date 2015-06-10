@@ -116,7 +116,7 @@ shapy.editor.Layout.prototype.toggleUV = function() {
     }, this);
   }
 
-  this.active = this[name];
+  this.active = this.hover = this[name];
   this.active.active = true;
 
   this.resize(this.size.width, this.size.height);

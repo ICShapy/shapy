@@ -762,12 +762,17 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, hits = [], hit, ray, objs, frustum;
+  if (!this.layout_.hover) {
+    return;
+  }
+
+  var pick, hits = [], hit, ray, frustum, uv, object, texture;
   var group = this.layout_.hover && this.layout_.hover.group;
+  var isUV = this.layout_.hover.type == shapy.editor.Viewport.Type.UV;
 
   // Find the entity under the mouse.
   ray = this.layout_.mouseMove(e, this.mode.paint);
-  if (this.layout_.hover.type == shapy.editor.Viewport.Type.EDIT) {
+  if (!isUV) {
     if (!!ray) {
       hit = this.scene_.pickRay(ray, this.mode);
       hits = hit ? [hit] : [];
@@ -789,21 +794,27 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   }
 
   // Filter out all parts that do not belong to the current object.
-  if (this.mode.object) {
+  if (this.mode.paint) {
+    if (!isUV && !goog.array.isEmpty(hits) && e.which == 1) {
+      uv = hits[0].pickUV(ray);
+      object = hits[0].object;
+    } else if (isUV && e.which == 1) {
+      uv = this.layout_.hover.raycast(e.offsetX, e.offsetY);
+      object = this.layout_.hover.object;
+    } else {
+      uv = null;
+      object = null;
+    }
+    if (uv && object && (texture = this.scene_.textures[object.texture])) {
+      texture.paint(uv.u, uv.v, this.brushColour_, this.brushRadius_);
+    }
+    pick = [];
+  } else if (this.mode.object) {
     pick = hits;
   } else {
     pick = goog.array.filter(hits, function(e) {
       return this.objectGroup_.contains(e.object);
     }, this);
-  }
-
-  if (this.mode.paint && !goog.array.isEmpty(pick) && e.which == 1) {
-    var object = pick[0].object;
-    var uv = pick[0].pickUV(ray);
-    if (this.scene_.textures[object.texture]) {
-      this.scene_.textures[object.texture].paint(
-          uv.u, uv.v, this.brushColour_, this.brushRadius_);
-    }
   }
 
   // Highlight the current object.

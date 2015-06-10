@@ -372,11 +372,11 @@ shapy.editor.geom.quatFromEulerAngles = function(x, y, z, q) {
  * Computes euclidean distance between 2 points in 2D.
  *
  * @param {!goog.vec.Vec2.Type} p0
- * @param {number}              x
- * @param {number}              y
+ * @param {number}              u
+ * @param {number}              v
  */
-shapy.editor.geom.dist2D = function(p0, x, y) {
-  return Math.sqrt(Math.pow(p0.x - x, 2) + Math.pow(p0.y - y, 2));
+shapy.editor.geom.dist2D = function(p0, u, v) {
+  return Math.sqrt(Math.pow(p0.u - u, 2) + Math.pow(p0.v - v, 2));
 };
 
 
@@ -384,12 +384,12 @@ shapy.editor.geom.dist2D = function(p0, x, y) {
  * Determines if a 2D point lies whithin a square.
  *
  * @param {!{x0: number, x1: number, y0: number, y1: number}} square
- * @param {number}                                            x
- * @param {number}                                            y
+ * @param {number}                                            u
+ * @param {number}                                            v
  */
-shapy.editor.geom.intersectSquare = function(square, x, y) {
+shapy.editor.geom.intersectSquare = function(square, u, v) {
   return (
-    square.x0 <= x && x <= square.x1 &&
-    square.y0 <= y && y <= square.y1
+    square.u0 <= u && u <= square.u1 &&
+    square.v0 <= v && v <= square.v1
   );
 };
