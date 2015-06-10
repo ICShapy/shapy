@@ -306,19 +306,23 @@ class AssetHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'User not logged in.')
     id = int(self.get_argument('id'))
-    name = self.get_argument('name')
+    name = self.get_argument('name', None)
+    publicStr = self.get_argument('public', None)
+    public = bool(int(publicStr)) if publicStr is not None else None
 
-    # Check if user has write permission
+    # Block changing public setting of a dir
+    if public is not None and self.TYPE == 'dir':
+      raise HTTPError(400, 'Asset update failed.')
+
+    # Check if user has permissions
     cursors = yield momoko.Op(self.db.transaction, (
       (
-      '''SELECT 1
+      '''SELECT name, public, owner
          FROM assets
          WHERE id = %s
-           AND owner = %s
       ''',
         (
           id,
-          user.id,
         )
       ),
       (
@@ -336,18 +340,31 @@ class AssetHandler(APIHandler):
       )
       ))
 
-    if not cursors[0].fetchone() and not cursors[1].fetchone():
+    data = cursors[0].fetchone()
+    if not data:
       raise HTTPError(400, 'Asset update failed.')
+    if data[2] != int(user.id):
+      # Public setting update requires ownership
+      if public is not None:
+        raise HTTPError(400, 'Asset update failed.')
+      elif not cursors[1].fetchone():
+        # Renaming requires write perm.
+        raise HTTPError(400, 'Asset update failed.')
 
-    # Update the name.
+    # Use new settings if provided or keep the old ones
+    name = name if name is not None else data[0]
+    public = public if public is not None else data[1]
+
+    # Update the asset.
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets
-         SET name = %s
+         SET name = %s, public = %s
          WHERE id = %s
            AND type = %s
          RETURNING id
       ''', (
       name,
+      public,
       id,
       self.TYPE
       ))
