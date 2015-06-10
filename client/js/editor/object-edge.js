@@ -87,5 +87,5 @@ shapy.editor.Edge.prototype.delete = function() {
       goog.object.containsKey(this.object.edges, Math.abs(face.e2)));
   }, this);
 
-  this.object.dirtyMesh = true;
+  this.object.dirty = true;
 };

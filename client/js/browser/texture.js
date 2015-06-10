@@ -9,73 +9,39 @@ goog.provide('shapy.browser.Texture');
  * Creates a new texture.
  *
  * @constructor
+ * @extends {shapy.browser.Asset}
  *
- * @param {=number} opt_width
- * @param {=number} opt_height
+ * @param {!shapy.browser.Service} shBrowser Browser service.
+ * @param {number}                 id        ID of the directory.
+ * @param {=Object}                opt_data  Source data.
  */
-shapy.browser.Texture = function(opt_width, opt_height) {
+shapy.browser.Texture = function(shBrowser, id, opt_data) {
+  shapy.browser.Asset.call(
+      this,
+      shBrowser,
+      id,
+      shapy.browser.Asset.Type.TEXTURE,
+      opt_data);
+
   /** @public {number} */
-  this.width = opt_width || 512;
+  this.width = 32;
   /** @public {number} */
-  this.height = opt_height || 512;
-  /** @private {WebGLTexture} */
-  this.texture_ = null;
-  /** @private {number} */
-  this.data_ = new Uint8Array(this.width * this.height * 3);
+  this.height = 32;
+  /** @public {boolean} */
+  this.dirty = true;
+  /** @public {boolean} */
+  this.deleted = false;
+
+  /**
+   * Raw texture data for editing.
+   * @public {number}
+   */
+  this.data = new Uint8Array(this.width * this.height * 3);
   for (var i = 0; i < this.width * this.height * 3; ++i) {
-    this.data_[i] = 0xFF;
-  }
-  /** @private {boolean} */
-  this.dirty_ = true;
-};
-
-
-/**
- * Builds the texture.
- *
- * @private
- *
- * @param {!WebGLContext} gl
- */
-shapy.browser.Texture.prototype.build_ = function(gl) {
-  this.texture_ = gl.createTexture();
-  gl.bindTexture(goog.webgl.TEXTURE_2D, this.texture_);
-  gl.texParameteri(
-      goog.webgl.TEXTURE_2D,
-      goog.webgl.TEXTURE_MAG_FILTER,
-      goog.webgl.LINEAR);
-  gl.texParameteri(
-      goog.webgl.TEXTURE_2D,
-      goog.webgl.TEXTURE_MIN_FILTER,
-      goog.webgl.LINEAR);
-};
-
-
-/**
- * Binds (and builds) the texture.
- *
- * @param {!WebGLContext} gl
- */
-shapy.browser.Texture.prototype.bind = function(gl) {
-  if (!this.texture_) {
-    this.build_(gl);
-  }
-
-  gl.bindTexture(goog.webgl.TEXTURE_2D, this.texture_);
-
-  if (this.dirty_) {
-    gl.texImage2D(
-        goog.webgl.TEXTURE_2D,
-        0,
-        goog.webgl.RGB,
-        this.width, this.height,
-        0,
-        goog.webgl.RGB,
-        goog.webgl.UNSIGNED_BYTE,
-        this.data_);
-    this.dirty_ = false;
+    this.data[i] = 0xFF;
   }
 };
+goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
 
 
 /**
@@ -97,15 +63,14 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
         continue;
       }
 
-      var a = 1.0 - Math.sqrt(
-          Math.pow((j - x) / size, 2) + Math.pow((i - y) / size, 2));
-      a = Math.max(Math.min(a, 1.0), 0.0);
-
       var k = i * this.width + j;
+      var dx = (j - x) / size;
+      var dy = (i - y) / size;
+      var a = Math.max(Math.min(1.0 - Math.sqrt(dx * dx + dy * dy), 1), 0);
 
-      var r = this.data_[k * 3 + 0];
-      var g = this.data_[k * 3 + 1];
-      var b = this.data_[k * 3 + 2];
+      var r = this.data[k * 3 + 0];
+      var g = this.data[k * 3 + 1];
+      var b = this.data[k * 3 + 2];
 
       r = r * (1 - a) + colour[0] * a;
       g = g * (1 - a) + colour[1] * a;
@@ -114,10 +79,11 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
       g = Math.max(Math.min(g, 255), 0);
       b = Math.max(Math.min(b, 255), 0);
 
-      this.data_[k * 3 + 0] = r;
-      this.data_[k * 3 + 1] = g;
-      this.data_[k * 3 + 2] = b;
+      this.data[k * 3 + 0] = r;
+      this.data[k * 3 + 1] = g;
+      this.data[k * 3 + 2] = b;
     }
   }
-  this.dirty_ = true;
+
+  this.dirty = true;
 };

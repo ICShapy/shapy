@@ -22,8 +22,6 @@ shapy.browser.Directory = function(shBrowser, id, opt_data) {
       id,
       shapy.browser.Asset.Type.DIRECTORY,
       opt_data);
-  var defer;
-
   /**
    * Child assets of this directory.
    * @public {!Array<!shapy.browser.Asset>}

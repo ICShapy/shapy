@@ -375,13 +375,12 @@ shapy.editor.Editor.prototype.render = function() {
     this.layout_.resize(width, height);
   }
 
-  // Synchronise meshes.
-  goog.object.forEach(this.scene_.objects, function(object, name, objects) {
-    object.computeModel();
-    if (object.dirtyMesh) {
-      this.renderer_.updateObject(object);
-      object.dirtyMesh = false;
-    }
+  // Synchronise meshes & textures.
+  goog.object.forEach(this.scene_.textures, function(texture) {
+    this.renderer_.updateTexture(texture);
+  }, this);
+  goog.object.forEach(this.scene_.objects, function(object) {
+    this.renderer_.updateObject(object);
   }, this);
 
   // Clear the screen, render the scenes and then render overlays.
@@ -799,9 +798,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   }
 
   if (this.mode.paint && !goog.array.isEmpty(pick) && e.which == 1) {
+    var object = pick[0].object;
     var uv = pick[0].pickUV(ray);
-    if (pick[0].object.texture) {
-      pick[0].object.texture.paint(
+    if (this.scene_.textures[object.texture]) {
+      this.scene_.textures[object.texture].paint(
           uv.u, uv.v, this.brushColour_, this.brushRadius_);
     }
   }

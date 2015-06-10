@@ -48,9 +48,17 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
 
   /**
    * List of objects in the scene.
-   * @public {!Object<string, shapy.Object>}
+   * @public {!Object<string, shapy.editor.Object>}
    */
   this.objects = {};
+
+  /**
+   * List of textures in the scene.
+   * @public {!Object<string, shapy.browser.Texture>}
+   */
+  this.textures = {
+    'tex_0': new shapy.browser.Texture(shBrowser, 'tex_0', {})
+  };
 
   /**
    * Next identifier.
@@ -126,7 +134,7 @@ shapy.browser.Scene.prototype.save = function() {
  */
 shapy.browser.Scene.prototype.destroy = function() {
   goog.object.forEach(this.objects, function(object) {
-    object.dirtyMesh = true;
+    object.dirty = true;
   }, this);
 };
 

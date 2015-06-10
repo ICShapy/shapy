@@ -84,7 +84,7 @@ shapy.editor.Vertex.prototype.translate = function(dx, dy, dz) {
   goog.vec.Mat4.multVec3NoTranslate(
       this.object.invModel_, this.position, this.position);
 
-  this.object.dirtyMesh = true;
+  this.object.dirty = true;
 };
 
 
@@ -118,5 +118,5 @@ shapy.editor.Vertex.prototype.delete = function() {
       goog.object.containsKey(this.object.edges, Math.abs(face.e2)));
   }, this);
 
-  this.object.dirtyMesh = true;
+  this.object.dirty = true;
 };
