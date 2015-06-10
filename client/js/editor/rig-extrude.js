@@ -39,7 +39,7 @@ shapy.editor.Rig.Extrude.prototype.build_ = function(gl) {
   var d = new Float32Array(6);
   var k = 0;
   d[k++] = 0.0; d[k++] = 0.0; d[k++] = -1000.0;
-  d[k++] = 0.0; d[k++] = 0.0; d[k++] = 1000.0;
+  d[k++] = 0.0; d[k++] = 0.0; d[k++] =  1000.0;
 
   this.mesh_ = gl.createBuffer();
   gl.bindBuffer(goog.webgl.ARRAY_BUFFER, this.mesh_);
