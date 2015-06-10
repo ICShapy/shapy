@@ -21,6 +21,8 @@ html {
 .logo p {
   text-align: center;
   font-size: 16px;
+  width: 1000px;
+  margin: 0 auto;
 }
 
 /**
@@ -229,7 +231,7 @@ sh-menu .hint {
 /**
  * Register
  */
-form {
+form#register {
   width: 400px;
   padding: 20px;
   margin-left: auto;
@@ -239,16 +241,16 @@ form {
   border: 1px solid black;
 }
 
-form div {
+form#register div {
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-form strong {
+form#register strong {
   display: block;
 }
 
-form .error {
+form#register .error {
   display: block;
   color: red;
   font-size: 14px;
@@ -256,28 +258,28 @@ form .error {
   margin-bottom: 10px;
 }
 
-form .error > span {
+form#register .error > span {
   display: block;
 }
 
-form .button {
+form#register .button {
   text-align: center;
 }
 
-form input[type=password],
-form input[type=email],
-form input[type=text] {
+form#register input[type=password],
+form#register input[type=email],
+form#register input[type=text] {
   height: 24px;
   font-size: 20px;
 }
 
 
-form input[type=text] {
+form#register input[type=text] {
   width: 192px;
 }
 
-form input[type=password],
-form input[type=email]
+form#register input[type=password],
+form#register input[type=email]
 {
   width: 394px;
 }
