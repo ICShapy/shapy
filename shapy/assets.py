@@ -458,6 +458,7 @@ class SceneHandler(AssetHandler):
          WHERE assets.id = %(id)s
            AND assets.type = %(type)s
            AND (permissions.user_id = %(user)s OR
+                permissions.user_id is NULL OR
                 %(user)s IS NULL)
       ''', {
         'id': id,
@@ -466,6 +467,7 @@ class SceneHandler(AssetHandler):
     })
 
     data = cursor.fetchone()
+    print data
     if not data:
       raise HTTPError(404, 'Asset not found.')
 
