@@ -158,9 +158,11 @@ shapy.editor.GROUND_VS =
   'uniform mat4 u_vp;                                                 \n' +
   'uniform vec2 u_size;                                               \n' +
   'varying vec3 v_vertex;                                             \n' +
+  'varying vec2 v_uv;                                                 \n' +
 
   'void main() {                                                      \n' +
   '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);            \n' +
+  '  v_uv = (a_vertex.xz + vec2(1.0)) * vec2(0.5);                    \n' +
   '  v_vertex = vertex;                                               \n' +
   '  gl_Position = u_vp * vec4(vertex, 1.0);                          \n' +
   '}                                                                  \n';
@@ -172,8 +174,10 @@ shapy.editor.GROUND_FS =
 
   'precision mediump float;                                             \n' +
   'uniform float u_zoom;                                                \n' +
-
+  'uniform float u_use_texture;                                         \n' +
+  'uniform sampler2D u_texture;\n' +
   'varying vec3 v_vertex;\n' +
+  'varying vec2 v_uv;\n' +
 
   'float alpha(float d, float w) {\n' +
   '  return max(smoothstep(w - fwidth(d), w + fwidth(d), d), 0.0);\n' +
@@ -193,7 +197,12 @@ shapy.editor.GROUND_FS =
   '  float a5x = alpha(a5.x, 0.02);\n' +
   '  float a5z = alpha(a5.y, 0.02);\n' +
 
-  '  vec4 colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
+  '  vec4 colour;\n' +
+  '  if (u_use_texture > 0.0) {\n' +
+  '    colour = texture2D(u_texture, v_uv);\n' +
+  '  } else {\n' +
+  '    colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
+  '  }\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
   '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
@@ -299,8 +308,20 @@ shapy.editor.Renderer = function(gl) {
   this.shRig_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.RIG_FS);
   this.shRig_.link();
 
-  /** @private {!shapy.editor.Mesh} @const */
+  /** @private {!WebGLTexture} @const */
   this.txCube_ = this.loadTexture_(shapy.editor.CUBE_TEXTURE);
+
+  /** @private {!WebGLTexture} @const */
+  this.txWhite_ = this.gl_.createTexture();
+  this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txWhite_);
+  this.gl_.texImage2D(
+      goog.webgl.TEXTURE_2D,
+      0,
+      goog.webgl.RGB,
+      1, 1, 0,
+      goog.webgl.RGB,
+      goog.webgl.UNSIGNED_BYTE,
+      new Uint8Array([255, 255, 255]));
 
   /** @private {!WebGLBuffer} @const */
   this.bfRect_ = this.gl_.createBuffer();
@@ -553,6 +574,8 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
     this.shGround_.uniformMat4x4('u_vp', vp.camera.vp);
     this.shGround_.uniform2f('u_size', 35, 35);
     this.shGround_.uniform1f('u_zoom', 1);
+    this.shGround_.uniform1f('u_use_texture', 0.0);
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txWhite_);
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);
@@ -585,6 +608,18 @@ shapy.editor.Renderer.prototype.renderBackground = function(vp) {
         shapy.editor.Viewport.UV.SIZE,
         shapy.editor.Viewport.UV.SIZE);
     this.shGround_.uniform1f('u_zoom', 2.0);
+
+    if (vp.object && vp.object.texture &&
+        goog.object.containsKey(this.textureCache_, vp.object.texture))
+    {
+      this.shGround_.uniform1f('u_use_texture', 1);
+      this.gl_.bindTexture(
+          goog.webgl.TEXTURE_2D,
+          this.textureCache_[vp.object.texture].texture);
+    } else {
+      this.shGround_.uniform1f('u_use_texture', 0);
+      this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txWhite_);
+    }
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);
