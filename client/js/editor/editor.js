@@ -196,25 +196,6 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
    * @private {!goog.vec.Vec3.Type}
    */
   this.brushColour_ = goog.vec.Vec3.createFloat32(0, 0, 0);
-
-  // Watch for changes in the name.
-  $rootScope.$watch(goog.bind(function() {
-    return this.scene_ && this.scene_.name;
-  }, this), goog.bind(function(newName, oldName) {
-    if (newName == oldName) {
-      return;
-    }
-    if (this.exec_) {
-      this.exec_.sendCommand({ type: 'name', value: newName });
-    }
-  }, this));
-
-  // Watch for changes in the mode.
-  this.rootScope_.$watch(goog.bind(function() {
-    return this.mode;
-  }, this), goog.bind(function(newMode, oldMode) {
-    this.modeChange_();
-  }, this), true);
 };
 
 
@@ -311,6 +292,45 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
     this.snapshot_();
     this.scene_.save();
   }, this), 10000);
+
+  // Watch for changes in the name.
+  var name = this.rootScope_.$watch(goog.bind(function() {
+    return this.scene_ && this.scene_.name;
+  }, this), goog.bind(function(newName, oldName) {
+    if (newName == oldName) {
+      return;
+    }
+    if (this.exec_) {
+      this.exec_.sendCommand({ type: 'name', value: newName });
+    }
+  }, this));
+
+  // Watch for changes in the mode.
+  var mode = this.rootScope_.$watch(goog.bind(function() {
+    return this.mode;
+  }, this), goog.bind(function(newMode, oldMode) {
+    this.modeChange_();
+  }, this), true);
+
+  var onClose = goog.bind(function() {
+    name();
+    mode();
+    location();
+
+    this.snapshot_();
+    this.scene_.save_();
+  }, this);
+
+  // Watch for changes in location.
+  var location = this.rootScope_.$on('$locationChangeStart', function(e) {
+    onClose();
+  });
+
+  $(window).on('beforeunload', function(e) {
+    e.preventDefault();
+    onClose();
+    return 'Some changes might be lost.';
+  });
 };
 
 
@@ -681,7 +701,7 @@ shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
-  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV; 
+  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV;
 
   // TOOD: do it nicer.
   // If viewports want the event, give up.
