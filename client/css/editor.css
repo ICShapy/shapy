@@ -1,5 +1,5 @@
 #chatbox {
-  display: block;
+  display: none;
   position: absolute;
   background-color: #fff;
   right: 0;
