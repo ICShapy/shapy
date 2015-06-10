@@ -211,7 +211,6 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'users': json.dumps(scene.users)
     })
 
-    #yield Task(self.lock.release)
     raise Return(scene)
 
   @coroutine

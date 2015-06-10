@@ -584,16 +584,14 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
  * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
 shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
-  var data = {
+  this.sendCommand({
     type: 'edit',
     tool: 'extrude',
     userId: this.editor_.user.id,
 
     objId: obj.id,
     faceIds: group.getFaceIds()
-  };
-
-  this.sendCommand(data);
+  });
 };
 
 
@@ -609,7 +607,7 @@ shapy.editor.Executor.prototype.applyExtrude = function(data) {
   }
 
   var object = this.scene_.objects[data['objId']];
-  
+
   // Get faces to extrude.
   var faces = goog.array.map(data['faceIds'], function(faceId) {
     return object.faces[faceId];
