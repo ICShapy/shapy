@@ -6,11 +6,11 @@ goog.provide('shapy.editor.Object');
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
-goog.require('shapy.editor.Editable');
-goog.require('shapy.editor.geom');
 goog.require('shapy.editor.Edge');
+goog.require('shapy.editor.Editable');
 goog.require('shapy.editor.Face');
 goog.require('shapy.editor.Vertex');
+goog.require('shapy.editor.geom');
 
 
 
@@ -58,9 +58,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
 
   /**
    * Texture attached to the object.
-   * @public {!shapy.editor.Texture}
+   * @public {!shapy.browser.Texture}
    */
-  this.texture = new shapy.editor.Texture(512, 512);
+  this.texture = new shapy.browser.Texture(512, 512);
 
   /**
    * @private {goog.vec.Vec3}

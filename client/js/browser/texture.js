@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.editor.Texture');
+goog.provide('shapy.browser.Texture');
 
 
 
@@ -13,7 +13,7 @@ goog.provide('shapy.editor.Texture');
  * @param {=number} opt_width
  * @param {=number} opt_height
  */
-shapy.editor.Texture = function(opt_width, opt_height) {
+shapy.browser.Texture = function(opt_width, opt_height) {
   /** @public {number} */
   this.width = opt_width || 512;
   /** @public {number} */
@@ -37,7 +37,7 @@ shapy.editor.Texture = function(opt_width, opt_height) {
  *
  * @param {!WebGLContext} gl
  */
-shapy.editor.Texture.prototype.build_ = function(gl) {
+shapy.browser.Texture.prototype.build_ = function(gl) {
   this.texture_ = gl.createTexture();
   gl.bindTexture(goog.webgl.TEXTURE_2D, this.texture_);
   gl.texParameteri(
@@ -56,7 +56,7 @@ shapy.editor.Texture.prototype.build_ = function(gl) {
  *
  * @param {!WebGLContext} gl
  */
-shapy.editor.Texture.prototype.bind = function(gl) {
+shapy.browser.Texture.prototype.bind = function(gl) {
   if (!this.texture_) {
     this.build_(gl);
   }
@@ -86,7 +86,7 @@ shapy.editor.Texture.prototype.bind = function(gl) {
  * @param {number} colour
  * @param {number} size
  */
-shapy.editor.Texture.prototype.paint = function(u, v, colour, size) {
+shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
   var x = Math.floor(u * this.width);
   var y = Math.floor(v * this.height);
 

@@ -1,7 +1,7 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.browser.Asset.Scene');
+goog.provide('shapy.browser.Scene');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.editor.Object');
@@ -19,7 +19,7 @@ goog.require('shapy.editor.create');
  * @param {string}                 id        ID of the scene.
  * @param {=Object}                opt_data  Data from the server.
  */
-shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
+shapy.browser.Scene = function(shBrowser, id , opt_data) {
   shapy.browser.Asset.call(
       this,
       shBrowser,
@@ -60,7 +60,7 @@ shapy.browser.Asset.Scene = function(shBrowser, id , opt_data) {
 
   this.image = (opt_data && opt_data['preview']) || '/img/scene.svg';
 };
-goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
+goog.inherits(shapy.browser.Scene, shapy.browser.Asset);
 
 
 /**
@@ -68,7 +68,7 @@ goog.inherits(shapy.browser.Asset.Scene, shapy.browser.Asset);
  *
  * @param {Object} data
  */
-shapy.browser.Asset.Scene.prototype.load = function(data) {
+shapy.browser.Scene.prototype.load = function(data) {
   // Fill in the name if unknown.
   this.name = data.name || this.shBrowser_.defaultName(this.type);
   // Fill in permission flags
@@ -112,7 +112,7 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
 /**
  * Saves the asset data.
  */
-shapy.browser.Asset.Scene.prototype.save = function() {
+shapy.browser.Scene.prototype.save = function() {
   this.shBrowser_.http_.put('/api/assets/scene', {
     id: this.id,
     name: this.name,
@@ -124,7 +124,7 @@ shapy.browser.Asset.Scene.prototype.save = function() {
 /**
  * Cleans buffers.
  */
-shapy.browser.Asset.Scene.prototype.destroy = function() {
+shapy.browser.Scene.prototype.destroy = function() {
   goog.object.forEach(this.objects, function(object) {
     object.dirtyMesh = true;
   }, this);
@@ -136,7 +136,7 @@ shapy.browser.Asset.Scene.prototype.destroy = function() {
  *
  * @return {Object} Serializable JSON.
  */
-shapy.browser.Asset.Scene.prototype.toJSON = function() {
+shapy.browser.Scene.prototype.toJSON = function() {
   return {
     id: this.id,
     objects: goog.object.map(this.objects, function(object) {
@@ -153,7 +153,7 @@ shapy.browser.Asset.Scene.prototype.toJSON = function() {
  *
  * @return {string} Unique Object ID.
  */
-shapy.browser.Asset.Scene.prototype.getNextID = function(seq) {
+shapy.browser.Scene.prototype.getNextID = function(seq) {
   var id = this.nextID_;
   this.nextID_++;
   return 'obj_' + id + '_' + seq;
@@ -165,7 +165,7 @@ shapy.browser.Asset.Scene.prototype.getNextID = function(seq) {
  *
  * @param {string} user
  */
-shapy.browser.Asset.Scene.prototype.addUser = function(user) {
+shapy.browser.Scene.prototype.addUser = function(user) {
   goog.array.insert(this.users, user);
 };
 
@@ -175,7 +175,7 @@ shapy.browser.Asset.Scene.prototype.addUser = function(user) {
  *
  * @param {string} user
  */
-shapy.browser.Asset.Scene.prototype.removeUser = function(user) {
+shapy.browser.Scene.prototype.removeUser = function(user) {
   goog.array.remove(this.users, user);
 };
 
@@ -185,7 +185,7 @@ shapy.browser.Asset.Scene.prototype.removeUser = function(user) {
  *
  * @param {string} users
  */
-shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
+shapy.browser.Scene.prototype.setUsers = function(users) {
   this.users = users;
 };
 
@@ -198,7 +198,7 @@ shapy.browser.Asset.Scene.prototype.setUsers = function(users) {
  *
  * @return {!shapy.editor.Editable}
  */
-shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
+shapy.browser.Scene.prototype.pickRay = function(ray, mode) {
   // Find all the editable parts that intersect the ray.
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
     return obj.pickRay(ray, mode);
@@ -240,7 +240,7 @@ shapy.browser.Asset.Scene.prototype.pickRay = function(ray, mode) {
  *
  * @return {!shapy.editor.EditableGroup}
  */
-shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
+shapy.browser.Scene.prototype.pickFrustum = function(frustum, mode) {
   var hits = goog.array.map(goog.object.getValues(this.objects), function(obj) {
     return goog.array.filter(obj.pickFrustum(frustum), function(hit) {
       return mode[hit.type];
@@ -260,7 +260,7 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d, seq) {
+shapy.browser.Scene.prototype.createCube = function(w, h, d, seq) {
   var id = this.getNextID(seq);
   var object = shapy.editor.create.cube(id, this, w, h, d);
   this.objects[id] = object;
@@ -278,7 +278,7 @@ shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d, seq) {
  *
  * @return {!shapy.editor.Object}
  */
-shapy.browser.Asset.Scene.prototype.createSphere = function(r, sli, sta, seq) {
+shapy.browser.Scene.prototype.createSphere = function(r, sli, sta, seq) {
   var id = this.getNextID(seq);
   var object = shapy.editor.create.sphere(id, this, r, sli, sta);
   this.objects[id] = object;
