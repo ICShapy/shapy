@@ -316,20 +316,11 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
     name();
     mode();
     location();
-
-    this.snapshot_();
-    this.scene_.save_();
   }, this);
 
   // Watch for changes in location.
   var location = this.rootScope_.$on('$locationChangeStart', function(e) {
     onClose();
-  });
-
-  $(window).on('beforeunload', function(e) {
-    e.preventDefault();
-    onClose();
-    return 'Some changes might be lost.';
   });
 };
 
