@@ -458,10 +458,10 @@ class SceneHandler(AssetHandler):
          WHERE assets.id = %(id)s
            AND assets.type = %(type)s
            AND (permissions.user_id = %(user)s OR
-                permissions.user_id IS NULL)
+                %(user)s IS NULL)
       ''', {
         'id': id,
-        'user': user.id if user else -1,
+        'user': user.id if user else None,
         'type': self.TYPE
     })
 
@@ -538,6 +538,9 @@ class PreviewHandler(BaseHandler):
   @asynchronous
   def post(self, user):
     """Updates the preview image of a scene."""
+
+    if not user:
+      return
 
     yield momoko.Op(self.db.execute,
       '''UPDATE assets
