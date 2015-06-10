@@ -301,7 +301,7 @@ shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
         user = this.uvGroup_.isSelected();
         this.uvGroup_.setSelected(null);
         this.uvGroup_.clear();
-        this.uvGroup_.add(hits);
+        this.uvGroup_.add([hits[hits.length - 1]]);
         this.uvGroup_.setSelected(user);
       }
       this.group = null;

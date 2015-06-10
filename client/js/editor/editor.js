@@ -780,7 +780,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
       hits = this.scene_.pickFrustum(frustum, this.mode);
     }
   } else {
-    if (group && group.width > 3 && group.height > 3 && !this.mode.paint) {
+    if (group && group.width > 10 && group.height > 10 && !this.mode.paint) {
       hits = this.layout_.hover.object.pickUVGroup(
           this.layout_.hover.groupcast(group));
     } else {
