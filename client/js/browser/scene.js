@@ -4,8 +4,8 @@
 goog.provide('shapy.browser.Asset.Scene');
 
 goog.require('shapy.browser.Asset');
-goog.require('shapy.editor.create');
 goog.require('shapy.editor.Object');
+goog.require('shapy.editor.create');
 
 
 
@@ -72,10 +72,77 @@ shapy.browser.Asset.Scene.prototype.load = function(data) {
   // Fill in the name if unknown.
   this.name = data.name || this.shBrowser_.defaultName(this.type);
   // Fill in permission flags
-  this.owner = !(!(data.owner));
-  this.write = !(!(data.write));
-  this.public = !(!(data.public));
+  this.owner = !!data.owner;
+  this.write = !!data.write;
+  this.public = !!data.public;
   this.loaded = true;
+
+  // Read objects.
+  if (!data.data) {
+    return;
+  }
+
+  this.objects = goog.object.map(data.data.objects || {}, function(data) {
+    var obj = new shapy.editor.Object(
+        data.id,
+        this,
+        data.verts || {},
+        data.edges || {},
+        data.faces || {},
+        data.uvs || {});
+
+    obj.translate_[0] = data.tx;
+    obj.translate_[1] = data.ty;
+    obj.translate_[2] = data.tz;
+
+    obj.scale_[0] = data.sx;
+    obj.scale_[1] = data.sy;
+    obj.scale_[2] = data.sz;
+
+    obj.rotation_[0] = data.rx;
+    obj.rotation_[1] = data.ry;
+    obj.rotation_[2] = data.rz;
+    obj.rotation_[3] = data.rw;
+
+    return obj;
+  }, this);
+};
+
+
+/**
+ * Saves the asset data.
+ */
+shapy.browser.Asset.Scene.prototype.save = function() {
+  this.shBrowser_.http_.put('/api/assets/scene', {
+    id: this.id,
+    name: this.name,
+    data: JSON.stringify(this.toJSON())
+  });
+};
+
+
+/**
+ * Cleans buffers.
+ */
+shapy.browser.Asset.Scene.prototype.destroy = function() {
+  goog.object.forEach(this.objects, function(object) {
+    object.dirtyMesh = true;
+  }, this);
+};
+
+
+/**
+ * Serializes the scene.
+ *
+ * @return {Object} Serializable JSON.
+ */
+shapy.browser.Asset.Scene.prototype.toJSON = function() {
+  return {
+    id: this.id,
+    objects: goog.object.map(this.objects, function(object) {
+      return object.toJSON();
+    })
+  };
 };
 
 

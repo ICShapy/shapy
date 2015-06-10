@@ -123,7 +123,6 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
         break;
       }
       case 'meta': {
-        this.scene_.name = data['name'];
         this.scene_.setUsers(data['users']);
         break;
       }
@@ -143,6 +142,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
           }
           case 'delete': {
             this.applyDelete(data);
+            break;
+          }
+          case 'extrude': {
+            this.applyExtrude(data);
             break;
           }
           default: {
@@ -284,9 +287,9 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
  * Executes the translate command.
  *
  * @param {shapy.editor.Editable.Type} obj Object to be translated.
- * @param {number}                   dx    Delta on x.
- * @param {number}                   dy    Delta on y.
- * @param {number}                   dz    Delta on z.
+ * @param {number}                     dx  Delta on x.
+ * @param {number}                     dy  Delta on y.
+ * @param {number}                     dz  Delta on z.
  */
 shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
   var data = {
@@ -571,4 +574,47 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
       }
     }, this);
   }
+};
+
+
+/**
+ * Executes extrude command.
+ *
+ * @param {shapy.editor.Editable} obj   Object the group belonds to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
+ */
+shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
+  var data = {
+    type: 'edit',
+    tool: 'extrude',
+    userId: this.editor_.user.id,
+
+    objId: obj.id,
+    faceIds: group.getFaceIds()
+  };
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Handles extrude command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyExtrude = function(data) {
+  // Ignore edits performed by the current user.
+  if (data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  var object = this.scene_.objects[data['objId']];
+  
+  // Get faces to extrude.
+  var faces = goog.array.map(data['faceIds'], function(faceId) {
+    return object.faces[faceId];
+  }, this);
+
+  // Extrude the faces.
+  object.extrude(faces);
 };

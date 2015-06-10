@@ -403,12 +403,31 @@ shapy.editor.PartsGroup.prototype.getObjVertIds = function() {
 
 
 /**
+ * Retrieves ids of the faces forming the group.
+ */
+shapy.editor.PartsGroup.prototype.getFaceIds = function() {
+  return goog.array.map(this.getFaces(), function(face) {
+    return face.id;
+  }, this);
+};
+
+
+/**
  * Retrieves [obj id, part id, part type] triples forming the group.
  */
 shapy.editor.PartsGroup.prototype.getObjPartIds = function() {
   return goog.array.map(this.editables, function(editable) {
     return [editable.object.id, editable.id, editable.type];
   }, this);
+};
+
+
+/**
+ * Delegates project UV to the owner of the group
+ * PRE: All parts of the group belong to the same object.
+ */
+shapy.editor.PartsGroup.prototype.projectUV = function() {
+  this.editables[0].object.projectUV();
 };
 
 

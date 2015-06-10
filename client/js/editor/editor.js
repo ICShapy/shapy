@@ -162,6 +162,12 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   this.frame_ = null;
 
   /**
+   * setInterval id.
+   * @private {number}
+   */
+  this.checkpoint_ = null;
+
+  /**
    * Size of the canvas.
    * @private {!goog.math.Size} @const
    */
@@ -198,7 +204,9 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
     if (newName == oldName) {
       return;
     }
-    this.exec_.sendCommand({ type: 'name', value: newName });
+    if (this.exec_) {
+      this.exec_.sendCommand({ type: 'name', value: newName });
+    }
   }, this));
 
   // Watch for changes in the mode.
@@ -263,11 +271,6 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   this.partGroup_.clear();
   this.rig(null);
 
-  var b = scene.createSphere(0.5, 16, 16);
-  b.translate(0, 0, 0);
-  b.scale(1, 1, 1);
-  b.texture = new shapy.editor.Texture(128, 128);
-
   // Set up the websocket connection.
   this.pending_ = [];
   this.exec_ = new shapy.editor.Executor(this.scene_, this);
@@ -276,6 +279,7 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
   this.rigRotate_.onFinish = goog.bind(this.exec_.emitRotate, this.exec_);
   this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
+  this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
 };
 
 
@@ -300,6 +304,13 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
   this.vp_.width = this.vp_.height = 0;
   this.layout_ = new shapy.editor.Layout.Single();
   this.rig(this.rigTranslate_);
+
+  // Start checkpointing.
+  this.checkpoint_ = setInterval(goog.bind(function() {
+    console.log('Saved to server.');
+    this.snapshot_();
+    this.scene_.save();
+  }, this), 10000);
 };
 
 
@@ -405,11 +416,19 @@ shapy.editor.Editor.prototype.render = function() {
 shapy.editor.Editor.prototype.destroy = function() {
   // Take a snapshot.
   this.snapshot_();
+  this.scene_.save();
+  this.scene_.destroy();
 
   // Stop rendering.
   if (this.frame_) {
     cancelAnimationFrame(this.frame_);
     this.frame_ = null;
+  }
+
+  // Cancel checkpointing.
+  if (this.checkpoint_) {
+    clearInterval(this.checkpoint_);
+    this.checkpoint_ = null;
   }
 
   // Close the websocket connection.
@@ -432,11 +451,13 @@ shapy.editor.Editor.prototype.destroy = function() {
     this.renderer_ = null;
   }
 
+  // TODO(Ilija): make these do something actually.
   // Clean up buffers from rigs.
   this.rigTranslate_.destroy();
   this.rigRotate_.destroy();
   this.rigScale_.destroy();
   this.rigCut_.destroy();
+  this.rigExtrude_.destroy();
   this.rig_ = null;
 };
 
@@ -510,6 +531,9 @@ shapy.editor.Editor.prototype.extrude_ = function() {
   if (goog.array.isEmpty(faces)) {
     return;
   }
+
+  // Send a message to the server to extrude.
+  this.exec_.emitExtrude(object, this.partGroup_);
 
   // Extrude.
   var extrudeData = object.extrude(faces);
@@ -657,14 +681,7 @@ shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
-  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV;
-
-  // If we're extruding, stop
-  if (this.rig_ == this.rigExtrude_) {
-    this.partGroup_.getObject().projectUV();
-    this.rig(this.rigTranslate_);
-    return;
-  }
+  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV; 
 
   // TOOD: do it nicer.
   // If viewports want the event, give up.
@@ -795,10 +812,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
-  // Only allow this click if we're not extruding
-  if (this.rig_ != this.rigExtrude_) {
-    this.layout_.mouseDown(e);
-  }
+  this.layout_.mouseDown(e);
 };
 
 

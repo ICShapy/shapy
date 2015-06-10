@@ -33,8 +33,9 @@ goog.require('shapy.editor.Vertex');
  * @param {!Array<Object>}      verts
  * @param {!Array<Object>}      edges
  * @param {!Array<Object>}      faces
+ * @param {!Array<Object>}      uvs
  */
-shapy.editor.Object = function(id, scene, verts, edges, faces) {
+shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT);
 
   /** @public {string} */
@@ -114,10 +115,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
    */
   this.verts = {};
   this.nextVert_ = 0;
-  goog.array.forEach(verts, function(v, i) {
-    this.nextVert_ = Math.max(this.nextVert_, i + 2);
-    this.verts[i + 1] = new shapy.editor.Vertex(
-        this, i + 1, v[0], v[1], v[2]);
+  goog.object.forEach(verts, function(v, i) {
+    this.nextVert_ = Math.max(this.nextVert_, i + 1);
+    this.verts[i] = new shapy.editor.Vertex(this, i, v[0], v[1], v[2]);
   }, this);
 
   /**
@@ -127,10 +127,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
    */
   this.edges = {};
   this.nextEdge_ = 0;
-  goog.array.forEach(edges, function(e, i) {
-    this.nextEdge_ = Math.max(this.nextEdge_, i + 2);
-    this.edges[i + 1] = new shapy.editor.Edge(
-        this, i + 1, e[0], e[1]);
+  goog.object.forEach(edges, function(e, i) {
+    this.nextEdge_ = Math.max(this.nextEdge_, i + 1);
+    this.edges[i] = new shapy.editor.Edge(this, i, e[0], e[1]);
   }, this);
 
   /**
@@ -141,10 +140,10 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
    */
    this.faces = {};
    this.nextFace_ = 0;
-   goog.array.forEach(faces, function(f, i) {
-    this.nextFace_ = Math.max(this.nextFace_, i + 2);
-    this.faces[i + 1] = new shapy.editor.Face(
-        this, i + 1, f[0], f[1], f[2]);
+   goog.object.forEach(faces, function(f, i) {
+    this.nextFace_ = Math.max(this.nextFace_, i + 1);
+    this.faces[i] = new shapy.editor.Face(
+        this, i, f[0], f[1], f[2]);
    }, this);
 
    /**
@@ -152,7 +151,11 @@ shapy.editor.Object = function(id, scene, verts, edges, faces) {
     * @public {!Object<number, !shapy.editor.Object.UV>}
     */
   this.uvs = {};
-  this.nextUV_ = 1;
+  this.nextUV_ = 0;
+  goog.object.forEach(uvs, function(u, i) {
+    this.nextUV_ = Math.max(this.nextUV_, i + 1);
+    this.uvs[i] = new shapy.editor.Object.UV(this, i, u[0], u[1]);
+  }, this);
   this.projectUV();
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
@@ -255,9 +258,7 @@ shapy.editor.Object.prototype.getScale = function() {
 /**
  * Rotates the editable.
  *
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {goog.vec.Quaternion} q
  */
 shapy.editor.Object.prototype.rotate = function(q) {
   goog.vec.Quaternion.concat(q, this.rotQuat_, this.rotQuat_);
@@ -843,6 +844,57 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   };
 };
 
+
+/**
+ * Converts the object to JSON.
+ *
+ * @return {Object} Serializable object.
+ */
+shapy.editor.Object.prototype.toJSON = function() {
+  var trunc = function(f) {
+    return Math.floor(f * 1000) / 1000;
+  };
+
+  return {
+    id: this.id,
+
+    tx: this.translate_[0],
+    ty: this.translate_[1],
+    tz: this.translate_[2],
+
+    sx: this.scale_[0],
+    sy: this.scale_[1],
+    sz: this.scale_[2],
+
+    rx: this.rotation_[0],
+    ry: this.rotation_[1],
+    rz: this.rotation_[2],
+    rw: this.rotation_[3],
+
+    verts: goog.object.map(this.verts, function(v) {
+      return [
+        trunc(v.position[0]),
+        trunc(v.position[1]),
+        trunc(v.position[2])
+      ];
+    }, this),
+
+    uvs: goog.object.map(this.uvs, function(uv) {
+      return [
+        trunc(uv.u),
+        trunc(uv.v)
+      ];
+    }),
+
+    edges: goog.object.map(this.edges, function(e) {
+      return [e.start, e.end];
+    }, this),
+
+    faces: goog.object.map(this.faces, function(f) {
+      return [f.e0, f.e1, f.e2, f.uv0, f.uv1, f.uv2];
+    }, this)
+  };
+};
 
 
 /**

@@ -622,20 +622,19 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
     this.shRig_.use();
     this.shRig_.uniformMat4x4('u_vp', vp.camera.vp);
 
-    // Render rigs outside objects
-    this.gl_.stencilMask(0xFF);
+    // Render rigs outside objects, writing 1 to the stencil buffer
     this.gl_.stencilFunc(goog.webgl.ALWAYS, 1, 0xFF);
     this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.REPLACE);
     this.shRig_.uniform1f('u_alpha', 1.0);
     rig.render(this.gl_, this.shRig_);
-    this.gl_.stencilMask(0x00);
 
     // Clear depth buffer
     this.gl_.clear(goog.webgl.DEPTH_BUFFER_BIT);
 
-    // Render rig inside objects
-    this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.KEEP);
+    // Render rig inside objects by drawing to parts not covered by the solid
+    // parts of the rig
     this.gl_.stencilFunc(goog.webgl.EQUAL, 0, 0xFF);
+    this.gl_.stencilOp(goog.webgl.KEEP, goog.webgl.KEEP, goog.webgl.KEEP);
     this.shRig_.uniform1f('u_alpha', 0.4);
     rig.render(this.gl_, this.shRig_);
   }

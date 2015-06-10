@@ -11,8 +11,10 @@ import psycopg2
 from tornado.gen import coroutine
 from tornado.web import HTTPError, asynchronous
 
-from shapy.common import APIHandler, BaseHandler, session
 from shapy.account import Account
+from shapy.common import APIHandler, BaseHandler, session
+from shapy.scene import Scene
+
 
 
 class SharedHandler(APIHandler):
@@ -209,6 +211,7 @@ class AssetHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'User not logged in.')
     parent = int(self.get_argument('parent'))
+    preview = None
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
     # Reject parent dirs not owned by user
@@ -230,14 +233,12 @@ class AssetHandler(APIHandler):
 
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
-      '''INSERT INTO assets (name, type, preview, data, owner, parent, public)
-         VALUES (%s, %s, %s, %s, %s, %s, %s)
+      '''INSERT INTO assets (name, type, owner, parent, public)
+         VALUES (%s, %s, %s, %s, %s)
          RETURNING id, name
       ''', (
       self.NEW_NAME,
       self.TYPE,
-      preview,
-      mainData,
       user.id,
       parent,
       False
@@ -307,72 +308,48 @@ class AssetHandler(APIHandler):
       raise HTTPError(401, 'User not logged in.')
     id = int(self.get_argument('id'))
     name = self.get_argument('name', None)
-    publicStr = self.get_argument('public', None)
-    public = bool(int(publicStr)) if publicStr is not None else None
+    data = self.get_argument('data', None)
+    public = self.get_argument('public', None)
+    if public is not None:
+      public = bool(int(public))
 
     # Block changing public setting of a dir
     if public is not None and self.TYPE == 'dir':
       raise HTTPError(400, 'Asset update failed.')
 
-    # Check if user has permissions
-    cursors = yield momoko.Op(self.db.transaction, (
-      (
-      '''SELECT name, public, owner
-         FROM assets
-         WHERE id = %s
-      ''',
-        (
-          id,
-        )
-      ),
-      (
+    # Check if user has write permission
+    cursor = yield momoko.Op(self.db.execute,
       '''SELECT 1
-         FROM permissions
-         WHERE user_id = %s
-           AND asset_id = %s
-           AND write = %s
-      ''',
-        (
-          user.id,
-          id,
-          True,
-        )
-      )
-      ))
+         FROM assets
+         LEFT OUTER JOIN permissions
+         ON permissions.asset_id = assets.id
+         WHERE assets.id = %(id)s
+           AND ((permissions.user_id = %(user)s AND
+                 permissions.write IS TRUE AND
+                 %(public)s IS NULL) OR
+                (assets.owner = %(user)s))
+      ''', {
+      'id': id,
+      'user': user.id,
+      'public': public
+    })
 
-    data = cursors[0].fetchone()
-    if not data:
-      raise HTTPError(400, 'Asset update failed.')
-    if data[2] != int(user.id):
-      # Public setting update requires ownership
-      if public is not None:
-        raise HTTPError(400, 'Asset update failed.')
-      elif not cursors[1].fetchone():
-        # Renaming requires write perm.
-        raise HTTPError(400, 'Asset update failed.')
+    if not cursor.fetchone():
+      raise HTTPErorr(400, 'Asset cannot be edited.')
 
-    # Use new settings if provided or keep the old ones
-    name = name if name is not None else data[0]
-    public = public if public is not None else data[1]
-
-    # Update the asset.
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets
-         SET name = %s, public = %s
-         WHERE id = %s
-           AND type = %s
+         SET name = COALESCE(%(name)s, name),
+             data = COALESCE(%(data)s, data),
+             public = COALESCE(%(public)s, public)
+         WHERE id = %(id)s
          RETURNING id
-      ''', (
-      name,
-      public,
-      id,
-      self.TYPE
-      ))
-
-    # Check if update successful
-    data = cursor.fetchone()
-    if not data:
-      raise HTTPError(400, 'Asset update failed.')
+      ''', {
+      'id': id,
+      'name': name,
+      'data': psycopg2.extras.Json(data) if data else None,
+      'public': public
+    })
 
     self.finish()
 
@@ -467,66 +444,54 @@ class SceneHandler(AssetHandler):
   def get(self, user):
     """Retrieves a scene from the database."""
 
-    # Validate arguments.
-    if not user:
-      # Set special id for not logged in users
-      user = Account(-1)
-    id = int(self.get_argument('id'))
+    id = self.get_argument('id')
+    if not id:
+      raise HTTPError(400, 'Invalid asset ID')
 
-    # Fetch asset data.
-    cursors = yield momoko.Op(self.db.transaction, (
-      (
-        '''SELECT id, name, preview, data, public, owner
-           FROM assets
-           WHERE id = %s
-             AND type = %s
-        ''',
-        (
-          id,
-          self.TYPE
-        )
-      ),
-      (
-        '''SELECT write
-           FROM permissions
-           WHERE user_id = %s
-             AND asset_id = %s
-        ''',
-        (
-          user.id,
-          id
-        )
-      )
-    ))
+    # Fetch data from the asset and permission table.
+    # The write flag will have 3 possible values: None, True, False
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, preview, data::json, public, owner, write
+         FROM assets
+         LEFT OUTER JOIN permissions
+         ON permissions.asset_id = assets.id
+         WHERE assets.id = %(id)s
+           AND assets.type = %(type)s
+           AND (permissions.user_id = %(user)s OR
+                permissions.user_id IS NULL)
+      ''', {
+        'id': id,
+        'user': user.id if user else -1,
+        'type': self.TYPE
+    })
 
-    dataAssets = cursors[0].fetchone()
-    dataPerm = cursors[1].fetchone()
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(404, 'Asset not found.')
 
-    if not dataAssets:
-      raise HTTPError(404, 'Scene not found.')
-
-    if dataAssets[5] == int(user.id):
-      # User is owner
+    if user and data['owner'] == user.id:
+      # Owner - full permissions.
       owner = True
       write = True
-    elif dataPerm:
-      # User shares asset with owner
-      owner = False
-      write = dataPerm[0]
-    elif dataAssets[4]:
-      # Just read perm. as asset public
-      owner = False
-      write = False
+    elif data['write'] is None:
+      if not data['public']:
+        # No permissions.
+        raise HTTPError(400, 'Asset not found.')
+      else:
+        # Public asset - read only.
+        owner = False
+        write = False
     else:
-      # Illegal access
-      raise HTTPError(400, 'Asset access not granted.')
+      # Shared asset - permission in table.
+      owner = False
+      write = user is not None and data['write']
 
     self.write(json.dumps({
-        'id': dataAssets[0],
-        'name': dataAssets[1],
-        'preview': str(dataAssets[2]) if dataAssets[2] else '',
-        'data': dataAssets[3],
-        'public': dataAssets[4],
+        'id': data['id'],
+        'name': data['name'],
+        'preview': str(data['preview'] or ''),
+        'data': json.loads(data['data'] or 'null'),
+        'public': data['public'],
         'owner': owner,
         'write': write
     }))
