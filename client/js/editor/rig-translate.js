@@ -124,7 +124,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   if (this.select_.x) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
   } else if (this.hover_.x) {
-    sh.uniform4f('u_colour', 1.0, 0.0, 0.0, 1.0);
+    sh.uniform4f('u_colour', 1.0, 0.5, 0.2, 1.0);
   } else {
     sh.uniform4f('u_colour', 0.7, 0.0, 0.0, 1.0);
   }
@@ -168,7 +168,7 @@ shapy.editor.Rig.Translate.prototype.render = function(gl, sh) {
   if (this.select_.z) {
     sh.uniform4f('u_colour', 1.0, 1.0, 0.0, 1.0);
   } else if (this.hover_.z) {
-    sh.uniform4f('u_colour', 0.0, 1.0, 0.0, 1.0);
+    sh.uniform4f('u_colour', 0.5, 1.0, 0.5, 1.0);
   } else {
     sh.uniform4f('u_colour', 0.0, 0.7, 0.0, 1.0);
   }

@@ -668,6 +668,13 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.array.forEach(faces, function(f) {
     goog.vec.Vec3.add(normal, f.calculateNormal(), normal);
   }, this);
+
+  // If the normal is zero, we cannot extrude
+  if (goog.vec.Vec3.magnitudeSquared(normal) == 0) {
+    return;
+  }
+
+  // Normalise the normal
   goog.vec.Vec3.normalize(normal, normal);
 
   // Get the list of edges used in all vertices
