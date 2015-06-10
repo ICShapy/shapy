@@ -1,3 +1,50 @@
+#chatbox {
+  display: block;
+  position: absolute;
+  background-color: #fff;
+  right: 0;
+  top: 0;
+  width: 30%;
+  height: 100%;
+}
+
+.messages {
+  padding: 10px;
+}
+
+.message-entry {
+  height: 100px;
+  width: 100%;
+  background-color: #ddd;
+  margin: -1px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #aaa;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+.message-wrapper {
+  width: 60%;
+  padding-bottom: 15px;
+}
+
+.message-name {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #a4a4a4;
+}
+
+.message-text {
+  margin: 0;
+  padding: 12.5px;
+  width: 100%;
+  background-color: rgb(243, 249, 252);
+  box-shadow: -1px 2px 3px #dddddd;
+}
+
 #editor-user-counter {
   padding: 3px !important;
 }
@@ -11,7 +58,6 @@
   background-color: #0066FF !important;
   border: 1px solid #0033CC;
   height: 18px !important;
-  font-size: 16px;
   font-weight: bold;
   padding: 2px !important;
   min-width: 20px;
