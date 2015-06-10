@@ -625,7 +625,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (this.layout_ &&
           this.layout_.active.type == shapy.editor.Viewport.Type.UV)
       {
-        this.layout_.toggleUV();
+        this.layout_.toggleUV(this.uvGroup_);
         return;
       }
 
@@ -634,7 +634,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         return;
       }
       if (this.layout_ && this.layout_.active) {
-        this.layout_.toggleUV();
+        this.layout_.toggleUV(this.uvGroup_);
         this.layout_.active.object = this.objectGroup_.editables[0];
         this.layout_.active.object.projectUV();
         this.uvGroup_.clear();
@@ -762,17 +762,16 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
+  var pick, hits = [], hit, ray, frustum, uv, object, texture, isUV;
+  var group = this.layout_.hover && this.layout_.hover.group;
+
+  // Find the entity under the mouse.
+  ray = this.layout_.mouseMove(e, this.mode.paint, this.mode.paint);
   if (!this.layout_.hover) {
     return;
   }
 
-  var pick, hits = [], hit, ray, frustum, uv, object, texture;
-  var group = this.layout_.hover && this.layout_.hover.group;
-  var isUV = this.layout_.hover.type == shapy.editor.Viewport.Type.UV;
-
-  // Find the entity under the mouse.
-  ray = this.layout_.mouseMove(e, this.mode.paint);
-  if (!isUV) {
+  if (!(isUV = this.layout_.hover.type == shapy.editor.Viewport.Type.UV)) {
     if (!!ray) {
       hit = this.scene_.pickRay(ray, this.mode);
       hits = hit ? [hit] : [];

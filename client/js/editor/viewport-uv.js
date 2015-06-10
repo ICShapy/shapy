@@ -16,8 +16,9 @@ goog.require('shapy.editor.Viewport');
  * @extends {shapy.editor.Viewport}
  *
  * @param {string} name Name of the viewport.
+ * @param {!shapy.editor.UVGroup} group UV group.
  */
-shapy.editor.Viewport.UV = function(name) {
+shapy.editor.Viewport.UV = function(name, group) {
   shapy.editor.Viewport.call(this, name, shapy.editor.Viewport.Type.UV);
 
   /**
@@ -85,6 +86,18 @@ shapy.editor.Viewport.UV = function(name) {
    * @public {!shapy.editor.Object}
    */
   this.object = null;
+
+  /**
+   * UV group selected.
+   * @private {!shapy.editor.UVGroup}
+   */
+  this.uvGroup_ = group;
+
+  /**
+   * UVs are being moved.
+   * @private {boolean}
+   */
+  this.moveUV_ = false;
 };
 goog.inherits(shapy.editor.Viewport.UV, shapy.editor.Viewport);
 
@@ -226,6 +239,13 @@ shapy.editor.Viewport.UV.prototype.resize = function(x, y, w, h) {
  */
 shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, isPainting) {
   shapy.editor.Viewport.prototype.mouseMove.call(this, x, y, isPainting);
+  var d = this.zoom / 1000, w = shapy.editor.Viewport.UV.SIZE, dx, dy;
+
+  if (this.moveUV_) {
+    dx = ((this.currMousePos.x - this.lastMousePos.x) * d) / (2 * w);
+    dy = ((this.currMousePos.y - this.lastMousePos.y) * d) / (2 * w);
+    this.uvGroup_.move(dx, dy);
+  }
   if (this.isPanning_) {
     this.pan.x = this.initialPan_.x + x - this.lastClick.x;
     this.pan.y = this.initialPan_.y + y - this.lastClick.y;
@@ -252,6 +272,7 @@ shapy.editor.Viewport.UV.prototype.mouseEnter = function(x, y) {
 shapy.editor.Viewport.UV.prototype.mouseLeave = function() {
   shapy.editor.Viewport.prototype.mouseLeave.call(this);
   this.isPanning_ = false;
+  this.moveUV_ = false;
 };
 
 
@@ -264,10 +285,35 @@ shapy.editor.Viewport.UV.prototype.mouseLeave = function() {
  */
 shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
   shapy.editor.Viewport.prototype.mouseDown.call(this, x, y, button);
-  if (button == 3) {
-    this.isPanning_ = true;
-    this.initialPan_.x = this.pan.x;
-    this.initialPan_.y = this.pan.y;
+  var hits, same, user;
+
+  switch (button) {
+    case 1: {
+      hits = this.object.pickUVCoord(this.raycast(x, y));
+      if (goog.array.isEmpty(hits)) {
+        return;
+      }
+      // If clicked on different UVs, select them.
+      same = goog.array.some(hits, function(hit) {
+        return this.uvGroup_.contains(hit);
+      }, this);
+      if (!same) {
+        user = this.uvGroup_.isSelected();
+        this.uvGroup_.setSelected(null);
+        this.uvGroup_.clear();
+        this.uvGroup_.add(hits);
+        this.uvGroup_.setSelected(user);
+      }
+      this.group = null;
+      this.moveUV_ = true;
+      return;
+    }
+    case 3: {
+      this.isPanning_ = true;
+      this.initialPan_.x = this.pan.x;
+      this.initialPan_.y = this.pan.y;
+      return;
+    }
   }
 };
 
@@ -281,6 +327,7 @@ shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
 shapy.editor.Viewport.UV.prototype.mouseUp = function(x, y) {
   shapy.editor.Viewport.prototype.mouseUp.call(this, x, y);
   this.isPanning_ = false;
+  this.moveUV_ = false;
 };
 
 

@@ -95,9 +95,11 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
 
 
 /**
- * Changes a viewport to UV mode.
+ * Changes a viewport to UV mode.|
+ *
+ * @param {!shapy.editor.UVGroup} group
  */
-shapy.editor.Layout.prototype.toggleUV = function() {
+shapy.editor.Layout.prototype.toggleUV = function(group) {
   var name = this.active.name;
 
   if (this.active.type == shapy.editor.Viewport.Type.UV) {
@@ -110,7 +112,7 @@ shapy.editor.Layout.prototype.toggleUV = function() {
       if (vpName != name) {
         this[vpName] = new shapy.editor.Viewport.Edit(vpName);
       } else {
-        this[vpName] = new shapy.editor.Viewport.UV(vpName);
+        this[vpName] = new shapy.editor.Viewport.UV(vpName, group);
       }
       return this[vpName];
     }, this);
