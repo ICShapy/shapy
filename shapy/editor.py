@@ -190,7 +190,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     if data:
       scene = Scene(self.scene_id,
         name=data[0],
-        users=json.loads(data[1])
+        users=json.loads(data[1] or '[]')
       )
     else:
       cursor = yield momoko.Op(self.db.execute,
