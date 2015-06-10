@@ -149,12 +149,14 @@ shapy.browser.Asset.Scene.prototype.toJSON = function() {
 /**
  * Generates a new object ID.
  *
+ * @param {number} seq Sequence number used for generating unique ids.
+ *
  * @return {string} Unique Object ID.
  */
-shapy.browser.Asset.Scene.prototype.getNextID = function() {
+shapy.browser.Asset.Scene.prototype.getNextID = function(seq) {
   var id = this.nextID_;
   this.nextID_++;
-  return 'obj_' + id;
+  return 'obj_' + id + '_' + seq;
 };
 
 
@@ -251,14 +253,15 @@ shapy.browser.Asset.Scene.prototype.pickFrustum = function(frustum, mode) {
 /**
  * Creates a new object, adding it to the scene.
  *
- * @param {number} w
- * @param {number} h
- * @param {number} d
+ * @param {number} w   Width.
+ * @param {number} h   Height.
+ * @param {number} d   Depth.
+ * @param {number} seq Sequence number to be used for generating an id.
  *
  * @return {!shapy.editor.Object}
  */
-shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
-  var id = this.getNextID();
+shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d, seq) {
+  var id = this.getNextID(seq);
   var object = shapy.editor.create.cube(id, this, w, h, d);
   this.objects[id] = object;
   return object;
@@ -268,15 +271,16 @@ shapy.browser.Asset.Scene.prototype.createCube = function(w, h, d) {
 /**
  * Creates a new object, adding it to the scene.
  *
- * @param {number} r
- * @param {number} slices
- * @param {number} stacks
+ * @param {number} r   Radius.
+ * @param {number} sli Slices.
+ * @param {number} sta Stacks.
+ * @param {number} seq Sequence number to be used for generating an id.
  *
  * @return {!shapy.editor.Object}
  */
-shapy.browser.Asset.Scene.prototype.createSphere = function(r, slices, stacks) {
-  var id = this.getNextID();
-  var object = shapy.editor.create.sphere(id, this, r, slices, stacks);
+shapy.browser.Asset.Scene.prototype.createSphere = function(r, sli, sta, seq) {
+  var id = this.getNextID(seq);
+  var object = shapy.editor.create.sphere(id, this, r, sli, sta);
   this.objects[id] = object;
   return object;
 };

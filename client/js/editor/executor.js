@@ -185,11 +185,11 @@ shapy.editor.Executor.prototype.emitCreate = function(type) {
 shapy.editor.Executor.prototype.applyCreate = function(data) {
   switch (data['object']) {
     case 'cube': {
-      this.scene_.createCube(0.5, 0.5, 0.5);
+      this.scene_.createCube(0.5, 0.5, 0.5, data['seq']);
       break;
     }
     case 'sphere': {
-      this.scene_.createSphere(0.5, 16, 16);
+      this.scene_.createSphere(0.5, 16, 16, data['seq']);
       break;
     }
     default: {
@@ -608,11 +608,8 @@ shapy.editor.Executor.prototype.applyExtrude = function(data) {
 
   var object = this.scene_.objects[data['objId']];
 
-  // Get faces to extrude.
-  var faces = goog.array.map(data['faceIds'], function(faceId) {
-    return object.faces[faceId];
-  }, this);
-
   // Extrude the faces.
-  object.extrude(faces);
+  object.extrude(goog.array.map(data['faceIds'], function(faceId) {
+    return object.faces[faceId];
+  }, this));
 };

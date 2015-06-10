@@ -681,7 +681,7 @@ shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
-  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV; 
+  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV;
 
   // TOOD: do it nicer.
   // If viewports want the event, give up.
