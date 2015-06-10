@@ -1,6 +1,6 @@
 
 html {
-  font-family: sans-serif;
+  font-family: 'Open Sans', sans-serif;
 }
 
 /**
@@ -9,10 +9,18 @@ html {
 
 .logo #logo_shapy {
   display: block;
-  max-width: 60%;
-  max-height: 60%;
-  margin-left: auto;
-  margin-right: auto;
+  height: 400px;
+  margin: 0 auto;
+}
+
+.logo h1 {
+  text-align: center;
+  padding-top: 1em;
+}
+
+.logo p {
+  text-align: center;
+  font-size: 16px;
 }
 
 /**
@@ -33,7 +41,7 @@ html {
   color: white;
   padding: 7px;
   height: 16px;
-  font-size: 16px;
+  font-size: 14px;
   display: block;
 }
 
@@ -160,6 +168,7 @@ sh-menu {
 }
 
 sh-menu > div {
+  font-size: 14px;
   position: relative;
   display: block;
   float: left;
