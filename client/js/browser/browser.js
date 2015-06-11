@@ -8,6 +8,7 @@ goog.provide('shapy.browser.assetMatch');
 goog.provide('shapy.browser.assetOrder');
 goog.provide('shapy.browser.asset');
 goog.provide('shapy.browser.assets');
+goog.provide('shapy.browser.delete');
 goog.provide('shapy.browser.public');
 goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.share');
@@ -394,10 +395,6 @@ shapy.browser.asset = function(shModal) {
 
       // Show context menu
       $elem.bind('contextmenu', function(evt) {
-        // No context menu fot dirs
-        if ($scope.asset.type == shapy.browser.Asset.Type.DIRECTORY) {
-          return false;
-        }
         // Select
         $scope.$apply(function() {
           $scope.selected = $scope.asset;
@@ -429,6 +426,63 @@ shapy.browser.asset = function(shModal) {
       });
     }
   };
+};
+
+
+
+/**
+ * Deleting directive.
+ *
+ * @param {!shapy.modal.Service}       shModal
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.delete = function(shModal) {
+  /**
+   * Handles the deletion of an asset.
+   * @param {!shapy.browser.Asset} asset
+   */
+  var doDelete = function(asset) {
+    shModal.open({
+      size: 'small',
+      title: 'Delete Asset',
+      template:
+          'Are you sure you want to delete ' +
+          '<strong>{{asset.name}}</strong>' +
+          '?',
+      controller: function($scope) {
+        $scope.asset = asset;
+        $scope.cancel = function() { return false; };
+        $scope.okay = function() {
+          switch (asset.type) {
+            case shapy.browser.Asset.Type.DIRECTORY:
+              asset.shBrowser_.deleteDir(asset);
+              break;
+            case shapy.browser.Asset.Type.SCENE:
+              asset.shBrowser_.deleteScene(asset);
+              break;
+          }
+        };
+      }
+    });
+  };
+
+  return {
+    restrict: 'E',
+    scope: {
+      asset: '=',
+    },
+    link: function($scope, $elem) {
+      $elem.bind('mousedown', function(evt) {
+          // Block if not owner
+          if (!$scope.asset.owner) {
+            return;
+          }
+          doDelete($scope.asset);
+      });
+    }
+  };
+
 };
 
 
