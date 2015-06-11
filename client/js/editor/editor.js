@@ -450,6 +450,9 @@ shapy.editor.Editor.prototype.destroy = function() {
   // Clean up buffers from camera cubes.
   if (this.layout_) {
     goog.object.forEach(this.layout_.viewports, function(vp) {
+      if (!vp.camCube) {
+        return;
+      }
       vp.camCube.destroy();
     }, this);
     this.layout_ = null;

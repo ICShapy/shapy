@@ -348,14 +348,14 @@ shapy.editor.Renderer = function(gl) {
    *
    * @private {!Object<string, Object>}
    */
-  this.objectCache_ = {};
+  this.objects_ = {};
 
   /**
    * Cached textures and their source assets.
    *
    * @private {!Object<string, Object>}
    */
-  this.textureCache_ = {};
+  this.textures_ = {};
 };
 
 
@@ -419,22 +419,24 @@ shapy.editor.Renderer.prototype.loadTexture_ = function(data) {
  */
 shapy.editor.Renderer.prototype.updateTexture = function(texture) {
   // Bail out if texture not dirty.
-  if (!texture.dirty) {
+  if (!texture.dirty && goog.object.containsKey(this.textures_, texture.id))
+  {
     return;
   }
   texture.dirty = false;
 
   // Rebuild the texture.
   var tex;
-  if (goog.object.containsKey(this.textureCache_, texture.id)) {
-    tex = this.textureCache_[texture.id].texture;
+  if (goog.object.containsKey(this.textures_, texture.id)) {
+    tex = this.textures_[texture.id].texture;
   } else {
     tex = this.gl_.createTexture();
-    this.textureCache_[texture.id] = {
+    this.textures_[texture.id] = {
       texture: tex,
       object: texture
     };
   }
+
   this.gl_.bindTexture(goog.webgl.TEXTURE_2D, tex);
   this.gl_.texImage2D(
       goog.webgl.TEXTURE_2D,
@@ -464,7 +466,7 @@ shapy.editor.Renderer.prototype.updateTexture = function(texture) {
  */
 shapy.editor.Renderer.prototype.updateObject = function(object) {
   // Bail out if object not dirty.
-  if (!object.dirty) {
+  if (!object.dirty && goog.object.containsKey(this.objects_, object.id)) {
     return;
   }
   object.dirty = false;
@@ -473,19 +475,19 @@ shapy.editor.Renderer.prototype.updateObject = function(object) {
   object.computeModel();
 
   // Clean up old mesh.
-  if (goog.object.containsKey(this.objectCache_, object.id)) {
-    this.objectCache_[object.id].mesh.destroy();
+  if (goog.object.containsKey(this.objects_, object.id)) {
+    this.objects_[object.id].mesh.destroy();
   }
 
   // Re-build mesh.
-  this.objectCache_[object.id] = {
+  this.objects_[object.id] = {
     mesh: new shapy.editor.Mesh(this.gl_, object),
     object: object
   };
 
   // Reference the texture.
-  if (goog.object.containsKey(this.textureCache_, object.texture)) {
-    this.textureCache_[object.texture].deleted = false;
+  if (goog.object.containsKey(this.textures_, object.texture)) {
+    this.textures_[object.texture].deleted = false;
   }
 };
 
@@ -501,7 +503,7 @@ shapy.editor.Renderer.prototype.start = function() {
     goog.webgl.STENCIL_BUFFER_BIT);
 
   // Delete unused meshes.
-  this.objectCache_ = goog.object.filter(this.objectCache_, function(obj) {
+  this.objects_ = goog.object.filter(this.objects_, function(obj) {
     if (obj.object && !obj.object.deleted) {
       return true;
     }
@@ -510,7 +512,7 @@ shapy.editor.Renderer.prototype.start = function() {
   }, this);
 
   // Delete unused textures.
-  this.textureCache_ = goog.object.filter(this.textureCache_, function(tex) {
+  this.textures_ = goog.object.filter(this.textures_, function(tex) {
     if (tex.object && !tex.object.deleted) {
       return true;
     }
@@ -529,7 +531,7 @@ shapy.editor.Renderer.prototype.renderObjects = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  goog.object.forEach(this.objectCache_, function(obj) {
+  goog.object.forEach(this.objects_, function(obj) {
     var mvp = goog.vec.Mat4.createFloat32();
     goog.vec.Mat4.multMat(vp.camera.vp, obj.object.model, mvp);
     this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txCube_);
@@ -541,11 +543,11 @@ shapy.editor.Renderer.prototype.renderObjects = function(vp) {
 
     // Render faces
     if (obj.object.texture &&
-        goog.object.containsKey(this.textureCache_, obj.object.texture))
+        goog.object.containsKey(this.textures_, obj.object.texture))
     {
       this.gl_.bindTexture(
           goog.webgl.TEXTURE_2D,
-          this.textureCache_[obj.object.texture].texture);
+          this.textures_[obj.object.texture].texture);
       this.shObjectTexture_.use();
       this.shObjectTexture_.uniformMat4x4('u_mvp', mvp);
       obj.mesh.render(this.shObjectTexture_);
@@ -610,12 +612,12 @@ shapy.editor.Renderer.prototype.renderBackground = function(vp) {
     this.shGround_.uniform1f('u_zoom', 2.0);
 
     if (vp.object && vp.object.texture &&
-        goog.object.containsKey(this.textureCache_, vp.object.texture))
+        goog.object.containsKey(this.textures_, vp.object.texture))
     {
       this.shGround_.uniform1f('u_use_texture', 1);
       this.gl_.bindTexture(
           goog.webgl.TEXTURE_2D,
-          this.textureCache_[vp.object.texture].texture);
+          this.textures_[vp.object.texture].texture);
     } else {
       this.shGround_.uniform1f('u_use_texture', 0);
       this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txWhite_);
@@ -755,7 +757,7 @@ shapy.editor.Renderer.prototype.renderRig = function(vp, rig) {
  * @param {!shapy.editor.Viewport.UV} vp
  */
 shapy.editor.Renderer.prototype.renderUVMesh = function(vp) {
-  if (!vp.object || !goog.object.containsKey(this.objectCache_, vp.object.id)) {
+  if (!vp.object || !goog.object.containsKey(this.objects_, vp.object.id)) {
     return;
   }
   var mvp = goog.vec.Mat4.createFloat32();
@@ -772,7 +774,7 @@ shapy.editor.Renderer.prototype.renderUVMesh = function(vp) {
     goog.vec.Mat4.multMat(mvp, vp.proj, mvp);
     goog.vec.Mat4.multMat(mvp, vp.view, mvp);
     this.shUV_.uniformMat4x4('u_mvp', mvp);
-    this.objectCache_[vp.object.id].mesh.renderUV();
+    this.objects_[vp.object.id].mesh.renderUV();
   }
   this.gl_.enable(goog.webgl.DEPTH_TEST);
   this.gl_.disable(goog.webgl.BLEND);
