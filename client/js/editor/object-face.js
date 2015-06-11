@@ -79,18 +79,16 @@ shapy.editor.Face.prototype.getVertices = function() {
 
 
 /**
- * Retrieves the UV coordinates of three corners.
+ * Retrives the uv.
  *
- * @return {Array<!shapy.editor.Object.UV>}
+ * @return {!Array<!shapy.editor.Vertex>}
  */
 shapy.editor.Face.prototype.getUVs = function() {
-  if (!this.uv0 || !this.uv1 || !this.uv2) {
-    return null;
-  }
+  var e = this.getEdges();
   return [
-    this.object.uvs[this.uv0],
-    this.object.uvs[this.uv1],
-    this.object.uvs[this.uv2],
+    this.object.uvs[this.uv0 >= 0 ? e[0].uv0 : e[0].uv1],
+    this.object.uvs[this.uv1 >= 0 ? e[1].uv0 : e[1].uv1],
+    this.object.uvs[this.uv2 >= 0 ? e[2].uv0 : e[2].uv1],
   ];
 };
 

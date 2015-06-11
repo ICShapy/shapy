@@ -139,11 +139,9 @@ shapy.editor.Mesh.prototype.buildMesh_ = function() {
   k = 0;
   d = new Float32Array(this.edgeCount_ * 48);
   goog.object.forEach(this.object_.edges, function(edge) {
-    var v = edge.getVertices();
-    add(v[0].position, null,
-        'edge', edge.selected || v[0].selected, edge.hover);
-    add(v[1].position, null,
-        'edge', edge.selected || v[1].selected, edge.hover);
+    goog.array.forEach(edge.getVertices(), function(v) {
+      add(v.position, null, 'edge', edge.selected || v.selected, edge.hover);
+    }, this);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
