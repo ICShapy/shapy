@@ -666,11 +666,10 @@ shapy.editor.Object.prototype.connect = function(verts) {
  * @param {!goog.vec.Vec3.Type} p A point in the plane.
  */
 shapy.editor.Object.prototype.cut = function(n, p) {
+  var u = goog.vec.Vec3.createFloat32();
   var left = [];
   var right = [];
   var newVerts = [];
-  var u = goog.vec.Vec3.createFloat32();
-  var i;
 
   // Helper used to retrieve faces formed using the given edge.
   var getEdgeFaces = function(edge) {
@@ -681,14 +680,16 @@ shapy.editor.Object.prototype.cut = function(n, p) {
 
   var count = 0;
 
+  //console.log("Edges", this.edges);
+  //console.log("Faces", this.faces);
+  //console.log("Vertices", this.verts);
+
   // Find edges whose endpoints are on different sides of the plane.
   goog.object.forEach(this.edges, function(e) {
     var verts = e.getVertices();
 
     var d1 = goog.vec.Vec3.dot(n, verts[0].position);
     var d2 = goog.vec.Vec3.dot(n, verts[1].position);
-
-    //console.log("d1", d1, "d2", d2);
 
     // Determine where the edge is relative to the cut plane.
     if (d1 < 0 && d2 < 0) {
@@ -706,13 +707,18 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       count++;
 
       // Plane intersects the edge.
-      goog.vec.Vec3.subtract(verts[1], verts[0], u);
-      i = shapy.editor.geom.intersectPlane(new goog.vec.Ray(verts[0], u), n, p);
+      goog.vec.Vec3.subtract(verts[1].position, verts[0].position, u);
+      var i = shapy.editor.geom.intersectPlane(
+          new goog.vec.Ray(verts[0].position, u), n, p);
 
       // Create a new vertex.
       var vertId = this.nextVert_++;
       var newVertex = new shapy.editor.Vertex(this, vertId, i[0], i[1], i[2]);
+      //console.log("new vertex", newVertex);
       goog.array.insert(newVerts, newVertex);
+
+      // Add the vertex to the object.
+      this.verts[vertId] = newVertex;
 
       // Split the edge in two.
       var e1 = new shapy.editor.Edge(this, this.nextEdge_, e.v0, vertId);
@@ -790,6 +796,10 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       // Add new edges to the object.
       this.edges[e1.id] = e1;
       this.edges[e2.id] = e2;
+    
+      //console.log("new Edges", this.edges);
+      //console.log("new Faces", this.faces);
+      //console.log("new Vertices", this.verts);
     }
   }, this);
 

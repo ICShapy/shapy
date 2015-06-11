@@ -178,7 +178,7 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
 
     this.renderCutPlane_ = true;
 
-    // TODO(Ilija): move this to a proper palce once debugging is done.
+    // TODO(Ilija): move this to a proper place once debugging is done.
     //object.cut(this.norm_, this.ps_[0]);
     //console.log("performed cut");
   }
