@@ -347,6 +347,14 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
 
 
 /**
+ * Toggles to UV view.
+ */
+shapy.editor.Editor.prototype.toggleUV = function() {
+  this.layout_.toggleUV(this.partGroup);
+};
+
+
+/**
  * Creates a new object, adding it to the scene.
  *
  * @param {string} type Type of the object.
