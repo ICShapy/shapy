@@ -801,6 +801,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
         uv = null;
         object = null;
       }
+
       if (uv && object && (texture = this.scene_.textures[object.texture])) {
         texture.paint(uv.u, uv.v, this.brushColour_, this.brushRadius_);
         pick = [];

@@ -186,14 +186,11 @@ shapy.editor.Face.prototype.delete = function() {
  * @return {!{u: number, v: number}}
  */
 shapy.editor.Face.prototype.pickUV = function(ray) {
-  if (!this.uv0 || !this.uv1 || !this.uv2) {
-    return {u: 0, v: 0};
-  }
-
   var verts = this.getVertices();
-  var uv0 = this.object.uvs[this.uv0];
-  var uv1 = this.object.uvs[this.uv1];
-  var uv2 = this.object.uvs[this.uv2];
+  var uvs = this.getUVs();
+  if (!uvs || goog.array.isEmpty(uvs)) {
+    return { u: 0, v: 0 };
+  }
 
   // Get vertex position.
   var p0 = goog.vec.Vec3.cloneFloat32(verts[0].position);
@@ -211,7 +208,7 @@ shapy.editor.Face.prototype.pickUV = function(ray) {
     return {u: 0, v: 0};
   }
   return {
-    u: (bary.a * uv0.u) + (bary.b * uv1.u) + (bary.c * uv2.u),
-    v: (bary.a * uv0.v) + (bary.b * uv1.v) + (bary.c * uv2.v)
+    u: (bary.a * uvs[0].u) + (bary.b * uvs[1].u) + (bary.c * uvs[2].u),
+    v: (bary.a * uvs[0].v) + (bary.b * uvs[1].v) + (bary.c * uvs[2].v)
   };
 };
