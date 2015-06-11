@@ -598,7 +598,7 @@ shapy.editor.Object.prototype.projectUV = function() {
   }, this);
 
   // Update all edges that do not have UV coords set.
-  goog.object.forEach(this.edges_, function(e) {
+  goog.object.forEach(this.edges, function(e) {
     var verts = e.getVertices();
     e.uv0 = e.uv0 || project(verts[0]);
     e.uv1 = e.uv1 || project(verts[1]);

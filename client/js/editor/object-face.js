@@ -85,13 +85,16 @@ shapy.editor.Face.prototype.getVertices = function() {
  */
 shapy.editor.Face.prototype.getUVs = function() {
   var e = this.getEdges();
-  return [
-    this.object.uvs[this.uv0 >= 0 ? e[0].uv0 : e[0].uv1],
-    this.object.uvs[this.uv1 >= 0 ? e[1].uv0 : e[1].uv1],
-    this.object.uvs[this.uv2 >= 0 ? e[2].uv0 : e[2].uv1],
-  ];
-};
+  var uv0 = this.e0 >= 0 ? e[0].uv0 : e[0].uv1;
+  var uv1 = this.e1 >= 0 ? e[1].uv0 : e[1].uv1;
+  var uv2 = this.e2 >= 0 ? e[2].uv0 : e[2].uv1;
 
+  if (!uv0 || !uv1 || !uv2) {
+    return [];
+  } else {
+    return [this.object.uvs[uv0], this.object.uvs[uv1], this.object.uvs[uv2]];
+  }
+};
 
 
 /**
@@ -113,11 +116,7 @@ shapy.editor.Face.prototype.getObject = function() {
  */
 shapy.editor.Face.prototype.getVertexPositions_ = function() {
   var verts = this.getVertices();
-  return [
-      verts[0].position,
-      verts[1].position,
-      verts[2].position
-  ];
+  return [verts[0].position, verts[1].position, verts[2].position];
 };
 
 

@@ -36,9 +36,9 @@ shapy.editor.Edge = function(object, id, v0, v1, opt_uv0, opt_uv1) {
   this.v1 = v1;
 
   /** @public {number} */
-  this.opt_uv0 = opt_uv0 || 0;
+  this.uv0 = opt_uv0 || 0;
   /** @public {number} */
-  this.opt_uv1 = opt_uv1 || 0;
+  this.uv1 = opt_uv1 || 0;
 };
 goog.inherits(shapy.editor.Edge, shapy.editor.Editable);
 
@@ -81,6 +81,20 @@ shapy.editor.Edge.prototype.getVertices = function() {
     this.object.verts[this.v0],
     this.object.verts[this.v1]
   ];
+};
+
+
+/**
+ * Retrives the uv.
+ *
+ * @return {!Array<!shapy.editor.Vertex>}
+ */
+shapy.editor.Edge.prototype.getUVs = function() {
+  if (!this.uv0 || !this.uv1) {
+    return [];
+  } else {
+    return [this.object.uvs[this.uv0], this.object.uvs[this.uv1]];
+  }
 };
 
 

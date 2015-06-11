@@ -76,8 +76,24 @@ shapy.editor.Mesh.COLOUR = {
     2: [1.0, 0.6, 0.0],
     3: [1.0, 1.0, 0.0],
   },
-  'uv': {
 
+  'uv-vert': {
+    0: [0.0, 0.0, 1.0],
+    1: [1.0, 0.4, 0.0],
+    2: [1.0, 0.6, 0.0],
+    3: [1.0, 1.0, 0.0],
+  },
+  'uv-edge': {
+    0: [0.4, 0.7, 1.0],
+    1: [1.0, 0.4, 0.0],
+    2: [1.0, 0.6, 0.0],
+    3: [1.0, 1.0, 0.0],
+  },
+  'uv-face': {
+    0: [0.0, 0.0, 1.0],
+    1: [1.0, 0.4, 0.0],
+    2: [1.0, 0.6, 0.0],
+    3: [1.0, 1.0, 0.0],
   }
 };
 
@@ -105,21 +121,34 @@ shapy.editor.Mesh.prototype.buildMesh_ = function() {
       this.faceCount_ += 3;
   }, this);
 
-
+  // Adds a point into the buffer.
   var add = function(pos, uv, type, sel, hover, def) {
-    d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
-    d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
+    // Position.
+    d[k++] = pos[0];
+    d[k++] = pos[1];
+    d[k++] = pos[2];
+
+    // Normal.
+    d[k++] = 0;
+    d[k++] = 0;
+    d[k++] = 0;
+
+    // UV.
     if (uv) {
-      d[k++] = uv.u; d[k++] = uv.v;                       // UV.
+      d[k++] = uv.u;
+      d[k++] = uv.v;
     } else {
-      d[k++] = 0.0; d[k++] = 0.0;
+      d[k++] = 0.0;
+      d[k++] = 0.0;
     }
 
+    // Colour.
     var mask = (sel ? 2 : 0) | (hover ? 1 : 0);
     var colour = shapy.editor.Mesh.COLOUR[type][mask];
     if (!mask && def) {
       colour = def;
     }
+
     d[k++] = colour[0];
     d[k++] = colour[1];
     d[k++] = colour[2];
@@ -170,16 +199,27 @@ shapy.editor.Mesh.prototype.buildMesh_ = function() {
  */
 shapy.editor.Mesh.prototype.buildUV_ = function() {
   var r = 0.2, g = 0.2, b = 0.2, a = 1.0;
+
+  // Count the number of uv points, edges and faces.
+  this.uvCount_ = 0;
+  this.uvEdgeCount_ = 0;
+  this.uvFaceCount_ = 0;
+
+  goog.object.forEach(this.object_.uvs, function(uv) {
+    this.uvCount_++;
+  }, this);
+  goog.object.forEach(this.object_.faces, function(face) {
+    this.uvEdgeCount_ += 6;
+    this.uvFaceCount_ += 3;
+  }, this);
+
   var addUV = function(d, pos, type, sel, hover) {
     d[k++] = (pos.u * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
     d[k++] = (pos.v * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
     d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = a;
   };
+
   // Create a mesh for rendering all UV points.
-  this.uvCount_ = 0;
-  goog.object.forEach(this.object_.uvs, function(uv) {
-    this.uvCount_++;
-  }, this);
   k = 0;
   var u = new Float32Array(this.uvCount_ * 24);
   goog.object.forEach(this.object_.uvs, function(uv) {
@@ -189,26 +229,13 @@ shapy.editor.Mesh.prototype.buildUV_ = function() {
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, u, goog.webgl.STATIC_DRAW);
 
   // Create a mesh for rendering all UV edges & faces.
-  this.uvEdgeCount_ = 0;
-  this.uvFaceCount_ = 0;
-  goog.object.forEach(this.object_.faces, function(face) {
-    this.uvEdgeCount_ += 6;
-    this.uvFaceCount_ += 3;
-  }, this);
   k = 0;
   var e = new Float32Array(this.uvEdgeCount_ * 24);
-  goog.object.forEach(this.object_.faces, function(face) {
-    if (!face.uv0 || !face.uv1 || !face.uv2) {
-      return;
-    }
-
-    r = 0.4; g = 0.4; b = 0.4; a = 1.0;
-    addUV(e, this.object_.uvs[face.uv0]);
-    addUV(e, this.object_.uvs[face.uv1]);
-    addUV(e, this.object_.uvs[face.uv1]);
-    addUV(e, this.object_.uvs[face.uv2]);
-    addUV(e, this.object_.uvs[face.uv2]);
-    addUV(e, this.object_.uvs[face.uv0]);
+  goog.object.forEach(this.object_.edges, function(edge) {
+    goog.array.forEach(edge.getUVs(), function(uv) {
+      r = 0.4; g = 0.4; b = 0.4; a = 1.0;
+      addUV(e, uv);
+    });
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvEdges_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
@@ -216,14 +243,10 @@ shapy.editor.Mesh.prototype.buildUV_ = function() {
   k = 0;
   var f = new Float32Array(this.uvFaceCount_ * 24);
   goog.object.forEach(this.object_.faces, function(face) {
-    if (!face.uv0 || !face.uv1 || !face.uv2) {
-      return;
-    }
-
-    r = 0.7; g = 0.7; b = 0.7; a = 0.4;
-    addUV(f, this.object_.uvs[face.uv0]);
-    addUV(f, this.object_.uvs[face.uv1]);
-    addUV(f, this.object_.uvs[face.uv2]);
+    goog.array.forEach(face.getUVs(), function(uv) {
+      r = 0.7; g = 0.7; b = 0.7; a = 0.4;
+      addUV(f, uv);
+    });
   }, this);
 
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvFaces_);
