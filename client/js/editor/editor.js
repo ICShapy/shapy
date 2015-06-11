@@ -45,6 +45,20 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
   /** @public {!shapy.User} @const */
   this.user = user;
 
+  /** @public {!string} Current message */
+  this.message = '';
+
+  /** @public {} */
+  this.sendMessage = function() {
+    this.shEditor_.exec_.emitMessage(this.message);
+    this.message = '';
+  };
+
+  /**
+   * Messages, stored as a pair mapping user ID to a list of messages
+   */
+  this.messages = [];
+
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_, this.user);
 };

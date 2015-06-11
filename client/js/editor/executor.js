@@ -108,6 +108,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
 
   this.editor_.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
+      case 'message': this.applyMessage(data); return;
       case 'create': this.applyCreate(data); return;
       case 'lock': this.applyLock(data); return;
       case 'unlock': this.applyUnlock(data); return;
@@ -161,6 +162,32 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       }
     }
   }, this));
+};
+
+
+/**
+ * Executes a chat message
+ *
+ * @param {string} message
+ */
+shapy.editor.Executor.prototype.emitMessage = function(message) {
+  this.sendCommand({
+    type: 'message',
+    user: this.editor_.user.id,
+    message: message
+  });
+};
+
+
+/**
+ * Receives a chat message.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyMessage = function(data) {
+  this.editor_.shUser_.get(data['user']).then(function(user) {
+    console.log('Received message from ' + user.name + ': ' + data['message']);
+  }, this);
 };
 
 

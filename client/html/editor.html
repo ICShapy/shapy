@@ -1,8 +1,12 @@
 <div id="editor">
   <canvas id="canvas" sh-canvas></canvas>
   <div id="chatbox">
-    <div class="message-entry">
-      <form><input type="text" id="message-entry-box" name="message"></form>
+    <div class="message-entry" sh-chatbox>
+      <input
+        type="text"
+        id="message-entry-box"
+        ng-model="editorCtrl.message"
+        ng-keyup="$event.keyCode == 13 ? editorCtrl.sendMessage() : null">
     </div>
     <div class="messages">
     <!-- Message group 1 -->
