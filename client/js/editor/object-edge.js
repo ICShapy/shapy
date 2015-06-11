@@ -17,20 +17,28 @@ goog.require('shapy.editor.Editable');
  *
  * @param {!shapy.editor.Object} object
  * @param {number}               id
- * @param {number}               start
- * @param {number}               end
+ * @param {number}               v0
+ * @param {number}               v1
+ * @param {=number}              opt_uv0
+ * @param {=number}              opt_uv1
  */
-shapy.editor.Edge = function(object, id, start, end) {
+shapy.editor.Edge = function(object, id, v0, v1, opt_uv0, opt_uv1) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDGE);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
   /** @public {!number} @const */
   this.id = id;
-  /** @public {number} @const */
-  this.start = start;
-  /** @public {number} @const */
-  this.end = end;
+
+  /** @public {number} */
+  this.v0 = v0;
+  /** @public {number} */
+  this.v1 = v1;
+
+  /** @public {number} */
+  this.opt_uv0 = opt_uv0 || 0;
+  /** @public {number} */
+  this.opt_uv1 = opt_uv1 || 0;
 };
 goog.inherits(shapy.editor.Edge, shapy.editor.Editable);
 
@@ -41,11 +49,11 @@ goog.inherits(shapy.editor.Edge, shapy.editor.Editable);
  * @return {!goog.vec.Vec3.Type}
  */
 shapy.editor.Edge.prototype.getPosition = function() {
-  var a = this.object.verts[this.start].position;
-  var b = this.object.verts[this.end].position;
+  var v0 = this.object.verts[this.v0].position;
+  var v1 = this.object.verts[this.v1].position;
   var t = goog.vec.Vec3.createFloat32();
 
-  goog.vec.Vec3.add(a, b, t);
+  goog.vec.Vec3.add(v0, v1, t);
   goog.vec.Vec3.scale(t, 0.5, t);
   goog.vec.Mat4.multVec3(this.object.model_, t, t);
 
@@ -65,11 +73,13 @@ shapy.editor.Edge.prototype.getObject = function() {
 
 /**
  * Retrives the vertices forming an edge.
+ *
+ * @return {!Array<!goog.editor.Vertex>}
  */
 shapy.editor.Edge.prototype.getVertices = function() {
   return [
-    this.object.verts[this.start],
-    this.object.verts[this.end]
+    this.object.verts[this.v0],
+    this.object.verts[this.v1]
   ];
 };
 
