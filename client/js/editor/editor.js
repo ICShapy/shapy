@@ -132,12 +132,6 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   this.partGroup_ = new shapy.editor.PartsGroup();
 
   /**
-   * Currently selected uv group.
-   * @private {shapy.editor.UVGroup}
-   */
-  this.uvGroup_ = new shapy.editor.UVGroup();
-
-  /**
    * Object hovered by mouse.
    * @private {!Array<!shapy.editor.Editable>}
    */
@@ -283,7 +277,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Single();
+  this.layout_ = new shapy.editor.Layout.Double();
   this.rig(this.rigTranslate_);
 
   // Start checkpointing.
@@ -349,6 +343,14 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
   // Adjust stuff.
   this.rig(this.rig_);
   this.vp_.width = this.vp_.height = 0;
+};
+
+
+/**
+ * Toggles to UV view.
+ */
+shapy.editor.Editor.prototype.toggleUV = function() {
+  this.layout_.toggleUV(this.partGroup);
 };
 
 
@@ -628,7 +630,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (this.layout_ &&
           this.layout_.active.type == shapy.editor.Viewport.Type.UV)
       {
-        this.layout_.toggleUV(this.uvGroup_);
+        this.layout_.toggleUV(this.partGroup_);
         return;
       }
 
@@ -637,10 +639,9 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         return;
       }
       if (this.layout_ && this.layout_.active) {
-        this.layout_.toggleUV(this.uvGroup_);
+        this.layout_.toggleUV(this.partGroup_);
         this.layout_.active.object = this.objectGroup_.editables[0];
         this.layout_.active.object.projectUV();
-        this.uvGroup_.clear();
       }
       break;
     }
@@ -711,9 +712,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // Find out which group is going to be affected.
-  if (selectUV) {
-    group = this.uvGroup_;
-  } else if (this.mode.object) {
+  if (this.mode.object) {
     group = this.objectGroup_;
   } else if (!this.mode.paint) {
     group = this.partGroup_;
@@ -742,7 +741,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
   }
 
   // Send a command to the server to lock on objects or adjust part group.
-  if (!selectUV && this.mode.object) {
+  if (this.mode.object) {
     this.exec_.emitSelect(toSelect, toDeselect);
   } else if (!this.mode.paint) {
     // Adjust highlight.
@@ -785,10 +784,10 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   } else {
     if (group && group.width > 10 && group.height > 10 && !this.mode.paint) {
       hits = this.layout_.hover.object.pickUVGroup(
-          this.layout_.hover.groupcast(group));
+          this.layout_.hover.groupcast(group), this.mode);
     } else {
       hits = this.layout_.hover.object.pickUVCoord(
-          this.layout_.hover.raycast(e.offsetX, e.offsetY));
+          this.layout_.hover.raycast(e.offsetX, e.offsetY), this.mode);
       if (hits.length > 1) {
         hits = [hits[hits.length - 1]];
       }
@@ -796,24 +795,26 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
   }
 
   // Filter out all parts that do not belong to the current object.
-  if (this.mode.paint) {
-    if (!isUV && !goog.array.isEmpty(hits) && e.which == 1) {
-      uv = hits[0].pickUV(ray);
-      object = hits[0].object;
-    } else if (isUV && e.which == 1) {
-      uv = this.layout_.hover.raycast(e.offsetX, e.offsetY);
-      object = this.layout_.hover.object;
-    } else {
-      uv = null;
-      object = null;
-    }
-    if (uv && object && (texture = this.scene_.textures[object.texture])) {
-      texture.paint(uv.u, uv.v, this.brushColour_, this.brushRadius_);
-    }
-    pick = [];
-  } else if (this.mode.object) {
+  if (this.mode.object) {
     pick = hits;
   } else {
+    if (this.mode.paint) {
+      if (!isUV && !goog.array.isEmpty(hits) && e.which == 1) {
+        uv = hits[0].pickUV(ray);
+        object = hits[0].object;
+      } else if (isUV && e.which == 1) {
+        uv = this.layout_.hover.raycast(e.offsetX, e.offsetY);
+        object = this.layout_.hover.object;
+      } else {
+        uv = null;
+        object = null;
+      }
+
+      if (uv && object && (texture = this.scene_.textures[object.texture])) {
+        texture.paint(uv.u, uv.v, this.brushColour_, this.brushRadius_);
+        pick = [];
+      }
+    }
     pick = goog.array.filter(hits, function(e) {
       return this.objectGroup_.contains(e.object);
     }, this);
