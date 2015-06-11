@@ -35,7 +35,7 @@ shapy.User = function(data, count) {
  * @type {!Array<goog.vec.Vec3>} @const
  */
 shapy.User.Colour = [
-  [0.40, 0.60, 1.00],
+  [1.00, 1.00, 1.00],
   [1.00, 0.00, 0.00],
   [0.00, 1.00, 0.00],
   [0.00, 0.00, 1.00],
