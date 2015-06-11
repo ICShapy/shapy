@@ -672,17 +672,11 @@ shapy.editor.Object.prototype.cut = function(n, p) {
   var newVerts = [];
 
   // Helper used to retrieve faces formed using the given edge.
-  var getEdgeFaces = function(edge) {
+  var getEdgeFaces = goog.bind(function(edge) {
     return goog.object.filter(this.faces, function(face) {
       return face.e0 == edge.id || face.e1 == edge.id || face.e2 == edge.id;
     }, this);
-  };
-
-  var count = 0;
-
-  //console.log("Edges", this.edges);
-  //console.log("Faces", this.faces);
-  //console.log("Vertices", this.verts);
+  }, this);
 
   // Find edges whose endpoints are on different sides of the plane.
   goog.object.forEach(this.edges, function(e) {
@@ -703,9 +697,6 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       goog.array.insert(left, e);
       goog.array.insert(right, e);
     } else {
-      //console.log("intersected edge:", e);
-      count++;
-
       // Plane intersects the edge.
       goog.vec.Vec3.subtract(verts[1].position, verts[0].position, u);
       var i = shapy.editor.geom.intersectPlane(
@@ -725,8 +716,6 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       this.nextEdge_++;
       var e2 = new shapy.editor.Edge(this, this.nextEdge_, vertId, e.v1);
       this.nextEdge_++;
-
-      //console.log("new edges:", e1, e2);
 
       // Split faces formed by this edge in two.
       goog.object.forEach(getEdgeFaces(e), function(f) {
@@ -796,14 +785,12 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       // Add new edges to the object.
       this.edges[e1.id] = e1;
       this.edges[e2.id] = e2;
-    
-      //console.log("new Edges", this.edges);
-      //console.log("new Faces", this.faces);
-      //console.log("new Vertices", this.verts);
     }
   }, this);
 
-  console.log("intersected", count);
+  // Construct the edges across the cut.
+  // TODO
+
   this.dirty = true;
 };
 
