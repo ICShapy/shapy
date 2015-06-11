@@ -119,7 +119,8 @@ shapy.browser.Scene.prototype.save = function() {
   this.shBrowser_.http_.put('/api/assets/scene', {
     id: this.id,
     name: this.name,
-    data: JSON.stringify(this.toJSON())
+    data: JSON.stringify(this.toJSON()),
+    preview: this.image
   });
 };
 

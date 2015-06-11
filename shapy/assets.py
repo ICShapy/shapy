@@ -309,6 +309,7 @@ class AssetHandler(APIHandler):
     id = int(self.get_argument('id'))
     name = self.get_argument('name', None)
     data = self.get_argument('data', None)
+    preview = self.get_argument('preview', None)
     public = self.get_argument('public', None)
     if public is not None:
       public = bool(int(public))
@@ -324,12 +325,14 @@ class AssetHandler(APIHandler):
          LEFT OUTER JOIN permissions
          ON permissions.asset_id = assets.id
          WHERE assets.id = %(id)s
+           AND assets.type = %(type)s
            AND ((permissions.user_id = %(user)s AND
                  permissions.write IS TRUE AND
                  %(public)s IS NULL) OR
                 (assets.owner = %(user)s))
       ''', {
       'id': id,
+      'type': self.TYPE,
       'user': user.id,
       'public': public
     })
@@ -341,18 +344,23 @@ class AssetHandler(APIHandler):
       '''UPDATE assets
          SET name = COALESCE(%(name)s, name),
              data = COALESCE(%(data)s, data),
-             public = COALESCE(%(public)s, public)
+             public = COALESCE(%(public)s, public),
+             preview = COALESCE(%(preview)s, preview)::bytea
+
          WHERE id = %(id)s
          RETURNING id
       ''', {
       'id': id,
       'name': name,
       'data': psycopg2.extras.Json(data) if data else None,
-      'public': public
+      'public': public,
+      'preview': psycopg2.Binary(str(preview)) if preview else None
     })
 
-    self.finish()
+    if not cursor.fetchone():
+      raise HTTPErorr(400, 'Asset update failed.')
 
+    self.finish()
 
 
 class DirHandler(AssetHandler):
@@ -505,53 +513,3 @@ class TextureHandler(AssetHandler):
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
-
-
-
-class PreviewHandler(BaseHandler):
-  """Handles a preview image upload."""
-
-  @coroutine
-  @asynchronous
-  def get(self):
-    """Retrieves the preview of the scene."""
-
-    data = yield momoko.Op(self.db.execute,
-        '''SELECT preview::bytea
-           FROM assets
-           WHERE id=%s
-        ''', (
-        self.get_argument('id'),
-    ))
-    data = data.fetchone()
-    if not data:
-      raise HTTPError(404, 'Preview not found')
-
-    image = a2b_base64(str(data[0])[23:])
-    self.set_header('Content-Type', 'image/jpeg')
-    self.set_header('Content-Length', len(image))
-    self.write(image)
-    self.finish()
-
-
-  @session
-  @coroutine
-  @asynchronous
-  def post(self, user):
-    """Updates the preview image of a scene."""
-
-    if not user:
-      return
-
-    yield momoko.Op(self.db.execute,
-      '''UPDATE assets
-         SET preview=%s::bytea
-         WHERE id=%s
-           AND owner=%s
-      ''', (
-      psycopg2.Binary(self.request.body),
-      self.get_argument('id'),
-      user.id
-    ))
-
-    self.finish()

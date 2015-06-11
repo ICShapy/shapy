@@ -230,9 +230,6 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
 
     // Upload.
     this.scene_.image = canvas.toDataURL('image/jpeg');
-    this.http_.post('/api/assets/preview', this.scene_.image, {
-        params: {id: this.scene_.id}
-    });
   }, this);
   image.src = this.canvas_.toDataURL('image/jpeg');
 };
