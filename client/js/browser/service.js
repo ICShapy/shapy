@@ -526,14 +526,26 @@ shapy.browser.Service.prototype.setPublic_ = function(url, asset, public) {
   });
 };
 
+
 /**
  * Sets public/private setting of a scene.
  *
- * @param {!shapy.browser.Scene} scene Scene which public setting we update.
- * @param {boolean}                     name  New name.
+ * @param {!shapy.browser.Scene} scene  Scene which public setting we update.
+ * @param {boolean}              public New public/private setting.
  */
 shapy.browser.Service.prototype.setPublicScene = function(scene, public) {
   this.setPublic_('/api/assets/scene', scene, public);
+};
+
+
+/**
+ * Sets public/private setting of a texture.
+ *
+ * @param {!shapy.browser.Texture} texture Texture which public setting we update.
+ * @param {boolean}                public  New public/private setting.
+ */
+shapy.browser.Service.prototype.setPublicTexture = function(texture, public) {
+  this.setPublic_('/api/assets/texture', texture, public);
 };
 
 

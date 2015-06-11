@@ -683,6 +683,11 @@ shapy.browser.public = function(shBrowser) {
             case shapy.browser.Asset.Type.SCENE:
               shBrowser.setPublicScene($scope.asset, !$scope.asset.public);
               break;
+            case shapy.browser.Asset.Type.TEXTURE:
+              shBrowser.setPublicTexture($scope.asset, !$scope.asset.public);
+              break;
+            default:
+              console.log('making public - unimplemented case!');
           }
       });
     }
