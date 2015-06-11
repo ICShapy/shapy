@@ -283,7 +283,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Single();
+  this.layout_ = new shapy.editor.Layout.Double();
   this.rig(this.rigTranslate_);
 
   // Start checkpointing.

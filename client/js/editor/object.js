@@ -503,12 +503,38 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray, mode) {
  * Finds vertices that match given UV coordinate.
  *
  * @param {!{x: number, y: number}} coord
+ *
+ * @return {Array}
  */
 shapy.editor.Object.prototype.pickUVCoord = function(coord) {
-  return goog.object.getValues(goog.object.filter(this.uvs, function(uv) {
-    return shapy.editor.geom.dist2D(coord, uv.u, uv.v) <
-        shapy.editor.Object.UV_DIST_TRESHOLD;
-  }, this));
+  var dist = shapy.editor.Object.UV_DIST_TRESHOLD;
+  return goog.array.flatten([
+    goog.object.getValues(goog.object.filter(this.faces, function(face) {
+      var uv = face.getUVs();
+
+      var a0 = shapy.editor.geom.triangleArea(uv[0], uv[1], uv[2]);
+      var a1 = shapy.editor.geom.triangleArea(coord, uv[1], uv[2]);
+      var a2 = shapy.editor.geom.triangleArea(uv[0], coord, uv[2]);
+      var a3 = shapy.editor.geom.triangleArea(uv[0], uv[1], coord);
+
+      return Math.abs(a0 - a1 - a2 - a3) < 0.001;
+    }, this)),
+    goog.object.getValues(goog.object.filter(this.uvEdges, function(edge) {
+      var uv = edge.getUVs();
+      return (Math.abs(
+        (uv[1].v - uv[0].v) * coord.u -
+        (uv[1].u - uv[0].u) * coord.v +
+        (uv[1].u * uv[0].v) -
+        (uv[1].v * uv[0].u)
+      ) / Math.sqrt(
+        Math.pow(uv[0].u - uv[1].u, 2) +
+        Math.pow(uv[0].v - uv[1].v, 2)
+      )) < dist;
+    }, this)),
+    goog.object.getValues(goog.object.filter(this.uvPoints, function(uv) {
+      return shapy.editor.geom.dist2D(coord, uv.u, uv.v) < dist;
+    }, this))
+  ]);
 };
 
 
@@ -516,9 +542,11 @@ shapy.editor.Object.prototype.pickUVCoord = function(coord) {
  * Finds parts that fall into the given UV region.
  *
  * @param {!{x0: number, x1: number, y0: number, y1: number}} group
+ *
+ * @return {Array}
  */
 shapy.editor.Object.prototype.pickUVGroup = function(group) {
-  return goog.object.getValues(goog.object.filter(this.uvs, function(uv) {
+  return goog.object.getValues(goog.object.filter(this.uvPoints, function(uv) {
     return shapy.editor.geom.intersectSquare(group, uv.u, uv.v);
   }, this));
 };

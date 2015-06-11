@@ -157,8 +157,7 @@ shapy.editor.Mesh.prototype.buildMesh_ = function() {
   };
 
   // Create mesh for rendering all the edges.
-  k = 0;
-  d = new Float32Array(this.vertCount_ * 48);
+  k = 0; d = new Float32Array(this.vertCount_ * 48);
   goog.object.forEach(this.object_.verts, function(vert) {
     add(vert.position, null, 'vert', vert.selected, vert.hover);
   }, this);
@@ -166,8 +165,7 @@ shapy.editor.Mesh.prototype.buildMesh_ = function() {
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
 
   // Create mesh for rendering all the edges.
-  k = 0;
-  d = new Float32Array(this.edgeCount_ * 48);
+  k = 0; d = new Float32Array(this.edgeCount_ * 48);
   goog.object.forEach(this.object_.edges, function(edge) {
     goog.array.forEach(edge.getVertices(), function(v) {
       add(v.position, null, 'edge', edge.selected || v.selected, edge.hover);
@@ -177,8 +175,7 @@ shapy.editor.Mesh.prototype.buildMesh_ = function() {
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
 
   // Create mesh for rendering all the faces.
-  k = 0;
-  d = new Float32Array(this.faceCount_ * 48);
+  k = 0; d = new Float32Array(this.faceCount_ * 48);
   goog.object.forEach(this.object_.faces, function(face) {
     var v = face.getVertices();
     add(v[0].position, face.uv0 ? this.object_.uvs[face.uv0] : null,
