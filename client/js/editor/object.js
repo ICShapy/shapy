@@ -715,9 +715,9 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       goog.array.insert(newVerts, newVertex);
 
       // Split the edge in two.
-      var e1 = new shapy.editor.Edge(this, this.nextEdge_, e.start, vertId);
+      var e1 = new shapy.editor.Edge(this, this.nextEdge_, e.v0, vertId);
       this.nextEdge_++;
-      var e2 = new shapy.editor.Edge(this, this.nextEdge_, vertId, e.end);
+      var e2 = new shapy.editor.Edge(this, this.nextEdge_, vertId, e.v1);
       this.nextEdge_++;
 
       //console.log("new edges:", e1, e2);
@@ -751,9 +751,9 @@ shapy.editor.Object.prototype.cut = function(n, p) {
             var k1 = (k + 1) % 3;
             var k2 = (k + 2) % 3;
 
-            if ((faceEdges[k].start == faceEdges[k1].start ||
-                 faceEdges[k].start == faceEdges[k1].end) &&
-                 faceEdges[k1].end == third.id)
+            if ((faceEdges[k].v0 == faceEdges[k1].v0 ||
+                 faceEdges[k].v0 == faceEdges[k1].v1) &&
+                 faceEdges[k1].v1 == third.id)
             {
               sideOne = faceEdges[k1].id;
               sideTwo = faceEdges[k2].id;

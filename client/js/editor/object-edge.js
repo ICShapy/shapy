@@ -36,9 +36,9 @@ shapy.editor.Edge = function(object, id, v0, v1, opt_uv0, opt_uv1) {
   this.v1 = v1;
 
   /** @public {number} */
-  this.opt_uv0 = opt_uv0 || 0;
+  this.uv0 = opt_uv0 || 0;
   /** @public {number} */
-  this.opt_uv1 = opt_uv1 || 0;
+  this.uv1 = opt_uv1 || 0;
 };
 goog.inherits(shapy.editor.Edge, shapy.editor.Editable);
 
