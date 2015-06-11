@@ -179,13 +179,11 @@ shapy.editor.Mesh.prototype.buildMesh_ = function() {
   goog.object.forEach(this.object_.faces, function(face) {
     var v = face.getVertices();
     var uvs = face.getUVs();
+    var def = this.object_.selected ? this.object_.selected.colour : null;
 
-    add(v[0].position, uvs[0],
-        'face', face.selected, face.hover, this.object_.selected.colour);
-    add(v[1].position, uvs[1],
-        'face', face.selected, face.hover, this.object_.selected.colour);
-    add(v[2].position, uvs[2],
-        'face', face.selected, face.hover, this.object_.selected.colour);
+    add(v[0].position, uvs[0], 'face', face.selected, face.hover, def);
+    add(v[1].position, uvs[1], 'face', face.selected, face.hover, def);
+    add(v[2].position, uvs[2], 'face', face.selected, face.hover, def);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
