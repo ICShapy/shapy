@@ -19,10 +19,8 @@ goog.require('shapy.editor.Editable');
  * @param {number}               id
  * @param {number}               v0
  * @param {number}               v1
- * @param {=number}              opt_uv0
- * @param {=number}              opt_uv1
  */
-shapy.editor.Edge = function(object, id, v0, v1, opt_uv0, opt_uv1) {
+shapy.editor.Edge = function(object, id, v0, v1) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.EDGE);
 
   /** @public {!shapy.editor.Object} @const */
@@ -34,11 +32,6 @@ shapy.editor.Edge = function(object, id, v0, v1, opt_uv0, opt_uv1) {
   this.v0 = v0;
   /** @public {number} */
   this.v1 = v1;
-
-  /** @public {number} */
-  this.uv0 = opt_uv0 || 0;
-  /** @public {number} */
-  this.uv1 = opt_uv1 || 0;
 };
 goog.inherits(shapy.editor.Edge, shapy.editor.Editable);
 
@@ -77,24 +70,7 @@ shapy.editor.Edge.prototype.getObject = function() {
  * @return {!Array<!goog.editor.Vertex>}
  */
 shapy.editor.Edge.prototype.getVertices = function() {
-  return [
-    this.object.verts[this.v0],
-    this.object.verts[this.v1]
-  ];
-};
-
-
-/**
- * Retrives the uv.
- *
- * @return {!Array<!shapy.editor.Vertex>}
- */
-shapy.editor.Edge.prototype.getUVs = function() {
-  if (!this.uv0 || !this.uv1) {
-    return [];
-  } else {
-    return [this.object.uvs[this.uv0], this.object.uvs[this.uv1]];
-  }
+  return [this.object.verts[this.v0], this.object.verts[this.v1]];
 };
 
 

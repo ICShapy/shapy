@@ -97,7 +97,8 @@ shapy.browser.Scene.prototype.load = function(data) {
         data.verts || {},
         data.edges || {},
         data.faces || {},
-        data.uvs || {});
+        data.uvPoints || {},
+        data.uvEdges || {});
 
     obj.translate_[0] = data.tx;
     obj.translate_[1] = data.ty;

@@ -30,12 +30,21 @@ goog.require('shapy.editor.geom');
  *
  * @param {string}              id
  * @param {!shapy.editor.Scene} scene
- * @param {!Array<Object>}      verts
- * @param {!Array<Object>}      edges
- * @param {!Array<Object>}      faces
- * @param {!Array<Object>}      uvs
+ * @param {=Array<Object>}      opt_verts
+ * @param {=Array<Object>}      opt_edges
+ * @param {=Array<Object>}      opt_faces
+ * @param {=Array<Object>}      opt_uvPoints
+ * @param {=Array<Object>}      opt_uvEdges
  */
-shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
+shapy.editor.Object = function(
+    id,
+    scene,
+    opt_verts,
+    opt_edges,
+    opt_faces,
+    opt_uvPoints,
+    opt_uvEdges)
+{
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.OBJECT);
 
   /** @public {string} */
@@ -115,7 +124,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
    */
   this.verts = {};
   this.nextVert_ = 0;
-  goog.object.forEach(verts, function(v, i) {
+  goog.object.forEach(opt_verts || {}, function(v, i) {
     this.nextVert_ = Math.max(this.nextVert_, i + 1);
     this.verts[i] = new shapy.editor.Vertex(this, i, v[0], v[1], v[2]);
   }, this);
@@ -127,7 +136,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
    */
   this.edges = {};
   this.nextEdge_ = 0;
-  goog.object.forEach(edges, function(e, i) {
+  goog.object.forEach(opt_edges || {}, function(e, i) {
     this.nextEdge_ = Math.max(this.nextEdge_, i + 1);
     this.edges[i] = new shapy.editor.Edge(this, i, e[0], e[1], e[2], e[3]);
   }, this);
@@ -140,21 +149,35 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
    */
    this.faces = {};
    this.nextFace_ = 0;
-   goog.object.forEach(faces, function(f, i) {
+   goog.object.forEach(opt_faces || {}, function(f, i) {
     this.nextFace_ = Math.max(this.nextFace_, i + 1);
-    this.faces[i] = new shapy.editor.Face(this, i, f[0], f[1], f[2]);
+    this.faces[i] = new shapy.editor.Face(
+        this, i, f[0], f[1], f[2], f[3], f[4], f[5]);
    }, this);
 
    /**
-    * True if the object has a UV map.
-    * @public {!Object<number, !shapy.editor.Object.UV>}
+    * UV points part of the UV projection.
+    * @public {!Object<number, !shapy.editor.Object.UVPoint>}
     */
-  this.uvs = {};
-  this.nextUV_ = 0;
-  goog.object.forEach(uvs, function(u, i) {
-    this.nextUV_ = Math.max(this.nextUV_, i + 1);
-    this.uvs[i] = new shapy.editor.Object.UV(this, i, u[0], u[1]);
+  this.uvPoints = {};
+  this.nextUVPoint_ = 0;
+  goog.object.forEach(opt_uvPoints || {}, function(up, i) {
+    this.nextUVPoint_ = Math.max(this.nextUVPoint_, i + 1);
+    this.uvPoints[i] = new shapy.editor.Object.UVPoint(this, i, up[0], up[1]);
   }, this);
+
+  /**
+   * UV edges part of the UV projection.
+   * @public {!Object<number, !shapy.editor.Object.UVEdge>}
+   */
+  this.uvEdges = {};
+  this.nextUVEdge_ = 0;
+  goog.object.forEach(opt_uvEdges || {}, function(ue, i) {
+    this.nextUVEdge_ = Math.max(this.nextUVEdge_, i + 1);
+    this.uvEdges[i] = new shapy.editor.Object.UVEdge(this, i, ue[0], ue[1]);
+  }, this);
+
+  // Update the UV projection for missing faces.
   this.projectUV();
 };
 goog.inherits(shapy.editor.Object, shapy.editor.Editable);
@@ -580,28 +603,66 @@ shapy.editor.Object.prototype.projectUV = function() {
   /**
    * Projects a single vertex to an imaginary sphere.
    */
-  var project = goog.bind(function(vert) {
-    var u, v, id;
-
+  var projectVertex = goog.bind(function(vert) {
     // Find u & v.
     goog.vec.Vec3.normalize(vert.position, n);
-    u = 0.5 + Math.atan2(n[2], n[0]) / (2 * Math.PI);
-    v = 0.5 - Math.asin(n[1]) / Math.PI;
+    var u = 0.5 + Math.atan2(n[2], n[0]) / (2 * Math.PI);
+    var v = 0.5 - Math.asin(n[1]) / Math.PI;
 
     // Add  a new UV point.
     this.dirty = true;
-    id = this.nextUV_;
-    this.nextUV_++;
-    this.uvs[id] = new shapy.editor.Object.UV(this, id, u, v);
+    var id = this.nextUVPoint_;
+    this.nextUVPoint_++;
+    this.uvPoints[id] = new shapy.editor.Object.UVPoint(this, id, u, v);
+    return id;
+  }, this);
 
+  /**
+   * Projects a new edge.
+   */
+  var projectEdge = goog.bind(function(uv0, uv1) {
+    this.dirty = true;
+    var id = this.nextUVEdge_;
+    this.nextUVEdge_++;
+    this.uvEdges[id] = new shapy.editor.Object.UVEdge(this, id, uv0, uv1);
     return id;
   }, this);
 
   // Update all edges that do not have UV coords set.
-  goog.object.forEach(this.edges, function(e) {
-    var verts = e.getVertices();
-    e.uv0 = e.uv0 || project(verts[0]);
-    e.uv1 = e.uv1 || project(verts[1]);
+  goog.object.forEach(this.faces, function(face) {
+    var verts = face.getVertices(), uv0, uv1, uv2;
+
+    if (face.ue0 > 0) {
+      uv0 = this.uvEdges[face.ue0].uv0;
+      uv1 = this.uvEdges[face.ue0].uv1;
+    } else if (face.ue0 < 0) {
+      uv0 = this.uvEdges[face.ue0].uv1;
+      uv1 = this.uvEdges[face.ue0].uv0;
+    }
+
+    if (face.ue1 > 0) {
+      uv1 = this.uvEdges[face.ue1].uv0;
+      uv2 = this.uvEdges[face.ue1].uv1;
+    } else if (face.ue1 < 0) {
+      uv1 = this.uvEdges[face.ue1].uv1;
+      uv2 = this.uvEdges[face.ue1].uv0;
+    }
+
+    if (face.ue2 > 0) {
+      uv2 = this.uvEdges[face.ue2].uv0;
+      uv0 = this.uvEdges[face.ue2].uv1;
+    } else if (face.ue2 < 0) {
+      uv2 = this.uvEdges[face.ue2].uv1;
+      uv0 = this.uvEdges[face.ue2].uv0;
+    }
+
+    uv0 = uv0 || projectVertex(verts[0]);
+    uv1 = uv1 || projectVertex(verts[1]);
+    uv2 = uv2 || projectVertex(verts[2]);
+
+    face.ue0 = face.ue0 || projectEdge(uv0, uv1);
+    face.ue1 = face.ue1 || projectEdge(uv1, uv2);
+    face.ue2 = face.ue2 || projectEdge(uv2, uv0);
   }, this);
 };
 
@@ -883,52 +944,86 @@ shapy.editor.Object.prototype.toJSON = function() {
     rw: this.rotation_[3],
 
     verts: goog.object.map(this.verts, function(v) {
-      return [
-        trunc(v.position[0]),
-        trunc(v.position[1]),
-        trunc(v.position[2])
-      ];
+      return [trunc(v.position[0]), trunc(v.position[1]), trunc(v.position[2])];
     }, this),
 
-    uvs: goog.object.map(this.uvs, function(uv) {
-      return [
-        trunc(uv.u),
-        trunc(uv.v)
-      ];
-    }),
-
     edges: goog.object.map(this.edges, function(e) {
-      return [e.v0, e.v1, e.uv0, e.uv1];
+      return [e.v0, e.v1];
     }, this),
 
     faces: goog.object.map(this.faces, function(f) {
-      return [f.e0, f.e1, f.e2];
+      return [f.e0, f.e1, f.e2, f.ue0, f.ue1, f.ue2];
+    }, this),
+
+    uvPoints: goog.object.map(this.uvPoints, function(up) {
+      return [trunc(up.u), trunc(up.v)];
+    }, this),
+
+    uvEdges: goog.object.map(this.uvEdges, function(ue) {
+      return [ue.uv0, ue.uv1];
     }, this)
   };
 };
 
 
 /**
- * UV coordinate.
+ * UV projection point.
  *
  * @constructor
  * @extends {shapy.editor.Editable}
  *
  * @param {!shapy.editor.Object} object
- * @param {!shapy.editor.Face}   face
- * @param {=number}              opt_u
- * @param {=number}              opt_v
+ * @param {number}               id
+ * @param {number}               u
+ * @param {number}               v
  */
-shapy.editor.Object.UV = function(object, face, opt_u, opt_v) {
-  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.UV);
+shapy.editor.Object.UVPoint = function(object, id, u, v) {
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.UV_POINT);
 
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
-  /** @public {!shapy.editor.Face} */
-  this.face = face;
+  /** @public {number} @const */
+  this.id = id;
   /** @public {number} */
-  this.u = opt_u || 0.0;
+  this.u = u || 0.0;
   /** @public {number} */
-  this.v = opt_v || 0.0;
+  this.v = v || 0.0;
 };
-goog.inherits(shapy.editor.Object.UV, shapy.editor.Editable);
+goog.inherits(shapy.editor.Object.UVPoint, shapy.editor.Editable);
+
+
+/**
+ * UV projection edge.
+ *
+ * @constructor
+ * @extends {shapy.editor.Editable}
+ *
+ * @param {!shapy.editor.Object} object
+ * @param {number}               id
+ * @param {number}               uv0
+ * @param {number}               uv1
+ */
+shapy.editor.Object.UVEdge = function(object, id, uv0, uv1) {
+  shapy.editor.Editable.call(this, shapy.editor.Editable.Type.UV_EDGE);
+
+  /** @public {!shapy.editor.Object} @const */
+  this.object = object;
+  /** @public {number} @const */
+  this.id = id;
+  /** @public {number} */
+  this.uv0 = uv0;
+  /** @public {number} */
+  this.uv1 = uv1;
+};
+goog.inherits(shapy.editor.Object.UVEdge, shapy.editor.Editable);
+
+
+
+/**
+ * Retrieves the UV points at the end of the edge.
+ *
+ * @return {!Array<!goog.editor.UVPoint>}
+ */
+shapy.editor.Object.UVEdge.prototype.getUVs = function() {
+  return [this.object.uvPoints[this.uv0], this.object.uvPoints[this.uv1]];
+};

@@ -22,11 +22,15 @@ goog.require('shapy.editor.geom');
  * @param {number}               e0
  * @param {number}               e1
  * @param {number}               e2
- * @param {number}               uv0
- * @param {number}               uv1
- * @param {number}               uv2
+ * @param {number}               opt_ue0
+ * @param {number}               opt_ue1
+ * @param {number}               opt_ue2
  */
-shapy.editor.Face = function(object, id, e0, e1, e2, uv0, uv1, uv2) {
+shapy.editor.Face = function(
+    object, id,
+    e0, e1, e2,
+    opt_ue0, opt_ue1, opt_ue2)
+{
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.FACE);
 
   /** @public {!shapy.editor.Object} @const */
@@ -40,11 +44,11 @@ shapy.editor.Face = function(object, id, e0, e1, e2, uv0, uv1, uv2) {
   /** @public {number} @const */
   this.e2 = e2;
   /** @public {number} @const */
-  this.uv0 = uv0;
+  this.ue0 = opt_ue0 || 0;
   /** @public {number} @const */
-  this.uv1 = uv1;
+  this.ue1 = opt_ue1 || 0;
   /** @public {number} @const */
-  this.uv2 = uv2;
+  this.ue2 = opt_ue2 || 0;
 };
 goog.inherits(shapy.editor.Face, shapy.editor.Editable);
 
@@ -79,21 +83,33 @@ shapy.editor.Face.prototype.getVertices = function() {
 
 
 /**
+ * Retrives the vertices forming a face.
+ *
+ * @return {!Array<!shapy.editor.Vertex>}
+ */
+shapy.editor.Face.prototype.getUVEdges = function() {
+  var e = this.getEdges();
+  return [
+    this.object.uvEdges[this.ue0 >= 0 ? this.ue0 : -this.ue0],
+    this.object.uvEdges[this.ue1 >= 0 ? this.ue1 : -this.ue1],
+    this.object.uvEdges[this.ue2 >= 0 ? this.ue2 : -this.ue2],
+  ];
+};
+
+
+
+/**
  * Retrives the uv.
  *
  * @return {!Array<!shapy.editor.Vertex>}
  */
 shapy.editor.Face.prototype.getUVs = function() {
-  var e = this.getEdges();
-  var uv0 = this.e0 >= 0 ? e[0].uv0 : e[0].uv1;
-  var uv1 = this.e1 >= 0 ? e[1].uv0 : e[1].uv1;
-  var uv2 = this.e2 >= 0 ? e[2].uv0 : e[2].uv1;
-
-  if (!uv0 || !uv1 || !uv2) {
-    return [];
-  } else {
-    return [this.object.uvs[uv0], this.object.uvs[uv1], this.object.uvs[uv2]];
-  }
+  var e = this.getUVEdges();
+  return [
+    this.object.uvPoints[this.ue0 >= 0 ? e[0].uv0 : e[0].uv1],
+    this.object.uvPoints[this.ue1 >= 0 ? e[1].uv0 : e[1].uv1],
+    this.object.uvPoints[this.ue2 >= 0 ? e[2].uv0 : e[2].uv1],
+  ];
 };
 
 

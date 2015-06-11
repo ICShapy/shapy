@@ -559,12 +559,13 @@ shapy.editor.UVGroup.prototype.move = function(dx, dy) {
  * @enum {string}
  */
 shapy.editor.Editable.Type = {
-  OBJECT_GROUP: 'objectGroup',
-  PARTS_GROUP: 'partsGroup',
-  UV_GROUP: 'uvGroup',
+  OBJECT_GROUP: 'object_group',
+  PARTS_GROUP: 'part_group',
+  UV_GROUP: 'uv_group',
   OBJECT: 'object',
   VERTEX: 'vertex',
   EDGE: 'edge',
   FACE: 'face',
-  UV: 'uv'
+  UV_POINT: 'uv_point',
+  UV_EDGE: 'uv_edge'
 };
