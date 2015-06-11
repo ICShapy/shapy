@@ -670,17 +670,21 @@ shapy.editor.Object.prototype.cut = function(n, p) {
 
   // Helper used to retrieve faces formed using the given edge.
   var getEdgeFaces = function(edge) {
-    return goog.array.filter(this.faces, function(face) {
+    return goog.object.filter(this.faces, function(face) {
       return face.e0 == edge.id || face.e1 == edge.id || face.e2 == edge.id;
     }, this);
   };
 
+  var count = 0;
+
   // Find edges whose endpoints are on different sides of the plane.
-  goog.array.forEach(this.edges, function(e) {
+  goog.object.forEach(this.edges, function(e) {
     var verts = e.getVertices();
 
-    var d1 = goog.vec.Vec3.dot(n, verts[0]);
-    var d2 = goog.vec.Vec3.dot(n, verts[1]);
+    var d1 = goog.vec.Vec3.dot(n, verts[0].position);
+    var d2 = goog.vec.Vec3.dot(n, verts[1].position);
+
+    //console.log("d1", d1, "d2", d2);
 
     // Determine where the edge is relative to the cut plane.
     if (d1 < 0 && d2 < 0) {
@@ -694,6 +698,9 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       goog.array.insert(left, e);
       goog.array.insert(right, e);
     } else {
+      //console.log("intersected edge:", e);
+      count++;
+
       // Plane intersects the edge.
       goog.vec.Vec3.subtract(verts[1], verts[0], u);
       i = shapy.editor.geom.intersectPlane(new goog.vec.Ray(verts[0], u), n, p);
@@ -709,8 +716,10 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       var e2 = new shapy.editor.Edge(this, this.nextEdge_, vertId, e.end);
       this.nextEdge_++;
 
+      //console.log("new edges:", e1, e2);
+
       // Split faces formed by this edge in two.
-      goog.array.forEach(getEdgeFaces(e), function(f) {
+      goog.object.forEach(getEdgeFaces(e), function(f) {
         var faceVerts = f.getVertices();
         var faceEdges = f.getEdges();
         var third;
@@ -772,13 +781,16 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       }, this);
 
       // Remove the edge from the object.
-      goog.object.remove(this,edges, e);
+      goog.object.remove(this.edges, e);
 
       // Add new edges to the object.
       this.edges[e1.id] = e1;
       this.edges[e2.id] = e2;
     }
   }, this);
+
+  console.log("intersected", count);
+  this.dirty = true;
 };
 
 
