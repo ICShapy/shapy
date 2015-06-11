@@ -22,33 +22,30 @@ shapy.editor.Mesh = function(gl, object) {
   this.object_ = object;
 
   /** @private {!WebGLBuffer} @const */
+  this.verts_ = this.gl_.createBuffer();
+  /** @private {number} @const */
+  this.vertCount_ = 0;
+  /** @private {!WebGLBuffer} @const */
+  this.edges_ = this.gl_.createBuffer();
+  /** @private {number} @const */
+  this.edgeCount_ = 0;
+  /** @private {!WebGLBuffer} @const */
   this.faces_ = this.gl_.createBuffer();
   /** @private {number} @const */
   this.faceCount_ = 0;
 
   /** @private {!WebGLBuffer} @const */
-  this.edges_ = this.gl_.createBuffer();
-  /** @private {number} @const */
-  this.edgeCount_ = 0;
-
-  /** @private {!WebGLBuffer} @const */
-  this.verts_ = this.gl_.createBuffer();
-  /** @private {number} @const */
-  this.vertCount_ = 0;
-
-  /** @private {!WebGLBuffer} @const */
   this.uvs_ = this.gl_.createBuffer();
   this.uvCount_ = 0;
-
   /** @private {!WebGLBuffer} @const */
   this.uvEdges_ = this.gl_.createBuffer();
   this.uvEdgeCount_ = 0;
-
   /** @private {!WebGLBuffer} @const */
   this.uvFaces_ = this.gl_.createBuffer();
   this.uvFaceCount_ = 0;
 
-  this.build_();
+  this.buildMesh_();
+  this.buildUV_();
 };
 
 
@@ -90,10 +87,26 @@ shapy.editor.Mesh.COLOUR = {
  *
  * @private
  */
-shapy.editor.Mesh.prototype.build_ = function() {
-  var r = 0, g = 0, b = 0, a = 1;
+shapy.editor.Mesh.prototype.buildMesh_ = function() {
+  var k, d;
 
-  var add = function(d, pos, uv, type, sel, hover, def) {
+  // Count the number of items in the mesh.
+  this.vertCount_ = 0;
+  this.edgeCount_ = 0;
+  this.faceCount_ = 0;
+
+  goog.object.forEach(this.object_.verts, function() {
+      this.vertCount_ += 1;
+  }, this);
+  goog.object.forEach(this.object_.edges, function() {
+      this.edgeCount_ += 2;
+  }, this);
+  goog.object.forEach(this.object_.faces, function() {
+      this.faceCount_ += 3;
+  }, this);
+
+
+  var add = function(pos, uv, type, sel, hover, def) {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
     d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
     if (uv) {
@@ -113,61 +126,57 @@ shapy.editor.Mesh.prototype.build_ = function() {
     d[k++] = 1;
   };
 
+  // Create mesh for rendering all the edges.
+  k = 0;
+  d = new Float32Array(this.vertCount_ * 48);
+  goog.object.forEach(this.object_.verts, function(vert) {
+    add(vert.position, null, 'vert', vert.selected, vert.hover);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
+
+  // Create mesh for rendering all the edges.
+  k = 0;
+  d = new Float32Array(this.edgeCount_ * 48);
+  goog.object.forEach(this.object_.edges, function(edge) {
+    var v = edge.getVertices();
+    add(v[0].position, null,
+        'edge', edge.selected || v[0].selected, edge.hover);
+    add(v[1].position, null,
+        'edge', edge.selected || v[1].selected, edge.hover);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
+
+  // Create mesh for rendering all the faces.
+  k = 0;
+  d = new Float32Array(this.faceCount_ * 48);
+  goog.object.forEach(this.object_.faces, function(face) {
+    var v = face.getVertices();
+    add(v[0].position, face.uv0 ? this.object_.uvs[face.uv0] : null,
+        'face', face.selected, face.hover, this.object_.selected.colour);
+    add(v[1].position, face.uv1 ? this.object_.uvs[face.uv1] : null,
+        'face', face.selected, face.hover, this.object_.selected.colour);
+    add(v[2].position, face.uv2 ? this.object_.uvs[face.uv2] : null,
+        'face', face.selected, face.hover, this.object_.selected.colour);
+  }, this);
+  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
+  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, d, goog.webgl.STATIC_DRAW);
+};
+
+
+/**
+ * Builds the UV mesh.
+ *
+ * @private
+ */
+shapy.editor.Mesh.prototype.buildUV_ = function() {
+  var r = 0.2, g = 0.2, b = 0.2, a = 1.0;
   var addUV = function(d, pos, type, sel, hover) {
     d[k++] = (pos.u * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
     d[k++] = (pos.v * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
     d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = a;
   };
-
-  // Create mesh for rendering all the edges.
-  this.vertCount_ = 0;
-  goog.object.forEach(this.object_.verts, function() {
-      this.vertCount_ += 1;
-  }, this);
-  k = 0;
-  var v = new Float32Array(this.vertCount_ * 48);
-  goog.object.forEach(this.object_.verts, function(vert) {
-    add(v, vert.position, null, 'vert', vert.selected, vert.hover);
-  }, this);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
-  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, v, goog.webgl.STATIC_DRAW);
-
-  // Create mesh for rendering all the edges.
-  this.edgeCount_ = 0;
-  goog.object.forEach(this.object_.edges, function() {
-      this.edgeCount_ += 2;
-  }, this);
-  k = 0;
-  var e = new Float32Array(this.edgeCount_ * 48);
-  goog.object.forEach(this.object_.edges, function(edge) {
-    var v = edge.getVertices();
-    add(e, v[0].position, null,
-        'edge', edge.selected || v[0].selected, edge.hover);
-    add(e, v[1].position, null,
-        'edge', edge.selected || v[1].selected, edge.hover);
-  }, this);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
-  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
-
-  // Create mesh for rendering all the faces.
-  this.faceCount_ = 0;
-  goog.object.forEach(this.object_.faces, function() {
-      this.faceCount_ += 3;
-  }, this);
-  k = 0;
-  var f = new Float32Array(this.faceCount_ * 48);
-  goog.object.forEach(this.object_.faces, function(face) {
-    var v = face.getVertices();
-    add(f, v[0].position, face.uv0 ? this.object_.uvs[face.uv0] : null,
-        'face', face.selected, face.hover, this.object_.selected.colour);
-    add(f, v[1].position, face.uv1 ? this.object_.uvs[face.uv1] : null,
-        'face', face.selected, face.hover, this.object_.selected.colour);
-    add(f, v[2].position, face.uv2 ? this.object_.uvs[face.uv2] : null,
-        'face', face.selected, face.hover, this.object_.selected.colour);
-  }, this);
-  this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
-  this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
-
   // Create a mesh for rendering all UV points.
   this.uvCount_ = 0;
   goog.object.forEach(this.object_.uvs, function(uv) {
