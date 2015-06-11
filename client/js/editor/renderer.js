@@ -158,9 +158,11 @@ shapy.editor.GROUND_VS =
   'uniform mat4 u_vp;                                                 \n' +
   'uniform vec2 u_size;                                               \n' +
   'varying vec3 v_vertex;                                             \n' +
+  'varying vec2 v_uv;                                                 \n' +
 
   'void main() {                                                      \n' +
   '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);            \n' +
+  '  v_uv = (a_vertex.xz + vec2(1.0)) * vec2(0.5);                    \n' +
   '  v_vertex = vertex;                                               \n' +
   '  gl_Position = u_vp * vec4(vertex, 1.0);                          \n' +
   '}                                                                  \n';
@@ -172,8 +174,10 @@ shapy.editor.GROUND_FS =
 
   'precision mediump float;                                             \n' +
   'uniform float u_zoom;                                                \n' +
-
+  'uniform float u_use_texture;                                         \n' +
+  'uniform sampler2D u_texture;\n' +
   'varying vec3 v_vertex;\n' +
+  'varying vec2 v_uv;\n' +
 
   'float alpha(float d, float w) {\n' +
   '  return max(smoothstep(w - fwidth(d), w + fwidth(d), d), 0.0);\n' +
@@ -193,7 +197,12 @@ shapy.editor.GROUND_FS =
   '  float a5x = alpha(a5.x, 0.02);\n' +
   '  float a5z = alpha(a5.y, 0.02);\n' +
 
-  '  vec4 colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
+  '  vec4 colour;\n' +
+  '  if (u_use_texture > 0.0) {\n' +
+  '    colour = texture2D(u_texture, v_uv);\n' +
+  '  } else {\n' +
+  '    colour = vec4(0.2, 0.2, 1.0, 0.5);\n' +
+  '  }\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1x);\n' +
   '  colour = mix(vec4(0.2, 0.5, 1.0, 0.95), colour, a1z);\n' +
   '  colour = mix(vec4(0.5, 0.5, 1.0, 0.95), colour, a5x);\n' +
@@ -299,8 +308,20 @@ shapy.editor.Renderer = function(gl) {
   this.shRig_.compile(goog.webgl.FRAGMENT_SHADER, shapy.editor.RIG_FS);
   this.shRig_.link();
 
-  /** @private {!shapy.editor.Mesh} @const */
+  /** @private {!WebGLTexture} @const */
   this.txCube_ = this.loadTexture_(shapy.editor.CUBE_TEXTURE);
+
+  /** @private {!WebGLTexture} @const */
+  this.txWhite_ = this.gl_.createTexture();
+  this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txWhite_);
+  this.gl_.texImage2D(
+      goog.webgl.TEXTURE_2D,
+      0,
+      goog.webgl.RGB,
+      1, 1, 0,
+      goog.webgl.RGB,
+      goog.webgl.UNSIGNED_BYTE,
+      new Uint8Array([255, 255, 255]));
 
   /** @private {!WebGLBuffer} @const */
   this.bfRect_ = this.gl_.createBuffer();
@@ -323,16 +344,18 @@ shapy.editor.Renderer = function(gl) {
   ]), goog.webgl.STATIC_DRAW);
 
   /**
-   * Cached mesh and model matrix pairs
-   * @private {!Object<int, Array<shapy.editor.Mesh|goog.vec.Mat4>>}
+   * Cached meshes and their source objects.
+   *
+   * @private {!Object<string, Object>}
    */
   this.objectCache_ = {};
 
   /**
-   * Object mesh history, stored as a map of arrays indexed by object id
-   * @private {!Object<int, Array<shapy.editor.Mesh>>}
+   * Cached textures and their source assets.
+   *
+   * @private {!Object<string, Object>}
    */
-  this.objectHistory_ = {};
+  this.textureCache_ = {};
 };
 
 
@@ -390,25 +413,80 @@ shapy.editor.Renderer.prototype.loadTexture_ = function(data) {
 
 
 /**
- * Update a mesh
+ * Updates a cached texture.
+ *
+ * @param {shapy.browser.Texture} texture Texture to update.
+ */
+shapy.editor.Renderer.prototype.updateTexture = function(texture) {
+  // Bail out if texture not dirty.
+  if (!texture.dirty) {
+    return;
+  }
+  texture.dirty = false;
+
+  // Rebuild the texture.
+  var tex;
+  if (goog.object.containsKey(this.textureCache_, texture.id)) {
+    tex = this.textureCache_[texture.id].texture;
+  } else {
+    tex = this.gl_.createTexture();
+    this.textureCache_[texture.id] = {
+      texture: tex,
+      object: texture
+    };
+  }
+  this.gl_.bindTexture(goog.webgl.TEXTURE_2D, tex);
+  this.gl_.texImage2D(
+      goog.webgl.TEXTURE_2D,
+      0,
+      goog.webgl.RGB,
+      texture.width, texture.height,
+      0,
+      goog.webgl.RGB,
+      goog.webgl.UNSIGNED_BYTE,
+      texture.data);
+  this.gl_.texParameteri(
+      goog.webgl.TEXTURE_2D,
+      goog.webgl.TEXTURE_MAG_FILTER,
+      goog.webgl.LINEAR);
+  this.gl_.texParameteri(
+      goog.webgl.TEXTURE_2D,
+      goog.webgl.TEXTURE_MIN_FILTER,
+      goog.webgl.LINEAR);
+  this.gl_.bindTexture(goog.webgl.TEXTURE_2D, null);
+};
+
+
+/**
+ * Updates the cached mesh attached to an object.
  *
  * @param {shapy.editor.Object} object Object to update.
  */
 shapy.editor.Renderer.prototype.updateObject = function(object) {
-  object.dirtyMesh = false;
+  // Bail out if object not dirty.
+  if (!object.dirty) {
+    return;
+  }
+  object.dirty = false;
 
-  // Re-build mesh
-  var mesh = new shapy.editor.Mesh(this.gl_, object);
+  // Recompute matrices.
+  object.computeModel();
+
+  // Clean up old mesh.
   if (goog.object.containsKey(this.objectCache_, object.id)) {
-    this.objectCache_[object.id][0].destroy();
+    this.objectCache_[object.id].mesh.destroy();
   }
-  this.objectCache_[object.id] = [mesh, object.model_, object];
 
-  // Store this revision
-  if (!(object.id in this.objectHistory_)) {
-    this.objectHistory_[object.id] = [];
+  // Re-build mesh.
+  this.objectCache_[object.id] = {
+    mesh: new shapy.editor.Mesh(this.gl_, object),
+    object: object
+  };
+
+  // Reference the texture.
+  if (goog.object.containsKey(this.textureCache_, object.texture)) {
+    this.textureCache_[object.texture].deleted = false;
   }
-  this.objectHistory_[object.id].push(mesh);
 };
 
 
@@ -422,13 +500,23 @@ shapy.editor.Renderer.prototype.start = function() {
     goog.webgl.DEPTH_BUFFER_BIT |
     goog.webgl.STENCIL_BUFFER_BIT);
 
+  // Delete unused meshes.
   this.objectCache_ = goog.object.filter(this.objectCache_, function(obj) {
-    if (!obj[2].deleted) {
+    if (obj.object && !obj.object.deleted) {
       return true;
     }
-    obj[0].destroy();
+    obj.mesh.destroy();
     return false;
-  });
+  }, this);
+
+  // Delete unused textures.
+  this.textureCache_ = goog.object.filter(this.textureCache_, function(tex) {
+    if (tex.object && !tex.object.deleted) {
+      return true;
+    }
+    this.gl_.deleteTexture(tex.texture);
+    return false;
+  }, this);
 };
 
 
@@ -441,24 +529,28 @@ shapy.editor.Renderer.prototype.renderObjects = function(vp) {
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
   this.gl_.scissor(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
 
-  goog.object.forEach(this.objectCache_, function(pair, id, meshes) {
+  goog.object.forEach(this.objectCache_, function(obj) {
     var mvp = goog.vec.Mat4.createFloat32();
-    goog.vec.Mat4.multMat(vp.camera.vp, pair[1], mvp);
+    goog.vec.Mat4.multMat(vp.camera.vp, obj.object.model, mvp);
     this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txCube_);
 
     // Render points and edges
     this.shObjectColour_.use();
     this.shObjectColour_.uniformMat4x4('u_mvp', mvp);
-    pair[0].renderPointsEdges(this.shObjectColour_);
+    obj.mesh.renderPointsEdges(this.shObjectColour_);
 
     // Render faces
-    if (pair[2].texture) {
-      pair[2].texture.bind(this.gl_);
+    if (obj.object.texture &&
+        goog.object.containsKey(this.textureCache_, obj.object.texture))
+    {
+      this.gl_.bindTexture(
+          goog.webgl.TEXTURE_2D,
+          this.textureCache_[obj.object.texture].texture);
       this.shObjectTexture_.use();
       this.shObjectTexture_.uniformMat4x4('u_mvp', mvp);
-      pair[0].render(this.shObjectTexture_);
+      obj.mesh.render(this.shObjectTexture_);
     } else {
-      pair[0].render(this.shObjectColour_);
+      obj.mesh.render(this.shObjectColour_);
     }
     this.gl_.bindTexture(goog.webgl.TEXTURE_2D, null);
   }, this);
@@ -482,6 +574,8 @@ shapy.editor.Renderer.prototype.renderGround = function(vp) {
     this.shGround_.uniformMat4x4('u_vp', vp.camera.vp);
     this.shGround_.uniform2f('u_size', 35, 35);
     this.shGround_.uniform1f('u_zoom', 1);
+    this.shGround_.uniform1f('u_use_texture', 0.0);
+    this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txWhite_);
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);
@@ -514,6 +608,18 @@ shapy.editor.Renderer.prototype.renderBackground = function(vp) {
         shapy.editor.Viewport.UV.SIZE,
         shapy.editor.Viewport.UV.SIZE);
     this.shGround_.uniform1f('u_zoom', 2.0);
+
+    if (vp.object && vp.object.texture &&
+        goog.object.containsKey(this.textureCache_, vp.object.texture))
+    {
+      this.shGround_.uniform1f('u_use_texture', 1);
+      this.gl_.bindTexture(
+          goog.webgl.TEXTURE_2D,
+          this.textureCache_[vp.object.texture].texture);
+    } else {
+      this.shGround_.uniform1f('u_use_texture', 0);
+      this.gl_.bindTexture(goog.webgl.TEXTURE_2D, this.txWhite_);
+    }
 
     this.gl_.lineWidth(1.0);
     this.gl_.enableVertexAttribArray(0);
@@ -652,7 +758,6 @@ shapy.editor.Renderer.prototype.renderUVMesh = function(vp) {
   if (!vp.object || !goog.object.containsKey(this.objectCache_, vp.object.id)) {
     return;
   }
-  var mesh = this.objectCache_[vp.object.id];
   var mvp = goog.vec.Mat4.createFloat32();
 
   this.gl_.viewport(vp.rect.x, vp.rect.y, vp.rect.w, vp.rect.h);
@@ -667,7 +772,7 @@ shapy.editor.Renderer.prototype.renderUVMesh = function(vp) {
     goog.vec.Mat4.multMat(mvp, vp.proj, mvp);
     goog.vec.Mat4.multMat(mvp, vp.view, mvp);
     this.shUV_.uniformMat4x4('u_mvp', mvp);
-    mesh[0].renderUV();
+    this.objectCache_[vp.object.id].mesh.renderUV();
   }
   this.gl_.enable(goog.webgl.DEPTH_TEST);
   this.gl_.disable(goog.webgl.BLEND);

@@ -13,9 +13,9 @@ goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.share');
 
 goog.require('shapy.browser.Asset');
-goog.require('shapy.browser.Asset.Dir');
-goog.require('shapy.browser.Asset.Scene');
-goog.require('shapy.browser.Asset.Texture');
+goog.require('shapy.browser.Directory');
+goog.require('shapy.browser.Scene');
+goog.require('shapy.browser.Texture');
 
 
 
@@ -27,7 +27,7 @@ goog.require('shapy.browser.Asset.Texture');
  * @param {!angular.$state}          $state    The angular state service.
  * @param {!angular.$http}           $http     The angular $http service.
  * @param {!shapy.browser.Service}   shBrowser The browser service.
- * @param {!shapy.browser.Asset.Dir} home      The home directory.
+ * @param {!shapy.browser.Directory} home      The home directory.
  */
 shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
   /** @private {!angular.$state} @const */
@@ -40,7 +40,7 @@ shapy.browser.BrowserController = function($state, $http, shBrowser, home) {
   /**
    * Private home dir.
    *
-   * @public {!shapy.browser.Asset.Dir}
+   * @public {!shapy.browser.Directory}
    * @const
    */
   this.home = this.shBrowser_.home = home;
@@ -127,7 +127,7 @@ shapy.browser.BrowserController.prototype.rename = function(asset, name) {
 /**
  * Returns the current directory.
  *
- * @return {!shapy.browser.Asset.Dir}
+ * @return {!shapy.browser.Directory}
  */
 shapy.browser.BrowserController.prototype.current = function() {
   return this.shBrowser_.current;
@@ -202,7 +202,7 @@ shapy.browser.BrowserToolbarController.prototype.path = function() {
 /**
  * Returns the current directory.
  *
- * @return {!shapy.browser.Asset.Dir}
+ * @return {!shapy.browser.Directory}
  */
 shapy.browser.BrowserToolbarController.prototype.current = function() {
   return this.shBrowser_.current;
@@ -274,7 +274,7 @@ shapy.browser.BrowserToolbarController.prototype.selectScenes = function() {
 /**
  * Selects chosen dir from path.
  *
- * @param {!shapy.browser.Asset.Dir} dir Dir chosen by user.
+ * @param {!shapy.browser.Directory} dir Dir chosen by user.
  */
 shapy.browser.BrowserToolbarController.prototype.selectPath = function(dir) {
   this.shBrowser_.getDir(dir.id).then(goog.bind(function(dir) {

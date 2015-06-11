@@ -6,11 +6,11 @@ goog.provide('shapy.editor.Object');
 goog.require('goog.vec.Mat4');
 goog.require('goog.vec.Vec2');
 goog.require('goog.vec.Vec3');
-goog.require('shapy.editor.Editable');
-goog.require('shapy.editor.geom');
 goog.require('shapy.editor.Edge');
+goog.require('shapy.editor.Editable');
 goog.require('shapy.editor.Face');
 goog.require('shapy.editor.Vertex');
+goog.require('shapy.editor.geom');
 
 
 
@@ -49,7 +49,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
    * True if the mesh is dirty, needing to be rebuilt.
    * @public {boolean}
    */
-  this.dirtyMesh = true;
+  this.dirty = true;
 
   /**
    * True if the object was deleted.
@@ -58,9 +58,9 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
 
   /**
    * Texture attached to the object.
-   * @public {!shapy.editor.Texture}
+   * @public {!string}
    */
-  this.texture = new shapy.editor.Texture(512, 512);
+  this.texture = 'tex_0';
 
   /**
    * @private {goog.vec.Vec3}
@@ -79,10 +79,10 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
 
   /**
    * Cached model matrix, computed from scale, rotate and translate.
-   * @private {goog.vec.Mat4} @const
+   * @public {goog.vec.Mat4} @const
    */
-  this.model_ = goog.vec.Mat4.createFloat32();
-  goog.vec.Mat4.makeIdentity(this.model_);
+  this.model = goog.vec.Mat4.createFloat32();
+  goog.vec.Mat4.makeIdentity(this.model);
 
   /**
    * Cached inverse model matrix, used for raycasting.
@@ -179,19 +179,19 @@ shapy.editor.Object.UV_DIST_TRESHOLD = 0.01;
  * Recomputes the model matrix.
  */
 shapy.editor.Object.prototype.computeModel = function() {
-  goog.vec.Mat4.makeIdentity(this.model_);
+  goog.vec.Mat4.makeIdentity(this.model);
   goog.vec.Mat4.translate(
-      this.model_,
+      this.model,
       this.translate_[0], this.translate_[1], this.translate_[2]);
   goog.vec.Quaternion.toRotationMatrix4(
       this.rotQuat_, this.rotation_);
   goog.vec.Mat4.multMat(
-      this.model_, this.rotation_, this.model_);
+      this.model, this.rotation_, this.model);
   goog.vec.Mat4.scale(
-      this.model_,
+      this.model,
       this.scale_[0], this.scale_[1], this.scale_[2]);
 
-  goog.vec.Mat4.invert(this.model_, this.invModel_);
+  goog.vec.Mat4.invert(this.model, this.invModel_);
 };
 
 
@@ -310,7 +310,7 @@ shapy.editor.Object.prototype.pickRay = function(ray, mode) {
  */
 shapy.editor.Object.prototype.pickFrustum = function(frustum) {
   var transpose = goog.vec.Mat4.createFloat32();
-  goog.vec.Mat4.transpose(this.model_, transpose);
+  goog.vec.Mat4.transpose(this.model, transpose);
   // Transform the clipping planes into model space.
   var planes = goog.array.map(frustum, function(plane) {
     var n = goog.vec.Vec3.cloneFloat32(plane.n);
@@ -367,7 +367,7 @@ shapy.editor.Object.prototype.pickVertices_ = function(ray) {
 
     // Convert the intersection point to world space.
     var p = goog.vec.Vec3.createFloat32();
-    goog.vec.Mat4.multVec3(vert.object.model_, vert.position, p);
+    goog.vec.Mat4.multVec3(vert.object.model, vert.position, p);
 
     return {
       item: vert,
@@ -403,7 +403,7 @@ shapy.editor.Object.prototype.pickEdges_ = function(ray) {
 
     // Convert the intersection point to world space.
     var p = goog.vec.Vec3.createFloat32();
-    goog.vec.Mat4.multVec3(edge.object.model_, c.p0, p);
+    goog.vec.Mat4.multVec3(edge.object.model, c.p0, p);
 
     return {
       item: edge,
@@ -439,7 +439,7 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray, mode) {
 
     // Convert the intersection point to world space.
     var p = goog.vec.Vec3.createFloat32();
-    goog.vec.Mat4.multVec3(this.model_, i, p);
+    goog.vec.Mat4.multVec3(this.model, i, p);
 
     // Determines if the point is close enough to the edge e.
     var edgeDist = goog.bind(function(e) {
@@ -567,7 +567,7 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
     return e0 && e1 && e2;
   }, this);
 
-  this.dirtyMesh = true;
+  this.dirty = true;
   return this.verts[vertID];
 };
 
@@ -585,7 +585,7 @@ shapy.editor.Object.prototype.projectUV = function() {
     u = 0.5 + Math.atan2(n[2], n[0]) / (2 * Math.PI);
     v = 0.5 - Math.asin(n[1]) / Math.PI;
 
-    this.dirtyMesh = true;
+    this.dirty = true;
     id = this.nextUV_;
     this.nextUV_++;
     this.uvs[id] = new shapy.editor.Object.UV(this, id, u, v);
@@ -633,7 +633,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
     var edgeID = this.nextEdge_++;
     this.edges[edgeID] = new shapy.editor.Edge(this, edgeID,
         v[0], v[1]);
-    this.dirtyMesh = true;
+    this.dirty = true;
     return edgeID;
   }, this);
 
@@ -650,7 +650,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
     var faceID = this.nextFace_++;
     this.faces[faceID] = new shapy.editor.Face(this, faceID,
         e[0], e[1], e[2]);
-    this.dirtyMesh = true;
+    this.dirty = true;
   }
 };
 
@@ -795,6 +795,13 @@ shapy.editor.Object.prototype.extrude = function(faces) {
   goog.array.forEach(faces, function(f) {
     goog.vec.Vec3.add(normal, f.calculateNormal(), normal);
   }, this);
+
+  // If the normal is zero, we cannot extrude
+  if (goog.vec.Vec3.magnitudeSquared(normal) == 0) {
+    return;
+  }
+
+  // Normalise the normal
   goog.vec.Vec3.normalize(normal, normal);
 
   // Get the list of edges used in all vertices
@@ -963,7 +970,7 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     });
   }
 
-  this.dirtyMesh = true;
+  this.dirty = true;
 
   return {
     normal: normal,

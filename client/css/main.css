@@ -3,6 +3,17 @@ html {
   font-family: sans-serif;
 }
 
+/**
+ * Welcome page
+ */
+
+.logo #logo_shapy {
+  display: block;
+  max-width: 60%;
+  max-height: 60%;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 /**
  * Page header

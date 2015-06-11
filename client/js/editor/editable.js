@@ -47,7 +47,7 @@ shapy.editor.Editable = function(type) {
  */
 shapy.editor.Editable.prototype.setHover = function(hover) {
   this.hover = hover;
-  this.object.dirtyMesh = true;
+  this.object.dirty = true;
 };
 
 
@@ -58,7 +58,7 @@ shapy.editor.Editable.prototype.setHover = function(hover) {
  */
 shapy.editor.Editable.prototype.setSelected = function(selected) {
   this.selected = selected;
-  this.object.dirtyMesh = true;
+  this.object.dirty = true;
 };
 
 

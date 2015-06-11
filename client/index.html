@@ -31,9 +31,9 @@
       ], []);
       goog.addDependency('../browser/assets.js', [
           'shapy.browser.Asset',
-          'shapy.browser.Asset.Dir',
-          'shapy.browser.Asset.Scene',
-          'shapy.browser.Asset.Texture',
+          'shapy.browser.Directory',
+          'shapy.browser.Scene',
+          'shapy.browser.Texture',
       ], []);
       goog.addDependency('../browser/browser.js', [
           'shapy.browser.BrowserController',
@@ -45,8 +45,11 @@
           'shapy.browser.asset'
       ], [
       ]);
+      goog.addDependency('../browser/directory.js', [
+          'shapy.browser.Directory'
+      ], []);
       goog.addDependency('../browser/scene.js', [
-          'shapy.browser.Asset.Scene'
+          'shapy.browser.Scene'
       ], [
           'shapy.browser.Asset',
           'shapy.editor.create',
@@ -54,6 +57,9 @@
       ]);
       goog.addDependency('../browser/service.js', [
           'shapy.browser.Service'
+      ], []);
+      goog.addDependency('../browser/texture.js', [
+          'shapy.browser.Texture'
       ], []);
       goog.addDependency('../editor/canvas.js', [
           'shapy.editor.canvas'
@@ -76,7 +82,7 @@
           'shapy.editor.Rig.Translate',
           'shapy.editor.Rig.Rotate',
           'shapy.editor.Rig.Scale',
-          'shapy.editor.Texture',
+          'shapy.browser.Texture',
           'shapy.editor.Mode'
       ]);
       goog.addDependency('../editor/executor.js', [
@@ -105,7 +111,7 @@
           'shapy.editor.Edge',
           'shapy.editor.Face',
           'shapy.editor.Vertex',
-          'shapy.editor.Texture'
+          'shapy.browser.Texture'
       ]);
       goog.addDependency('../editor/object-factory.js', [
           'shapy.editor.create'
@@ -168,9 +174,6 @@
       ]);
       goog.addDependency('../editor/shader.js', [
           'shapy.editor.Shader'
-      ], []);
-      goog.addDependency('../editor/texture.js', [
-          'shapy.editor.Texture'
       ], []);
       goog.addDependency('../editor/toolbar.js', [
           'shapy.editor.ToolbarController'

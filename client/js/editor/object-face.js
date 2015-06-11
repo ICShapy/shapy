@@ -140,7 +140,7 @@ shapy.editor.Face.prototype.getPosition = function() {
  */
 shapy.editor.Face.prototype.delete = function() {
   goog.object.remove(this.object.faces, this.id);
-  this.object.dirtyMesh = true;
+  this.object.dirty = true;
 };
 
 
@@ -167,9 +167,9 @@ shapy.editor.Face.prototype.pickUV = function(ray) {
   var p2 = goog.vec.Vec3.cloneFloat32(verts[2].position);
 
   // Transform points into worlds space.
-  goog.vec.Mat4.multVec3(this.object.model_, p0, p0);
-  goog.vec.Mat4.multVec3(this.object.model_, p1, p1);
-  goog.vec.Mat4.multVec3(this.object.model_, p2, p2);
+  goog.vec.Mat4.multVec3(this.object.model, p0, p0);
+  goog.vec.Mat4.multVec3(this.object.model, p1, p1);
+  goog.vec.Mat4.multVec3(this.object.model, p2, p2);
 
   // Get bary coords.
   var bary = shapy.editor.geom.intersectTriangleBary(ray, p0, p1, p2);
