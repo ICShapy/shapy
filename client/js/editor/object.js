@@ -502,37 +502,48 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray, mode) {
 /**
  * Finds vertices that match given UV coordinate.
  *
- * @param {!{x: number, y: number}} coord
+ * @param {!{x: number, y: number}} pt
  *
  * @return {Array}
  */
-shapy.editor.Object.prototype.pickUVCoord = function(coord) {
+shapy.editor.Object.prototype.pickUVCoord = function(pt) {
   var dist = shapy.editor.Object.UV_DIST_TRESHOLD;
   return goog.array.flatten([
+    // Select faces.
     goog.object.getValues(goog.object.filter(this.faces, function(face) {
       var uv = face.getUVs();
 
       var a0 = shapy.editor.geom.triangleArea(uv[0], uv[1], uv[2]);
-      var a1 = shapy.editor.geom.triangleArea(coord, uv[1], uv[2]);
-      var a2 = shapy.editor.geom.triangleArea(uv[0], coord, uv[2]);
-      var a3 = shapy.editor.geom.triangleArea(uv[0], uv[1], coord);
+      var a1 = shapy.editor.geom.triangleArea(pt, uv[1], uv[2]);
+      var a2 = shapy.editor.geom.triangleArea(uv[0], pt, uv[2]);
+      var a3 = shapy.editor.geom.triangleArea(uv[0], uv[1], pt);
 
       return Math.abs(a0 - a1 - a2 - a3) < 0.001;
     }, this)),
+    // Select edges.
     goog.object.getValues(goog.object.filter(this.uvEdges, function(edge) {
       var uv = edge.getUVs();
-      return (Math.abs(
-        (uv[1].v - uv[0].v) * coord.u -
-        (uv[1].u - uv[0].u) * coord.v +
-        (uv[1].u * uv[0].v) -
-        (uv[1].v * uv[0].u)
-      ) / Math.sqrt(
-        Math.pow(uv[0].u - uv[1].u, 2) +
-        Math.pow(uv[0].v - uv[1].v, 2)
-      )) < dist;
+
+      var du = uv[1].u - uv[0].u;
+      var dv = uv[1].v - uv[0].v;
+
+      var nu = uv[0].v - uv[1].v;
+      var nv = uv[1].u - uv[0].u;
+      var nl = Math.sqrt(nu * nu + nv * nv);
+      nu /= nl;
+      nv /= nl;
+
+      var det = dv * nu - du * nv;
+      var da = (pt.v - uv[0].v) * nu - (pt.u - uv[0].u) * nv;
+      var db = (pt.u - uv[0].u) * dv - (pt.v - uv[0].v) * du;
+      da /= det;
+      db /= det;
+
+      return Math.abs(db) < 0.01 && 0.0 <= da && da <= 1.0;
     }, this)),
+    // Select vertices.
     goog.object.getValues(goog.object.filter(this.uvPoints, function(uv) {
-      return shapy.editor.geom.dist2D(coord, uv.u, uv.v) < dist;
+      return shapy.editor.geom.dist2D(pt, uv.u, uv.v) < dist;
     }, this))
   ]);
 };
@@ -664,24 +675,24 @@ shapy.editor.Object.prototype.projectUV = function() {
       uv0 = this.uvEdges[face.ue0].uv0;
       uv1 = this.uvEdges[face.ue0].uv1;
     } else if (face.ue0 < 0) {
-      uv0 = this.uvEdges[face.ue0].uv1;
-      uv1 = this.uvEdges[face.ue0].uv0;
+      uv0 = this.uvEdges[-face.ue0].uv1;
+      uv1 = this.uvEdges[-face.ue0].uv0;
     }
 
     if (face.ue1 > 0) {
       uv1 = this.uvEdges[face.ue1].uv0;
       uv2 = this.uvEdges[face.ue1].uv1;
     } else if (face.ue1 < 0) {
-      uv1 = this.uvEdges[face.ue1].uv1;
-      uv2 = this.uvEdges[face.ue1].uv0;
+      uv1 = this.uvEdges[-face.ue1].uv1;
+      uv2 = this.uvEdges[-face.ue1].uv0;
     }
 
     if (face.ue2 > 0) {
       uv2 = this.uvEdges[face.ue2].uv0;
       uv0 = this.uvEdges[face.ue2].uv1;
     } else if (face.ue2 < 0) {
-      uv2 = this.uvEdges[face.ue2].uv1;
-      uv0 = this.uvEdges[face.ue2].uv0;
+      uv2 = this.uvEdges[-face.ue2].uv1;
+      uv0 = this.uvEdges[-face.ue2].uv0;
     }
 
     uv0 = uv0 || projectVertex(verts[0]);

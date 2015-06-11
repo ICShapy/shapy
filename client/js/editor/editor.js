@@ -790,7 +790,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
       hits = this.layout_.hover.object.pickUVCoord(
           this.layout_.hover.raycast(e.offsetX, e.offsetY));
       if (hits.length > 1) {
-        hits = [hits[hits.length - 1]];
+        //hits = [hits[hits.length - 1]];
       }
     }
   }
