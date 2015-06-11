@@ -503,49 +503,56 @@ shapy.editor.Object.prototype.pickFaces_ = function(ray, mode) {
  * Finds vertices that match given UV coordinate.
  *
  * @param {!{x: number, y: number}} pt
+ * @param {!shapy.editor.Mode} mode
  *
  * @return {Array}
  */
-shapy.editor.Object.prototype.pickUVCoord = function(pt) {
+shapy.editor.Object.prototype.pickUVCoord = function(pt, mode) {
   var dist = shapy.editor.Object.UV_DIST_TRESHOLD;
-  return goog.array.flatten([
-    // Select faces.
-    goog.object.getValues(goog.object.filter(this.faces, function(face) {
-      var uv = face.getUVs();
 
-      var a0 = shapy.editor.geom.triangleArea(uv[0], uv[1], uv[2]);
-      var a1 = shapy.editor.geom.triangleArea(pt, uv[1], uv[2]);
-      var a2 = shapy.editor.geom.triangleArea(uv[0], pt, uv[2]);
-      var a3 = shapy.editor.geom.triangleArea(uv[0], uv[1], pt);
+  // Select faces.
+  var faces = mode.face ? goog.object.filter(this.faces, function(face) {
+    var uv = face.getUVs();
 
-      return Math.abs(a0 - a1 - a2 - a3) < 0.001;
-    }, this)),
-    // Select edges.
-    goog.object.getValues(goog.object.filter(this.uvEdges, function(edge) {
-      var uv = edge.getUVs();
+    var a0 = shapy.editor.geom.triangleArea(uv[0], uv[1], uv[2]);
+    var a1 = shapy.editor.geom.triangleArea(pt, uv[1], uv[2]);
+    var a2 = shapy.editor.geom.triangleArea(uv[0], pt, uv[2]);
+    var a3 = shapy.editor.geom.triangleArea(uv[0], uv[1], pt);
 
-      var du = uv[1].u - uv[0].u;
-      var dv = uv[1].v - uv[0].v;
+    return Math.abs(a0 - a1 - a2 - a3) < 0.001;
+  }, this) : {};
 
-      var nu = uv[0].v - uv[1].v;
-      var nv = uv[1].u - uv[0].u;
-      var nl = Math.sqrt(nu * nu + nv * nv);
-      nu /= nl;
-      nv /= nl;
+  // Select edges.
+  var edges = mode.edge ? goog.object.filter(this.uvEdges, function(edge) {
+    var uv = edge.getUVs();
 
-      var det = dv * nu - du * nv;
-      var da = (pt.v - uv[0].v) * nu - (pt.u - uv[0].u) * nv;
-      var db = (pt.u - uv[0].u) * dv - (pt.v - uv[0].v) * du;
-      da /= det;
-      db /= det;
+    var du = uv[1].u - uv[0].u;
+    var dv = uv[1].v - uv[0].v;
 
-      return Math.abs(db) < 0.01 && 0.0 <= da && da <= 1.0;
-    }, this)),
-    // Select vertices.
-    goog.object.getValues(goog.object.filter(this.uvPoints, function(uv) {
-      return shapy.editor.geom.dist2D(pt, uv.u, uv.v) < dist;
-    }, this))
-  ]);
+    var nu = uv[0].v - uv[1].v;
+    var nv = uv[1].u - uv[0].u;
+    var nl = Math.sqrt(nu * nu + nv * nv);
+    nu /= nl;
+    nv /= nl;
+
+    var det = dv * nu - du * nv;
+    var da = (pt.v - uv[0].v) * nu - (pt.u - uv[0].u) * nv;
+    var db = (pt.u - uv[0].u) * dv - (pt.v - uv[0].v) * du;
+    da /= det;
+    db /= det;
+
+    return Math.abs(db) < 0.01 && 0.0 <= da && da <= 1.0;
+  }, this) : {};
+
+  // Select vertices.
+  var uvs = mode.vertex ? goog.object.filter(this.uvPoints, function(uv) {
+    return shapy.editor.geom.dist2D(pt, uv.u, uv.v) < dist;
+  }, this) : {};
+
+  // Concatenate arrays.
+  return goog.array.flatten(goog.array.map([faces, edges, uvs], function(x) {
+    return goog.object.getValues(x);
+  }));
 };
 
 
@@ -553,13 +560,16 @@ shapy.editor.Object.prototype.pickUVCoord = function(pt) {
  * Finds parts that fall into the given UV region.
  *
  * @param {!{x0: number, x1: number, y0: number, y1: number}} group
+ * @param {!shapy.editor.Mode} mode
  *
  * @return {Array}
  */
-shapy.editor.Object.prototype.pickUVGroup = function(group) {
-  return goog.object.getValues(goog.object.filter(this.uvPoints, function(uv) {
-    return shapy.editor.geom.intersectSquare(group, uv.u, uv.v);
-  }, this));
+shapy.editor.Object.prototype.pickUVGroup = function(group, mode) {
+  return goog.array.flatten([
+    goog.object.getValues(goog.object.filter(this.uvPoints, function(uv) {
+      return shapy.editor.geom.intersectSquare(group, uv.u, uv.v);
+    }, this))
+  ]);
 };
 
 
@@ -1029,6 +1039,17 @@ shapy.editor.Object.UVPoint = function(object, id, u, v) {
   this.v = v || 0.0;
 };
 goog.inherits(shapy.editor.Object.UVPoint, shapy.editor.Editable);
+
+
+
+/**
+ * Retrieves this point.
+ *
+ * @return {!Array<!goog.editor.UVPoint>}
+ */
+shapy.editor.Object.UVPoint.prototype.getUVs = function() {
+  return [this];
+};
 
 
 /**

@@ -72,6 +72,15 @@ shapy.editor.Editable.prototype.isSelected = function() {
 };
 
 
+/**
+ * Retrieves this UV point.
+ *
+ * @return {Array}
+ */
+shapy.editor.Editable.prototype.getUVs = function() {
+  return [];
+};
+
 
 /**
  * Scales the editable.
@@ -434,6 +443,23 @@ shapy.editor.PartsGroup.prototype.projectUV = function() {
 };
 
 
+/**
+ * Moves all UV coordinates.
+ *
+ * @param {number} du
+ * @param {number} dv
+ */
+shapy.editor.PartsGroup.prototype.moveUV = function(du, dv) {
+  var uvs = goog.array.flatten(goog.array.map(this.editables, function(e) {
+    return e.getUVs();
+  }));
+  goog.array.removeDuplicates(uvs);
+  goog.array.map(uvs, function(uv) {
+    uv.u += du;
+    uv.v += dv;
+  });
+};
+
 
 /**
  * Collection of objects.
@@ -524,44 +550,12 @@ shapy.editor.ObjectGroup.prototype.getObjIds = function() {
 
 
 /**
- * UV group.
- *
- * @param {!Array<shapy.editor.Object.UV>} uvs
- *
- * @constructor
- * @extends {shapy.editor.Editable}
- */
-shapy.editor.UVGroup = function(uvs) {
-  shapy.editor.EditableGroup.call(
-      this, uvs, shapy.editor.Editable.Type.UV_GROUP);
-};
-goog.inherits(shapy.editor.UVGroup, shapy.editor.EditableGroup);
-
-
-/**
- * Moves all editables in the UV group.
- *
- * @param {number} dx
- * @param {number} dy
- */
-shapy.editor.UVGroup.prototype.move = function(dx, dy) {
-  goog.array.forEach(this.editables, function(uv) {
-    uv.u += dx;
-    uv.v += dy;
-    uv.object.dirty = true;
-  }, this);
-};
-
-
-
-/**
  * List of editable types.
  * @enum {string}
  */
 shapy.editor.Editable.Type = {
   OBJECT_GROUP: 'object_group',
   PARTS_GROUP: 'part_group',
-  UV_GROUP: 'uv_group',
   OBJECT: 'object',
   VERTEX: 'vertex',
   EDGE: 'edge',

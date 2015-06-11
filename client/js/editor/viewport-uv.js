@@ -91,7 +91,7 @@ shapy.editor.Viewport.UV = function(name, group) {
    * UV group selected.
    * @private {!shapy.editor.UVGroup}
    */
-  this.uvGroup_ = group;
+  this.partGroup_ = group;
 
   /**
    * UVs are being moved.
@@ -244,7 +244,7 @@ shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, isPainting) {
   if (this.moveUV_) {
     dx = ((this.currMousePos.x - this.lastMousePos.x) * d) / (2 * w);
     dy = ((this.currMousePos.y - this.lastMousePos.y) * d) / (2 * w);
-    this.uvGroup_.move(dx, dy);
+    this.partGroup_.moveUV(dx, dy);
   }
   if (this.isPanning_) {
     this.pan.x = this.initialPan_.x + x - this.lastClick.x;
@@ -289,20 +289,18 @@ shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
 
   switch (button) {
     case 1: {
-      hits = this.object.pickUVCoord(this.raycast(x, y));
+      hits = this.object.pickUVCoord(this.raycast(x, y), {
+        edge: true, vertex: true, face: true
+      });
       if (goog.array.isEmpty(hits)) {
         return;
       }
       // If clicked on different UVs, select them.
       same = goog.array.some(hits, function(hit) {
-        return this.uvGroup_.contains(hit);
+        return this.partGroup_.contains(hit);
       }, this);
       if (!same) {
-        user = this.uvGroup_.isSelected();
-        this.uvGroup_.setSelected(null);
-        this.uvGroup_.clear();
-        this.uvGroup_.add([hits[hits.length - 1]]);
-        this.uvGroup_.setSelected(user);
+        return;
       }
       this.group = null;
       this.moveUV_ = true;
