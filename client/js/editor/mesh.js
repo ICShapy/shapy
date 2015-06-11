@@ -53,6 +53,39 @@ shapy.editor.Mesh = function(gl, object) {
 
 
 /**
+ * Colours for different entities.
+ *
+ * 3 - selected & hover
+ * 2 - selected
+ * 1 - hover
+ * 0 - none
+ */
+shapy.editor.Mesh.COLOUR = {
+  'vert': {
+    0: [0.0, 0.0, 1.0],
+    1: [1.0, 0.4, 0.0],
+    2: [1.0, 0.6, 0.0],
+    3: [1.0, 1.0, 0.0],
+  },
+  'edge': {
+    0: [0.4, 0.7, 1.0],
+    1: [1.0, 0.4, 0.0],
+    2: [1.0, 0.6, 0.0],
+    3: [1.0, 1.0, 0.0],
+  },
+  'face': {
+    0: [0.5, 0.5, 0.5],
+    1: [1.0, 0.4, 0.0],
+    2: [1.0, 0.6, 0.0],
+    3: [1.0, 1.0, 0.0],
+  },
+  'uv': {
+
+  }
+};
+
+
+/**
  * Builds the mesh.
  *
  * @private
@@ -60,7 +93,7 @@ shapy.editor.Mesh = function(gl, object) {
 shapy.editor.Mesh.prototype.build_ = function() {
   var r = 0, g = 0, b = 0, a = 1;
 
-  var add = function(d, pos, uv) {
+  var add = function(d, pos, uv, type, sel, hover, def) {
     d[k++] = pos[0]; d[k++] = pos[1]; d[k++] = pos[2];    // Position.
     d[k++] = 0; d[k++] = 0; d[k++] = 0;                   // Normal.
     if (uv) {
@@ -68,10 +101,19 @@ shapy.editor.Mesh.prototype.build_ = function() {
     } else {
       d[k++] = 0.0; d[k++] = 0.0;
     }
-    d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = 1;       // Diffuse.
+
+    var mask = (sel ? 2 : 0) | (hover ? 1 : 0);
+    var colour = shapy.editor.Mesh.COLOUR[type][mask];
+    if (!mask && def) {
+      colour = def;
+    }
+    d[k++] = colour[0];
+    d[k++] = colour[1];
+    d[k++] = colour[2];
+    d[k++] = 1;
   };
 
-  var addUV = function(d, pos) {
+  var addUV = function(d, pos, type, sel, hover) {
     d[k++] = (pos.u * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
     d[k++] = (pos.v * 2 - 1) * shapy.editor.Viewport.UV.SIZE;
     d[k++] = r; d[k++] = g; d[k++] = b; d[k++] = a;
@@ -85,16 +127,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var v = new Float32Array(this.vertCount_ * 48);
   goog.object.forEach(this.object_.verts, function(vert) {
-    if (vert.selected) {
-      r = 0.9; g = 0.9; b = 0.0;
-    } else {
-      r = 0.0; g = 0.0; b = 0.4;
-    }
-    if (vert.hover) {
-      r *= 1.2; g *= 1.2; b *= 1.5;
-    }
-
-    add(v, vert.position);
+    add(v, vert.position, null, 'vert', vert.selected, vert.hover);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.verts_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, v, goog.webgl.STATIC_DRAW);
@@ -108,25 +141,10 @@ shapy.editor.Mesh.prototype.build_ = function() {
   var e = new Float32Array(this.edgeCount_ * 48);
   goog.object.forEach(this.object_.edges, function(edge) {
     var v = edge.getVertices();
-    if (edge.selected || v[0].selected) {
-      r = 0.9; g = 0.9; b = 0.0;
-    } else {
-      r = 0.8; g = 0.8; b = 1.0;
-    }
-    if (edge.hover) {
-      r *= 1.2; g *= 1.2; b *= 1.2;
-    }
-    add(e, v[0].position);
-    if (edge.selected || v[1].selected) {
-      r = 0.9; g = 0.9; b = 0.0;
-    } else {
-      r = 0.8; g = 0.8; b = 1.0;
-    }
-
-    if (edge.hover) {
-      r *= 1.2; g *= 1.2; b *= 1.2;
-    }
-    add(e, v[1].position);
+    add(e, v[0].position, null,
+        'edge', edge.selected || v[0].selected, edge.hover);
+    add(e, v[1].position, null,
+        'edge', edge.selected || v[1].selected, edge.hover);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.edges_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, e, goog.webgl.STATIC_DRAW);
@@ -140,26 +158,12 @@ shapy.editor.Mesh.prototype.build_ = function() {
   var f = new Float32Array(this.faceCount_ * 48);
   goog.object.forEach(this.object_.faces, function(face) {
     var v = face.getVertices();
-    if (face.selected) {
-      r = 0.8; g = 0.8; b = 0.0;
-    } else {
-      if (this.object_.selected) {
-        r = this.object_.selected.colour[0];
-        g = this.object_.selected.colour[1];
-        b = this.object_.selected.colour[2];
-      } else {
-        r = 0.4; g = 0.4; b = 0.4;
-      }
-      if (this.object_.hover) {
-        r *= 1.2; g *= 1.2; b *= 1.2;
-      }
-    }
-    if (face.hover) {
-      r *= 1.2; g *= 1.2; b *= 1.2;
-    }
-    add(f, v[0].position, face.uv0 ? this.object_.uvs[face.uv0] : null);
-    add(f, v[1].position, face.uv1 ? this.object_.uvs[face.uv1] : null);
-    add(f, v[2].position, face.uv2 ? this.object_.uvs[face.uv2] : null);
+    add(f, v[0].position, face.uv0 ? this.object_.uvs[face.uv0] : null,
+        'face', face.selected, face.hover, this.object_.selected.colour);
+    add(f, v[1].position, face.uv1 ? this.object_.uvs[face.uv1] : null,
+        'face', face.selected, face.hover, this.object_.selected.colour);
+    add(f, v[2].position, face.uv2 ? this.object_.uvs[face.uv2] : null,
+        'face', face.selected, face.hover, this.object_.selected.colour);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.faces_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, f, goog.webgl.STATIC_DRAW);
@@ -172,16 +176,7 @@ shapy.editor.Mesh.prototype.build_ = function() {
   k = 0;
   var u = new Float32Array(this.uvCount_ * 24);
   goog.object.forEach(this.object_.uvs, function(uv) {
-    if (uv.selected && uv.hover) {
-      r = 1.0; g = 1.0; b = 0.0;
-    } else if (uv.selected) {
-      r = 0.0; g = 1.0; b = 1.0;
-    } else if (uv.hover) {
-      r = 0.0; g = 0.0; b = 1.0;
-    } else {
-      r = 0.0; g = 1.0; b = 0.0;
-    }
-    addUV(u, uv);
+    addUV(u, uv, 'uv', uv.selected, uv.hover);
   }, this);
   this.gl_.bindBuffer(goog.webgl.ARRAY_BUFFER, this.uvs_);
   this.gl_.bufferData(goog.webgl.ARRAY_BUFFER, u, goog.webgl.STATIC_DRAW);

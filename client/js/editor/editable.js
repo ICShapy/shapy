@@ -253,9 +253,12 @@ shapy.editor.EditableGroup.prototype.setSelected = function(selected) {
  * @return {boolean} True if there is a selected editable.
  */
 shapy.editor.EditableGroup.prototype.isSelected = function() {
-  return goog.array.some(this.editables, function(editable) {
-    return editable.selected;
+  var sel = null;
+  goog.array.some(this.editables, function(editable) {
+    sel = sel || editable.selected;
+    return sel != null;
   }, this);
+  return sel;
 };
 
 
@@ -533,6 +536,21 @@ shapy.editor.UVGroup = function(uvs) {
       this, uvs, shapy.editor.Editable.Type.UV_GROUP);
 };
 goog.inherits(shapy.editor.UVGroup, shapy.editor.EditableGroup);
+
+
+/**
+ * Moves all editables in the UV group.
+ *
+ * @param {number} dx
+ * @param {number} dy
+ */
+shapy.editor.UVGroup.prototype.move = function(dx, dy) {
+  goog.array.forEach(this.editables, function(uv) {
+    uv.u += dx;
+    uv.v += dy;
+    uv.object.dirty = true;
+  }, this);
+};
 
 
 

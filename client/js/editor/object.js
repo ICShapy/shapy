@@ -143,7 +143,7 @@ shapy.editor.Object = function(id, scene, verts, edges, faces, uvs) {
    goog.object.forEach(faces, function(f, i) {
     this.nextFace_ = Math.max(this.nextFace_, i + 1);
     this.faces[i] = new shapy.editor.Face(
-        this, i, f[0], f[1], f[2]);
+        this, i, f[0], f[1], f[2], f[3], f[4], f[5]);
    }, this);
 
    /**

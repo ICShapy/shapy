@@ -22,8 +22,11 @@ goog.require('shapy.editor.geom');
  * @param {number}               e0
  * @param {number}               e1
  * @param {number}               e2
+ * @param {number}               uv0
+ * @param {number}               uv1
+ * @param {number}               uv2
  */
-shapy.editor.Face = function(object, id, e0, e1, e2) {
+shapy.editor.Face = function(object, id, e0, e1, e2, uv0, uv1, uv2) {
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.FACE);
 
   /** @public {!shapy.editor.Object} @const */
@@ -37,11 +40,11 @@ shapy.editor.Face = function(object, id, e0, e1, e2) {
   /** @public {number} @const */
   this.e2 = e2;
   /** @public {number} @const */
-  this.uv0 = 0;
+  this.uv0 = uv0;
   /** @public {number} @const */
-  this.uv1 = 0;
+  this.uv1 = uv1;
   /** @public {number} @const */
-  this.uv2 = 0;
+  this.uv2 = uv2;
 };
 goog.inherits(shapy.editor.Face, shapy.editor.Editable);
 

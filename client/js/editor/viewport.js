@@ -66,7 +66,7 @@ shapy.editor.Viewport = function(name, type) {
    * Last position of the mouse.
    * @private {!goog.math.Vec2}
    */
-  this.lastMousePos_ = new goog.math.Vec2(0, 0);
+  this.lastMousePos = new goog.math.Vec2(0, 0);
 };
 
 
@@ -96,6 +96,8 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  * @return {boolean}
  */
 shapy.editor.Viewport.prototype.mouseMove = function(x, y, noGroup) {
+  this.lastMousePos.x = this.currMousePos.x;
+  this.lastMousePos.y = this.currMousePos.y;
   this.currMousePos.x = x;
   this.currMousePos.y = y;
 
@@ -152,8 +154,8 @@ shapy.editor.Viewport.prototype.mouseDown = function(x, y, button) {
   this.lastClick.y = y;
   this.currMousePos.x = x;
   this.currMousePos.y = y;
-  this.lastMousePos_.x = x;
-  this.lastMousePos_.y = y;
+  this.lastMousePos.x = x;
+  this.lastMousePos.y = y;
 
   if (button == 1) {
     this.group = new goog.math.Rect(x, y, 0, 0);
