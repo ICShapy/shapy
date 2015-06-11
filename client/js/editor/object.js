@@ -228,6 +228,7 @@ shapy.editor.Object.prototype.translate = function(dx, dy, dz) {
   this.translate_[0] += dx;
   this.translate_[1] += dy;
   this.translate_[2] += dz;
+  this.dirty = true;
 };
 
 
@@ -250,6 +251,7 @@ shapy.editor.Object.prototype.getPosition = function() {
  */
 shapy.editor.Object.prototype.setPosition = function(x, y, z) {
   goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
+  this.dirty = true;
 };
 
 
@@ -264,6 +266,7 @@ shapy.editor.Object.prototype.scale = function(x, y, z) {
   this.scale_[0] *= x;
   this.scale_[1] *= y;
   this.scale_[2] *= z;
+  this.dirty = true;
 };
 
 
@@ -284,6 +287,7 @@ shapy.editor.Object.prototype.getScale = function() {
  */
 shapy.editor.Object.prototype.rotate = function(q) {
   goog.vec.Quaternion.concat(q, this.rotQuat_, this.rotQuat_);
+  this.dirty = true;
 };
 
 
