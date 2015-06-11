@@ -263,9 +263,15 @@ shapy.editor.Object.prototype.setPosition = function(x, y, z) {
  * @param {number} z
  */
 shapy.editor.Object.prototype.scale = function(x, y, z) {
-  this.scale_[0] *= x;
-  this.scale_[1] *= y;
-  this.scale_[2] *= z;
+  var t = goog.vec.Vec3.createFromValues(x - 1, y - 1, z - 1);
+  var m = goog.vec.Mat4.createFloat32();
+
+  goog.vec.Mat4.invert(this.rotation_, m);
+  goog.vec.Mat4.multVec3NoTranslate(m, t, t);
+
+  this.scale_[0] *= (1 + t[0]);
+  this.scale_[1] *= (1 + t[1]);
+  this.scale_[2] *= (1 + t[2]);
   this.dirty = true;
 };
 
@@ -1000,10 +1006,10 @@ shapy.editor.Object.prototype.toJSON = function() {
     sy: this.scale_[1],
     sz: this.scale_[2],
 
-    rx: this.rotation_[0],
-    ry: this.rotation_[1],
-    rz: this.rotation_[2],
-    rw: this.rotation_[3],
+    rx: this.rotQuat_[0],
+    ry: this.rotQuat_[1],
+    rz: this.rotQuat_[2],
+    rw: this.rotQuat_[3],
 
     verts: goog.object.map(this.verts, function(v) {
       return [trunc(v.position[0]), trunc(v.position[1]), trunc(v.position[2])];

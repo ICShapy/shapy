@@ -108,10 +108,10 @@ shapy.browser.Scene.prototype.load = function(data) {
     obj.scale_[1] = data.sy;
     obj.scale_[2] = data.sz;
 
-    obj.rotation_[0] = data.rx;
-    obj.rotation_[1] = data.ry;
-    obj.rotation_[2] = data.rz;
-    obj.rotation_[3] = data.rw;
+    obj.rotQuat_[0] = data.rx;
+    obj.rotQuat_[1] = data.ry;
+    obj.rotQuat_[2] = data.rz;
+    obj.rotQuat_[3] = data.rw;
 
     return obj;
   }, this);
