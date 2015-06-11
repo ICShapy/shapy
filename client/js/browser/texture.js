@@ -40,6 +40,9 @@ shapy.browser.Texture = function(shBrowser, id, opt_data) {
   for (var i = 0; i < this.width * this.height * 3; ++i) {
     this.data[i] = 0xFF;
   }
+
+  // Set preview
+  this.image = (opt_data && opt_data['preview']) || '/img/logo.png';
 };
 goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
 

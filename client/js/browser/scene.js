@@ -35,12 +35,6 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
   this.id = id;
 
   /**
-   * Name of the scene.
-   * @public {string}
-   */
-  this.name = data['name'] || this.shBrowser_.defaultName(this.type);
-
-  /**
    * List of users editing the scene.
    * @public {Array<string>}
    */
@@ -66,6 +60,7 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
    */
   this.nextID_ = 0;
 
+  // Set preview
   this.image = (opt_data && opt_data['preview']) || '/img/scene.svg';
 };
 goog.inherits(shapy.browser.Scene, shapy.browser.Asset);
