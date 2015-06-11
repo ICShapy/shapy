@@ -241,6 +241,8 @@ shapy.editor.Rig.Scale.prototype.render = function(gl, sh) {
  * Handles mouse move event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean}
  */
 shapy.editor.Rig.Scale.prototype.mouseMove = function(ray) {
   if (this.select_.x || this.select_.y || this.select_.z) {
