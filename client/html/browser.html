@@ -83,12 +83,11 @@
         <div class="image"
             ng-click="browserCtrl.selected=asset"
             ng-dblclick="browserCtrl.select(asset, true)">
-          <img ng-class="{assetmenu: asset.type!=browserCtrl.home.type}" ng-src="{{asset.image}}">
+          <img class="assetmenu" ng-src="{{asset.image}}">
         </div>
         <div ng-switch on="asset.write">
           <div ng-switch-when="true" 
-               class="name" 
-               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
+               class="name assetmenu">
             <sh-editable
                 ng-click="browserCtrl.selected = null"
                 ng-init="name=asset.name"
@@ -98,8 +97,7 @@
             </sh-editable>
           </div>
           <div ng-switch-default 
-               class="name noneditable"
-               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
+               class="name noneditable assetmenu">
             {{asset.name}}
           </div>
         </div>
@@ -110,10 +108,12 @@
   <div class='asset-menu'>
     <ul>
       <li ng-click=""
+          ng-show="browserCtrl.selected.type != browserCtrl.home.type"
           ng-style="{'cursor': 'pointer'}">
         Download as STL
       </li>
-      <sh-share 
+      <sh-share
+          ng-show="browserCtrl.selected.type != browserCtrl.home.type"
           asset="browserCtrl.selected"
           ng-style="(browserCtrl.selected.owner)? {'cursor': 'pointer'} : {'color': 'gray', 'cursor': 'default'}">
         <li>
@@ -121,6 +121,7 @@
         </li>
       </sh-share>
       <sh-public
+          ng-show="browserCtrl.selected.type != browserCtrl.home.type"
           asset="browserCtrl.selected"
           ng-style="(browserCtrl.selected.owner)? {'cursor': 'pointer'} : {'color': 'gray', 'cursor': 'default'}">
         <li ng-show="browserCtrl.selected.public">
