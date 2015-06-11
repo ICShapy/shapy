@@ -113,6 +113,7 @@ shapy.editor.Editable.prototype.getVertices = function() { return []; };
 shapy.editor.Editable.prototype.getObject = function() { return null; };
 
 
+
 /**
  * Collection of editable parts of an object.
  *
