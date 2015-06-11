@@ -565,11 +565,20 @@ shapy.editor.Object.prototype.pickUVCoord = function(pt, mode) {
  * @return {Array}
  */
 shapy.editor.Object.prototype.pickUVGroup = function(group, mode) {
-  return goog.array.flatten([
-    goog.object.getValues(goog.object.filter(this.uvPoints, function(uv) {
-      return shapy.editor.geom.intersectSquare(group, uv.u, uv.v);
-    }, this))
-  ]);
+  var parts = goog.array.flatten(goog.array.map([
+    mode.face ? this.faces : {},
+    mode.edge ? this.uvEdges : {},
+    mode.vertex ? this.uvPoints : {}
+  ], goog.object.getValues));
+
+  return goog.array.filter(parts, function(part) {
+    return goog.array.some(part.getUVs(), function(uv) {
+      return (
+        group.u0 <= uv.u && uv.u < group.u1 &&
+        group.v0 <= uv.v && uv.v < group.v1
+      );
+    });
+  });
 };
 
 
