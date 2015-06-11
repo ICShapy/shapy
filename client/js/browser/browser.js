@@ -121,6 +121,11 @@ shapy.browser.BrowserController.prototype.rename = function(asset, name) {
     case shapy.browser.Asset.Type.SCENE:
       this.shBrowser_.renameScene(asset, name);
       break;
+    case shapy.browser.Asset.Type.TEXTURE:
+      this.shBrowser_.renameTexture(asset, name);
+      break;
+    default :
+      console.log('rename - unimplemented case!');
   }
 };
 
@@ -358,6 +363,11 @@ shapy.browser.asset = function(shModal) {
             case shapy.browser.Asset.Type.SCENE:
               asset.shBrowser_.deleteScene(asset);
               break;
+            case shapy.browser.Asset.Type.TEXTURE:
+              asset.shBrowser_.deleteTexture(asset);
+              break;
+            default:
+              console.log('deleting - unimplemented case!');
           }
         };
       }
@@ -461,6 +471,11 @@ shapy.browser.delete = function(shModal) {
             case shapy.browser.Asset.Type.SCENE:
               asset.shBrowser_.deleteScene(asset);
               break;
+            case shapy.browser.Asset.Type.TEXTURE:
+              asset.shBrowser_.deleteTexture(asset);
+              break;
+            default:
+              console.log('deleting - unimplemented case!');
           }
         };
       }

@@ -383,6 +383,17 @@ shapy.browser.Service.prototype.renameScene = function(scene, name) {
 
 
 /**
+ * Renames texture.
+ *
+ * @param {!shapy.browser.Texture} texture Texture to rename.
+ * @param {string}                 name    New name.
+ */
+shapy.browser.Service.prototype.renameTexture = function(texture, name) {
+  this.rename_('/api/assets/texture', texture, name);
+};
+
+
+/**
  * Deletes asset.
  *
  * @private
@@ -450,6 +461,16 @@ shapy.browser.Service.prototype.deleteDir = function(dir) {
  */
 shapy.browser.Service.prototype.deleteScene = function(scene) {
   this.delete_('/api/assets/scene', scene, this.scenes_);
+};
+
+
+/**
+ * Deletes texture.
+ *
+ * @param {!shapy.browser.Texture} texture Texture to delete.
+ */
+shapy.browser.Service.prototype.deleteTexture = function(texture) {
+  this.delete_('/api/assets/texture', texture, this.textures_);
 };
 
 
