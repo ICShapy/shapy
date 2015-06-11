@@ -656,6 +656,38 @@ shapy.editor.Object.prototype.connect = function(verts) {
 
 
 /**
+ * Cuts the object using the plane.
+ *
+ * @param {!goog.vec.Vec3.Type} n Normal of the plane.
+ * @param {!goog.vec.Vec3.Type} p A point in the plance.
+ */
+shapy.editor.Object.prototype.cut = function(n, p) {
+  var u = goog.vec.Vec3.createFloat32();
+  var i;
+
+  // Find edges whose endpoints are on different sides of the plane.
+  goog.array.forEach(this.edges, function(e) {
+    var verts = e.getVertices();
+
+    var d1 = goog.vec.Vec3.dot(n, verts[0]);
+    var d2 = goog.vec.Vec3.dot(n, verts[1]);
+
+    // Plane intersects the edge.
+    if ((d1 <= 0 && d2 > 0) || (d2 <= 0 && d1 > 0)) {
+      // Find the intersection point.
+      goog.vec.Vec3.subtract(verts[1], verts[0], u);
+      i = shapy.editor.geom.intersectPlane(new goog.vec.Ray(verts[0], u), n, p);
+
+      // Split edge in two.
+      var edgeId = this.nextEdge_++;
+      e.end = edgeId;
+      //...
+    }
+  }, this);
+};
+
+
+/**
  * Extrude a group of faces
  *
  * @param {!Array<!shapy.editor.Face>} faces
