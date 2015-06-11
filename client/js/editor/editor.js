@@ -510,6 +510,7 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   }
 };
 
+
 /**
  * Sets a new rig.
  *
@@ -866,4 +867,3 @@ shapy.editor.Editor.prototype.mouseLeave = function(e) {
 shapy.editor.Editor.prototype.mouseWheel = function(e) {
   this.layout_.mouseWheel(e);
 };
-
