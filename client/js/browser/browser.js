@@ -679,8 +679,7 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
     shModal.open({
       size: 'small',
       title: 'Create Texture',
-      template:
-          'Upload a file up to 4MB:',
+      templateUrl: '/html/browser-create-texture.html',
       controller: function($scope) {
         $scope.cancel = function() { return false; };
         $scope.okay = function() {
