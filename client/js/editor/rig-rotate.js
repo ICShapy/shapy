@@ -319,6 +319,8 @@ shapy.editor.Rig.Rotate.prototype.getAngle_ = function() {
 
 /**
  * Handles onFinish call.
+ *
+ * @private
  */
 shapy.editor.Rig.Rotate.prototype.finish_ = function() {
   if (!this.onFinish || !(this.select_.x || this.select_.y || this.select_.z)) {
@@ -335,6 +337,8 @@ shapy.editor.Rig.Rotate.prototype.finish_ = function() {
 
 /**
  * Computes the rotation quaternion between the angle and the current angle.
+ *
+ * @private
  *
  * @param {!goog.vec.Quaternion.Type} q     Quaternion to be computed.
  * @param {number}                    angle Start angle of the rotation.
@@ -360,6 +364,8 @@ shapy.editor.Rig.Rotate.prototype.computeRotQuater_ = function(q, angle) {
  * Handles mouse move event.
  *
  * @param {!goog.vec.Ray} ray
+ *
+ * @return {boolean}
  */
 shapy.editor.Rig.Rotate.prototype.mouseMove = function(ray) {
   var pos = this.object.getPosition(), diff, quat;

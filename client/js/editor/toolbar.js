@@ -67,6 +67,14 @@ shapy.editor.ToolbarController.prototype.layout = function(name) {
 
 
 /**
+ * Switched to the UV layout.
+ */
+shapy.editor.ToolbarController.prototype.toggleUV = function() {
+  this.shEditor_.toggleUV();
+};
+
+
+/**
  * Called when the rig has to be changed.
  *
  * @param {string} name Name of the new rig.
