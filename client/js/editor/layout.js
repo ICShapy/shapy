@@ -18,9 +18,10 @@ goog.require('shapy.editor.Viewport.UV');
  *
  * @constructor
  *
+ * @param {!shapy.editor.Editor}                   editor    Editor service.
  * @param {!Object<string, shapy.editor.Viewport>} viewports Map of viewports.
  */
-shapy.editor.Layout = function(viewports) {
+shapy.editor.Layout = function(editor, viewports) {
   /**
    * Map of all viewports on the screen.
    * @public {!Object<string, shapy.editor.Viewport>}
@@ -266,12 +267,14 @@ shapy.editor.Layout.prototype.mouseLeave = function(e) {
  *
  * @constructor
  * @extends {shapy.editor.Layout}
+ *
+ * @param {!shapy.editor.Editor} editor    Editor service.
  */
-shapy.editor.Layout.Single = function() {
+shapy.editor.Layout.Single = function(editor) {
   /** @public {!shapy.editor.Viewport} @const */
   this.viewport = new shapy.editor.Viewport.Edit('viewport');
 
-  shapy.editor.Layout.call(this, {
+  shapy.editor.Layout.call(this, editor, {
       'viewport': this.viewport
   });
 };
@@ -285,7 +288,7 @@ goog.inherits(shapy.editor.Layout.Single, shapy.editor.Layout);
  * @param {number} h Height of the window.
  */
 shapy.editor.Layout.Single.prototype.resize = function(w, h) {
-  goog.base(this, 'resize', w, h);
+  shapy.editor.Layout.prototype.resize.call(this, w, h);
   this.viewport.resize(0, 0, w, h);
 };
 
@@ -296,8 +299,10 @@ shapy.editor.Layout.Single.prototype.resize = function(w, h) {
  *
  * @constructor
  * @extends {shapy.editor.Layout}
+ *
+ * @param {!shapy.editor.Editor} editor    Editor service.
  */
-shapy.editor.Layout.Double = function() {
+shapy.editor.Layout.Double = function(editor) {
   /** @public {!shapy.editor.Viewport} @const */
   this.left = new shapy.editor.Viewport.Edit('left');
   /** @public {!shapy.editor.Viewport} @const */
@@ -312,9 +317,9 @@ shapy.editor.Layout.Double = function() {
   /** @private {boolean} */
   this.resize_ = false;
 
-  shapy.editor.Layout.call(this, {
-      'left': this.left,
-      'right': this.right,
+  shapy.editor.Layout.call(this, editor, {
+    'left': this.left,
+    'right': this.right,
   });
 };
 goog.inherits(shapy.editor.Layout.Double, shapy.editor.Layout);
@@ -327,7 +332,7 @@ goog.inherits(shapy.editor.Layout.Double, shapy.editor.Layout);
  * @param {number} h Height of the window.
  */
 shapy.editor.Layout.Double.prototype.resize = function(w, h) {
-  goog.base(this, 'resize', w, h);
+  shapy.editor.Layout.prototype.resize.call(this, w, h);
 
   this.bar_ = w * this.split_;
   this.left.resize(0, 0, w * this.split_, h);
@@ -357,7 +362,7 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e, noGroup) {
     return null;
   } else {
     $('canvas').css('cursor', 'auto');
-    return goog.base(this, 'mouseMove', e, noGroup);
+    return shapy.editor.Layout.prototype.mouseMove.call(this, noGroup);
   }
 };
 
@@ -374,7 +379,7 @@ shapy.editor.Layout.Double.prototype.mouseDown = function(e) {
   if (this.resize_) {
     return null;
   }
-  return goog.base(this, 'mouseDown', e);
+  return shapy.editor.Layout.prototype.mouseDown.call(this, e);
 };
 
 
@@ -387,7 +392,7 @@ shapy.editor.Layout.Double.prototype.mouseDown = function(e) {
  */
 shapy.editor.Layout.Double.prototype.mouseUp = function(e) {
   if (!this.resize_) {
-    return goog.base(this, 'mouseUp', e);
+    return shapy.editor.Layout.prototype.mouseUp.call(this, e);
   }
   this.hover_ = this.resize_ = false;
   return null;
@@ -403,7 +408,7 @@ shapy.editor.Layout.Double.prototype.mouseUp = function(e) {
  */
 shapy.editor.Layout.Double.prototype.mouseLeave = function(e) {
   if (!this.resize) {
-    return goog.base(this, 'mouseLeave', e);
+    return shapy.editor.Layout.prototype.mouseLeave.call(this, e);
   }
   this.hover_ = this.resize_ = false;
   return null;
@@ -416,8 +421,10 @@ shapy.editor.Layout.Double.prototype.mouseLeave = function(e) {
  *
  * @constructor
  * @extends {shapy.editor.Layout}
+ *
+ * @param {!shapy.editor.Editor} editor    Editor service.
  */
-shapy.editor.Layout.Quad = function() {
+shapy.editor.Layout.Quad = function(editor) {
   /** @public {!shapy.editor.Viewport} @const */
   this.topLeft = new shapy.editor.Viewport.Edit('topLeft');
   /** @public {!shapy.editor.Viewport} @const */
@@ -445,7 +452,7 @@ shapy.editor.Layout.Quad = function() {
   /** @private {boolean} */
   this.hoverY_ = false;
 
-  shapy.editor.Layout.call(this, {
+  shapy.editor.Layout.call(this, editor, {
       'topLeft': this.topLeft,
       'topRight': this.topRight,
       'bottomLeft': this.bottomLeft,
@@ -462,7 +469,7 @@ goog.inherits(shapy.editor.Layout.Quad, shapy.editor.Layout);
  * @param {number} h Height of the window.
  */
 shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
-  goog.base(this, 'resize', w, h);
+  shapy.editor.Layout.prototype.resize.call(this, w, h);
 
   this.barX_ = Math.floor(w * this.splitX_);
   this.barY_ = Math.floor(h * this.splitY_);
@@ -523,7 +530,7 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e, noGroup) {
     $('canvas').css('cursor', 'ns-resize');
   } else {
     $('canvas').css('cursor', 'auto');
-    return goog.base(this, 'mouseMove', e, noGroup);
+    return shapy.editor.Layout.prototype.mouseMove.call(this, e, noGroup);
   }
 };
 
@@ -542,7 +549,7 @@ shapy.editor.Layout.Quad.prototype.mouseDown = function(e) {
   if (this.resizeX_ || this.resizeY_) {
     return null;
   }
-  return goog.base(this, 'mouseDown', e);
+  return shapy.editor.Layout.prototype.mouseDown.call(this, e);
 };
 
 
@@ -555,7 +562,7 @@ shapy.editor.Layout.Quad.prototype.mouseDown = function(e) {
  */
 shapy.editor.Layout.Quad.prototype.mouseUp = function(e) {
   if (!this.resizeX_ && !this.resizeY_) {
-    return goog.base(this, 'mouseUp', e);
+    return shapy.editor.Layout.prototype.mouseUp.call(this, e);
   }
   this.hoverX_ = this.hoverY_ = this.resizeX_ = this.resizeY_ = false;
   return null;
@@ -571,7 +578,7 @@ shapy.editor.Layout.Quad.prototype.mouseUp = function(e) {
  */
 shapy.editor.Layout.Quad.prototype.mouseLeave = function(e) {
   if (!this.resizeX_ && !this.resizeY_) {
-    return goog.base(this, 'mouseLeave', e);
+    return shapy.editor.Layout.prototype.mouseLeave.call(this, e);
   }
   this.hoverX_ = this.hoverY_ = this.resizeX_ = this.resizeY_ = false;
   return null;
