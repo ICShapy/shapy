@@ -83,3 +83,12 @@
 #editor-title:focus {
   outline: 0;
 }
+
+.texture-select {
+  width: 200px;
+  height: 20px;
+}
+
+.texture-preview {
+
+}

@@ -111,7 +111,15 @@
   <div>
     <span> Texture </span>
     <div class="content">
-    Texture select goes here
+      <input
+          class="texture-select"
+          type="text"
+          ng-model="editorCtrl.textureName" />
+      <div
+          class="texture-preview"
+          ng-repeat="texture in editorCtrl.textures">
+        {{texture.name}}
+      </div>
     </div>
   </div>
 </sh-menu>

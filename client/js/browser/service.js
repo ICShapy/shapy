@@ -247,6 +247,26 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
 
 
 /**
+ * Returns all resources that match a filter.
+ *
+ * @private
+ *
+ * @param {string}                  url   URL of the resource.
+ * @param {!Object<string, Object>} cache Cache for the resource.
+ * @param {Function}                cons  Asset constructor.
+ * @param {string} name Name filter.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.Service.prototype.filter_ = function(url, cache, cons, name) {
+  return this.http_.get(url, {params: {name: name }}).then(function(data) {
+    console.log(data);
+    return data;
+  });
+};
+
+
+/**
  * Fetches a dir from the server or from local storage.
  *
  * @param {number} dirID ID of the directory.
@@ -289,10 +309,27 @@ shapy.browser.Service.prototype.getScene = function(sceneID) {
  */
 shapy.browser.Service.prototype.getTexture = function(textureID) {
   return this.get_(
-      '/api/assets/textures',
+      '/api/assets/texture',
       this.textures_,
       shapy.browser.Texture,
       textureID
+  );
+};
+
+
+/**
+ * Fetches some textures that match a name.
+ *
+ * @param {name} name Name filter.
+ *
+ * @return {!angular.$q} Promise to return the scene.
+ */
+shapy.browser.Service.prototype.filterTextures = function(name) {
+  return this.filter_(
+      '/api/assets/textures',
+      this.textures_,
+      shapy.browser.Texture,
+      name
   );
 };
 
@@ -488,30 +525,40 @@ shapy.browser.Service.prototype.getPermissions = function(asset) {
         emails[0].push(email);
       });
       goog.array.forEach(response.data['shared'], function(permission) {
-        emails[1].push(new shapy.browser.Permission(permission['email'], permission['write']));
+        emails[1].push(new shapy.browser.Permission(
+            permission['email'],
+            permission['write']));
       });
 
       return emails;
     }, this));
-
 };
+
 
 /**
  * Sets permissions for given asset.
  *
- * @param {!shapy.browser.Asset}              asset       Asset which sharing status we check.
+ * @param {!shapy.browser.Asset}              asset
+ *        Asset which sharing status we check.
  * @param {!Array.<shapy.browser.Permission>} permissions New permissions set.
+ *
+ * @return {!angular.$q}
  */
 shapy.browser.Service.prototype.setPermissions = function(asset, permissions) {
   var permJSON = permissions.map(function(permission) {
     return [permission.email, permission.write];
   });
-  return this.http_.post('/api/permissions', {id: asset.id, permissions: JSON.stringify(permJSON)});
+  return this.http_.post('/api/permissions', {
+    id: asset.id,
+    permissions: JSON.stringify(permJSON)
+  });
 };
 
 
 /**
  * Sets public/private setting of an asset.
+ *
+ * @private
  *
  * @param {string}               url    URL of the resource.
  * @param {!shapy.browser.Asset} asset  Asset which public/private setting we change.
