@@ -4,6 +4,7 @@
 
 import hashlib
 import json
+import os
 
 import momoko
 from tornado.auth import FacebookGraphMixin, GoogleOAuth2Mixin
