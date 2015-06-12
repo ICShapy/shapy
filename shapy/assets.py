@@ -537,7 +537,7 @@ class TextureFilterHandler(APIHandler):
          FROM assets
          LEFT OUTER JOIN permissions ON permissions.asset_id = assets.id
          WHERE assets.type = %(type)s
-           AND assets.name LIKE %(name)s
+           AND LOWER(assets.name) LIKE LOWER(%(name)s)
            AND (permissions.user_id = %(user)s
                 OR assets.public is TRUE
                 OR assets.owner = %(user)s)
