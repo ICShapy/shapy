@@ -50,7 +50,7 @@ class SharedHandler(APIHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
+    self.write_json({
       'id': data[0],
       'name': data[1],
       'owner': True,
@@ -68,7 +68,7 @@ class SharedHandler(APIHandler):
         }
         for item in cursor.fetchall()
       ]
-    }))
+    })
     self.finish()
 
 
@@ -111,7 +111,7 @@ class FilteredHandler(APIHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
+    self.write_json({
       'id': data[0],
       'name': data[1],
       'owner': True,
@@ -129,7 +129,7 @@ class FilteredHandler(APIHandler):
         }
         for item in cursor.fetchall()
       ]
-    }))
+    })
     self.finish()
 
 
@@ -172,7 +172,7 @@ class PublicHandler(APIHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
+    self.write_json({
       'id': data[0],
       'name': data[1],
       'owner': True,
@@ -190,7 +190,7 @@ class PublicHandler(APIHandler):
         }
         for item in cursor.fetchall()
       ]
-    }))
+    })
     self.finish()
 
 
@@ -200,7 +200,6 @@ class AssetHandler(APIHandler):
 
   TYPE = None
   NEW_NAME = None
-  MIME = 'application/json'
 
 
   @session
@@ -252,23 +251,16 @@ class AssetHandler(APIHandler):
       owner = False
       write = user is not None and data['write']
 
-    if self.MIME == 'application/json':
-      # Dump JSON formatted data.
-      self.write(json.dumps({
-          'id': data['id'],
-          'name': data['name'],
-          'preview': str(data['preview'] or ''),
-          'data': json.loads(str(data['data'] or 'null')),
-          'public': data['public'],
-          'owner': owner,
-          'write': write
-      }))
-    elif data['data']:
-      # Dump raw binary (mainly for textures).
-      blob = bytes(data['data'])
-      self.set_header('Content-Length', len(blob))
-      self.write(blob)
-
+    # Dump JSON formatted data.
+    self.write_json({
+        'id': data['id'],
+        'name': data['name'],
+        'preview': str(data['preview'] or ''),
+        'data': json.loads(str(data['data'] or 'null')),
+        'public': data['public'],
+        'owner': owner,
+        'write': write
+    })
     self.finish()
 
 
@@ -321,14 +313,14 @@ class AssetHandler(APIHandler):
       raise HTTPError(400, 'Asset creation failed.')
 
     # Return the asset data.
-    self.write(json.dumps({
+    self.write_json({
         'id': data[0],
         'name': data[1],
         'owner': True,
         'write': True,
         'public': False,
         'data': []
-    }))
+    })
     self.finish()
 
 
@@ -488,7 +480,7 @@ class DirHandler(AssetHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
+    self.write_json({
       'id': data[0],
       'name': data[1],
       'owner': True,
@@ -506,7 +498,7 @@ class DirHandler(AssetHandler):
         }
         for item in cursor.fetchall()
       ]
-    }))
+    })
     self.finish()
 
 
@@ -524,7 +516,6 @@ class TextureHandler(AssetHandler):
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
-  MIME = 'application/octet_stream'
 
 
 
@@ -561,12 +552,12 @@ class TextureFilterHandler(APIHandler):
       'user': user.id if user else None
     })
 
-    self.write(json.dumps([
+    self.write_json([
       {
         'id': asset['id'],
         'name': asset['name'],
         'preview': asset['preview']
       }
       for asset in cursor.fetchall()
-    ]))
+    ])
     self.finish()
