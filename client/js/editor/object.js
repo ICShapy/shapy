@@ -80,7 +80,6 @@ shapy.editor.Object = function(
   this.scale_ = goog.vec.Vec3.createFromValues(1, 1, 1);
   /** @private {goog.vec.Vec3} @const */
   this.translate_ = goog.vec.Vec3.createFromValues(0, 0, 0);
-
   /** @private {goog.vec.Quaternion.Type} @const */
   this.rotQuat_ = goog.vec.Quaternion.createFloat32FromValues(0, 0, 0, 1);
   /** @private {goog.vec.Mat4.Type} @const */
@@ -123,7 +122,7 @@ shapy.editor.Object = function(
    * @const
    */
   this.verts = {};
-  this.nextVert_ = 0;
+  this.nextVert_ = 1;
   goog.object.forEach(opt_verts || {}, function(v, i) {
     this.nextVert_ = Math.max(this.nextVert_, i + 1);
     this.verts[i] = new shapy.editor.Vertex(this, i, v[0], v[1], v[2]);
@@ -135,7 +134,7 @@ shapy.editor.Object = function(
    * @const
    */
   this.edges = {};
-  this.nextEdge_ = 0;
+  this.nextEdge_ = 1;
   goog.object.forEach(opt_edges || {}, function(e, i) {
     this.nextEdge_ = Math.max(this.nextEdge_, i + 1);
     this.edges[i] = new shapy.editor.Edge(this, i, e[0], e[1], e[2], e[3]);
@@ -148,7 +147,7 @@ shapy.editor.Object = function(
    * @const
    */
    this.faces = {};
-   this.nextFace_ = 0;
+   this.nextFace_ = 1;
    goog.object.forEach(opt_faces || {}, function(f, i) {
     this.nextFace_ = Math.max(this.nextFace_, i + 1);
     this.faces[i] = new shapy.editor.Face(
@@ -160,7 +159,7 @@ shapy.editor.Object = function(
     * @public {!Object<number, !shapy.editor.Object.UVPoint>}
     */
   this.uvPoints = {};
-  this.nextUVPoint_ = 0;
+  this.nextUVPoint_ = 1;
   goog.object.forEach(opt_uvPoints || {}, function(up, i) {
     this.nextUVPoint_ = Math.max(this.nextUVPoint_, i + 1);
     this.uvPoints[i] = new shapy.editor.Object.UVPoint(this, i, up[0], up[1]);
@@ -171,7 +170,7 @@ shapy.editor.Object = function(
    * @public {!Object<number, !shapy.editor.Object.UVEdge>}
    */
   this.uvEdges = {};
-  this.nextUVEdge_ = 0;
+  this.nextUVEdge_ = 1;
   goog.object.forEach(opt_uvEdges || {}, function(ue, i) {
     this.nextUVEdge_ = Math.max(this.nextUVEdge_, i + 1);
     this.uvEdges[i] = new shapy.editor.Object.UVEdge(this, i, ue[0], ue[1]);
