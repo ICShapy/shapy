@@ -34,10 +34,16 @@
   display: block;
   resize: none;
   margin: 0;
-  padding: 0;
+  padding: 5px;
   border: 1px solid #aaa;
-  width: 294px;
-  height: 46px;
+  font-size: 13px;
+  width: 286px;
+  height: 38px;
+}
+
+textarea:focus {
+  outline: none;
+  border: none;
 }
 
 .message-group-other {

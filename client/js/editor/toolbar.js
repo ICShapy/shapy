@@ -80,10 +80,12 @@ shapy.editor.ToolbarController = function(
 
 /**
  * Gets the number of unread messages
+ *
+ * @return {number}
  */
 shapy.editor.ToolbarController.prototype.getUnreadMessages = function() {
-  return this.shEditor_.controller_.unreadMessages;
-}
+  return this.shEditor_.unreadMessages;
+};
 
 
 /**
@@ -92,7 +94,7 @@ shapy.editor.ToolbarController.prototype.getUnreadMessages = function() {
 shapy.editor.ToolbarController.prototype.toggleChatbox = function() {
   $('#chatbox').toggle();
   if ($('#chatbox').is(':visible')) {
-    this.shEditor_.controller_.unreadMessages = 0;
+    this.shEditor_.unreadMessages = 0;
   }
 };
 

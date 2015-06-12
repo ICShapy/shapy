@@ -3,12 +3,12 @@
     <textarea
       id="message-entry-box"
       ng-model="editorCtrl.message"
-      ng-keyup="$event.keyCode == 13 ? editorCtrl.sendMessage() : null">
+      ng-keyup="$event.keyCode == 13 ? editorCtrl.sendMessage(editorCtrl.message) : null">
     </textarea>
   </div>
   <div class="messages">
     <div ng-repeat="messageGroup in editorCtrl.messageList">
-      <div ng-if="messageGroup.user.id != editorCtrl.shEditor_.user.id">
+      <div ng-if="messageGroup.user.id != editorCtrl.user.id">
         <div class="message-group-other">
           <p class="message-name">{{messageGroup.user.name}}</p>
           <div class="message-bubble-other">
@@ -18,7 +18,7 @@
           </div>
         </div>
       </div>
-      <div ng-if="messageGroup.user.id == editorCtrl.shEditor_.user.id">
+      <div ng-if="messageGroup.user.id == editorCtrl.user.id">
         <div class="message-group-self">
           <p class="message-name">{{messageGroup.user.name}}</p>
           <div class="message-bubble-self">

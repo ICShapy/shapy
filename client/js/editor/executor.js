@@ -187,7 +187,7 @@ shapy.editor.Executor.prototype.emitMessage = function(message) {
 shapy.editor.Executor.prototype.applyMessage = function(data) {
   this.editor_.shUser_.get(data['user']).then(goog.bind(function(user) {
     // Add to message list
-    var ml = this.editor_.controller_.messageList;
+    var ml = this.editor_.messageList;
     if (ml.length == 0) {
       ml.push({
         user: user,
@@ -204,7 +204,7 @@ shapy.editor.Executor.prototype.applyMessage = function(data) {
 
     // Increment unread counter
     if (!$('#chatbox').is(':visible')) {
-      this.editor_.controller_.unreadMessages++;
+      this.editor_.unreadMessages++;
     }
   }, this));
 };
