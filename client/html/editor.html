@@ -9,29 +9,27 @@
         ng-keyup="$event.keyCode == 13 ? editorCtrl.sendMessage() : null">
     </div>
     <div class="messages">
-      <!-- Message group 1
-      <div class="message-group">
-        <p class="message-name">David Avedissian</p>
-        <p class="message-text">
-          Hello<br />
-          Testing the chat<br />
-        </p>
-      </div> -->
-      <!-- Message group 2
-      <div class="message-group" style="margin-left: 30%" >
-        <p class="message-name">Michal Sienkiewicz</p>
-        <p class="message-text" style="background-color: rgb(252, 249, 243); box-shadow: 1px 2px 3px #dddddd">
-          Hello<br />
-          I received your message<br />
-        </p>
-      </div> -->
-      <div class="message-group" ng-repeat="messageGroup in editorCtrl.messageList">
-        <p class="message-name">{{messageGroup.user.name}}</p>
-        <p class="message-text">
-          <span ng-repeat="message in messageGroup.messages">
-            {{message}}<br />
-          </span>
-        </p>
+      <div ng-repeat="messageGroup in editorCtrl.messageList track by $index">
+        <div ng-if="messageGroup.user.id != editorCtrl.shEditor_.user.id">
+          <div class="message-group-other">
+            <p class="message-name">{{messageGroup.user.name}}</p>
+            <div class="message-bubble-other">
+              <p class="message-text" ng-repeat="message in messageGroup.messages">
+                {{message}}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div ng-if="messageGroup.user.id == editorCtrl.shEditor_.user.id">
+          <div class="message-group-self">
+            <p class="message-name">{{messageGroup.user.name}}</p>
+            <div class="message-bubble-self">
+              <p class="message-text" ng-repeat="message in messageGroup.messages">
+                {{message}}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
