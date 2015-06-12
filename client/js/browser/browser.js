@@ -8,6 +8,7 @@ goog.provide('shapy.browser.assetMatch');
 goog.provide('shapy.browser.assetOrder');
 goog.provide('shapy.browser.asset');
 goog.provide('shapy.browser.assets');
+goog.provide('shapy.browser.createTexture');
 goog.provide('shapy.browser.delete');
 goog.provide('shapy.browser.public');
 goog.provide('shapy.browser.sidebar');
@@ -94,16 +95,6 @@ shapy.browser.BrowserController.prototype.createDir = function() {
  */
 shapy.browser.BrowserController.prototype.createScene = function() {
   return this.shBrowser_.createScene();
-};
-
-
-/**
- * Creates new texture in current dir.
- *
- * @return {!angular.$q}
- */
-shapy.browser.BrowserController.prototype.createTexture = function() {
-  return this.shBrowser_.createTexture();
 };
 
 
@@ -695,6 +686,50 @@ shapy.browser.public = function(shBrowser) {
 
 };
 
+
+/**
+ * Texture creating directive.
+ *
+ * @param {!shapy.modal.Service}       shModal
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.createTexture = function(shModal, shBrowser) {
+  /**
+   * Handles creating/uploading texture.
+   */
+  var createTexture = function() {
+    shModal.open({
+      size: 'small',
+      title: 'Create Texture',
+      template:
+          'Upload a file up to 4MB:',
+      controller: function($scope) {
+        $scope.cancel = function() { return false; };
+        $scope.okay = function() {
+            shBrowser.createTexture();
+        };
+
+      }
+    });
+  };
+
+  return {
+    restrict: 'E',
+    scope: {
+     show: '='
+    },
+    link: function($scope, $elem) {
+      $elem.bind('mousedown', function(evt) {
+          $scope.$apply(function() {
+            $scope.show = false;
+          });
+          createTexture();
+      });
+    }
+  };
+
+};
 
 
 /**
