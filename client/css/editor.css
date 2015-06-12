@@ -23,21 +23,20 @@
 
 .message-entry {
   position: absolute;
-  overflow: hidden;
   left: 2px;
   bottom: 2px;
   right: 2px;
-  width: 294px;
-  height: 46px;
-  border: 1px solid #aaa;
+  width: 296px;
+  height: 48px;
 }
 
 .message-entry #message-entry-box {
   display: block;
+  resize: none;
   margin: 0;
   padding: 0;
   border: 1px solid #aaa;
-  width: 292px;
+  width: 294px;
   height: 46px;
 }
 

@@ -57,6 +57,14 @@ shapy.editor.ToolbarController = function(
 
 
 /**
+ * Toggle the chat UI
+ */
+shapy.editor.ToolbarController.prototype.toggleChatbox = function() {
+  $('#chatbox').toggle();
+}
+
+
+/**
  * Called when the layout has to be changed.
  *
  * @param {string} name Name of the new layout.
