@@ -233,7 +233,7 @@ shapy.editor.Editor.PREVIEW_WIDTH = 145;
  * Height of a preview image.
  * @type {number} @const
  */
-shapy.editor.Editor.PREVIEW_HEIGHT = 100;
+shapy.editor.Editor.PREVIEW_HEIGHT = 105;
 
 
 /**
@@ -254,12 +254,18 @@ shapy.editor.Editor.prototype.sendMessage = function(msg) {
 shapy.editor.Editor.prototype.snapshot_ = function() {
   var image = new Image();
   image.onload = goog.bind(function() {
+    var aspect = this.vp_.width / this.vp_.height;
+    var width = shapy.editor.Editor.PREVIEW_HEIGHT * aspect;
+    var diff = width - shapy.editor.Editor.PREVIEW_WIDTH;
 
     // Resize the image.
     var canvas = document.createElement('canvas');
-    canvas.width = shapy.editor.Editor.PREVIEW_WIDTH;
+    canvas.width = Math.min(shapy.editor.Editor.PREVIEW_WIDTH, width);
     canvas.height = shapy.editor.Editor.PREVIEW_HEIGHT;
-    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    var ctx = canvas.getContext('2d');
+    ctx.translate(-diff / 2, 0);
+    ctx.drawImage(image, 0, 0, width, canvas.height);
 
     // Upload.
     this.scene_.image = canvas.toDataURL('image/jpeg');
