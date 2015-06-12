@@ -519,30 +519,7 @@ shapy.browser.share = function(shModal, shBrowser) {
       shModal.open({
         size: 'medium',
         title: 'Share Asset',
-        template:
-            '<div class="sharing-add">' +
-            '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
-            '  <span id="new-write" ng-click="newWrite()">Write</span>' +
-            '  <button id="add"' +
-            '          ng-click="add()"' +
-            '          ng-style="(isAvailable())? {{style}}">' +
-            '    Add' +
-            '  </button>' +
-            '</div>' +
-            '<span id="shared-text">Shared with:</span> ' +
-            '<div class="permission-list">' +
-            '  <div ng-repeat="permission in shared">' +
-            '    <div class="permission">' +
-            '        <span id="email"' +
-            '               ng-click="select(permission)"' +
-            '               ng-class="{selectedperm: permission == whichSelected()}">' +
-            '          {{permission.email}}' +
-            '        </span>' +
-            '        <span id="write" ng-style="(permission.write) ? {{black}} : {{gray}}">Write</span>' +
-            '    </div>' +
-            '  </div>' +
-            '</div>' +
-            '<button id="remove" ng-click="remove()">Remove</button>',
+        templateUrl: '/html/browser-permissions.html',
         controller: function($scope) {
           $scope.style = "{'cursor' : 'pointer'} : {'color' : 'gray'}";
           $scope.black = "{'color':'black', 'font-weight': 'bold'}";
