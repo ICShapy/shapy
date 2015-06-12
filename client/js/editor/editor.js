@@ -226,7 +226,7 @@ shapy.editor.Editor = function(
  * Width of a preview image.
  * @type {number} @const
  */
-shapy.editor.Editor.PREVIEW_WIDTH = 145;
+shapy.editor.Editor.PREVIEW_WIDTH = 147;
 
 
 /**
