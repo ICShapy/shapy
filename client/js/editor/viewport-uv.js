@@ -15,11 +15,12 @@ goog.require('shapy.editor.Viewport');
  * @constructor
  * @extends {shapy.editor.Viewport}
  *
- * @param {string} name Name of the viewport.
- * @param {!shapy.editor.UVGroup} group UV group.
+ * @param {!shapy.editor.Editor}  editor Editor service.
+ * @param {string}                name   Name of the viewport.
+ * @param {!shapy.editor.UVGroup} group  UV group.
  */
-shapy.editor.Viewport.UV = function(name, group) {
-  shapy.editor.Viewport.call(this, name, shapy.editor.Viewport.Type.UV);
+shapy.editor.Viewport.UV = function(editor, name, group) {
+  shapy.editor.Viewport.call(this, editor, name, shapy.editor.Viewport.Type.UV);
 
   /**
    * Zoom level.
@@ -195,18 +196,18 @@ shapy.editor.Viewport.prototype.raycast = function(x, y) {
  *
  * @param {!goog.math.Rect} group
  *
- * @return {!{x0: number, x1: number, y0: number, y1: number}}
+ * @return {!{u0: number, u1: number, v0: number, v1: number}}
  */
 shapy.editor.Viewport.prototype.groupcast = function(group) {
   var d = this.zoom / 1000, w = shapy.editor.Viewport.UV.SIZE;
 
-  var x0 = group.left, x1 = group.left + group.width;
-  var y0 = group.top, y1 = group.top + group.height;
+  var u0 = group.left, x1 = group.left + group.width;
+  var v0 = group.top, y1 = group.top + group.height;
 
   return {
-    u0: (((x0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
+    u0: (((u0 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
     u1: (((x1 - this.rect.w / 2 - this.pan.x) * d) + w) / (2 * w),
-    v0: (((y0 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w),
+    v0: (((v0 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w),
     v1: (((y1 - this.rect.h / 2 - this.pan.y) * d) + w) / (2 * w)
   };
 };
@@ -233,25 +234,57 @@ shapy.editor.Viewport.UV.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
- * @param {boolean} isPainting
+ * @param {number} button
  *
  * @return {boolean}
  */
-shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, isPainting) {
-  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y, isPainting);
+shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, button) {
+  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y);
   var d = this.zoom / 1000, w = shapy.editor.Viewport.UV.SIZE, dx, dy;
 
+  // Move selected UV group.
   if (this.moveUV_) {
     dx = ((this.currMousePos.x - this.lastMousePos.x) * d) / (2 * w);
     dy = ((this.currMousePos.y - this.lastMousePos.y) * d) / (2 * w);
-    this.partGroup_.moveUV(dx, dy);
+    this.editor.partGroup.moveUV(dx, dy);
+    return [];
   }
+
+  // Pan the view.
   if (this.isPanning_) {
     this.pan.x = this.initialPan_.x + x - this.lastClick.x;
     this.pan.y = this.initialPan_.y + y - this.lastClick.y;
     this.compute_();
+    return [];
   }
-  return true;
+
+  // Select objects under the mouse.
+  if (this.group && this.group.width > 3 && this.group.height > 3) {
+    hits = this.object.pickUVGroup(
+        this.groupcast(this.group), this.editor.mode);
+  } else {
+    hits = this.object.pickUVCoord(
+        this.raycast(x, y), this.editor.mode);
+    if (hits.length > 1) {
+      hits = [hits[hits.length - 1]];
+    }
+  }
+
+  if (this.editor.mode.paint && button == 1) {
+    uv = this.raycast(x, y);
+    object = this.object;
+    if (!(texture = this.editor.scene_.textures[object.texture])) {
+      return [];
+    }
+
+    texture.paint(
+        uv.u,
+        uv.v,
+        this.editor.brushColour_,
+        this.editor.brushRadius_);
+    return [];
+  }
+  return hits;
 };
 
 

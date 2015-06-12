@@ -67,9 +67,9 @@ shapy.editor.Object = function(
 
   /**
    * Texture attached to the object.
-   * @public {!string}
+   * @public {?string}
    */
-  this.texture = 'tex_0';
+  this.texture = null;
 
   /**
    * @private {goog.vec.Vec3}
@@ -303,6 +303,22 @@ shapy.editor.Object.prototype.rotate = function(q) {
 shapy.editor.Object.prototype.delete = function() {
   goog.object.remove(this.scene.objects, this.id);
   this.deleted = true;
+};
+
+
+/**
+ * Returns the texture attached to an object.
+ *
+ * @return {shapy.browser.Texture}
+ */
+shapy.editor.Object.prototype.getTexture = function() {
+  if (!this.texture) {
+    return null;
+  }
+  if (!goog.object.containsKey(this.scene_.textures, this.texture)) {
+    return null;
+  }
+  return this.scene_.textures[this.texture];
 };
 
 

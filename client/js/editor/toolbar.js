@@ -15,12 +15,13 @@ goog.require('goog.ui.Slider');
  *
  * @constructor
  *
- * @param {!angular.$scope}      $rootScope The angular root scope.
- * @param {!angular.$scope}      $scope     The angular root scope.
- * @param {!angular.$q}          $q         The angular promise service.
- * @param {!shapy.Scene}         scene      Scene being edited.
- * @param {!shapy.UserService}   shUser User service which can cache user info.
- * @param {!shapy.editor.Editor} shEditor
+ * @param {!angular.$scope}       $rootScope The angular root scope.
+ * @param {!angular.$scope}       $scope     The angular root scope.
+ * @param {!angular.$q}           $q         The angular promise service.
+ * @param {!shapy.Scene}          scene      Scene being edited.
+ * @param {!shapy.UserService}    shUser User service which can cache user info.
+ * @param {!shapy.editor.Editor}  shEditor
+ * @param {!shapy.editor.Browser} shBrowser
  */
 shapy.editor.ToolbarController = function(
     $rootScope,
@@ -28,7 +29,8 @@ shapy.editor.ToolbarController = function(
     $q,
     scene,
     shUser,
-    shEditor)
+    shEditor,
+    shBrowser)
 {
   $scope.floor = Math.floor;
 
@@ -36,6 +38,8 @@ shapy.editor.ToolbarController = function(
   this.rootScope_ = $rootScope;
   /** @private {!shapy.editor.Editor} @const */
   this.shEditor_ = shEditor;
+  /** @private {!shapy.editor.Browser} @const */
+  this.shBrowser_ = shBrowser;
 
   /** @public {!shapy.Scene} @const */
   this.scene = scene;
@@ -43,6 +47,11 @@ shapy.editor.ToolbarController = function(
   this.users = [];
   /** @public {!shapy.editor.Mode} */
   this.mode = shEditor.mode;
+
+  /** @public {string} */
+  this.textureName = '';
+  /** @public {!Array<!shapy.browser.Texture>} @const */
+  this.textures = [];
 
   // Watch for changes in the user ID list & fetch user objects periodically.
   $scope.$watch(goog.bind(function() {
@@ -53,6 +62,19 @@ shapy.editor.ToolbarController = function(
           this.users = users;
         }, this));
   }, this), true);
+
+  // Watch for chnages in the texture name.
+  $scope.$watch(goog.bind(function() {
+    return this.textureName;
+  }, this), goog.bind(function() {
+    if (!this.textureName) {
+      this.textures = [];
+      return;
+    }
+    shBrowser.filterTextures(this.textureName).then(goog.bind(function(data) {
+      this.textures = data;
+    }, this));
+  }, this));
 };
 
 
@@ -63,6 +85,14 @@ shapy.editor.ToolbarController = function(
  */
 shapy.editor.ToolbarController.prototype.layout = function(name) {
   this.shEditor_.setLayout(name);
+};
+
+
+/**
+ * Switched to the UV layout.
+ */
+shapy.editor.ToolbarController.prototype.toggleUV = function() {
+  this.shEditor_.toggleUV();
 };
 
 
@@ -84,6 +114,17 @@ shapy.editor.ToolbarController.prototype.rig = function(name) {
 shapy.editor.ToolbarController.prototype.addObject = function(name) {
   this.shEditor_.create(name);
 };
+
+
+/**
+ * Applies a texture to the currently selected objects.
+ *
+ * @param {number} id ID of the texture to apply.
+ */
+shapy.editor.ToolbarController.prototype.applyTexture = function(id) {
+  this.shEditor_.applyTexture(id);
+};
+
 
 
 /**

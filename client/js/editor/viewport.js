@@ -14,21 +14,16 @@ goog.require('goog.vec.Quaternion');
  *
  * @constructor
  *
- * @param {string}                      name Name of the viewport.
- * @param {!shapy.editor.Viewport.Type} type Type of the viewport.
+ * @param {!shapy.editor.Editor}        editor Editor service.
+ * @param {string}                      name   Name of the viewport.
+ * @param {!shapy.editor.Viewport.Type} type   Type of the viewport.
  */
-shapy.editor.Viewport = function(name, type) {
-  /**
-   * @public {!shapy.editor.Viewport.Type}
-   * @const
-   */
+shapy.editor.Viewport = function(editor, name, type) {
+  /** @public {!shapy.editor.Editor} @const */
+  this.editor = editor;
+  /** @public {!shapy.editor.Viewport.Type} @const */
   this.type = type;
-
-  /**
-   * The name of the viewport.
-   * @public {string}
-   * @const
-   */
+  /** @public {string}  @const */
   this.name = name;
 
   /**
@@ -44,17 +39,17 @@ shapy.editor.Viewport = function(name, type) {
   this.group = null;
 
   /**
-   * Last mouse click position.
-   * @protected {!goog.math.Vec2}
-   */
-  this.lastClick = new goog.math.Vec2(0, 0);
-
-  /**
    * The size and position of the viewport.
    * @public {!goog.math.Size}
    * @const
    */
   this.rect = new goog.math.Rect(0, 0, 0, 0);
+
+  /**
+   * Last mouse click position.
+   * @protected {!goog.math.Vec2}
+   */
+  this.lastClick = new goog.math.Vec2(0, 0);
 
   /**
    * Current position of the mouse.
@@ -64,7 +59,7 @@ shapy.editor.Viewport = function(name, type) {
 
   /**
    * Last position of the mouse.
-   * @private {!goog.math.Vec2}
+   * @public {!goog.math.Vec2}
    */
   this.lastMousePos = new goog.math.Vec2(0, 0);
 };
@@ -91,17 +86,16 @@ shapy.editor.Viewport.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
- * @param {boolean} noGroup Ignore group selection.
  *
  * @return {boolean}
  */
-shapy.editor.Viewport.prototype.mouseMove = function(x, y, noGroup) {
+shapy.editor.Viewport.prototype.mouseMove = function(x, y) {
   this.lastMousePos.x = this.currMousePos.x;
   this.lastMousePos.y = this.currMousePos.y;
   this.currMousePos.x = x;
   this.currMousePos.y = y;
 
-  if (!this.group || noGroup) {
+  if (!this.group || this.editor.mode.paint) {
     return false;
   }
 

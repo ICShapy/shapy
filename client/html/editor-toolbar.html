@@ -30,6 +30,10 @@
       <li ng-click="editorCtrl.layout('single')">Single</li>
       <li ng-click="editorCtrl.layout('double')">Double</li>
       <li ng-click="editorCtrl.layout('quad')">Quad</li>
+      <li ng-click="editorCtrl.toggleUV()">
+        UV
+        <span class="hint">U</span>
+      </li>
     </ul>
   </div>
 
@@ -101,5 +105,23 @@
       ng-click="editorCtrl.mode.toggleVertex()"
       ng-class="{select: editorCtrl.mode.vertex}">
     Vertex
+  </div>
+
+  <!-- Texture selection. -->
+  <div>
+    <span> Texture </span>
+    <div class="content">
+      <input
+          class="texture-select"
+          type="text"
+          ng-model="editorCtrl.textureName" />
+      <div
+          class="texture-preview"
+          ng-click="editorCtrl.applyTexture(texture.id)"
+          ng-repeat="texture in editorCtrl.textures">
+        <img ng-show="texture.preview" ng-src="texture.preview"/>
+        {{texture.name}}
+      </div>
+    </div>
   </div>
 </sh-menu>
