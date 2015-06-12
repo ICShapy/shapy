@@ -42,6 +42,7 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
   this.scene_ = scene;
   /** @private {!shapy.editor.Editor} @const */
   this.shEditor_ = shEditor;
+  this.shEditor_.controller_ = this;
   /** @public {!shapy.User} @const */
   this.user = user;
 
@@ -55,9 +56,9 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
   };
 
   /**
-   * Messages, stored as a pair mapping user ID to a list of messages
+   * Messages stored as a pair joining a user name to a list of messages
    */
-  this.messages = [];
+  this.messageList = [];
 
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_, this.user);
@@ -96,6 +97,10 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   this.shUser_ = shUser;
   /** @private {!angular.$http} @const */
   this.http_ = $http;
+
+  /** @private {!shapy.editor.EditorController} */
+  // TODO: Another way of doing this
+  this.controller_ = null;
 
   /**
    * Canvas.

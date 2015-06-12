@@ -185,9 +185,23 @@ shapy.editor.Executor.prototype.emitMessage = function(message) {
  * @param {!Object} data
  */
 shapy.editor.Executor.prototype.applyMessage = function(data) {
-  this.editor_.shUser_.get(data['user']).then(function(user) {
+  this.editor_.shUser_.get(data['user']).then(goog.bind(function(user) {
     console.log('Received message from ' + user.name + ': ' + data['message']);
-  }, this);
+    var ml = this.editor_.controller_.messageList;
+    if (ml.length == 0) {
+      ml.push({
+        user: user,
+        messages: [data['message']]
+      });
+    } else if (ml[ml.length - 1].user == user) {
+      ml[ml.length - 1].messages.push(data['message']);
+    } else {
+      ml.push({
+        user: user,
+        messages: [data['message']]
+      });
+    }
+  }, this));
 };
 
 
