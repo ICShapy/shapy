@@ -200,6 +200,77 @@ class AssetHandler(APIHandler):
 
   TYPE = None
   NEW_NAME = None
+  MIME = 'application/json'
+
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Retrieves a scene from the database."""
+
+    id = self.get_argument('id')
+    if not id:
+      raise HTTPError(400, 'Invalid asset ID')
+
+    # Fetch data from the asset and permission table.
+    # The write flag will have 3 possible values: None, True, False
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, preview::bytea, data::bytea, public, owner, write
+         FROM assets
+         LEFT OUTER JOIN permissions
+         ON permissions.asset_id = assets.id
+         WHERE assets.id = %(id)s
+           AND assets.type = %(type)s
+           AND (permissions.user_id = %(user)s OR
+                permissions.user_id is NULL OR
+                %(user)s IS NULL)
+      ''', {
+        'id': id,
+        'user': user.id if user else None,
+        'type': self.TYPE
+    })
+
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(404, 'Asset not found.')
+
+    if user and data['owner'] == user.id:
+      # Owner - full permissions.
+      owner = True
+      write = True
+    elif data['write'] is None:
+      if not data['public']:
+        # No permissions.
+        raise HTTPError(400, 'Asset not found.')
+      else:
+        # Public asset - read only.
+        owner = False
+        write = False
+    else:
+      # Shared asset - permission in table.
+      owner = False
+      write = user is not None and data['write']
+
+    if self.MIME == 'application/json':
+      # Dump JSON formatted data.
+      self.write(json.dumps({
+          'id': data['id'],
+          'name': data['name'],
+          'preview': str(data['preview'] or ''),
+          'data': json.loads(str(data['data'] or 'null')),
+          'public': data['public'],
+          'owner': owner,
+          'write': write
+      }))
+    elif data['data']:
+      # Dump raw binary (mainly for textures).
+      blob = bytes(data['data'])
+      self.set_header('Content-Length', len(blob))
+      self.write(blob)
+
+    self.finish()
+
 
   @session
   @coroutine
@@ -343,7 +414,7 @@ class AssetHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets
          SET name = COALESCE(%(name)s, name),
-             data = COALESCE(%(data)s, data),
+             data = COALESCE(%(data)s, data)::bytea,
              public = COALESCE(%(public)s, public),
              preview = COALESCE(%(preview)s, preview)::bytea
 
@@ -352,7 +423,7 @@ class AssetHandler(APIHandler):
       ''', {
       'id': id,
       'name': name,
-      'data': psycopg2.extras.Json(data) if data else None,
+      'data': psycopg2.Binary(data.encode('ascii')) if data else None,
       'public': public,
       'preview': psycopg2.Binary(str(preview)) if preview else None
     })
@@ -446,66 +517,6 @@ class SceneHandler(AssetHandler):
   TYPE = 'scene'
   NEW_NAME = 'New Scene'
 
-  @session
-  @coroutine
-  @asynchronous
-  def get(self, user):
-    """Retrieves a scene from the database."""
-
-    id = self.get_argument('id')
-    if not id:
-      raise HTTPError(400, 'Invalid asset ID')
-
-    # Fetch data from the asset and permission table.
-    # The write flag will have 3 possible values: None, True, False
-    cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, preview, data::json, public, owner, write
-         FROM assets
-         LEFT OUTER JOIN permissions
-         ON permissions.asset_id = assets.id
-         WHERE assets.id = %(id)s
-           AND assets.type = %(type)s
-           AND (permissions.user_id = %(user)s OR
-                permissions.user_id is NULL OR
-                %(user)s IS NULL)
-      ''', {
-        'id': id,
-        'user': user.id if user else None,
-        'type': self.TYPE
-    })
-
-    data = cursor.fetchone()
-    if not data:
-      raise HTTPError(404, 'Asset not found.')
-
-    if user and data['owner'] == user.id:
-      # Owner - full permissions.
-      owner = True
-      write = True
-    elif data['write'] is None:
-      if not data['public']:
-        # No permissions.
-        raise HTTPError(400, 'Asset not found.')
-      else:
-        # Public asset - read only.
-        owner = False
-        write = False
-    else:
-      # Shared asset - permission in table.
-      owner = False
-      write = user is not None and data['write']
-
-    self.write(json.dumps({
-        'id': data['id'],
-        'name': data['name'],
-        'preview': str(data['preview'] or ''),
-        'data': json.loads(data['data'] or 'null'),
-        'public': data['public'],
-        'owner': owner,
-        'write': write
-    }))
-    self.finish()
-
 
 
 class TextureHandler(AssetHandler):
@@ -513,6 +524,8 @@ class TextureHandler(AssetHandler):
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
+  MIME = 'application/octet_stream'
+
 
 
 class TextureFilterHandler(APIHandler):
