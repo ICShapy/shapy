@@ -6,34 +6,39 @@
   background-color: #ddd;
   margin: -1px;
   border: 1px solid #aaa;
-  width: 400px;
+  width: 300px;
   height: 100%;
 }
 
 .messages {
   position: absolute;
-  bottom: 52px;
   left: 2px;
   top: 2px;
   right: 2px;
+  bottom: 52px;
   padding: 10px;
   border: 1px solid #aaa;
   background-color: #fff;
 }
 
 .message-entry {
-  width: 400px;
-  height: 3em;
+  position: absolute;
+  overflow: hidden;
+  left: 2px;
+  bottom: 2px;
+  right: 2px;
+  width: 294px;
+  height: 46px;
+  border: 1px solid #aaa;
 }
 
 .message-entry #message-entry-box {
+  display: block;
+  margin: 0;
+  padding: 0;
   border: 1px solid #aaa;
-  width: 392px;
-  height: 3em;
-  position: absolute;
-  bottom: 2px;
-  left: 2px;
-  right: 2px;
+  width: 292px;
+  height: 46px;
 }
 
 .message-group-other {
