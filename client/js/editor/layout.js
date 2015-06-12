@@ -141,18 +141,17 @@ shapy.editor.Layout.prototype.keyDown = function(e) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
- * @param {boolean} noGroup Ignore group selection.
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.prototype.mouseMove = function(e, noGroup) {
+shapy.editor.Layout.prototype.mouseMove = function(e) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
     return [];
   }
 
   if (this.hover && result.vp == this.hover) {
-    return this.hover.mouseMove(result.x, result.y, noGroup);
+    return this.hover.mouseMove(result.x, result.y, e.which);
   }
 
   if (this.hover) {
@@ -344,11 +343,10 @@ shapy.editor.Layout.Double.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
- * @param {boolean} noGroup
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.Double.prototype.mouseMove = function(e, noGroup) {
+shapy.editor.Layout.Double.prototype.mouseMove = function(e) {
   this.hover_ = Math.abs(e.offsetX - this.bar_) < 5;
 
   if (this.resize_) {
@@ -362,7 +360,7 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e, noGroup) {
     return [];
   } else {
     $('canvas').css('cursor', 'auto');
-    return shapy.editor.Layout.prototype.mouseMove.call(this, e, noGroup);
+    return shapy.editor.Layout.prototype.mouseMove.call(this, e);
   }
 };
 
@@ -501,11 +499,10 @@ shapy.editor.Layout.Quad.prototype.resize = function(w, h) {
  * Handles a mouse motion event.
  *
  * @param {MouseEvent} e
- * @param {boolean} noGroup
  *
  * @return {goog.vec.Ray}
  */
-shapy.editor.Layout.Quad.prototype.mouseMove = function(e, noGroup) {
+shapy.editor.Layout.Quad.prototype.mouseMove = function(e) {
   this.hoverX_ = Math.abs(e.offsetX - this.barX_) < 5;
   this.hoverY_ = Math.abs(e.offsetY - this.barY_) < 5;
 
@@ -530,7 +527,7 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e, noGroup) {
     $('canvas').css('cursor', 'ns-resize');
   } else {
     $('canvas').css('cursor', 'auto');
-    return shapy.editor.Layout.prototype.mouseMove.call(this, e, noGroup);
+    return shapy.editor.Layout.prototype.mouseMove.call(this, e);
   }
   return [];
 };

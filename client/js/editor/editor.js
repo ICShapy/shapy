@@ -765,13 +765,16 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick = this.layout.mouseMove(e, this.mode.paint, this.mode.paint);
+  // Retrieve highlighted objects from viewports.
+  var pick = this.layout.mouseMove(e);
 
-  // Highlight the current object.
+  // Highlight selection.
   goog.array.forEach(this.hover_, function(e) {
     e.setHover(false);
   });
-  this.hover_ = pick;
+  this.hover_ = this.mode.object ? pick : goog.array.filter(pick, function(e) {
+    return this.objectGroup.contains(e.object);
+  }, this);
   goog.array.forEach(this.hover_, function(e) {
     e.setHover(true);
   });

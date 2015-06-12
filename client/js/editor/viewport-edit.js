@@ -108,11 +108,12 @@ shapy.editor.Viewport.Edit.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
- * @param {boolean} noGroup Ignore group selection.
+ * @param {number} button
  *
  * @return {!Array<!shapy.editor.Editable>}
  */
-shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, noGroup) {
+shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
+  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y);
   var pick, hits = [], hit, ray, frustum, uv, object, texture;
 
   // Check if camcube requires the event.
@@ -138,16 +139,16 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, noGroup) {
     return [];
   }
 
-  if (!!ray) {
+  if (this.group && this.group.width > 3 && this.group.height > 3) {
+    frustum = this.groupcast(this.group);
+    hits = this.editor.scene_.pickFrustum(frustum, this.editor.mode);
+  } else if (ray) {
     hit = this.editor.scene_.pickRay(ray, this.editor.mode);
     hits = hit ? [hit] : [];
-  } else if (group && group.width > 3 && group.height > 3) {
-    frustum = this.groupcast(group);
-    hits = this.editor.scene_.pickFrustum(frustum, this.editor.mode);
   }
 
   // Check if the object can be painted.
-  if (this.editor.mode.paint && hit && e.which == 1) {
+  if (this.editor.mode.paint && hit && button == 1) {
     this.editor.hover = [];
     if (!(texture = this.editor.scene_.textures[hit.object.texture])) {
       return [];
@@ -160,13 +161,8 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, noGroup) {
         this.editor.brushColour_,
         this.editor.brushRadius_);
     return [];
-  } else if (this.editor.mode.object) {
-    return hits;
-  } else {
-    return goog.array.filter(hits, function(e) {
-      return this.editor.objectGroup.contains(e.object);
-    }, this);
   }
+  return hits;
 };
 
 

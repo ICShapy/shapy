@@ -234,12 +234,12 @@ shapy.editor.Viewport.UV.prototype.resize = function(x, y, w, h) {
  *
  * @param {number} x Mouse X coordinate.
  * @param {number} y Mouse Y coordinate.
- * @param {boolean} noGroup
+ * @param {number} button
  *
  * @return {boolean}
  */
-shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, noGroup) {
-  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y, noGroup);
+shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, button) {
+  shapy.editor.Viewport.prototype.mouseMove.call(this, x, y);
   var d = this.zoom / 1000, w = shapy.editor.Viewport.UV.SIZE, dx, dy;
 
   // Move selected UV group.
@@ -259,19 +259,21 @@ shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, noGroup) {
   }
 
   // Select objects under the mouse.
-  if (goog.base(this, 'mouseMove', x, y, noGroup) && !this.editor.mode.paint) {
-    hits = this.object.pickUVGroup(this.groupcast(group), this.editor.mode);
+  if (this.group && this.group.width > 3 && this.group.height > 3) {
+    hits = this.object.pickUVGroup(
+        this.groupcast(this.group), this.editor.mode);
   } else {
-    hits = this.object.pickUVCoord(this.raycast(x, y), this.editor.mode);
+    hits = this.object.pickUVCoord(
+        this.raycast(x, y), this.editor.mode);
     if (hits.length > 1) {
       hits = [hits[hits.length - 1]];
     }
   }
 
-  if (this.editor.mode.paint) {
+  if (this.editor.mode.paint && button == 1) {
     uv = this.raycast(x, y);
     object = this.object;
-    if (!(texture = this.scene_.textures[object.texture])) {
+    if (!(texture = this.editor.scene_.textures[object.texture])) {
       return [];
     }
 
@@ -280,13 +282,9 @@ shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, noGroup) {
         uv.v,
         this.editor.brushColour_,
         this.editor.brushRadius_);
-  } else if (this.editor.mode.object) {
-    return hits;
-  } else {
-    return goog.array.filter(hits, function(e) {
-      return this.editor.objectGroup.contains(e.object);
-    }, this);
+    return [];
   }
+  return hits;
 };
 
 
