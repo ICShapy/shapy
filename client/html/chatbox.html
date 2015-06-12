@@ -1,0 +1,33 @@
+<div id="chatbox">
+  <div class="message-entry">
+    <textarea
+      id="message-entry-box"
+      ng-model="editorCtrl.message"
+      ng-keyup="$event.keyCode == 13 ? editorCtrl.sendMessage() : null">
+    </textarea>
+  </div>
+  <div class="messages">
+    <div ng-repeat="messageGroup in editorCtrl.messageList track by $index">
+      <div ng-if="messageGroup.user.id != editorCtrl.shEditor_.user.id">
+        <div class="message-group-other">
+          <p class="message-name">{{messageGroup.user.name}}</p>
+          <div class="message-bubble-other">
+            <p class="message-text" ng-repeat="message in messageGroup.messages">
+              {{message}}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div ng-if="messageGroup.user.id == editorCtrl.shEditor_.user.id">
+        <div class="message-group-self">
+          <p class="message-name">{{messageGroup.user.name}}</p>
+          <div class="message-bubble-self">
+            <p class="message-text" ng-repeat="message in messageGroup.messages">
+              {{message}}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
