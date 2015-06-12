@@ -99,7 +99,8 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   this.http_ = $http;
 
   /** @private {!shapy.editor.EditorController} */
-  // TODO: Another way of doing this
+  // TODO: Is there another way of allowing the executor access to
+  // EditorController to modify messageList without having to go through this?
   this.controller_ = null;
 
   /**
