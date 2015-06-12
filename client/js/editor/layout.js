@@ -94,6 +94,25 @@ shapy.editor.Layout.prototype.getViewport_ = function(x, y) {
 
 
 /**
+ * Closes all UV view.s
+ */
+shapy.editor.Layout.prototype.closeUV = function() {
+  this.viewports = goog.object.map(this.viewports, function(vp, vpName) {
+    if (vp.type != shapy.editor.Viewport.Type.UV) {
+      return vp;
+    }
+    this[vpName] = new shapy.editor.Viewport.Edit(this.editor, vpName);
+    if (this.active.name == vpName) {
+      this.active = this[vpName];
+      this.active.active = true;
+    }
+    return this[vpName];
+  }, this);
+  this.resize(this.size.width, this.size.height);
+};
+
+
+/**
  * Changes a viewport to UV mode.|
  *
  * @param {!shapy.editor.UVGroup} group

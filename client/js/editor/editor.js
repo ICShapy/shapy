@@ -582,6 +582,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         this.objectGroup.delete();
         this.objectGroup.clear();
         this.partGroup.clear();
+        this.layout.closeUV();
       } else if (!this.mode.paint) {
         this.exec_.emitDelete(this.partGroup);
         this.partGroup.delete();
