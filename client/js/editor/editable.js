@@ -455,6 +455,7 @@ shapy.editor.PartsGroup.prototype.moveUV = function(du, dv) {
   }));
   goog.array.removeDuplicates(uvs);
   goog.array.map(uvs, function(uv) {
+    uv.object.dirty = true;
     uv.u += du;
     uv.v += dv;
   });
