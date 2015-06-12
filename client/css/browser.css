@@ -7,7 +7,7 @@ sh-sidebar {
   background-color: #eeeeee;
   border-right: 1px solid #cccccc;
   z-index: 1000;
-  overflow: auto;
+  overflow: visible;
 }
 
 /**

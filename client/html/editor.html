@@ -1,25 +1,4 @@
 <div id="editor">
   <canvas id="canvas" sh-canvas></canvas>
-  <div id="chatbox">
-    <div class="messages">
-    <!-- Message group 1 -->
-    <div class="message-wrapper">
-      <p class="message-name">David Avedissian</p>
-      <p class="message-text">
-        Testing Chat<br />
-        Hello<br />
-      </p>
-    </div>
-    <!-- Message group 2 -->
-    <div class="message-wrapper" >
-      <p class="message-name">David Avedissian</p>
-      <p class="message-text">
-        Hello<br />
-        Received your message<br />
-      </p>
-    </div>
-    </div>
-    <div class="message-entry">
-    </div>
-  </div>
+  <ng-include src="'/html/chatbox.html'"></ng-include>
 </div>

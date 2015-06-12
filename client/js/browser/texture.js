@@ -90,3 +90,23 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
 
   this.dirty = true;
 };
+
+
+/**
+ * Loads the image from base64 data.
+ */
+shapy.browser.Texture.prototype.load = function(data) {
+  var defer = this.shBrowser_.q_.defer();
+
+  var image = new Image();
+  image.onload = goog.bind(function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    canvas.getContext('2d').drawImage(image, 0, 0);
+    this.data = canvas.getImageData(0, 0, image.width, image.height);
+  }, this);
+  image.src = data.data;
+
+  return defer.promise;
+};

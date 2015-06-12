@@ -401,7 +401,7 @@ class AssetHandler(APIHandler):
     })
 
     if not cursor.fetchone():
-      raise HTTPErorr(400, 'Asset cannot be edited.')
+      raise HTTPError(400, 'Asset cannot be edited.')
 
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets

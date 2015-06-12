@@ -33,22 +33,32 @@ goog.require('shapy.editor.Viewport');
  *
  * @constructor
  *
+ * @param {!angular.$scope}      $scope
  * @param {!shapy.User}          user
  * @param {!shapy.Scene}         scene
  * @param {!shapy.editor.Editor} shEditor
  */
-shapy.editor.EditorController = function(user, scene, shEditor) {
+shapy.editor.EditorController = function($scope, user, scene, shEditor) {
   /** @private {!shapy.Scene} @const */
   this.scene_ = scene;
   /** @private {!shapy.editor.Editor} @const */
   this.shEditor_ = shEditor;
   /** @public {!shapy.User} @const */
   this.user = user;
+  /** @public {string} */
+  this.message = '';
+  /** @public {!Array<Object>} */
+  this.messageList = this.shEditor_.messageList;
 
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_, this.user);
 };
 
+
+shapy.editor.EditorController.prototype.sendMessage = function(msg) {
+  this.shEditor_.sendMessage(msg);
+  this.message = '';
+};
 
 
 /**
@@ -91,6 +101,16 @@ shapy.editor.Editor = function(
   this.rigCut_ = new shapy.editor.Rig.Cut();
   /** @private {!shapy.editor.Rig} @const */
   this.rigExtrude_ = new shapy.editor.Rig.Extrude();
+
+  /**
+   * Messages stored as a pair joining a user name to a list of messages
+   */
+  this.messageList = [];
+
+  /**
+   * Unread messages
+   */
+  this.unreadMessages = 0;
 
   /**
    * Canvas.
@@ -214,6 +234,16 @@ shapy.editor.Editor.PREVIEW_WIDTH = 145;
  * @type {number} @const
  */
 shapy.editor.Editor.PREVIEW_HEIGHT = 100;
+
+
+/**
+ * Sends a message.
+ *
+ * @param {string} msg
+ */
+shapy.editor.Editor.prototype.sendMessage = function(msg) {
+  this.exec_.emitMessage(msg);
+};
 
 
 /**

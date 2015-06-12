@@ -79,6 +79,27 @@ shapy.editor.ToolbarController = function(
 
 
 /**
+ * Gets the number of unread messages
+ *
+ * @return {number}
+ */
+shapy.editor.ToolbarController.prototype.getUnreadMessages = function() {
+  return this.shEditor_.unreadMessages;
+};
+
+
+/**
+ * Toggle the chat UI
+ */
+shapy.editor.ToolbarController.prototype.toggleChatbox = function() {
+  $('#chatbox').toggle();
+  if ($('#chatbox').is(':visible')) {
+    this.shEditor_.unreadMessages = 0;
+  }
+};
+
+
+/**
  * Called when the layout has to be changed.
  *
  * @param {string} name Name of the new layout.
