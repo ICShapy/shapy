@@ -789,7 +789,15 @@ shapy.editor.Object.prototype.cut = function(n, p) {
   }, this);
 
   // Construct the edges across the cut.
-  // TODO
+  for (var j = 0; j < newVerts.length; j++) {
+    var e = new shapy.editor.Edge(this, this.nextEdge_,
+      newVerts[j].id,
+      newVerts[(j + 1) % newVerts.length].id
+    );
+    this.nextEdge_++;
+    // Add the new edge to the object.
+    this.edges[e.id] = e;
+  }
 
   this.dirty = true;
 };
