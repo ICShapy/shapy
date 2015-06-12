@@ -117,6 +117,7 @@
           ng-model="editorCtrl.textureName" />
       <div
           class="texture-preview"
+          ng-click="editorCtrl.applyTexture(texture.id)"
           ng-repeat="texture in editorCtrl.textures">
         <img ng-show="texture.preview" ng-src="texture.preview"/>
         {{texture.name}}

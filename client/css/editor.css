@@ -90,5 +90,9 @@
 }
 
 .texture-preview {
+  cursor: pointer;
+}
 
+.texture-preview:hover {
+  background-color: gray;
 }

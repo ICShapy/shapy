@@ -117,6 +117,17 @@ shapy.editor.ToolbarController.prototype.addObject = function(name) {
 
 
 /**
+ * Applies a texture to the currently selected objects.
+ *
+ * @param {number} id ID of the texture to apply.
+ */
+shapy.editor.ToolbarController.prototype.applyTexture = function(id) {
+  this.shEditor_.applyTexture(id);
+};
+
+
+
+/**
  * Color picker directive.
  *
  * @param {!shapy.editor.Editor} shEditor Editor.
