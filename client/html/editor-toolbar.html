@@ -118,6 +118,7 @@
       <div
           class="texture-preview"
           ng-repeat="texture in editorCtrl.textures">
+        <img ng-show="texture.preview" ng-src="texture.preview"/>
         {{texture.name}}
       </div>
     </div>

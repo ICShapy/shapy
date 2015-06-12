@@ -71,9 +71,9 @@ shapy.editor.ToolbarController = function(
       this.textures = [];
       return;
     }
-    shBrowser.filterTextures(this.textureName).then(function(data) {
+    shBrowser.filterTextures(this.textureName).then(goog.bind(function(data) {
       this.textures = data;
-    });
+    }, this));
   }, this));
 };
 

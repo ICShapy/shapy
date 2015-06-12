@@ -260,8 +260,11 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
  */
 shapy.browser.Service.prototype.filter_ = function(url, cache, cons, name) {
   return this.http_.get(url, {params: {name: name }}).then(function(data) {
-    console.log(data);
-    return data;
+    return goog.array.map(data.data || [], function(data) {
+      var asset = new cons(this, data.id, data);
+      cache[data.id] = asset;
+      return asset;
+    }, this);
   });
 };
 

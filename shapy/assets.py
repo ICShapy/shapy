@@ -513,3 +513,47 @@ class TextureHandler(AssetHandler):
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
+
+
+class TextureFilterHandler(APIHandler):
+  """Handles a request to multiple textures."""
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Filters textures by a query string."""
+
+    # Fetch the name.
+    name = self.get_argument('name', None)
+    if not name:
+      self.write('[]')
+      self.finish()
+      return
+
+    # Retrieve textures.
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, preview
+         FROM assets
+         LEFT OUTER JOIN permissions ON permissions.asset_id = assets.id
+         WHERE assets.type = %(type)s
+           AND assets.name LIKE %(name)s
+           AND (permissions.user_id = %(user)s
+                OR assets.public is TRUE
+                OR assets.owner = %(user)s)
+         LIMIT 5
+      ''', {
+      'type': 'texture',
+      'name': name + '%',
+      'user': user.id if user else None
+    })
+
+    self.write(json.dumps([
+      {
+        'id': asset['id'],
+        'name': asset['name'],
+        'preview': asset['preview']
+      }
+      for asset in cursor.fetchall()
+    ]))
+    self.finish()
