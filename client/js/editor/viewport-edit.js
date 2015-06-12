@@ -12,10 +12,16 @@ goog.require('shapy.editor.Viewport');
  * @constructor
  * @extends {shapy.editor.Viewport}
  *
- * @param {string} name Name of the viewport.
+ * @param {!shapy.editor.Editor} editor Editor service.
+ * @param {string}               name   Name of the viewport.
  */
-shapy.editor.Viewport.Edit = function(name) {
-  shapy.editor.Viewport.call(this, name, shapy.editor.Viewport.Type.EDIT);
+shapy.editor.Viewport.Edit = function(editor, name) {
+  shapy.editor.Viewport.call(
+      this,
+      editor,
+      name,
+      shapy.editor.Viewport.Type.EDIT
+  );
 
   /**
    * The camera attached to the viewport.
@@ -104,31 +110,63 @@ shapy.editor.Viewport.Edit.prototype.resize = function(x, y, w, h) {
  * @param {number} y Mouse Y coordinate.
  * @param {boolean} noGroup Ignore group selection.
  *
- * @return {goog.vec.Ray}
+ * @return {!Array<!shapy.editor.Editable>}
  */
 shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, noGroup) {
+  var pick, hits = [], hit, ray, frustum, uv, object, texture;
+
+  // Check if camcube requires the event.
   this.currMousePos.x = x;
   this.currMousePos.y = y;
-
   if (this.camCube.mouseMove(x, y)) {
-    return null;
+    return [];
   }
-  var ray = this.raycast(x, y);
+
+  // Check if camera controls require the event.
   if (this.isRotating_) {
     this.rotate();
-    return null;
+    return [];
   }
   if (this.isPanning_) {
     this.pan();
-    return null;
+    return [];
   }
+
+  // Check if the rig requires the event.
+  ray = this.raycast(x, y);
   if (this.rig && this.rig.mouseMove(ray)) {
-    return null;
+    return [];
   }
-  if (shapy.editor.Viewport.prototype.mouseMove.call(this, x, y, noGroup)) {
-    return null;
+
+  if (!!ray) {
+    hit = this.editor.scene_.pickRay(ray, this.editor.mode);
+    hits = hit ? [hit] : [];
+  } else if (group && group.width > 3 && group.height > 3) {
+    frustum = this.groupcast(group);
+    hits = this.editor.scene_.pickFrustum(frustum, this.editor.mode);
   }
-  return ray;
+
+  // Check if the object can be painted.
+  if (this.editor.mode.paint && hit && e.which == 1) {
+    this.editor.hover = [];
+    if (!(texture = this.editor.scene_.textures[hit.object.texture])) {
+      return [];
+    }
+
+    uv = hit.pickUV(ray);
+    texture.paint(
+        uv.u,
+        uv.v,
+        this.editor.brushColour_,
+        this.editor.brushRadius_);
+    return [];
+  } else if (this.editor.mode.object) {
+    return hits;
+  } else {
+    return goog.array.filter(hits, function(e) {
+      return this.editor.objectGroup.contains(e.object);
+    }, this);
+  }
 };
 
 

@@ -121,19 +121,19 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
 
   /**
    * Currently selected group of object.
-   * @private {shapy.editor.ObjectGroup}
+   * @public {shapy.editor.ObjectGroup}
    */
-  this.objectGroup_ = new shapy.editor.ObjectGroup();
+  this.objectGroup = new shapy.editor.ObjectGroup();
 
   /**
    * Currently selected group of parts.
-   * @private {shapy.editor.PartsGroup}
+   * @public {shapy.editor.PartsGroup}
    */
-  this.partGroup_ = new shapy.editor.PartsGroup();
+  this.partGroup = new shapy.editor.PartsGroup();
 
   /**
    * Object hovered by mouse.
-   * @private {!Array<!shapy.editor.Editable>}
+   * @public {!Array<!shapy.editor.Editable>}
    */
   this.hover_ = [];
 
@@ -145,9 +145,9 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
 
   /**
    * Active layout.
-   * @private {!shapy.editor.Layout}
+   * @public {!shapy.editor.Layout}
    */
-  this.layout_ = null;
+  this.layout = null;
 
   /**
    * requestAnimationFrame id.
@@ -242,8 +242,8 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   // Clear anything related to the scene.
   this.scene_ = scene;
   this.user = user;
-  this.objectGroup_.clear();
-  this.partGroup_.clear();
+  this.objectGroup.clear();
+  this.partGroup.clear();
   this.rig(null);
 
   // Set up the websocket connection.
@@ -277,7 +277,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout_ = new shapy.editor.Layout.Double();
+  this.layout = new shapy.editor.Layout.Double(this);
   this.rig(this.rigTranslate_);
 
   // Start checkpointing.
@@ -326,17 +326,17 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
  */
 shapy.editor.Editor.prototype.setLayout = function(layout) {
   // Clean up after the old layout.
-  if (this.layout_) {
-    goog.object.forEach(this.layout_.viewports, function(vp) {
+  if (this.layout) {
+    goog.object.forEach(this.layout.viewports, function(vp) {
       vp.destroy();
     }, this);
   }
 
   // Change the layout.
   switch (layout) {
-    case 'single': this.layout_ = new shapy.editor.Layout.Single(); break;
-    case 'double': this.layout_ = new shapy.editor.Layout.Double(); break;
-    case 'quad': this.layout_ = new shapy.editor.Layout.Quad(); break;
+    case 'single': this.layout = new shapy.editor.Layout.Single(this); break;
+    case 'double': this.layout = new shapy.editor.Layout.Double(this); break;
+    case 'quad': this.layout = new shapy.editor.Layout.Quad(this); break;
     default: throw Error('Invalid layout "' + layout + "'");
   }
 
@@ -350,7 +350,7 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
  * Toggles to UV view.
  */
 shapy.editor.Editor.prototype.toggleUV = function() {
-  this.layout_.toggleUV(this.partGroup);
+  this.layout.toggleUV(this.partGroup);
 };
 
 
@@ -374,7 +374,7 @@ shapy.editor.Editor.prototype.render = function() {
   if (this.vp_.width != width || this.vp_.height != height) {
     this.vp_.width = this.canvas_.width = this.parent_.offsetWidth;
     this.vp_.height = this.canvas_.height = this.parent_.offsetHeight;
-    this.layout_.resize(width, height);
+    this.layout.resize(width, height);
   }
 
   // Synchronise meshes & textures.
@@ -389,7 +389,7 @@ shapy.editor.Editor.prototype.render = function() {
   this.renderer_.start();
 
   // First pass - compute view/proj matrices and render objects.
-  goog.object.forEach(this.layout_.viewports, function(vp, name) {
+  goog.object.forEach(this.layout.viewports, function(vp, name) {
     switch (vp.type) {
       case shapy.editor.Viewport.Type.EDIT: {
         vp.camera.compute();
@@ -410,11 +410,11 @@ shapy.editor.Editor.prototype.render = function() {
   }, this);
 
   // Second pass - render rigs.
-  if (this.layout_.active &&
-      this.layout_.active.rig &&
-      this.layout_.active.camera)
+  if (this.layout.active &&
+      this.layout.active.rig &&
+      this.layout.active.camera)
   {
-    this.renderer_.renderRig(this.layout_.active, this.layout_.active.rig);
+    this.renderer_.renderRig(this.layout.active, this.layout.active.rig);
   }
 
   // Queue the next frame.
@@ -450,14 +450,14 @@ shapy.editor.Editor.prototype.destroy = function() {
   }
 
   // Clean up buffers from camera cubes.
-  if (this.layout_) {
-    goog.object.forEach(this.layout_.viewports, function(vp) {
+  if (this.layout) {
+    goog.object.forEach(this.layout.viewports, function(vp) {
       if (!vp.camCube) {
         return;
       }
       vp.camCube.destroy();
     }, this);
-    this.layout_ = null;
+    this.layout = null;
   }
 
   // Clean up the renderer.
@@ -484,8 +484,8 @@ shapy.editor.Editor.prototype.destroy = function() {
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
   if (this.mode.object) {
-    this.partGroup_.setSelected(null);
-    this.partGroup_.clear();
+    this.partGroup.setSelected(null);
+    this.partGroup.clear();
   }
   this.rig(this.rigTranslate_);
 };
@@ -497,10 +497,10 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
  * @param {!shapy.editor.Rig} rig
  */
 shapy.editor.Editor.prototype.rig = function(rig) {
-  var attach = this.mode.object ? this.objectGroup_ : this.partGroup_;
+  var attach = this.mode.object ? this.objectGroup : this.partGroup;
   if (attach.isEmpty()) {
-    if (this.layout_) {
-      this.layout_.active.rig = null;
+    if (this.layout) {
+      this.layout.active.rig = null;
     }
     this.rig_ = null;
     return;
@@ -510,10 +510,11 @@ shapy.editor.Editor.prototype.rig = function(rig) {
   if (this.rig_) {
     this.rig_.object = attach;
   }
-  if (this.layout_) {
-    this.layout_.active.rig = rig;
+  if (this.layout) {
+    this.layout.active.rig = rig;
   }
 };
+
 
 /**
  * Sets a new rig.
@@ -537,25 +538,25 @@ shapy.editor.Editor.prototype.setRig = function(name) {
  * @private
  */
 shapy.editor.Editor.prototype.extrude_ = function() {
-  if (!(object = this.partGroup_.getObject())) {
+  if (!(object = this.partGroup.getObject())) {
     return;
   }
 
   // Get all selected faces.
-  faces = this.partGroup_.getFaces();
+  faces = this.partGroup.getFaces();
   if (goog.array.isEmpty(faces)) {
     return;
   }
 
   // Send a message to the server to extrude.
-  this.exec_.emitExtrude(object, this.partGroup_);
+  this.exec_.emitExtrude(object, this.partGroup);
 
   // Extrude.
   var extrudeData = object.extrude(faces);
 
   // Select extruded faces
-  this.partGroup_.clear();
-  this.partGroup_.add(extrudeData.faces);
+  this.partGroup.clear();
+  this.partGroup.add(extrudeData.faces);
   goog.array.forEach(extrudeData.faces, function(e) {
     e.setSelected(this.user);
   }, this);
@@ -577,23 +578,23 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   switch (String.fromCharCode(e.keyCode)) {
     case 'D': {
       if (this.mode.object) {
-        this.exec_.emitDelete(this.objectGroup_);
-        this.objectGroup_.delete();
-        this.objectGroup_.clear();
-        this.partGroup_.clear();
+        this.exec_.emitDelete(this.objectGroup);
+        this.objectGroup.delete();
+        this.objectGroup.clear();
+        this.partGroup.clear();
       } else if (!this.mode.paint) {
-        this.exec_.emitDelete(this.partGroup_);
-        this.partGroup_.delete();
-        this.partGroup_.clear();
+        this.exec_.emitDelete(this.partGroup);
+        this.partGroup.delete();
+        this.partGroup.clear();
       }
       this.rig(null);
       return;
     }
     case 'F': {
-      if (!(object = this.partGroup_.getObject())) {
+      if (!(object = this.partGroup.getObject())) {
         return;
       }
-      verts = this.partGroup_.getVertices();
+      verts = this.partGroup.getVertices();
       if (verts.length != 3 && verts.length != 2) {
         return;
       }
@@ -601,47 +602,47 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       return;
     }
     case 'M': {
-      if (!(object = this.partGroup_.getObject())) {
+      if (!(object = this.partGroup.getObject())) {
         return;
       }
-      vert = object.mergeVertices(this.partGroup_.getVertices());
-      this.partGroup_.clear();
+      vert = object.mergeVertices(this.partGroup.getVertices());
+      this.partGroup.clear();
       this.rig(null);
       return;
     }
     case 'O': {
-      if (!this.layout_ || !this.layout_.active) {
+      if (!this.layout || !this.layout.active) {
         return;
       }
-      if (!this.layout_.active.camera) {
+      if (!this.layout.active.camera) {
         return;
       }
-      if (this.layout_.active.camera.constructor == shapy.editor.Camera.Ortho) {
-        this.layout_.active.camera = new shapy.editor.Camera.Persp();
+      if (this.layout.active.camera.constructor == shapy.editor.Camera.Ortho) {
+        this.layout.active.camera = new shapy.editor.Camera.Persp();
       } else {
-        this.layout_.active.camera = new shapy.editor.Camera.Ortho();
+        this.layout.active.camera = new shapy.editor.Camera.Ortho();
       }
 
-      this.layout_.resize(this.vp_.width, this.vp_.height);
+      this.layout.resize(this.vp_.width, this.vp_.height);
       break;
     }
     case 'U': {
       // Switch back to normal mode.
-      if (this.layout_ &&
-          this.layout_.active.type == shapy.editor.Viewport.Type.UV)
+      if (this.layout &&
+          this.layout.active.type == shapy.editor.Viewport.Type.UV)
       {
-        this.layout_.toggleUV(this.partGroup_);
+        this.layout.toggleUV(this.partGroup);
         return;
       }
 
       // Only one object must be selected.
-      if (this.objectGroup_.editables.length != 1) {
+      if (this.objectGroup.editables.length != 1) {
         return;
       }
-      if (this.layout_ && this.layout_.active) {
-        this.layout_.toggleUV(this.partGroup_);
-        this.layout_.active.object = this.objectGroup_.editables[0];
-        this.layout_.active.object.projectUV();
+      if (this.layout && this.layout.active) {
+        this.layout.toggleUV(this.partGroup);
+        this.layout.active.object = this.objectGroup.editables[0];
+        this.layout.active.object.projectUV();
       }
       break;
     }
@@ -658,8 +659,8 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   }
 
   // Delegate event to viewport.
-  if (this.layout_) {
-    this.layout_.keyDown(e);
+  if (this.layout) {
+    this.layout.keyDown(e);
   }
 };
 
@@ -695,11 +696,11 @@ shapy.editor.Editor.prototype.setBrushRadius = function(radius) {
  */
 shapy.editor.Editor.prototype.mouseUp = function(e) {
   var ray, toSelect, toDeselect, group;
-  var selectUV = this.layout_.active.type == shapy.editor.Viewport.Type.UV;
+  var selectUV = this.layout.active.type == shapy.editor.Viewport.Type.UV;
 
   // TOOD: do it nicer.
   // If viewports want the event, give up.
-  if ((!(ray = this.layout_.mouseUp(e)) && !selectUV) ||
+  if ((!(ray = this.layout.mouseUp(e)) && !selectUV) ||
       e.which != 1 ||
       this.mode.paint)
   {
@@ -713,9 +714,9 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
 
   // Find out which group is going to be affected.
   if (this.mode.object) {
-    group = this.objectGroup_;
+    group = this.objectGroup;
   } else if (!this.mode.paint) {
-    group = this.partGroup_;
+    group = this.partGroup;
   } else {
     return;
   }
@@ -764,61 +765,7 @@ shapy.editor.Editor.prototype.mouseUp = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseMove = function(e) {
-  var pick, hits = [], hit, ray, frustum, uv, object, texture, isUV;
-  var group = this.layout_.hover && this.layout_.hover.group;
-
-  // Find the entity under the mouse.
-  ray = this.layout_.mouseMove(e, this.mode.paint, this.mode.paint);
-  if (!this.layout_.hover) {
-    return;
-  }
-
-  if (!(isUV = this.layout_.hover.type == shapy.editor.Viewport.Type.UV)) {
-    if (!!ray) {
-      hit = this.scene_.pickRay(ray, this.mode);
-      hits = hit ? [hit] : [];
-    } else if (group && group.width > 3 && group.height > 3) {
-      frustum = this.layout_.hover.groupcast(group);
-      hits = this.scene_.pickFrustum(frustum, this.mode);
-    }
-  } else {
-    if (group && group.width > 10 && group.height > 10 && !this.mode.paint) {
-      hits = this.layout_.hover.object.pickUVGroup(
-          this.layout_.hover.groupcast(group), this.mode);
-    } else {
-      hits = this.layout_.hover.object.pickUVCoord(
-          this.layout_.hover.raycast(e.offsetX, e.offsetY), this.mode);
-      if (hits.length > 1) {
-        hits = [hits[hits.length - 1]];
-      }
-    }
-  }
-
-  // Filter out all parts that do not belong to the current object.
-  if (this.mode.object) {
-    pick = hits;
-  } else {
-    if (this.mode.paint) {
-      if (!isUV && !goog.array.isEmpty(hits) && e.which == 1) {
-        uv = hits[0].pickUV(ray);
-        object = hits[0].object;
-      } else if (isUV && e.which == 1) {
-        uv = this.layout_.hover.raycast(e.offsetX, e.offsetY);
-        object = this.layout_.hover.object;
-      } else {
-        uv = null;
-        object = null;
-      }
-
-      if (uv && object && (texture = this.scene_.textures[object.texture])) {
-        texture.paint(uv.u, uv.v, this.brushColour_, this.brushRadius_);
-        pick = [];
-      }
-    }
-    pick = goog.array.filter(hits, function(e) {
-      return this.objectGroup_.contains(e.object);
-    }, this);
-  }
+  var pick = this.layout.mouseMove(e, this.mode.paint, this.mode.paint);
 
   // Highlight the current object.
   goog.array.forEach(this.hover_, function(e) {
@@ -837,7 +784,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
-  this.layout_.mouseDown(e);
+  this.layout.mouseDown(e);
 };
 
 
@@ -847,7 +794,7 @@ shapy.editor.Editor.prototype.mouseDown = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseEnter = function(e) {
-  this.layout_.mouseEnter(e);
+  this.layout.mouseEnter(e);
 };
 
 
@@ -857,7 +804,7 @@ shapy.editor.Editor.prototype.mouseEnter = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseLeave = function(e) {
-  this.layout_.mouseLeave(e);
+  this.layout.mouseLeave(e);
 };
 
 
@@ -867,6 +814,6 @@ shapy.editor.Editor.prototype.mouseLeave = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseWheel = function(e) {
-  this.layout_.mouseWheel(e);
+  this.layout.mouseWheel(e);
 };
 

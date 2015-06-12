@@ -22,11 +22,9 @@ goog.require('shapy.editor.Viewport.UV');
  * @param {!Object<string, shapy.editor.Viewport>} viewports Map of viewports.
  */
 shapy.editor.Layout = function(editor, viewports) {
-  /**
-   * Map of all viewports on the screen.
-   * @public {!Object<string, shapy.editor.Viewport>}
-   * @const
-   */
+  /** @public {!shapy.editor.Editor} @const */
+  this.editor = editor;
+  /** @public {!Object<string, shapy.editor.Viewport>} @const */
   this.viewports = viewports;
 
   /**
@@ -104,16 +102,17 @@ shapy.editor.Layout.prototype.toggleUV = function(group) {
   var name = this.active.name;
 
   if (this.active.type == shapy.editor.Viewport.Type.UV) {
-    this[name] = this.viewports[name] = new shapy.editor.Viewport.Edit(name);
+    this[name] = new shapy.editor.Viewport.Edit(this.editor, name);
+    this.viewports[name] = this[name];
   } else {
     this.viewports = goog.object.map(this.viewports, function(vp, vpName) {
       if (vpName != name && vp.type != shapy.editor.Viewport.Type.UV) {
         return vp;
       }
       if (vpName != name) {
-        this[vpName] = new shapy.editor.Viewport.Edit(vpName);
+        this[vpName] = new shapy.editor.Viewport.Edit(this.editor, vpName);
       } else {
-        this[vpName] = new shapy.editor.Viewport.UV(vpName, group);
+        this[vpName] = new shapy.editor.Viewport.UV(this.editor, vpName, group);
       }
       return this[vpName];
     }, this);
@@ -149,19 +148,20 @@ shapy.editor.Layout.prototype.keyDown = function(e) {
 shapy.editor.Layout.prototype.mouseMove = function(e, noGroup) {
   var result = this.getViewport_(e.offsetX, e.offsetY);
   if (!result || !result.vp) {
-    return null;
+    return [];
   }
 
   if (this.hover && result.vp == this.hover) {
     return this.hover.mouseMove(result.x, result.y, noGroup);
-  } else {
-    if (this.hover) {
-      this.hover.mouseLeave();
-    }
-
-    this.hover = result.vp;
-    this.hover.mouseEnter(result.x, result.y);
   }
+
+  if (this.hover) {
+    this.hover.mouseLeave();
+  }
+
+  this.hover = result.vp;
+  this.hover.mouseEnter(result.x, result.y);
+  return [];
 };
 
 
@@ -272,7 +272,7 @@ shapy.editor.Layout.prototype.mouseLeave = function(e) {
  */
 shapy.editor.Layout.Single = function(editor) {
   /** @public {!shapy.editor.Viewport} @const */
-  this.viewport = new shapy.editor.Viewport.Edit('viewport');
+  this.viewport = new shapy.editor.Viewport.Edit(editor, 'viewport');
 
   shapy.editor.Layout.call(this, editor, {
       'viewport': this.viewport
@@ -304,9 +304,9 @@ shapy.editor.Layout.Single.prototype.resize = function(w, h) {
  */
 shapy.editor.Layout.Double = function(editor) {
   /** @public {!shapy.editor.Viewport} @const */
-  this.left = new shapy.editor.Viewport.Edit('left');
+  this.left = new shapy.editor.Viewport.Edit(editor, 'left');
   /** @public {!shapy.editor.Viewport} @const */
-  this.right = new shapy.editor.Viewport.Edit('right');
+  this.right = new shapy.editor.Viewport.Edit(editor, 'right');
 
   /** @private {number} */
   this.split_ = 0.5;
@@ -359,10 +359,10 @@ shapy.editor.Layout.Double.prototype.mouseMove = function(e, noGroup) {
 
   if (this.hover_) {
     $('canvas').css('cursor', 'ew-resize');
-    return null;
+    return [];
   } else {
     $('canvas').css('cursor', 'auto');
-    return shapy.editor.Layout.prototype.mouseMove.call(this, noGroup);
+    return shapy.editor.Layout.prototype.mouseMove.call(this, e, noGroup);
   }
 };
 
@@ -426,13 +426,13 @@ shapy.editor.Layout.Double.prototype.mouseLeave = function(e) {
  */
 shapy.editor.Layout.Quad = function(editor) {
   /** @public {!shapy.editor.Viewport} @const */
-  this.topLeft = new shapy.editor.Viewport.Edit('topLeft');
+  this.topLeft = new shapy.editor.Viewport.Edit(editor, 'topLeft');
   /** @public {!shapy.editor.Viewport} @const */
-  this.topRight = new shapy.editor.Viewport.Edit('topRight');
+  this.topRight = new shapy.editor.Viewport.Edit(editor, 'topRight');
   /** @public {!shapy.editor.Viewport} @const */
-  this.bottomLeft = new shapy.editor.Viewport.Edit('bottomLeft');
+  this.bottomLeft = new shapy.editor.Viewport.Edit(editor, 'bottomLeft');
   /** @public {!shapy.editor.Viewport} @const */
-  this.bottomRight = new shapy.editor.Viewport.Edit('bottomRight');
+  this.bottomRight = new shapy.editor.Viewport.Edit(editor, 'bottomRight');
 
   /** @private {number} */
   this.splitX_ = 0.5;
@@ -532,6 +532,7 @@ shapy.editor.Layout.Quad.prototype.mouseMove = function(e, noGroup) {
     $('canvas').css('cursor', 'auto');
     return shapy.editor.Layout.prototype.mouseMove.call(this, e, noGroup);
   }
+  return [];
 };
 
 
