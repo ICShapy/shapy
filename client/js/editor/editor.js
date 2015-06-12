@@ -77,12 +77,30 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
  * @constructor
  * @ngInject
  *
- * @param {!angular.$http}     $http      The Angular HTTP service.
- * @param {!angular.$location} $location  The Angular location service.
- * @param {!angular.$scope}    $rootScope
- * @param {!shapy.UserService} shUser
+ * @param {!angular.$http}         $http      The Angular HTTP service.
+ * @param {!angular.$location}     $location  The Angular location service.
+ * @param {!angular.$scope}        $rootScope
+ * @param {!shapy.UserService}     shUser
+ * @param {!shapy.browser.Service} shBrowser
  */
-shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
+shapy.editor.Editor = function(
+    $http,
+    $location,
+    $rootScope,
+    shUser,
+    shBrowser)
+{
+  /** @private {!angular.$location} @const */
+  this.location_ = $location;
+  /** @private {!angular.$scope} @const */
+  this.rootScope_ = $rootScope;
+  /** @private {!angular.$http} @const */
+  this.http_ = $http;
+  /** @private {!shapy.UserService} @const */
+  this.shUser_ = shUser;
+  /** @private {!shapy.browser.Service} @const */
+  this.shBrowser_ = shBrowser;
+
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
   /** @private {!shapy.editor.Rig} @const */
@@ -93,15 +111,6 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
   this.rigCut_ = new shapy.editor.Rig.Cut();
   /** @private {!shapy.editor.Rig} @const */
   this.rigExtrude_ = new shapy.editor.Rig.Extrude();
-
-  /** @private {!angular.$location} @const */
-  this.location_ = $location;
-  /** @private {!angular.$scope} @const */
-  this.rootScope_ = $rootScope;
-  /** @private {!shapy.UserService} @const */
-  this.shUser_ = shUser;
-  /** @private {!angular.$http} @const */
-  this.http_ = $http;
 
   /** @private {!shapy.editor.EditorController} */
   // TODO: Is there another way of allowing the executor access to
@@ -158,7 +167,7 @@ shapy.editor.Editor = function($http, $location, $rootScope, shUser) {
 
   /**
    * Object hovered by mouse.
-   * @public {!Array<!shapy.editor.Editable>}
+   * @private {!Array<!shapy.editor.Editable>}
    */
   this.hover_ = [];
 
@@ -249,9 +258,6 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
 
     // Upload.
     this.scene_.image = canvas.toDataURL('image/jpeg');
-    this.http_.post('/api/assets/preview', this.scene_.image, {
-        params: {id: this.scene_.id}
-    });
   }, this);
   image.src = this.canvas_.toDataURL('image/jpeg');
 };
@@ -386,6 +392,26 @@ shapy.editor.Editor.prototype.toggleUV = function() {
  */
 shapy.editor.Editor.prototype.create = function(type) {
   this.exec_.emitCreate(type);
+};
+
+
+/**
+ * Applies a texture to the currently selected objects.
+ *
+ * @param {number} id ID of the texture to apply.
+ */
+shapy.editor.Editor.prototype.applyTexture = function(id) {
+  var object;
+
+  if (this.objectGroup.editables.length != 1) {
+    return;
+  }
+
+  object = this.objectGroup.editables[0];
+  this.shBrowser_.getTexture(id).then(goog.bind(function(texture) {
+    this.scene_.textures[id] = texture;
+    object.texture = id;
+  }, this));
 };
 
 

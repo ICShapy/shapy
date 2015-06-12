@@ -38,29 +38,29 @@ def main(args):
   # Set up URL routes.
   app = tornado.web.Application([
     # API for accessing assets.
-    (r'/api/assets/dir$',                     shapy.assets.DirHandler),
-    (r'/api/assets/filtered$',                shapy.assets.FilteredHandler),
-    (r'/api/assets/public',                   shapy.assets.PublicHandler),
-    (r'/api/assets/scene$',                   shapy.assets.SceneHandler),
-    (r'/api/assets/shared$',                  shapy.assets.SharedHandler),
-    (r'/api/assets/texture$',                 shapy.assets.TextureHandler),
-    (r'/api/assets/preview$',                 shapy.assets.PreviewHandler),
+    (r'/api/assets/dir$',        shapy.assets.DirHandler),
+    (r'/api/assets/filtered$',   shapy.assets.FilteredHandler),
+    (r'/api/assets/public',      shapy.assets.PublicHandler),
+    (r'/api/assets/scene$',      shapy.assets.SceneHandler),
+    (r'/api/assets/shared$',     shapy.assets.SharedHandler),
+    (r'/api/assets/texture$',    shapy.assets.TextureHandler),
+    (r'/api/assets/textures$',   shapy.assets.TextureFilterHandler),
 
     # Permissions
-    (r'/api/permissions$',                    shapy.permissions.PermissionsHandler),
+    (r'/api/permissions$',       shapy.permissions.PermissionsHandler),
 
     # Authentication.
-    (r'/api/user/auth',                       shapy.user.AuthHandler),
-    (r'/api/user/auth/fb',                    shapy.user.FacebookHandler),
-    (r'/api/user/auth/gp',                    shapy.user.GoogleHandler),
-    (r'/api/user/check/([^/]+)',              shapy.user.CheckHandler),
-    (r'/api/user/login',                      shapy.user.LoginHandler),
-    (r'/api/user/logout',                     shapy.user.LogoutHandler),
-    (r'/api/user/register',                   shapy.user.RegisterHandler),
-    (r'/api/user/([0-9]+)',                   shapy.user.InfoHandler),
+    (r'/api/user/auth',          shapy.user.AuthHandler),
+    (r'/api/user/auth/fb',       shapy.user.FacebookHandler),
+    (r'/api/user/auth/gp',       shapy.user.GoogleHandler),
+    (r'/api/user/check/([^/]+)', shapy.user.CheckHandler),
+    (r'/api/user/login',         shapy.user.LoginHandler),
+    (r'/api/user/logout',        shapy.user.LogoutHandler),
+    (r'/api/user/register',      shapy.user.RegisterHandler),
+    (r'/api/user/([0-9]+)',      shapy.user.InfoHandler),
 
     # WebSocket handler.
-    (r'/api/edit/([0-9]+)',                   shapy.editor.WSHandler),
+    (r'/api/edit/([0-9]+)',      shapy.editor.WSHandler),
 
     # Static files.
     (r'/css/(.*)',  tornado.web.StaticFileHandler, { 'path': 'client/css' }),

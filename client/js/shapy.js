@@ -12,6 +12,7 @@ goog.require('shapy.browser.asset');
 goog.require('shapy.browser.assetMatch');
 goog.require('shapy.browser.assetOrder');
 goog.require('shapy.browser.assets');
+goog.require('shapy.browser.delete');
 goog.require('shapy.browser.directories');
 goog.require('shapy.browser.public');
 goog.require('shapy.browser.sidebar');
@@ -266,6 +267,7 @@ shapy.module = angular
   .directive('shSidebar', shapy.browser.sidebar)
   .directive('shAssets', shapy.browser.assets)
   .directive('shAsset', shapy.browser.asset)
+  .directive('shDelete', shapy.browser.delete)
   .directive('shCanvas', shapy.editor.canvas)
   .directive('shEquals', shapy.equals)
   .directive('shHighlight', shapy.highlight)

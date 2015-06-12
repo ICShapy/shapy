@@ -112,4 +112,22 @@
       ng-class="{select: editorCtrl.mode.vertex}">
     Vertex
   </div>
+
+  <!-- Texture selection. -->
+  <div>
+    <span> Texture </span>
+    <div class="content">
+      <input
+          class="texture-select"
+          type="text"
+          ng-model="editorCtrl.textureName" />
+      <div
+          class="texture-preview"
+          ng-click="editorCtrl.applyTexture(texture.id)"
+          ng-repeat="texture in editorCtrl.textures">
+        <img ng-show="texture.preview" ng-src="texture.preview"/>
+        {{texture.name}}
+      </div>
+    </div>
+  </div>
 </sh-menu>

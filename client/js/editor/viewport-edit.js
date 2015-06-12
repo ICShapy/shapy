@@ -136,6 +136,7 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
   // Check if the rig requires the event.
   ray = this.raycast(x, y);
   if (this.rig && this.rig.mouseMove(ray)) {
+    this.group = null;
     return [];
   }
 

@@ -200,6 +200,77 @@ class AssetHandler(APIHandler):
 
   TYPE = None
   NEW_NAME = None
+  MIME = 'application/json'
+
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Retrieves a scene from the database."""
+
+    id = self.get_argument('id')
+    if not id:
+      raise HTTPError(400, 'Invalid asset ID')
+
+    # Fetch data from the asset and permission table.
+    # The write flag will have 3 possible values: None, True, False
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, preview::bytea, data::bytea, public, owner, write
+         FROM assets
+         LEFT OUTER JOIN permissions
+         ON permissions.asset_id = assets.id
+         WHERE assets.id = %(id)s
+           AND assets.type = %(type)s
+           AND (permissions.user_id = %(user)s OR
+                permissions.user_id is NULL OR
+                %(user)s IS NULL)
+      ''', {
+        'id': id,
+        'user': user.id if user else None,
+        'type': self.TYPE
+    })
+
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(404, 'Asset not found.')
+
+    if user and data['owner'] == user.id:
+      # Owner - full permissions.
+      owner = True
+      write = True
+    elif data['write'] is None:
+      if not data['public']:
+        # No permissions.
+        raise HTTPError(400, 'Asset not found.')
+      else:
+        # Public asset - read only.
+        owner = False
+        write = False
+    else:
+      # Shared asset - permission in table.
+      owner = False
+      write = user is not None and data['write']
+
+    if self.MIME == 'application/json':
+      # Dump JSON formatted data.
+      self.write(json.dumps({
+          'id': data['id'],
+          'name': data['name'],
+          'preview': str(data['preview'] or ''),
+          'data': json.loads(str(data['data'] or 'null')),
+          'public': data['public'],
+          'owner': owner,
+          'write': write
+      }))
+    elif data['data']:
+      # Dump raw binary (mainly for textures).
+      blob = bytes(data['data'])
+      self.set_header('Content-Length', len(blob))
+      self.write(blob)
+
+    self.finish()
+
 
   @session
   @coroutine
@@ -309,6 +380,7 @@ class AssetHandler(APIHandler):
     id = int(self.get_argument('id'))
     name = self.get_argument('name', None)
     data = self.get_argument('data', None)
+    preview = self.get_argument('preview', None)
     public = self.get_argument('public', None)
     if public is not None:
       public = bool(int(public))
@@ -324,12 +396,14 @@ class AssetHandler(APIHandler):
          LEFT OUTER JOIN permissions
          ON permissions.asset_id = assets.id
          WHERE assets.id = %(id)s
+           AND assets.type = %(type)s
            AND ((permissions.user_id = %(user)s AND
                  permissions.write IS TRUE AND
                  %(public)s IS NULL) OR
                 (assets.owner = %(user)s))
       ''', {
       'id': id,
+      'type': self.TYPE,
       'user': user.id,
       'public': public
     })
@@ -340,19 +414,24 @@ class AssetHandler(APIHandler):
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets
          SET name = COALESCE(%(name)s, name),
-             data = COALESCE(%(data)s, data),
-             public = COALESCE(%(public)s, public)
+             data = COALESCE(%(data)s, data)::bytea,
+             public = COALESCE(%(public)s, public),
+             preview = COALESCE(%(preview)s, preview)::bytea
+
          WHERE id = %(id)s
          RETURNING id
       ''', {
       'id': id,
       'name': name,
-      'data': psycopg2.extras.Json(data) if data else None,
-      'public': public
+      'data': psycopg2.Binary(data.encode('ascii')) if data else None,
+      'public': public,
+      'preview': psycopg2.Binary(str(preview)) if preview else None
     })
 
-    self.finish()
+    if not cursor.fetchone():
+      raise HTTPErorr(400, 'Asset update failed.')
 
+    self.finish()
 
 
 class DirHandler(AssetHandler):
@@ -438,66 +517,6 @@ class SceneHandler(AssetHandler):
   TYPE = 'scene'
   NEW_NAME = 'New Scene'
 
-  @session
-  @coroutine
-  @asynchronous
-  def get(self, user):
-    """Retrieves a scene from the database."""
-
-    id = self.get_argument('id')
-    if not id:
-      raise HTTPError(400, 'Invalid asset ID')
-
-    # Fetch data from the asset and permission table.
-    # The write flag will have 3 possible values: None, True, False
-    cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, preview, data::json, public, owner, write
-         FROM assets
-         LEFT OUTER JOIN permissions
-         ON permissions.asset_id = assets.id
-         WHERE assets.id = %(id)s
-           AND assets.type = %(type)s
-           AND (permissions.user_id = %(user)s OR
-                permissions.user_id is NULL OR
-                %(user)s IS NULL)
-      ''', {
-        'id': id,
-        'user': user.id if user else None,
-        'type': self.TYPE
-    })
-
-    data = cursor.fetchone()
-    if not data:
-      raise HTTPError(404, 'Asset not found.')
-
-    if user and data['owner'] == user.id:
-      # Owner - full permissions.
-      owner = True
-      write = True
-    elif data['write'] is None:
-      if not data['public']:
-        # No permissions.
-        raise HTTPError(400, 'Asset not found.')
-      else:
-        # Public asset - read only.
-        owner = False
-        write = False
-    else:
-      # Shared asset - permission in table.
-      owner = False
-      write = user is not None and data['write']
-
-    self.write(json.dumps({
-        'id': data['id'],
-        'name': data['name'],
-        'preview': str(data['preview'] or ''),
-        'data': json.loads(data['data'] or 'null'),
-        'public': data['public'],
-        'owner': owner,
-        'write': write
-    }))
-    self.finish()
-
 
 
 class TextureHandler(AssetHandler):
@@ -505,53 +524,49 @@ class TextureHandler(AssetHandler):
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
+  MIME = 'application/octet_stream'
 
 
 
-class PreviewHandler(BaseHandler):
-  """Handles a preview image upload."""
-
-  @coroutine
-  @asynchronous
-  def get(self):
-    """Retrieves the preview of the scene."""
-
-    data = yield momoko.Op(self.db.execute,
-        '''SELECT preview::bytea
-           FROM assets
-           WHERE id=%s
-        ''', (
-        self.get_argument('id'),
-    ))
-    data = data.fetchone()
-    if not data:
-      raise HTTPError(404, 'Preview not found')
-
-    image = a2b_base64(str(data[0])[23:])
-    self.set_header('Content-Type', 'image/jpeg')
-    self.set_header('Content-Length', len(image))
-    self.write(image)
-    self.finish()
-
+class TextureFilterHandler(APIHandler):
+  """Handles a request to multiple textures."""
 
   @session
   @coroutine
   @asynchronous
-  def post(self, user):
-    """Updates the preview image of a scene."""
+  def get(self, user):
+    """Filters textures by a query string."""
 
-    if not user:
+    # Fetch the name.
+    name = self.get_argument('name', None)
+    if not name:
+      self.write('[]')
+      self.finish()
       return
 
-    yield momoko.Op(self.db.execute,
-      '''UPDATE assets
-         SET preview=%s::bytea
-         WHERE id=%s
-           AND owner=%s
-      ''', (
-      psycopg2.Binary(self.request.body),
-      self.get_argument('id'),
-      user.id
-    ))
+    # Retrieve textures.
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, name, preview
+         FROM assets
+         LEFT OUTER JOIN permissions ON permissions.asset_id = assets.id
+         WHERE assets.type = %(type)s
+           AND LOWER(assets.name) LIKE LOWER(%(name)s)
+           AND (permissions.user_id = %(user)s
+                OR assets.public is TRUE
+                OR assets.owner = %(user)s)
+         LIMIT 5
+      ''', {
+      'type': 'texture',
+      'name': name + '%',
+      'user': user.id if user else None
+    })
 
+    self.write(json.dumps([
+      {
+        'id': asset['id'],
+        'name': asset['name'],
+        'preview': asset['preview']
+      }
+      for asset in cursor.fetchall()
+    ]))
     self.finish()
