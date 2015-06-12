@@ -283,7 +283,7 @@ shapy.editor.Executor.prototype.applyLock = function(data) {
         return;
       }
       if (user.id == this.editor_.user.id) {
-        this.editor_.objectGroup_.add([this.scene_.objects[id]]);
+        this.editor_.objectGroup.add([this.scene_.objects[id]]);
       }
       this.scene_.objects[id].setSelected(user);
     }, this);
@@ -302,7 +302,7 @@ shapy.editor.Executor.prototype.applyUnlock = function(data) {
       console.log('Invalid object "' + id + "'");
       return;
     }
-    this.editor_.objectGroup_.remove([this.scene_.objects[id]]);
+    this.editor_.objectGroup.remove([this.scene_.objects[id]]);
     this.scene_.objects[id].setSelected(null);
   }, this);
 };
