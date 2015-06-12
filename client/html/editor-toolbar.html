@@ -16,7 +16,8 @@
 
   <!-- Chat button -->
   <div ng-click="editorCtrl.toggleChatbox()">
-    <span>Chat</span>
+    <span ng-if="editorCtrl.getUnreadMessages() > 0">Chat ({{editorCtrl.getUnreadMessages()}})</span>
+    <span ng-if="editorCtrl.getUnreadMessages() == 0">Chat</span>
   </div>
 
   <!-- Static display of scene name. -->

@@ -60,6 +60,11 @@ shapy.editor.EditorController = function(user, scene, shEditor) {
    */
   this.messageList = [];
 
+  /**
+   * Unread messages
+   */
+  this.unreadMessages = 0;
+
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_, this.user);
 };
