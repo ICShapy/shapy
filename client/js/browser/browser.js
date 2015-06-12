@@ -13,6 +13,7 @@ goog.provide('shapy.browser.delete');
 goog.provide('shapy.browser.public');
 goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.share');
+goog.provide('shapy.browser.upload');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Directory');
@@ -677,15 +678,29 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
    */
   var createTexture = function() {
     shModal.open({
-      size: 'small',
+      size: 'medium',
       title: 'Create Texture',
+      controllerAs: 'uploadCtrl',
       templateUrl: '/html/browser-create-texture.html',
       controller: function($scope) {
-        $scope.cancel = function() { return false; };
-        $scope.okay = function() {
-            shBrowser.createTexture();
+        /**
+         * List of files.
+         */
+        $scope.files = [];
+
+        // Adds a new file to the list.
+        $scope.add = function() {
+          console.log('aaaa');
         };
 
+        // Cancels the upload.
+        $scope.cancel = function() { return false; };
+
+        // Starts the upload.
+        $scope.okay = function() {
+          shBrowser.createTexture();
+          console.log($scope.upload);
+        };
       }
     });
   };
@@ -704,8 +719,43 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
       });
     }
   };
-
 };
+
+
+/**
+ * Upload directive.
+ */
+shapy.browser.upload = function() {
+  return {
+    restrict: 'E',
+    require: 'ngModel',
+    link: function($scope, $elem, $attrs, $ngModel) {
+      $elem
+        .on('dragover', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          $(".upload-choose").hide();
+          $elem.addClass('hover');
+        })
+        .on('dragleave', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          $(".upload-choose").show();
+          $elem.removeClass('hover');
+        })
+        .on('drop', function(e) {
+          var files = e.originalEvent.dataTransfer.files;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          return false;
+        });
+    }
+  }
+}
 
 
 /**
