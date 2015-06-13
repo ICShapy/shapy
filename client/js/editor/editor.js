@@ -288,15 +288,16 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   // Create the executor based on the write permission.
   if (this.scene_.write) {
     this.exec_ = new shapy.editor.WriteExecutor(this.scene_, this);
+  
+    // Attach onFinish emiters.
+    this.rigTranslate_.onFinish = goog.bind(
+        this.exec_.emitTranslate, this.exec_);
+    this.rigRotate_.onFinish = goog.bind(this.exec_.emitRotate, this.exec_);
+    this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
+    this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
   } else {
     this.exec_ = new shapy.editor.ReadExecutor(this.scene_, this);
   }
-
-  // Attach onFinish emiters.
-  this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
-  this.rigRotate_.onFinish = goog.bind(this.exec_.emitRotate, this.exec_);
-  this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
-  this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
 };
 
 
