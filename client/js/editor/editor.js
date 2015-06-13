@@ -285,9 +285,12 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   // Set up the websocket connection.
   this.pending_ = [];
   
-  // TODO: Add checks for scene permissions and create executor accordingly.
-  //this.exec_ = new shapy.editor.Executor(this.scene_, this);
-  this.exec_ = new shapy.editor.WriteExecutor(this.scene_, this);
+  // Create the executor based on the write permission.
+  if (this.scene_.write) {
+    this.exec_ = new shapy.editor.WriteExecutor(this.scene_, this);
+  } else {
+    this.exec_ = new shapy.editor.ReadExecutor(this.scene_, this);
+  }
 
   // Attach onFinish emiters.
   this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
