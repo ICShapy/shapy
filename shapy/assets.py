@@ -198,7 +198,8 @@ class AssetHandler(APIHandler):
         'data': json.loads(str(data['data'] or 'null')),
         'public': data['public'],
         'owner': owner,
-        'write': write
+        'write': write,
+        'owner_id': data['owner']
     })
     self.finish()
 
@@ -409,7 +410,7 @@ class DirHandler(AssetHandler):
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview, public
+      '''SELECT id, name, type, preview, public, owner
          FROM assets
          WHERE parent = %s
            AND owner = %s
@@ -427,13 +428,14 @@ class DirHandler(AssetHandler):
       'public': False,
       'data': [
         {
-          'id': item[0],
-          'name': item[1],
-          'type': item[2],
+          'id': item['id'],
+          'name': item['name'],
+          'type': item['type'],
           'preview': str(item[3]) if item[3] else '',
           'public': item[4],
           'owner': True,
-          'write': True
+          'write': True,
+          'owner_id': item['owner']
         }
         for item in cursor.fetchall()
       ]

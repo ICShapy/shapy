@@ -58,7 +58,8 @@ def main(args):
     (r'/api/user/login',         shapy.user.LoginHandler),
     (r'/api/user/logout',        shapy.user.LogoutHandler),
     (r'/api/user/register',      shapy.user.RegisterHandler),
-    (r'/api/user/([0-9]+)',      shapy.user.InfoHandler),
+    (r'/api/user$',              shapy.user.InfoHandler),
+    (r'/api/user/filter$',       shapy.user.FilterHandler),
 
     # WebSocket handler.
     (r'/api/edit/([0-9]+)',      shapy.editor.WSHandler),

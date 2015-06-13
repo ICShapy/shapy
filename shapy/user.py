@@ -25,7 +25,7 @@ class AuthHandler(APIHandler):
   def get(self, user):
     """Returns the serialized user or a null id."""
 
-    self.write(json.dumps(user.__dict__ if user else { 'id': 0 }))
+    self.write_json(user.__dict__ if user else { 'id': 0 })
 
 
 class LoginHandler(APIHandler):
@@ -134,9 +134,9 @@ class CheckHandler(APIHandler):
         '''SELECT 1 FROM users WHERE email=%s''',
         (email,))
 
-    self.write(json.dumps({
+    self.write_json({
         'unique' : not cursor.fetchone()
-    }))
+    })
 
 
 
@@ -144,11 +144,38 @@ class InfoHandler(APIHandler):
   """Handles a request to retrieve lightweight user information."""
 
   @coroutine
-  def get(self, user_id):
-    user = yield Account.get(self.db, user_id)
+  def get(self):
+    user = yield Account.get(self.db, self.get_argument('id'))
     if not user:
       raise HTTPError(404, 'User does not exist.')
-    self.write(json.dumps(user.__dict__))
+    self.write_json(user.__dict__)
+
+
+class FilterHandler(APIHandler):
+  """Handles a request to retrieve all users."""
+
+  @coroutine
+  def get(self):
+    """Fetches a filtered list of users."""
+
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, first_name, last_name, email
+         FROM users
+         WHERE email LIKE %(email)s
+         LIMIT 5
+      ''', {
+      'email': '%%%s%%' % self.get_argument('email')
+    })
+    self.write_json([
+      {
+        'id': user['id'],
+        'first_name': user['first_name'],
+        'last_name': user['last_name'],
+        'email': user['email']
+      }
+      for user in cursor.fetchall()
+    ])
+    self.finish()
 
 
 

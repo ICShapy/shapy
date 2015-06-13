@@ -499,10 +499,11 @@ shapy.browser.delete = function(shModal) {
  *
  * @param {!shapy.modal.Service}       shModal
  * @param {!shapy.browser.Service}     shBrowser
+ * @param {!shapy.UserService}         shUser
  *
  * @return {!angular.Directive}
  */
-shapy.browser.share = function(shModal, shBrowser) {
+shapy.browser.share = function(shModal, shBrowser, shUser) {
   /**
    * Handles sharing of an asset.
    *
@@ -510,12 +511,14 @@ shapy.browser.share = function(shModal, shBrowser) {
    * @param {!Array<string>}                   emails
    * @param {!Array<shapy.browser.Permission>} permissions
    */
-  var share = function(asset, emails, permissions) {
+  var share = function(asset, permissions) {
     shModal.open({
       size: 'medium',
       title: 'Share Asset',
       templateUrl: '/html/browser-permissions.html',
       controller: function($scope) {
+        var emails = {};
+
         $scope.asset = asset;
         $scope.permissions = permissions;
 
@@ -540,25 +543,43 @@ shapy.browser.share = function(shModal, shBrowser) {
 
           // Add a new permission entry.
           $scope.permissions.push(new shapy.browser.Permission(
-            $scope.newEmail, false
+            emails[$scope.newEmail].id, $scope.newEmail, false
           ));
           $scope.newEmail = '';
         };
 
         // Autocomplete.
         $('.share-new-email').autocomplete({
-          source: emails,
-          default: 150,
-          change: function() {
+          source: function(request, response) {
+            if (!request.term) {
+              response([]);
+              return;
+            }
+            shUser.filter(request.term)
+              .then(function(users) {
+                response(goog.array.map(
+                  goog.array.filter(users, function(user) {
+                    emails[user.email] = user;
+                    return user.id != $scope.asset.owner_id;
+                  }), function(user) {
+                    return user.email;
+                  }));
+              }, function() {
+                response([]);
+              });
+          },
+          change: function(e, ui) {
             $scope.$apply(goog.bind(function() {
-              $scope.newEmail = $(this).val();
+              $scope.newEmail = ui.item.value;
             }, this));
           }
         });
 
         // Check availability.
         $scope.checkEmail = function() {
-          return goog.array.contains(emails, $scope.newEmail);
+          return goog.object.some(emails, function(user) {
+            return user.email == $scope.newEmail;
+          });
         };
       }
     });
@@ -576,8 +597,8 @@ shapy.browser.share = function(shModal, shBrowser) {
         if (!asset.owner) {
           return;
         }
-        shBrowser.getPermissions(asset).then(function(response) {
-          share(asset, response[0], response[1]);
+        shBrowser.getPermissions(asset).then(function(permissions) {
+          share(asset, permissions);
         });
       });
     }
