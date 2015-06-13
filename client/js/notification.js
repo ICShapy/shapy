@@ -52,7 +52,7 @@ shapy.notification.Service.prototype.add_ = function(type, data) {
     item.fade = true;
     this.timeout_(goog.bind(function() {
       this.remove(item);
-    }, this), 1000);
+    }, this), 2000);
   }, this);
 };
 

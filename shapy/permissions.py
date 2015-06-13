@@ -51,7 +51,7 @@ class PermissionsHandler(APIHandler):
       )
     ),
     (
-    '''SELECT users.email, permissions.write
+    '''SELECT users.id AS id, users.email AS email, permissions.write AS write
        FROM users
        INNER JOIN permissions
        ON users.id = permissions.user_id
@@ -66,10 +66,14 @@ class PermissionsHandler(APIHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
-      'available': [item[0] for item in cursors[0].fetchall()],
-      'shared': [{'email': item[0], 'write': item[1]} for item in cursors[1].fetchall()]
-    }))
+    self.write(json.dumps([
+      {
+        'id': item['id'],
+        'email': item['email'],
+        'write': item['write']
+      }
+      for item in cursors[1].fetchall()
+    ]))
     self.finish()
 
   @session

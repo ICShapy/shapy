@@ -133,69 +133,6 @@ class FilteredHandler(APIHandler):
     self.finish()
 
 
-class PublicHandler(APIHandler):
-  """Handles requests to public space."""
-
-  @session
-  @coroutine
-  @asynchronous
-  def get(self, user = None):
-    """Retrieves the public space."""
-    print("getting public")
-
-    # Validate arguments.
-    if not user:
-      # Set special id for not logged in users
-      user = Account(-1)
-
-    # Initialise public space data.
-    data = (-1, 'Public')
-
-    #Fetch assets shared with user with write perm.
-    cursor = yield momoko.Op(self.db.execute,
-      '''SELECT asset_id
-         FROM permissions
-         WHERE user_id = %s
-           AND write = %s
-      ''', (
-      user.id,
-      True
-    ))
-
-    assetsWrite =[asset[0] for asset in cursor.fetchall()]
-
-    # Fetch information about public assets.
-    cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview, owner
-         FROM assets
-         WHERE public = %s
-      ''', (
-      True,
-    ))
-
-    # Return JSON answer.
-    self.write_json({
-      'id': data[0],
-      'name': data[1],
-      'owner': True,
-      'write': True,
-      'public': False,
-      'data': [
-        {
-          'id': item[0],
-          'name': item[1],
-          'type': item[2],
-          'preview': str(item[3]) if item[3] else '',
-          'public': True,
-          'owner': item[4] == int(user.id),
-          'write': item[4] == int(user.id) or item[0] in assetsWrite
-        }
-        for item in cursor.fetchall()
-      ]
-    })
-    self.finish()
-
-
 
 class AssetHandler(APIHandler):
   """Handles common requests to assets."""
@@ -261,7 +198,8 @@ class AssetHandler(APIHandler):
         'data': json.loads(str(data['data'] or 'null')),
         'public': data['public'],
         'owner': owner,
-        'write': write
+        'write': write,
+        'owner_id': data['owner']
     })
     self.finish()
 
@@ -472,7 +410,7 @@ class DirHandler(AssetHandler):
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview, public
+      '''SELECT id, name, type, preview, public, owner
          FROM assets
          WHERE parent = %s
            AND owner = %s
@@ -490,13 +428,14 @@ class DirHandler(AssetHandler):
       'public': False,
       'data': [
         {
-          'id': item[0],
-          'name': item[1],
-          'type': item[2],
+          'id': item['id'],
+          'name': item['name'],
+          'type': item['type'],
           'preview': str(item[3]) if item[3] else '',
           'public': item[4],
           'owner': True,
-          'write': True
+          'write': True,
+          'owner_id': item['owner']
         }
         for item in cursor.fetchall()
       ]

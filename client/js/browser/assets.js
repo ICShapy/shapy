@@ -40,6 +40,12 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
   this.owner = !(!(data['owner']));
 
   /**
+   * ID of the owner.
+   * @public {number} @const
+   */
+  this.owner_id = data['owner_id'];
+
+  /**
    * Write permission.
    * @public {bolean} @const
    */

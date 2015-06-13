@@ -83,13 +83,33 @@ shapy.UserService.prototype.get = function(userID) {
     return this.q_.when(this.users_[userID]);
   }
 
-  return this.http_.get('/api/user/' + userID)
+  return this.http_.get('/api/user', {params: {id: userID}})
       .then(goog.bind(function(response) {
         var user = new shapy.User(response.data, this.count_);
         this.count_++;
         this.users_[userID] = user;
         return user;
       }, this));
+};
+
+
+/**
+ * Returns all users, filtered by name.
+ *
+ * @param {string} email
+ *
+ * @return {!angular.$q}
+ */
+shapy.UserService.prototype.filter = function(email) {
+  return this.http_.get('/api/user/filter', {params: {email: email}})
+    .then(goog.bind(function(response) {
+      return goog.array.map(response.data, function(data) {
+        var user = new shapy.User(data, this.count_);
+        this.count_++;
+        this.users_[data.id] = user;
+        return user;
+      }, this);
+    }, this));
 };
 
 
