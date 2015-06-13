@@ -59,6 +59,7 @@ shapy.editor.Executor.prototype.destroy = function() {
  * @private
  */
 shapy.editor.Executor.prototype.onOpen_ = function() {
+  console.log("openning connection");
   goog.array.map(this.pending_, function(message) {
     this.sock_.send(JSON.stringify(message));
   }, this);
@@ -73,6 +74,7 @@ shapy.editor.Executor.prototype.onOpen_ = function() {
  * @param {CloseEvent} evt
  */
 shapy.editor.Executor.prototype.onClose_ = function(evt) {
+  console.log("closing connection");
   this.sock_ = null;
 };
 

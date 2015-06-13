@@ -141,6 +141,8 @@ class PublicHandler(APIHandler):
   @asynchronous
   def get(self, user = None):
     """Retrieves the public space."""
+    print("getting public")
+
     # Validate arguments.
     if not user:
       # Set special id for not logged in users

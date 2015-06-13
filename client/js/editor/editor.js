@@ -307,8 +307,13 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
   // Set up the websocket connection.
   this.pending_ = [];
   
+  console.log(this.scene_);
+
   // Create the executor based on the write permission.
   if (this.scene_.write) {
+    console.log("creating a write executor");
+    console.log("user", user);
+
     this.exec_ = new shapy.editor.WriteExecutor(this.scene_, this);
   
     // Attach onFinish emiters.
@@ -318,6 +323,8 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
     this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
     this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
   } else {
+    console.log("creating a read executor");
+    console.log("user", user);
     this.exec_ = new shapy.editor.ReadExecutor(this.scene_, this);
   }
 };
