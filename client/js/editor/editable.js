@@ -363,6 +363,53 @@ shapy.editor.PartsGroup.prototype.translate = function(dx, dy, dz) {
 
 
 /**
+ * Scales the group.
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ */
+shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
+  var verts = this.getVertices();
+  var mid = this.getPosition();
+  var d = goog.vec.Vec3.createFloat32();
+
+  // Apply translation to each object
+  goog.object.forEach(verts, function(vert) {
+    goog.vec.Vec3.subtract(vert.position, mid, d);
+    vert.translate(d[0] * x - d[0], d[1] * y - d[1], d[2] * z - d[2]);
+  });
+};
+
+
+/**
+ * Rotates the group.
+ *
+ * @param {!goog.vec.Quaternion} q
+ */
+shapy.editor.PartsGroup.prototype.rotate = function(q) {
+  var mid = this.getPosition();
+  var verts = this.getVertices();
+  var c = goog.vec.Quaternion.createFloat32();
+  var d = goog.vec.Vec3.createFloat32();
+  var dq = goog.vec.Quaternion.createFloat32();
+  goog.vec.Quaternion.conjugate(q, c);
+
+  goog.object.forEach(verts, function(vert) {
+    goog.vec.Vec3.subtract(vert.position, mid, d);
+
+    // Compute the rotation quaternion
+    goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
+    goog.vec.Quaternion.concat(q, dq, dq);
+    goog.vec.Quaternion.concat(dq, c, dq);
+
+    // Translate.
+    vert.translate(dq[0] - d[0], dq[1] - d[1], dq[2] - d[2]);
+  });
+};
+
+
+/**
  * Returns the object if all selected parts are from the same object.
  *
  * @return {shapy.editor.Object}
@@ -396,7 +443,7 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
 /**
  * Retrieves the faces forming the group.
  *
- * @return {!Array<!shapy.editor.Vertex}
+ * @return {!Array<!shapy.editor.Vertex>}
  */
 shapy.editor.PartsGroup.prototype.getFaces = function() {
   return goog.array.filter(this.editables, function(e) {

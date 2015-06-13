@@ -55,6 +55,11 @@ shapy.editor.EditorController = function($scope, user, scene, shEditor) {
 };
 
 
+/**
+ * Sends a message to all other people in the chat room.
+ *
+ * @param {string} msg
+ */
 shapy.editor.EditorController.prototype.sendMessage = function(msg) {
   this.shEditor_.sendMessage(msg);
   this.message = '';

@@ -45,7 +45,7 @@ goog.inherits(shapy.editor.Vertex, shapy.editor.Editable);
  */
 shapy.editor.Vertex.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32();
-  goog.vec.Mat4.multVec3(this.object.model_, this.position, position);
+  goog.vec.Mat4.multVec3(this.object.model, this.position, position);
   return position;
 };
 
@@ -70,7 +70,7 @@ shapy.editor.Vertex.prototype.getObject = function() {
 shapy.editor.Vertex.prototype.translate = function(dx, dy, dz) {
   // Convert to world space.
   goog.vec.Mat4.multVec3NoTranslate(
-      this.object.model_, this.position, this.position);
+      this.object.model, this.position, this.position);
 
   // Apply translation.
   goog.vec.Vec3.setFromValues(
