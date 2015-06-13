@@ -35,12 +35,6 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
   this.id = id;
 
   /**
-   * Name of the scene.
-   * @public {string}
-   */
-  this.name = data['name'] || this.shBrowser_.defaultName(this.type);
-
-  /**
    * List of users editing the scene.
    * @public {Array<string>}
    */
@@ -56,9 +50,7 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
    * List of textures in the scene.
    * @public {!Object<string, shapy.browser.Texture>}
    */
-  this.textures = {
-    'tex_0': new shapy.browser.Texture(shBrowser, 'tex_0', {})
-  };
+  this.textures = {};
 
   /**
    * Next identifier.
@@ -66,6 +58,7 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
    */
   this.nextID_ = 0;
 
+  // Set preview
   this.image = (opt_data && opt_data['preview']) || '/img/scene.svg';
 };
 goog.inherits(shapy.browser.Scene, shapy.browser.Asset);
@@ -97,7 +90,8 @@ shapy.browser.Scene.prototype.load = function(data) {
         data.verts || {},
         data.edges || {},
         data.faces || {},
-        data.uvs || {});
+        data.uvPoints || {},
+        data.uvEdges || {});
 
     obj.translate_[0] = data.tx;
     obj.translate_[1] = data.ty;
@@ -107,10 +101,10 @@ shapy.browser.Scene.prototype.load = function(data) {
     obj.scale_[1] = data.sy;
     obj.scale_[2] = data.sz;
 
-    obj.rotation_[0] = data.rx;
-    obj.rotation_[1] = data.ry;
-    obj.rotation_[2] = data.rz;
-    obj.rotation_[3] = data.rw;
+    obj.rotQuat_[0] = data.rx;
+    obj.rotQuat_[1] = data.ry;
+    obj.rotQuat_[2] = data.rz;
+    obj.rotQuat_[3] = data.rw;
 
     return obj;
   }, this);
@@ -124,7 +118,8 @@ shapy.browser.Scene.prototype.save = function() {
   this.shBrowser_.http_.put('/api/assets/scene', {
     id: this.id,
     name: this.name,
-    data: JSON.stringify(this.toJSON())
+    data: JSON.stringify(this.toJSON()),
+    preview: this.image
   });
 };
 

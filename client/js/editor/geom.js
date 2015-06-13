@@ -374,6 +374,8 @@ shapy.editor.geom.quatFromEulerAngles = function(x, y, z, q) {
  * @param {!goog.vec.Vec2.Type} p0
  * @param {number}              u
  * @param {number}              v
+ *
+ * @return {boolean}
  */
 shapy.editor.geom.dist2D = function(p0, u, v) {
   return Math.sqrt(Math.pow(p0.u - u, 2) + Math.pow(p0.v - v, 2));
@@ -386,10 +388,33 @@ shapy.editor.geom.dist2D = function(p0, u, v) {
  * @param {!{x0: number, x1: number, y0: number, y1: number}} square
  * @param {number}                                            u
  * @param {number}                                            v
+ *
+ * @return {boolean}
  */
 shapy.editor.geom.intersectSquare = function(square, u, v) {
   return (
     square.u0 <= u && u <= square.u1 &&
     square.v0 <= v && v <= square.v1
   );
+};
+
+
+/**
+ * Computes the area of a 2D triangle.
+ *
+ * @param {!{u: number, v: number}} a
+ * @param {!{u: number, v: number}} b
+ * @param {!{u: number, v: number}} c
+ *
+ * @return {number}
+ */
+shapy.editor.geom.triangleArea = function(a, b, c) {
+  return Math.abs((
+      a.u * b.v +
+      a.v * c.u +
+      b.u * c.v -
+      c.u * b.v -
+      b.u * a.v -
+      c.v * a.u
+  ) / 2.0);
 };

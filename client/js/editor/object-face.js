@@ -22,11 +22,15 @@ goog.require('shapy.editor.geom');
  * @param {number}               e0
  * @param {number}               e1
  * @param {number}               e2
- * @param {number}               uv0
- * @param {number}               uv1
- * @param {number}               uv2
+ * @param {number}               opt_ue0
+ * @param {number}               opt_ue1
+ * @param {number}               opt_ue2
  */
-shapy.editor.Face = function(object, id, e0, e1, e2, uv0, uv1, uv2) {
+shapy.editor.Face = function(
+    object, id,
+    e0, e1, e2,
+    opt_ue0, opt_ue1, opt_ue2)
+{
   shapy.editor.Editable.call(this, shapy.editor.Editable.Type.FACE);
 
   /** @public {!shapy.editor.Object} @const */
@@ -40,11 +44,11 @@ shapy.editor.Face = function(object, id, e0, e1, e2, uv0, uv1, uv2) {
   /** @public {number} @const */
   this.e2 = e2;
   /** @public {number} @const */
-  this.uv0 = uv0;
+  this.ue0 = opt_ue0 || 0;
   /** @public {number} @const */
-  this.uv1 = uv1;
+  this.ue1 = opt_ue1 || 0;
   /** @public {number} @const */
-  this.uv2 = uv2;
+  this.ue2 = opt_ue2 || 0;
 };
 goog.inherits(shapy.editor.Face, shapy.editor.Editable);
 
@@ -79,19 +83,34 @@ shapy.editor.Face.prototype.getVertices = function() {
 
 
 /**
+ * Retrives the vertices forming a face.
+ *
+ * @return {!Array<!shapy.editor.Vertex>}
+ */
+shapy.editor.Face.prototype.getUVEdges = function() {
+  var e = this.getEdges();
+  return [
+    this.object.uvEdges[this.ue0 >= 0 ? this.ue0 : -this.ue0],
+    this.object.uvEdges[this.ue1 >= 0 ? this.ue1 : -this.ue1],
+    this.object.uvEdges[this.ue2 >= 0 ? this.ue2 : -this.ue2],
+  ];
+};
+
+
+
+/**
  * Retrives the uv.
  *
  * @return {!Array<!shapy.editor.Vertex>}
  */
 shapy.editor.Face.prototype.getUVs = function() {
-  var e = this.getEdges();
+  var e = this.getUVEdges();
   return [
-    this.object.uvs[this.uv0 >= 0 ? e[0].uv0 : e[0].uv1],
-    this.object.uvs[this.uv1 >= 0 ? e[1].uv0 : e[1].uv1],
-    this.object.uvs[this.uv2 >= 0 ? e[2].uv0 : e[2].uv1],
+    this.object.uvPoints[this.ue0 >= 0 ? e[0].uv0 : e[0].uv1],
+    this.object.uvPoints[this.ue1 >= 0 ? e[1].uv0 : e[1].uv1],
+    this.object.uvPoints[this.ue2 >= 0 ? e[2].uv0 : e[2].uv1],
   ];
 };
-
 
 
 /**
@@ -113,11 +132,7 @@ shapy.editor.Face.prototype.getObject = function() {
  */
 shapy.editor.Face.prototype.getVertexPositions_ = function() {
   var verts = this.getVertices();
-  return [
-      verts[0].position,
-      verts[1].position,
-      verts[2].position
-  ];
+  return [verts[0].position, verts[1].position, verts[2].position];
 };
 
 
@@ -171,14 +186,11 @@ shapy.editor.Face.prototype.delete = function() {
  * @return {!{u: number, v: number}}
  */
 shapy.editor.Face.prototype.pickUV = function(ray) {
-  if (!this.uv0 || !this.uv1 || !this.uv2) {
-    return {u: 0, v: 0};
-  }
-
   var verts = this.getVertices();
-  var uv0 = this.object.uvs[this.uv0];
-  var uv1 = this.object.uvs[this.uv1];
-  var uv2 = this.object.uvs[this.uv2];
+  var uvs = this.getUVs();
+  if (!uvs || goog.array.isEmpty(uvs)) {
+    return { u: 0, v: 0 };
+  }
 
   // Get vertex position.
   var p0 = goog.vec.Vec3.cloneFloat32(verts[0].position);
@@ -196,7 +208,7 @@ shapy.editor.Face.prototype.pickUV = function(ray) {
     return {u: 0, v: 0};
   }
   return {
-    u: (bary.a * uv0.u) + (bary.b * uv1.u) + (bary.c * uv2.u),
-    v: (bary.a * uv0.v) + (bary.b * uv1.v) + (bary.c * uv2.v)
+    u: (bary.a * uvs[0].u) + (bary.b * uvs[1].u) + (bary.c * uvs[2].u),
+    v: (bary.a * uvs[0].v) + (bary.b * uvs[1].v) + (bary.c * uvs[2].v)
   };
 };

@@ -108,6 +108,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
 
   this.editor_.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
+      case 'message': this.applyMessage(data); return;
       case 'create': this.applyCreate(data); return;
       case 'lock': this.applyLock(data); return;
       case 'unlock': this.applyUnlock(data); return;
@@ -159,6 +160,51 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
         console.error('Invalid message type "' + data['type'] + '"');
         break;
       }
+    }
+  }, this));
+};
+
+
+/**
+ * Executes a chat message
+ *
+ * @param {string} message
+ */
+shapy.editor.Executor.prototype.emitMessage = function(message) {
+  this.sendCommand({
+    type: 'message',
+    user: this.editor_.user.id,
+    message: message
+  });
+};
+
+
+/**
+ * Receives a chat message.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyMessage = function(data) {
+  this.editor_.shUser_.get(data['user']).then(goog.bind(function(user) {
+    // Add to message list
+    var ml = this.editor_.messageList;
+    if (ml.length == 0) {
+      ml.push({
+        user: user,
+        messages: [data['message']]
+      });
+    } else if (ml[ml.length - 1].user.id == user.id) {
+      ml[ml.length - 1].messages.push(data['message']);
+    } else {
+      ml.push({
+        user: user,
+        messages: [data['message']]
+      });
+    }
+
+    // Increment unread counter
+    if (!$('#chatbox').is(':visible')) {
+      this.editor_.unreadMessages++;
     }
   }, this));
 };
@@ -243,7 +289,7 @@ shapy.editor.Executor.prototype.applyLock = function(data) {
         return;
       }
       if (user.id == this.editor_.user.id) {
-        this.editor_.objectGroup_.add([this.scene_.objects[id]]);
+        this.editor_.objectGroup.add([this.scene_.objects[id]]);
       }
       this.scene_.objects[id].setSelected(user);
     }, this);
@@ -262,7 +308,7 @@ shapy.editor.Executor.prototype.applyUnlock = function(data) {
       console.log('Invalid object "' + id + "'");
       return;
     }
-    this.editor_.objectGroup_.remove([this.scene_.objects[id]]);
+    this.editor_.objectGroup.remove([this.scene_.objects[id]]);
     this.scene_.objects[id].setSelected(null);
   }, this);
 };

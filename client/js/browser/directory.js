@@ -35,7 +35,7 @@ shapy.browser.Directory = function(shBrowser, id, opt_data) {
     this.ready.resolve(this);
   }
 
-  // Hardcoded image for directories.
+  // Set preview.
   this.image = '/img/folder.png';
 };
 goog.inherits(shapy.browser.Directory, shapy.browser.Asset);

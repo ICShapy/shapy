@@ -69,10 +69,10 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
   this.name = data['name'] || this.shBrowser_.defaultName(this.type);
 
   /**
-   * Path to image to be displayed for asset in browser.
+   * Image to be displayed for asset in browser.
    * @public {string} @const
    */
-  this.image = data['image'] || '';
+  this.image = '';
 
   /**
    * Parent directory of this directory.
