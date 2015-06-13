@@ -51,6 +51,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.scene_id = scene_id
     self.writeable = yield self.is_writeable()
     if self.writeable is None:
+      print("closing")
       self.close()
       return
 
@@ -106,6 +107,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     """Handles an incoming message."""
 
     if not self.user or not self.writeable:
+      print("returning")
       return
     data = json.loads(message)
 
@@ -144,8 +146,9 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not self.user or message.kind != 'message':
+    if not self.writeable and message.kind != 'message':
       return
+
     print message.body, self.user
     self.write_message(message.body)
 

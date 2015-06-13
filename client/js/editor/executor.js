@@ -104,12 +104,17 @@ shapy.editor.Executor.prototype.sendCommand = function(data) {
 shapy.editor.Executor.prototype.onMessage_ = function(evt) {
   var data;
 
+  console.log("calling on message");
+
   // Try to make sense of the data.
   try {
     data = JSON.parse(evt.data);
   } catch (e) {
     console.error('Invalid message: ' + evt.data);
   }
+
+  console.log("parsed");
+  console.log(data);
 
   this.editor_.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
@@ -125,6 +130,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
         break;
       }
       case 'join': {
+        console.log("joining");
         this.scene_.addUser(data['user']);
         break;
       }
@@ -135,6 +141,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       case 'edit': {
         switch (data['tool']) {
           case 'translate': {
+              console.log("applying translate");
             this.applyTranslate(data);
             break;
           }
@@ -272,7 +279,8 @@ shapy.editor.Executor.prototype.applyLock = function(data) {
         console.log('Invalid object "' + id + "'");
         return;
       }
-      if (user.id == this.editor_.user.id) {
+
+      if (this.editor_.user && user.id == this.editor_.user.id) {
         this.editor_.objectGroup.add([this.scene_.objects[id]]);
       }
       this.scene_.objects[id].setSelected(user);
