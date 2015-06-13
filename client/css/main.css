@@ -231,7 +231,7 @@ sh-menu .hint {
 /**
  * Register
  */
-form#register {
+ .signup {
   width: 400px;
   padding: 20px;
   margin-left: auto;
@@ -241,16 +241,16 @@ form#register {
   border: 1px solid black;
 }
 
-form#register div {
+.signup div {
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-form#register strong {
+.signup strong {
   display: block;
 }
 
-form#register .error {
+.signup .error {
   display: block;
   color: red;
   font-size: 14px;
@@ -258,28 +258,28 @@ form#register .error {
   margin-bottom: 10px;
 }
 
-form#register .error > span {
+.signup .error > span {
   display: block;
 }
 
-form#register .button {
+.signup .button {
   text-align: center;
 }
 
-form#register input[type=password],
-form#register input[type=email],
-form#register input[type=text] {
+.signup input[type=password],
+.signup input[type=email],
+.signup input[type=text] {
   height: 24px;
   font-size: 20px;
 }
 
 
-form#register input[type=text] {
+.signup input[type=text] {
   width: 192px;
 }
 
-form#register input[type=password],
-form#register input[type=email]
+.signup input[type=password],
+.signup input[type=email]
 {
   width: 394px;
 }
