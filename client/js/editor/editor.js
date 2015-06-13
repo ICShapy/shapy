@@ -319,7 +319,8 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
     this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
   } else {
     this.shNotify_.warning({
-      text: 'This scene is read-only.'
+      text: 'This scene is read-only.',
+      dismiss: 5000
     });
     this.exec_ = new shapy.editor.ReadExecutor(this.scene_, this);
   }
