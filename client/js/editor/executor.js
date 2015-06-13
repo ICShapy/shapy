@@ -270,7 +270,8 @@ shapy.editor.Executor.prototype.applyLock = function(data) {
         console.log('Invalid object "' + id + "'");
         return;
       }
-      if (user.id == this.editor_.user.id) {
+
+      if (this.editor_.user && user.id == this.editor_.user.id) {
         this.editor_.objectGroup.add([this.scene_.objects[id]]);
       }
       this.scene_.objects[id].setSelected(user);
@@ -331,7 +332,7 @@ shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
  */
 shapy.editor.Executor.prototype.applyTranslate = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -370,7 +371,7 @@ shapy.editor.Executor.prototype.emitRotate = function(obj, x, y, z, w) {
  */
 shapy.editor.Executor.prototype.applyRotate = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -435,7 +436,7 @@ shapy.editor.Executor.prototype.emitScale = function(obj, sx, sy, sz) {
  */
 shapy.editor.Executor.prototype.applyScale = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -478,7 +479,7 @@ shapy.editor.Executor.prototype.emitDelete = function(obj) {
  */
 shapy.editor.Executor.prototype.applyDelete = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -536,7 +537,7 @@ shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
  */
 shapy.editor.Executor.prototype.applyExtrude = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 

@@ -46,14 +46,14 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def open(self, scene_id, user):
     """Handles an incoming connection."""
 
-    # If the user is not valid, quit the room.
-    if not user:
-      self.close()
-      return
-
     # Read the scene ID & create a unique channel ID.
     self.user = user
     self.scene_id = scene_id
+    self.writeable = yield self.is_writeable()
+    if self.writeable is None:
+      self.close()
+      return
+
     self.chan_id = 'chan_%s' % scene_id
     self.lock_id = 'lock_%s' % scene_id
     self.objects = set()
@@ -67,12 +67,21 @@ class WSHandler(WebSocketHandler, BaseHandler):
     yield Task(self.chan.subscribe, self.chan_id)
     self.chan.listen(self.on_channel)
 
-    # Get the scene object & add the client.
-    def add_user(scene):
-      scene.add_user(self.user.id)
-    scene = yield self.update_scene_(add_user)
+    if self.writeable:
+      # Get the scene object & add the client.
+      def add_user(scene):
+        scene.add_user(self.user.id)
+      scene = yield self.update_scene_(add_user)
 
-    # Broadcast join message.
+      # Broadcast join message.
+      self.to_channel({
+        'type': 'join',
+        'user': self.user.id
+      })
+    else:
+      scene = yield self.update_scene_(lambda x: x)
+
+    # Broadcast initial data.
     self.write_message(json.dumps({
         'type': 'meta',
         'name': scene.name,
@@ -83,7 +92,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     for key in self.redis.keys('scene:%s:*' % self.scene_id):
       user = int(self.redis.get(key))
       id = key.split(':')[-1]
-      if user == self.user.id:
+      if self.user and user == self.user.id:
         self.objects.add(id)
 
       self.write_message(json.dumps({
@@ -92,16 +101,11 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'user': user
       }))
 
-    self.to_channel({
-      'type': 'join',
-      'user': self.user.id
-    })
-
   @coroutine
   def on_message(self, message):
     """Handles an incoming message."""
 
-    if not hasattr(self, 'user'):
+    if not self.user or not self.writeable:
       return
     data = json.loads(message)
 
@@ -140,7 +144,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not hasattr(self, 'user') or not self.user or message.kind != 'message':
+    if not self.writeable and message.kind != 'message':
       return
 
     self.write_message(message.body)
@@ -150,25 +154,23 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_close(self):
     """Handles connection termination."""
 
-    if not hasattr(self, 'user'):
-      return
+    if self.user and self.writeable:
+      # Remove the user from the scene.
+      def remove_user(scene):
+        scene.remove_user(self.user.id)
+      yield self.update_scene_(remove_user)
 
-    # Remove the user from the scene.
-    def remove_user(scene):
-      scene.remove_user(self.user.id)
-    yield self.update_scene_(remove_user)
+      # Unlock all objects.
+      for id in self.objects:
+        self.redis.delete('scene:%s:%s' % (self.scene_id, id))
 
-    # Unlock all objects.
-    for id in self.objects:
-      self.redis.delete('scene:%s:%s' % (self.scene_id, id))
-
-    # Leave the scene (of the crime).
-    user_id = self.user.id
-    self.user = None
-    self.to_channel({
-        'type': 'leave',
-        'user': user_id
-    })
+      # Leave the scene (of the crime).
+      user_id = self.user.id
+      self.user = None
+      self.to_channel({
+          'type': 'leave',
+          'user': user_id
+      })
 
     # Terminate the redis connection.
     yield Task(self.chan.unsubscribe, self.chan_id)
@@ -222,3 +224,37 @@ class WSHandler(WebSocketHandler, BaseHandler):
     self.redis.publish(self.chan_id, json.dumps(data))
     return seq
 
+  @coroutine
+  def is_writeable(self):
+    """Return None if no permission, False if read-only, True if writeable."""
+
+    # Fetch data from the asset and permission table.
+    # The write flag will have 3 possible values: None, True, False
+    cursor = yield momoko.Op(self.db.execute,
+      '''SELECT id, public, owner, write
+         FROM assets
+         LEFT OUTER JOIN permissions
+         ON permissions.asset_id = assets.id
+         WHERE assets.id = %(id)s
+           AND assets.type = 'scene'
+           AND (permissions.user_id = %(user)s OR
+                permissions.user_id is NULL OR
+                %(user)s IS NULL)
+      ''', {
+        'id': self.scene_id,
+        'user': self.user.id if self.user else None
+    })
+
+    data = cursor.fetchone()
+    if not data:
+      raise HTTPError(404, 'Asset not found.')
+
+    if self.user and data['owner'] == self.user.id:
+      raise Return(True)
+    elif data['write'] is None:
+      if not data['public']:
+        raise Return(None)
+      else:
+        raise Return(False)
+    else:
+      raise Return(self.user is not None and data['write'])
