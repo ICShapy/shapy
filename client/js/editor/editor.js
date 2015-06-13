@@ -256,6 +256,10 @@ shapy.editor.Editor.prototype.sendMessage = function(msg) {
  * @private
  */
 shapy.editor.Editor.prototype.snapshot_ = function() {
+  if (!this.scene_.write) {
+    return;
+  }
+
   var notif = this.shNotify_.notice({
     dismiss: true,
     text: 'Saving asset...'
