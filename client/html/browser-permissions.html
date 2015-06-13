@@ -1,0 +1,41 @@
+<div class="share-new">
+  <input
+      type="text"
+      class="share-new-email"
+      placeholder="Share with..."
+      ng-model="newEmail">
+  <button
+      class="share-new-add"
+      ng-click="add()"
+      ng-disabled="!checkEmail()">
+    Add
+  </button>
+</div>
+<table class="share-list">
+  <tr class="share-list-header">
+    <th class="email">Email</th>
+    <th class="delete"></th>
+    <th class="write">Write</th>
+  </tr>
+  <tr
+      class="share-list-item"
+      ng-repeat="perm in permissions"
+      ng-mouseenter="hover=$index"
+      ng-mouseleave="hover=-1">
+    <td
+        class="email">
+      {{perm.email}}
+    </td>
+    <td class="delete">
+      <button
+          ng-show="hover==$index"
+          type="button"
+          ng-click="permissions.splice($index, 1)">
+        Delete
+      </button>
+    </td>
+    <td class="write">
+      <input type="checkbox" ng-checked="perm.write"/>
+    </td>
+  </tr>
+</table>

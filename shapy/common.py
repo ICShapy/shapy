@@ -80,6 +80,12 @@ class BaseHandler(RequestHandler):
     }), Account.SESSION_EXPIRE)
     self.set_secure_cookie('session', token)
 
+  def write_json(self, data):
+    """Writes a JSON response."""
+    
+    self.set_header('Content-Type', 'application/json')
+    self.write(json.dumps(data))
+
 
 
 class APIHandler(BaseHandler):
@@ -96,10 +102,6 @@ class APIHandler(BaseHandler):
       except:
         pass
 
-  def set_default_headers(self):
-    """Set the JSON headers."""
-
-    self.set_header('Content-Type', 'application/json')
 
   def write_error(self, status_code, **kwargs):
     """Handles error messages, outputting a properly formatted JSON message."""

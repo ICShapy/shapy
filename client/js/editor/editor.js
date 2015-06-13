@@ -67,18 +67,20 @@ shapy.editor.EditorController.prototype.sendMessage = function(msg) {
  * @constructor
  * @ngInject
  *
- * @param {!angular.$http}         $http      The Angular HTTP service.
- * @param {!angular.$location}     $location  The Angular location service.
- * @param {!angular.$scope}        $rootScope
- * @param {!shapy.UserService}     shUser
- * @param {!shapy.browser.Service} shBrowser
+ * @param {!angular.$http}              $http      The Angular HTTP service.
+ * @param {!angular.$location}          $location  The Angular location service.
+ * @param {!angular.$scope}             $rootScope
+ * @param {!shapy.UserService}          shUser
+ * @param {!shapy.browser.Service}      shBrowser
+ * @param {!shapy.notification.Service} shNotify
  */
 shapy.editor.Editor = function(
     $http,
     $location,
     $rootScope,
     shUser,
-    shBrowser)
+    shBrowser,
+    shNotify)
 {
   /** @private {!angular.$location} @const */
   this.location_ = $location;
@@ -90,6 +92,8 @@ shapy.editor.Editor = function(
   this.shUser_ = shUser;
   /** @private {!shapy.browser.Service} @const */
   this.shBrowser_ = shBrowser;
+  /** @private {!shapy.notification.Service} @const */
+  this.shNotify_ = shNotify;
 
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
@@ -226,14 +230,14 @@ shapy.editor.Editor = function(
  * Width of a preview image.
  * @type {number} @const
  */
-shapy.editor.Editor.PREVIEW_WIDTH = 145;
+shapy.editor.Editor.PREVIEW_WIDTH = 147;
 
 
 /**
  * Height of a preview image.
  * @type {number} @const
  */
-shapy.editor.Editor.PREVIEW_HEIGHT = 100;
+shapy.editor.Editor.PREVIEW_HEIGHT = 105;
 
 
 /**
@@ -252,17 +256,35 @@ shapy.editor.Editor.prototype.sendMessage = function(msg) {
  * @private
  */
 shapy.editor.Editor.prototype.snapshot_ = function() {
+  if (!this.scene_.write) {
+    return;
+  }
+
+  var notif = this.shNotify_.notice({
+    dismiss: true,
+    text: 'Saving asset...'
+  });
+
   var image = new Image();
   image.onload = goog.bind(function() {
+    var aspect = this.vp_.width / this.vp_.height;
+    var width = shapy.editor.Editor.PREVIEW_HEIGHT * aspect;
+    var diff = width - shapy.editor.Editor.PREVIEW_WIDTH;
 
     // Resize the image.
     var canvas = document.createElement('canvas');
-    canvas.width = shapy.editor.Editor.PREVIEW_WIDTH;
+    canvas.width = Math.min(shapy.editor.Editor.PREVIEW_WIDTH, width);
     canvas.height = shapy.editor.Editor.PREVIEW_HEIGHT;
-    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    var ctx = canvas.getContext('2d');
+    ctx.translate(-diff / 2, 0);
+    ctx.drawImage(image, 0, 0, width, canvas.height);
 
     // Upload.
     this.scene_.image = canvas.toDataURL('image/jpeg');
+    this.scene_.save().then(function() {
+      notif();
+    });
   }, this);
   image.src = this.canvas_.toDataURL('image/jpeg');
 };
@@ -325,9 +347,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Start checkpointing.
   this.checkpoint_ = setInterval(goog.bind(function() {
-    console.log('Saved to server.');
     this.snapshot_();
-    this.scene_.save();
   }, this), 10000);
 
   // Watch for changes in the name.
@@ -491,7 +511,6 @@ shapy.editor.Editor.prototype.render = function() {
 shapy.editor.Editor.prototype.destroy = function() {
   // Take a snapshot.
   this.snapshot_();
-  this.scene_.save();
   this.scene_.destroy();
 
   // Stop rendering.

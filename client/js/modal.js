@@ -93,8 +93,11 @@ shapy.modal.root = function(shModal, $compile, $controller) {
  *
  * @param {!angular.$scope}   $rootScope Root scope.
  * @param {!angular.$compile} $compile   The Angular template compiler.
+ * @param {!angular.$http}    $http      The Angular HTTP service.
  */
-shapy.modal.Service = function($rootScope, $compile) {
+shapy.modal.Service = function($rootScope, $compile, $http) {
+  /** @private {!angular.$http} @const */
+  this.http_ = $http;
   /** @public {!Object} */
   this.controller = null;
   /** @public {string} */
@@ -114,9 +117,16 @@ shapy.modal.Service = function($rootScope, $compile) {
  * @param {!Object} config
  */
 shapy.modal.Service.prototype.open = function(config) {
-  this.count++;
   this.title = config['title'];
   this.size = config['size'] || 'small';
-  this.template = config['template'] || '';
   this.controller = config['controller'];
+  if (config['template']) {
+    this.template = config['template'] || '';
+    this.count++;
+  } else {
+    this.http_.get(config['templateUrl']).then(goog.bind(function(data) {
+      this.template = data['data'];
+      this.count++;
+    }, this));
+  }
 };

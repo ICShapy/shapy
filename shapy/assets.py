@@ -50,7 +50,7 @@ class SharedHandler(APIHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
+    self.write_json({
       'id': data[0],
       'name': data[1],
       'owner': True,
@@ -68,7 +68,7 @@ class SharedHandler(APIHandler):
         }
         for item in cursor.fetchall()
       ]
-    }))
+    })
     self.finish()
 
 
@@ -111,7 +111,7 @@ class FilteredHandler(APIHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
+    self.write_json({
       'id': data[0],
       'name': data[1],
       'owner': True,
@@ -129,68 +129,7 @@ class FilteredHandler(APIHandler):
         }
         for item in cursor.fetchall()
       ]
-    }))
-    self.finish()
-
-
-class PublicHandler(APIHandler):
-  """Handles requests to public space."""
-
-  @session
-  @coroutine
-  @asynchronous
-  def get(self, user = None):
-    """Retrieves the public space."""
-    # Validate arguments.
-    if not user:
-      # Set special id for not logged in users
-      user = Account(-1)
-
-    # Initialise public space data.
-    data = (-1, 'Public')
-
-    #Fetch assets shared with user with write perm.
-    cursor = yield momoko.Op(self.db.execute,
-      '''SELECT asset_id
-         FROM permissions
-         WHERE user_id = %s
-           AND write = %s
-      ''', (
-      user.id,
-      True
-    ))
-
-    assetsWrite =[asset[0] for asset in cursor.fetchall()]
-
-    # Fetch information about public assets.
-    cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview, owner
-         FROM assets
-         WHERE public = %s
-      ''', (
-      True,
-    ))
-
-    # Return JSON answer.
-    self.write(json.dumps({
-      'id': data[0],
-      'name': data[1],
-      'owner': True,
-      'write': True,
-      'public': False,
-      'data': [
-        {
-          'id': item[0],
-          'name': item[1],
-          'type': item[2],
-          'preview': str(item[3]) if item[3] else '',
-          'public': True,
-          'owner': item[4] == int(user.id),
-          'write': item[4] == int(user.id) or item[0] in assetsWrite
-        }
-        for item in cursor.fetchall()
-      ]
-    }))
+    })
     self.finish()
 
 
@@ -200,7 +139,6 @@ class AssetHandler(APIHandler):
 
   TYPE = None
   NEW_NAME = None
-  MIME = 'application/json'
 
 
   @session
@@ -252,23 +190,17 @@ class AssetHandler(APIHandler):
       owner = False
       write = user is not None and data['write']
 
-    if self.MIME == 'application/json':
-      # Dump JSON formatted data.
-      self.write(json.dumps({
-          'id': data['id'],
-          'name': data['name'],
-          'preview': str(data['preview'] or ''),
-          'data': json.loads(str(data['data'] or 'null')),
-          'public': data['public'],
-          'owner': owner,
-          'write': write
-      }))
-    elif data['data']:
-      # Dump raw binary (mainly for textures).
-      blob = bytes(data['data'])
-      self.set_header('Content-Length', len(blob))
-      self.write(blob)
-
+    # Dump JSON formatted data.
+    self.write_json({
+        'id': data['id'],
+        'name': data['name'],
+        'preview': str(data['preview'] or ''),
+        'data': json.loads(str(data['data'] or 'null')),
+        'public': data['public'],
+        'owner': owner,
+        'write': write,
+        'owner_id': data['owner']
+    })
     self.finish()
 
 
@@ -321,14 +253,14 @@ class AssetHandler(APIHandler):
       raise HTTPError(400, 'Asset creation failed.')
 
     # Return the asset data.
-    self.write(json.dumps({
+    self.write_json({
         'id': data[0],
         'name': data[1],
         'owner': True,
         'write': True,
         'public': False,
         'data': []
-    }))
+    })
     self.finish()
 
 
@@ -478,7 +410,7 @@ class DirHandler(AssetHandler):
 
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview, public
+      '''SELECT id, name, type, preview, public, owner
          FROM assets
          WHERE parent = %s
            AND owner = %s
@@ -488,7 +420,7 @@ class DirHandler(AssetHandler):
     ))
 
     # Return JSON answer.
-    self.write(json.dumps({
+    self.write_json({
       'id': data[0],
       'name': data[1],
       'owner': True,
@@ -496,17 +428,18 @@ class DirHandler(AssetHandler):
       'public': False,
       'data': [
         {
-          'id': item[0],
-          'name': item[1],
-          'type': item[2],
+          'id': item['id'],
+          'name': item['name'],
+          'type': item['type'],
           'preview': str(item[3]) if item[3] else '',
           'public': item[4],
           'owner': True,
-          'write': True
+          'write': True,
+          'owner_id': item['owner']
         }
         for item in cursor.fetchall()
       ]
-    }))
+    })
     self.finish()
 
 
@@ -524,7 +457,6 @@ class TextureHandler(AssetHandler):
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
-  MIME = 'application/octet_stream'
 
 
 
@@ -561,12 +493,12 @@ class TextureFilterHandler(APIHandler):
       'user': user.id if user else None
     })
 
-    self.write(json.dumps([
+    self.write_json([
       {
         'id': asset['id'],
         'name': asset['name'],
         'preview': asset['preview']
       }
       for asset in cursor.fetchall()
-    ]))
+    ])
     self.finish()
