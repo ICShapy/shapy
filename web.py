@@ -15,6 +15,7 @@ import shapy.editor
 import shapy.user
 import shapy.assets
 import shapy.permissions
+import shapy.public
 
 
 
@@ -40,7 +41,7 @@ def main(args):
     # API for accessing assets.
     (r'/api/assets/dir$',        shapy.assets.DirHandler),
     (r'/api/assets/filtered$',   shapy.assets.FilteredHandler),
-    (r'/api/assets/public',      shapy.assets.PublicHandler),
+    (r'/api/assets/public',      shapy.public.PublicHandler),
     (r'/api/assets/scene$',      shapy.assets.SceneHandler),
     (r'/api/assets/shared$',     shapy.assets.SharedHandler),
     (r'/api/assets/texture$',    shapy.assets.TextureHandler),

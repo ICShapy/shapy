@@ -151,6 +151,7 @@ class InfoHandler(APIHandler):
     self.write(json.dumps(user.__dict__))
 
 
+
 class FacebookHandler(APIHandler, FacebookGraphMixin):
   """Exchanges a Facebook access token."""
 
