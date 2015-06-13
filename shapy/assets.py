@@ -8,7 +8,7 @@ import json
 
 import momoko
 import psycopg2
-from tornado.gen import coroutine
+from tornado.gen import Return, coroutine
 from tornado.web import HTTPError, asynchronous
 
 from shapy.account import Account
@@ -141,15 +141,9 @@ class AssetHandler(APIHandler):
   NEW_NAME = None
 
 
-  @session
   @coroutine
-  @asynchronous
-  def get(self, user):
+  def _fetch(self, id, user):
     """Retrieves a scene from the database."""
-
-    id = self.get_argument('id')
-    if not id:
-      raise HTTPError(400, 'Invalid asset ID')
 
     # Fetch data from the asset and permission table.
     # The write flag will have 3 possible values: None, True, False
@@ -189,6 +183,21 @@ class AssetHandler(APIHandler):
       # Shared asset - permission in table.
       owner = False
       write = user is not None and data['write']
+
+    raise Return((data, owner, write))
+
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Retrieves a scene from the database."""
+
+    id = self.get_argument('id')
+    if not id:
+      raise HTTPError(400, 'Invalid asset ID')
+
+    data, owner, write = yield self._fetch(id, user)
 
     # Dump JSON formatted data.
     self.write_json({
@@ -443,21 +452,38 @@ class DirHandler(AssetHandler):
     self.finish()
 
 
-
-class SceneHandler(AssetHandler):
-  """Handles requests to a scene asset."""
-
-  TYPE = 'scene'
-  NEW_NAME = 'New Scene'
-
-
-
 class TextureHandler(AssetHandler):
   """Handles requests to a texture asset."""
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
 
+
+
+class SceneHandler(AssetHandler):
+  """Handles requests to a texture asset."""
+
+  TYPE = 'scene'
+  NEW_NAME = 'New Scene'
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Fetches a scene either as JSON or some other format."""
+
+    fmt = self.get_argument('format', None)
+    if not fmt or fmt == 'json':
+      yield super(SceneHandler, self).get()
+    else:
+      data, _, _ = yield self._fetch(self.get_argument('id'), user)
+      scene = Scene(data['name'], json.loads(str(data['data'] or 'null')))
+      if fmt == 'obj':
+        self.set_header('Content-Type', 'text/plain')
+        self.write(scene.to_obj())
+        self.finish()
+      else:
+        raise HTTPError(400, 'Format not supported.')
 
 
 class TextureFilterHandler(APIHandler):
