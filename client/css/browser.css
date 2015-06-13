@@ -419,6 +419,11 @@ sh-asset > div > img {
   max-height: 100%;
 }
 
+
+/**
+ * Texture upload
+ */
+
 sh-upload {
   border: 4px dashed gray;
   position: absolute;
@@ -434,11 +439,52 @@ sh-upload.hover {
 .upload-choose {
   position: absolute;
   z-index: 10;
-  width: 200px;
-  height: 50px;
-  margin-left: -100px;
-  margin-top: -25px;
-  top: 50%;
-  left: 50%;
+  top: 58px;
+  font-size: 16px;
+  height:50px;
+  width:200px;
+  margin-left: 150px;
+  margin-right: 150px;
   text-align: center;
 }
+.upload-choose input {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+  opacity: 0;
+}
+.upload-choose input[type='file'] {
+  font-size: 0px;
+}
+
+.button-choose {
+  z-index: 7000;
+  position: absolute;
+  color: white;
+  font-size: 14px;
+  background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
+  top:102px;
+  height:30px;
+  width:160px;
+  margin-left: 170px;
+  margin-right: 170px;
+
+  cursor: pointer;
+}
+
+.files-list {
+  position: absolute;
+  top:135px;
+  font-size: 12px;
+  height:100px;
+  width:300px;
+  margin-left: 100px;
+  margin-right: 100px;
+  text-align: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  z-index: 30;
+}
+
+
+
