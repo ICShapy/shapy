@@ -59,7 +59,6 @@ shapy.editor.Executor.prototype.destroy = function() {
  * @private
  */
 shapy.editor.Executor.prototype.onOpen_ = function() {
-  console.log("openning connection");
   goog.array.map(this.pending_, function(message) {
     this.sock_.send(JSON.stringify(message));
   }, this);
@@ -74,7 +73,6 @@ shapy.editor.Executor.prototype.onOpen_ = function() {
  * @param {CloseEvent} evt
  */
 shapy.editor.Executor.prototype.onClose_ = function(evt) {
-  console.log("closing connection");
   this.sock_ = null;
 };
 
@@ -104,17 +102,12 @@ shapy.editor.Executor.prototype.sendCommand = function(data) {
 shapy.editor.Executor.prototype.onMessage_ = function(evt) {
   var data;
 
-  console.log("calling on message");
-
   // Try to make sense of the data.
   try {
     data = JSON.parse(evt.data);
   } catch (e) {
     console.error('Invalid message: ' + evt.data);
   }
-
-  console.log("parsed");
-  console.log(data);
 
   this.editor_.rootScope_.$apply(goog.bind(function() {
     switch (data['type']) {
@@ -130,7 +123,6 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
         break;
       }
       case 'join': {
-        console.log("joining");
         this.scene_.addUser(data['user']);
         break;
       }
@@ -141,7 +133,6 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
       case 'edit': {
         switch (data['tool']) {
           case 'translate': {
-              console.log("applying translate");
             this.applyTranslate(data);
             break;
           }
@@ -341,7 +332,7 @@ shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
  */
 shapy.editor.Executor.prototype.applyTranslate = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -380,7 +371,7 @@ shapy.editor.Executor.prototype.emitRotate = function(obj, x, y, z, w) {
  */
 shapy.editor.Executor.prototype.applyRotate = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -445,7 +436,7 @@ shapy.editor.Executor.prototype.emitScale = function(obj, sx, sy, sz) {
  */
 shapy.editor.Executor.prototype.applyScale = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -488,7 +479,7 @@ shapy.editor.Executor.prototype.emitDelete = function(obj) {
  */
 shapy.editor.Executor.prototype.applyDelete = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -546,7 +537,7 @@ shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
  */
 shapy.editor.Executor.prototype.applyExtrude = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
