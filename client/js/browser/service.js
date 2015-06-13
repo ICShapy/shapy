@@ -548,12 +548,11 @@ shapy.browser.Service.prototype.getPermissions = function(asset) {
  * @return {!angular.$q}
  */
 shapy.browser.Service.prototype.setPermissions = function(asset, permissions) {
-  var permJSON = permissions.map(function(permission) {
-    return [permission.email, permission.write];
-  });
   return this.http_.post('/api/permissions', {
     id: asset.id,
-    permissions: JSON.stringify(permJSON)
+    permissions: JSON.stringify(goog.array.map(permissions, function(perm) {
+      return [perm.email, perm.write];
+    }))
   });
 };
 
