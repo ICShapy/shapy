@@ -15,8 +15,10 @@ goog.require('shapy.browser.assets');
 goog.require('shapy.browser.delete');
 goog.require('shapy.browser.directories');
 goog.require('shapy.browser.public');
+goog.require('shapy.browser.createTexture');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.browser.share');
+goog.require('shapy.browser.upload');
 goog.require('shapy.editable');
 goog.require('shapy.editor.Editor');
 goog.require('shapy.editor.EditorController');
@@ -262,6 +264,7 @@ shapy.module = angular
   .service('shEditor', shapy.editor.Editor)
   .service('shModal', shapy.modal.Service)
 
+  .directive('shCreateTexture', shapy.browser.createTexture)
   .directive('shPublic', shapy.browser.public)
   .directive('shShare', shapy.browser.share)
   .directive('shSidebar', shapy.browser.sidebar)
@@ -278,6 +281,7 @@ shapy.module = angular
   .directive('shModalRoot', shapy.modal.root)
   .directive('shColourPicker', shapy.editor.colourPicker)
   .directive('shSlider', shapy.editor.slider)
+  .directive('shUpload', shapy.browser.upload)
 
 
   .factory('shHttp', shapy.HttpInterceptor)

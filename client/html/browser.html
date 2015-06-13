@@ -18,10 +18,11 @@
               ng-click="show=false;browserCtrl.createDir();">
             Folder
           </li>
-          <li
-              ng-click="show=false;browserCtrl.createTexture();">
-            Texture
-          </li>
+          <sh-create-texture show="show">
+            <li>
+              Texture
+            </li>
+          <sh-create-texture>
         </ul>
       </div>
       <div ng-switch-default class="space">

@@ -418,3 +418,27 @@ sh-asset > div > img {
   max-width: 100%;
   max-height: 100%;
 }
+
+sh-upload {
+  border: 4px dashed gray;
+  position: absolute;
+  top: 10px; left: 10px; right: 10px; bottom: 10px;
+  z-index: 5;
+}
+
+sh-upload.hover {
+  border: 4px dashed gray;
+  background-color: lightgray;
+}
+
+.upload-choose {
+  position: absolute;
+  z-index: 10;
+  width: 200px;
+  height: 50px;
+  margin-left: -100px;
+  margin-top: -25px;
+  top: 50%;
+  left: 50%;
+  text-align: center;
+}

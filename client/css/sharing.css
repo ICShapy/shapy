@@ -1,80 +1,39 @@
-.sharing-add #shared-with {
-  width: 350px;
-  font-size: 14px;
+.share-new {
+  height: 30px;
+  width: 100%;
 }
 
-.sharing-add #new-write {
-  margin-left: 5px;
-  font-size: 14px;
-  font-weight: normal;
-  display: inline;
-  color: gray;
-  width: 30px;
-  cursor: pointer;
+.share-new-email {
+  width: 426px;
+  font-size: 16px;
+  height: 16px;
+  padding: 2px;
 }
 
-.sharing-add #add {
-  width: 65px;
-  float: right;
-  font-size: 14px;
+.share-new-add {
+  width: 50px;
+  font-size: 16px;
 }
 
-#shared-text {
-  float: left;
-  font-size: 14px;
-  padding-top: 16px;
-  padding-bottom: 0;
-  margin-bottom: 0;
-  height: 20px;
-  width: 400px;
-  border-bottom: 1px solid #cccccc;
+.share-list {
+  width: 100%;
 }
 
-.permission-list {
-  position: absolute;
-  left: 0;
-  top: 70px;
-  margin-left: 5px;
-  height: 200px;
-  overflow: auto;
-  line-height: 20px;
-  list-style-type: none;
+.share-list th {
+  text-align: left;
+  border-bottom: 1px solid black;
 }
 
-.permission-list .permission {
-  display: block;
-  width: 400px;
-  font-size: 14px;
+.share-list .delete {
+  width: 60px;
+  height: 25px;
 }
 
-.permission-list .permission .selectedperm {
-  background: #3399FF;
+.share-list .write {
+  width: 40px;
+  text-align: center !important;
 }
 
-.permission-list .permission #email:hover {
-  background: #3399FF;
-  cursor: pointer;
-}
-
-
-.permission-list .permission #email {
-  float: left;
-  text-overflow: ellipsis;
-  width: 350px
-}
-
-.permission-list .permission #write {
-  float: right;
-}
-
-#remove {
-  width: 65px;
-  position: absolute;
-  top: 70px;
-  right: 5px;
-  font-size: 14px;
-  cursor: pointer;
-}
 
 .ui-autocomplete {
   z-index:10000 !important;

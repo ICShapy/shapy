@@ -8,10 +8,12 @@ goog.provide('shapy.browser.assetMatch');
 goog.provide('shapy.browser.assetOrder');
 goog.provide('shapy.browser.asset');
 goog.provide('shapy.browser.assets');
+goog.provide('shapy.browser.createTexture');
 goog.provide('shapy.browser.delete');
 goog.provide('shapy.browser.public');
 goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.share');
+goog.provide('shapy.browser.upload');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Directory');
@@ -94,16 +96,6 @@ shapy.browser.BrowserController.prototype.createDir = function() {
  */
 shapy.browser.BrowserController.prototype.createScene = function() {
   return this.shBrowser_.createScene();
-};
-
-
-/**
- * Creates new texture in current dir.
- *
- * @return {!angular.$q}
- */
-shapy.browser.BrowserController.prototype.createTexture = function() {
-  return this.shBrowser_.createTexture();
 };
 
 
@@ -511,131 +503,65 @@ shapy.browser.delete = function(shModal) {
  * @return {!angular.Directive}
  */
 shapy.browser.share = function(shModal, shBrowser) {
-
   /**
    * Handles sharing of an asset.
-   * @param {!shapy.browser.Asset} asset
+   *
+   * @param {!shapy.browser.Asset}             asset
+   * @param {!Array<string>}                   emails
+   * @param {!Array<shapy.browser.Permission>} permissions
    */
-  var share = function(asset) {
-    var available = [];
-    var shared = [];
-    shBrowser.getPermissions(asset).then(goog.bind(function(response) {
-      //retrieve available emails and those with which asset is already shared
-      available = response[0];
-      shared = response[1];
+  var share = function(asset, emails, permissions) {
+    shModal.open({
+      size: 'medium',
+      title: 'Share Asset',
+      templateUrl: '/html/browser-permissions.html',
+      controller: function($scope) {
+        $scope.asset = asset;
+        $scope.permissions = permissions;
 
-      //open sharing dialog
-      shModal.open({
-        size: 'medium',
-        title: 'Share Asset',
-        template:
-            '<div class="sharing-add">' +
-            '  <input id="shared-with" placeholder="Share.." ng-model="input">' +
-            '  <span id="new-write" ng-click="newWrite()">Write</span>' +
-            '  <button id="add"' +
-            '          ng-click="add()"' +
-            '          ng-style="(isAvailable())? {{style}}">' +
-            '    Add' +
-            '  </button>' +
-            '</div>' +
-            '<span id="shared-text">Shared with:</span> ' +
-            '<div class="permission-list">' +
-            '  <div ng-repeat="permission in shared">' +
-            '    <div class="permission">' +
-            '        <span id="email"' +
-            '               ng-click="select(permission)"' +
-            '               ng-class="{selectedperm: permission == whichSelected()}">' +
-            '          {{permission.email}}' +
-            '        </span>' +
-            '        <span id="write" ng-style="(permission.write) ? {{black}} : {{gray}}">Write</span>' +
-            '    </div>' +
-            '  </div>' +
-            '</div>' +
-            '<button id="remove" ng-click="remove()">Remove</button>',
-        controller: function($scope) {
-          $scope.style = "{'cursor' : 'pointer'} : {'color' : 'gray'}";
-          $scope.black = "{'color':'black', 'font-weight': 'bold'}";
-          $scope.gray = "{'color': 'gray', 'font-weight': 'normal'}";
-          $scope.selected = null;
-          $scope.asset = asset;
-          $scope.write = false;
-          $scope.available = available;
-          $scope.shared = shared;
+        // Closes the dialog.
+        $scope.cancel = function() {
+          return false;
+        };
 
-          $scope.cancel = function() { return false; };
-          $scope.okay = function() {
-            shBrowser.setPermissions(asset, $scope.shared);
-          };
-          $scope.add = function() {
-            // check if available
-            if (!$scope.isAvailable()) {
-              return;
-            }
+        // Applies permissions.
+        $scope.okay = function() {
+          shBrowser.setPermissions($scope.asset, $scope.permissions);
+        };
 
-            var newCollab = document.getElementById('shared-with');
-            var newEmail = newCollab.value;
-            for (var i = 0; i < $scope.shared.length; i++) {
-              // update if in list
-              if ($scope.shared[i].email === newEmail) {
-                $scope.shared[i].write = $scope.write;
-                // Clean
-                $scope.write = true;
-                $scope.newWrite();
-                newCollab.value = '';
-                return;
-              }
-            }
-            //Add new entry
-            $scope.shared.push(new shapy.browser.Permission(newEmail, $scope.write));
-            // Clean
-            $scope.write = true;
-            $scope.newWrite();
-            newCollab.value = '';
-          };
-          $scope.remove = function() {
-            $scope.shared = goog.array.filter($scope.shared, function(permission) {
-              return permission != $scope.selected;
-            });
-            $scope.selected = null;
-          };
-          //autocomplete
-          $("#shared-with").autocomplete({
-            source: available,
-            default: 150
+        // Adds a new permission.
+        $scope.add = function() {
+          var duplicate = goog.array.some($scope.permissions, function(perm) {
+            return perm.email == $scope.newEmail;
           });
-          //Check availability
-          $scope.isAvailable = function() {
-            return goog.array.some($scope.available, function(email) {
-              return email == document.getElementById('shared-with').value;
-            });
-          };
-          // Handle permission selection
-          $('#shared-with').bind('focus', function() {
-            $scope.selected = null;
-          });
-          $scope.select = function(permission) {
-            $scope.selected = permission;
-          };
-          $scope.whichSelected = function() {
-            return $scope.selected;
-          };
-          // Handle permission type choosing for new collaborator
-          $scope.newWrite = function() {
-            if ($scope.write) {
-               $("#new-write").css('color', 'gray');
-               $("#new-write").css('font-weight', 'normal');
-               $scope.write = false;
-            } else {
-              $("#new-write").css('color', 'black');
-              $("#new-write").css('font-weight', 'bold');
-              $scope.write = true;
-            }
-          };
+          if (!$scope.checkEmail() || duplicate) {
+            return;
+          }
 
-        }
-      });
+          // Add a new permission entry.
+          $scope.permissions.push(new shapy.browser.Permission(
+            $scope.newEmail, false
+          ));
+          $scope.newEmail = '';
+        };
 
-    }, this));
+        // Autocomplete.
+        $('.share-new-email').autocomplete({
+          source: emails,
+          default: 150,
+          change: function() {
+            $scope.$apply(goog.bind(function() {
+              $scope.newEmail = $(this).val();
+            }, this));
+          }
+        });
+
+        // Check availability.
+        $scope.checkEmail = function() {
+          return goog.array.contains(emails, $scope.newEmail);
+        };
+      }
+    });
   };
 
   return {
@@ -644,17 +570,18 @@ shapy.browser.share = function(shModal, shBrowser) {
      asset: '='
     },
     link: function($scope, $elem, $attrs) {
-
       $elem.bind('mousedown', function(evt) {
-          // Block if not owner
-          if (!$scope.asset.owner) {
-            return;
-          }
-          share($scope.asset);
+        var asset = $scope.asset;
+        // Block if not owner.
+        if (!asset.owner) {
+          return;
+        }
+        shBrowser.getPermissions(asset).then(function(response) {
+          share(asset, response[0], response[1]);
+        });
       });
     }
   };
-
 };
 
 
@@ -695,6 +622,98 @@ shapy.browser.public = function(shBrowser) {
 
 };
 
+
+/**
+ * Texture creating directive.
+ *
+ * @param {!shapy.modal.Service}       shModal
+ *
+ * @return {!angular.Directive}
+ */
+shapy.browser.createTexture = function(shModal, shBrowser) {
+  /**
+   * Handles creating/uploading texture.
+   */
+  var createTexture = function() {
+    shModal.open({
+      size: 'medium',
+      title: 'Create Texture',
+      controllerAs: 'uploadCtrl',
+      templateUrl: '/html/browser-create-texture.html',
+      controller: function($scope) {
+        /**
+         * List of files.
+         */
+        $scope.files = [];
+
+        // Adds a new file to the list.
+        $scope.add = function() {
+          console.log('aaaa');
+        };
+
+        // Cancels the upload.
+        $scope.cancel = function() { return false; };
+
+        // Starts the upload.
+        $scope.okay = function() {
+          shBrowser.createTexture();
+          console.log($scope.upload);
+        };
+      }
+    });
+  };
+
+  return {
+    restrict: 'E',
+    scope: {
+     show: '='
+    },
+    link: function($scope, $elem) {
+      $elem.bind('mousedown', function(evt) {
+          $scope.$apply(function() {
+            $scope.show = false;
+          });
+          createTexture();
+      });
+    }
+  };
+};
+
+
+/**
+ * Upload directive.
+ */
+shapy.browser.upload = function() {
+  return {
+    restrict: 'E',
+    require: 'ngModel',
+    link: function($scope, $elem, $attrs, $ngModel) {
+      $elem
+        .on('dragover', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          $(".upload-choose").hide();
+          $elem.addClass('hover');
+        })
+        .on('dragleave', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          $(".upload-choose").show();
+          $elem.removeClass('hover');
+        })
+        .on('drop', function(e) {
+          var files = e.originalEvent.dataTransfer.files;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          return false;
+        });
+    }
+  }
+}
 
 
 /**
