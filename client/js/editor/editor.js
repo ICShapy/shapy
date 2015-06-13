@@ -265,8 +265,8 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
     return;
   }
 
-  var notif = this.shNotify_.notice({
-    dismiss: true,
+  this.shNotify_.notice({
+    dismiss: 1500,
     text: 'Saving asset...'
   });
 
@@ -287,9 +287,7 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
 
     // Upload.
     this.scene_.image = canvas.toDataURL('image/jpeg');
-    this.scene_.save().then(function() {
-      notif();
-    });
+    this.scene_.save();
   }, this);
   image.src = this.canvas_.toDataURL('image/jpeg');
 };
