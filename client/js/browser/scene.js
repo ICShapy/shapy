@@ -113,9 +113,11 @@ shapy.browser.Scene.prototype.load = function(data) {
 
 /**
  * Saves the asset data.
+ *
+ * @return {!angular.$q}
  */
 shapy.browser.Scene.prototype.save = function() {
-  this.shBrowser_.http_.put('/api/assets/scene', {
+  return this.shBrowser_.http_.put('/api/assets/scene', {
     id: this.id,
     name: this.name,
     data: JSON.stringify(this.toJSON()),

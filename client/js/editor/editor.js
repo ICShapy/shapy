@@ -55,6 +55,11 @@ shapy.editor.EditorController = function($scope, user, scene, shEditor) {
 };
 
 
+/**
+ * Sends a message to all other people in the chat room.
+ *
+ * @param {string} msg
+ */
 shapy.editor.EditorController.prototype.sendMessage = function(msg) {
   this.shEditor_.sendMessage(msg);
   this.message = '';
@@ -67,18 +72,20 @@ shapy.editor.EditorController.prototype.sendMessage = function(msg) {
  * @constructor
  * @ngInject
  *
- * @param {!angular.$http}         $http      The Angular HTTP service.
- * @param {!angular.$location}     $location  The Angular location service.
- * @param {!angular.$scope}        $rootScope
- * @param {!shapy.UserService}     shUser
- * @param {!shapy.browser.Service} shBrowser
+ * @param {!angular.$http}              $http      The Angular HTTP service.
+ * @param {!angular.$location}          $location  The Angular location service.
+ * @param {!angular.$scope}             $rootScope
+ * @param {!shapy.UserService}          shUser
+ * @param {!shapy.browser.Service}      shBrowser
+ * @param {!shapy.notification.Service} shNotify
  */
 shapy.editor.Editor = function(
     $http,
     $location,
     $rootScope,
     shUser,
-    shBrowser)
+    shBrowser,
+    shNotify)
 {
   /** @private {!angular.$location} @const */
   this.location_ = $location;
@@ -90,6 +97,8 @@ shapy.editor.Editor = function(
   this.shUser_ = shUser;
   /** @private {!shapy.browser.Service} @const */
   this.shBrowser_ = shBrowser;
+  /** @private {!shapy.notification.Service} @const */
+  this.shNotify_ = shNotify;
 
   /** @private {!shapy.editor.Rig} @const */
   this.rigTranslate_ = new shapy.editor.Rig.Translate();
@@ -252,6 +261,15 @@ shapy.editor.Editor.prototype.sendMessage = function(msg) {
  * @private
  */
 shapy.editor.Editor.prototype.snapshot_ = function() {
+  if (!this.scene_.write) {
+    return;
+  }
+
+  this.shNotify_.notice({
+    dismiss: 1500,
+    text: 'Saving asset...'
+  });
+
   var image = new Image();
   image.onload = goog.bind(function() {
     var aspect = this.vp_.width / this.vp_.height;
@@ -269,6 +287,7 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
 
     // Upload.
     this.scene_.image = canvas.toDataURL('image/jpeg');
+    this.scene_.save();
   }, this);
   image.src = this.canvas_.toDataURL('image/jpeg');
 };
@@ -290,13 +309,24 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
 
   // Set up the websocket connection.
   this.pending_ = [];
-  this.exec_ = new shapy.editor.Executor(this.scene_, this);
 
-  // Attach onFinish emiters.
-  this.rigTranslate_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
-  this.rigRotate_.onFinish = goog.bind(this.exec_.emitRotate, this.exec_);
-  this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
-  this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
+  // Create the executor based on the write permission.
+  if (this.scene_.write) {
+    this.exec_ = new shapy.editor.WriteExecutor(this.scene_, this);
+
+    // Attach onFinish emiters.
+    this.rigTranslate_.onFinish = goog.bind(
+        this.exec_.emitTranslate, this.exec_);
+    this.rigRotate_.onFinish = goog.bind(this.exec_.emitRotate, this.exec_);
+    this.rigScale_.onFinish = goog.bind(this.exec_.emitScale, this.exec_);
+    this.rigExtrude_.onFinish = goog.bind(this.exec_.emitTranslate, this.exec_);
+  } else {
+    this.shNotify_.warning({
+      text: 'This scene is read-only.',
+      dismiss: 5000
+    });
+    this.exec_ = new shapy.editor.ReadExecutor(this.scene_, this);
+  }
 };
 
 
@@ -324,9 +354,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Start checkpointing.
   this.checkpoint_ = setInterval(goog.bind(function() {
-    console.log('Saved to server.');
     this.snapshot_();
-    this.scene_.save();
   }, this), 10000);
 
   // Watch for changes in the name.
@@ -490,7 +518,6 @@ shapy.editor.Editor.prototype.render = function() {
 shapy.editor.Editor.prototype.destroy = function() {
   // Take a snapshot.
   this.snapshot_();
-  this.scene_.save();
   this.scene_.destroy();
 
   // Stop rendering.
@@ -882,4 +909,3 @@ shapy.editor.Editor.prototype.mouseLeave = function(e) {
 shapy.editor.Editor.prototype.mouseWheel = function(e) {
   this.layout.mouseWheel(e);
 };
-

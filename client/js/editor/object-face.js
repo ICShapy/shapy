@@ -164,7 +164,7 @@ shapy.editor.Face.prototype.calculateNormal = function() {
 shapy.editor.Face.prototype.getPosition = function() {
   var t = this.getVertexPositions_();
   var c = shapy.editor.geom.getCentroid(t[0], t[1], t[2]);
-  goog.vec.Mat4.multVec3(this.object.model_, c, c);
+  goog.vec.Mat4.multVec3(this.object.model, c, c);
   return c;
 };
 

@@ -1,8 +1,8 @@
 // This file is part of the Shapy project.
 // Licensing information can be found in the LICENSE file.
 // (C) 2015 The Shapy Team. All rights reserved.
-goog.provide('shapy.notification.notifyBar');
 goog.provide('shapy.notification.Service');
+goog.provide('shapy.notification.notifyBar');
 
 
 
@@ -34,6 +34,8 @@ shapy.notification.Service = function($timeout) {
  *
  * @param {!shapy.notification.Type_} type Type of the notification.
  * @param {Object}                    data
+ *
+ * @return {Function}
  */
 shapy.notification.Service.prototype.add_ = function(type, data) {
   var item = new shapy.notification.Notification_(type, data);
@@ -46,6 +48,12 @@ shapy.notification.Service.prototype.add_ = function(type, data) {
       }, this), 1000);
     }, this), data.dismiss);
   }
+  return goog.bind(function() {
+    item.fade = true;
+    this.timeout_(goog.bind(function() {
+      this.remove(item);
+    }, this), 2000);
+  }, this);
 };
 
 
@@ -53,9 +61,11 @@ shapy.notification.Service.prototype.add_ = function(type, data) {
  * Removes a notification.
  *
  * @param {!shapy.notification.Notification} notif Notification to be removed.
+ *
+ * @return {Function}
  */
 shapy.notification.Service.prototype.remove = function(notif) {
-  this.notifications.splice(this.notifications.indexOf(notif), 1);
+  return this.notifications.splice(this.notifications.indexOf(notif), 1);
 };
 
 
@@ -63,9 +73,11 @@ shapy.notification.Service.prototype.remove = function(notif) {
  * Adds a new notice.
  *
  * @param {Object} data
+ *
+ * @return {Function}
  */
 shapy.notification.Service.prototype.warning = function(data) {
-  this.add_(shapy.notification.Type_.WARNING, data);
+  return this.add_(shapy.notification.Type_.WARNING, data);
 };
 
 
@@ -74,9 +86,11 @@ shapy.notification.Service.prototype.warning = function(data) {
  * Adds a new error.
  *
  * @param {Object} data
+ *
+ * @return {Function}
  */
 shapy.notification.Service.prototype.error = function(data) {
-  this.add_(shapy.notification.Type_.ERROR, data);
+  return this.add_(shapy.notification.Type_.ERROR, data);
 };
 
 
@@ -84,9 +98,11 @@ shapy.notification.Service.prototype.error = function(data) {
  * Adds a new notice.
  *
  * @param {Object} data
+ *
+ * @return {Function}
  */
 shapy.notification.Service.prototype.notice = function(data) {
-  this.add_(shapy.notification.Type_.NOTICE, data);
+  return this.add_(shapy.notification.Type_.NOTICE, data);
 };
 
 

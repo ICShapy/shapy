@@ -10,10 +10,13 @@ goog.provide('shapy.editor.Executor');
  *
  * @param {!shapy.editor.Scene} scene
  * @param {!shapy.editor.Editor} editor
+ * @param {!shapy.editor.Executor.Type} type
  *
  * @constructor
  */
-shapy.editor.Executor = function(scene, editor) {
+shapy.editor.Executor = function(scene, editor, type) {
+  /** @public {!shapy.editor.Executor.Type} @const */
+  this.type = type;
   /** @private {!shapy.editor.Scene} @const */
   this.scene_ = scene;
   /** @private {!shapy.editor.Editor} @const */
@@ -216,10 +219,7 @@ shapy.editor.Executor.prototype.applyMessage = function(data) {
  * @param {string} type
  */
 shapy.editor.Executor.prototype.emitCreate = function(type) {
-  this.sendCommand({
-    type: 'create',
-    object: type
-  });
+
 };
 
 
@@ -254,25 +254,7 @@ shapy.editor.Executor.prototype.applyCreate = function(data) {
  * @param {!Array<!shapy.editor.Object>} toUnlock
  */
 shapy.editor.Executor.prototype.emitSelect = function(toLock, toUnlock) {
-  if (!goog.array.isEmpty(toLock)) {
-    this.sendCommand({
-      type: 'lock',
-      user: this.editor_.user.id,
-      objects: goog.array.map(toLock, function(object) {
-        return object.id;
-      })
-    });
-  }
 
-  if (!goog.array.isEmpty(toUnlock)) {
-    this.sendCommand({
-      type: 'unlock',
-      user: this.editor_.user.id,
-      objects: goog.array.map(toUnlock, function(object) {
-        return object.id;
-      })
-    });
-  }
 };
 
 
@@ -288,7 +270,8 @@ shapy.editor.Executor.prototype.applyLock = function(data) {
         console.log('Invalid object "' + id + "'");
         return;
       }
-      if (user.id == this.editor_.user.id) {
+
+      if (this.editor_.user && user.id == this.editor_.user.id) {
         this.editor_.objectGroup.add([this.scene_.objects[id]]);
       }
       this.scene_.objects[id].setSelected(user);
@@ -338,27 +321,7 @@ shapy.editor.Executor.prototype.applyLeave = function(data) {
  * @param {number}                     dz  Delta on z.
  */
 shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
-  var data = {
-    type: 'edit',
-    tool: 'translate',
-    userId: this.editor_.user.id,
 
-    dx: dx,
-    dy: dy,
-    dz: dz,
-
-    objMode: this.editor_.mode.object
-  };
-
-  // Object group.
-  if (this.editor_.mode.object) {
-    data.ids = obj.getObjIds();
-  } else {
-    // Parts group.
-    data.ids = obj.getObjVertIds();
-  }
-
-  this.sendCommand(data);
 };
 
 
@@ -369,7 +332,7 @@ shapy.editor.Executor.prototype.emitTranslate = function(obj, dx, dy, dz) {
  */
 shapy.editor.Executor.prototype.applyTranslate = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -397,33 +360,7 @@ shapy.editor.Executor.prototype.applyTranslate = function(data) {
  * @param {number}                     w
  */
 shapy.editor.Executor.prototype.emitRotate = function(obj, x, y, z, w) {
-  var mid = obj.getPosition();
 
-  var data = {
-    type: 'edit',
-    tool: 'rotate',
-    userId: this.editor_.user.id,
-
-    mx: mid[0],
-    my: mid[1],
-    mz: mid[2],
-
-    x: x,
-    y: y,
-    z: z,
-    w: w,
-
-    objMode: this.editor_.mode.object
-  };
-
-  // Objects group
-  if (this.editor_.mode.object) {
-    data.ids = obj.getObjIds();
-  } else {
-    // Parts group rotation to be implemented.
-  }
-
-  this.sendCommand(data);
 };
 
 
@@ -434,7 +371,7 @@ shapy.editor.Executor.prototype.emitRotate = function(obj, x, y, z, w) {
  */
 shapy.editor.Executor.prototype.applyRotate = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -488,32 +425,7 @@ shapy.editor.Executor.prototype.applyRotate = function(data) {
  * @param {number}                     sz
  */
 shapy.editor.Executor.prototype.emitScale = function(obj, sx, sy, sz) {
-  var mid = obj.getPosition();
 
-  var data = {
-    type: 'edit',
-    tool: 'scale',
-    userId: this.editor_.user.id,
-
-    mx: mid[0],
-    my: mid[1],
-    mz: mid[2],
-
-    sx: sx,
-    sy: sy,
-    sz: sz,
-
-    objMode: this.editor_.mode.object
-  };
-
-  // Objects group
-  if (this.editor_.mode.object) {
-    data.ids = obj.getObjIds();
-  } else {
-    // Parts group scaling to be implemented.
-  }
-
-  this.sendCommand(data);
 };
 
 
@@ -524,7 +436,7 @@ shapy.editor.Executor.prototype.emitScale = function(obj, sx, sy, sz) {
  */
 shapy.editor.Executor.prototype.applyScale = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -556,23 +468,7 @@ shapy.editor.Executor.prototype.applyScale = function(data) {
  * @param {shapy.editor.Editable}
  */
 shapy.editor.Executor.prototype.emitDelete = function(obj) {
-  var data = {
-    type: 'edit',
-    tool: 'delete',
-    userId: this.editor_.user.id,
 
-    objMode: this.editor_.mode.object
-  };
-
-  // Object group.
-  if (this.editor_.mode.object) {
-    data.ids = obj.getObjIds();
-  } else {
-    // Parts group.
-    data.ids = obj.getObjPartIds();
-  }
-
-  this.sendCommand(data);
 };
 
 
@@ -583,7 +479,7 @@ shapy.editor.Executor.prototype.emitDelete = function(obj) {
  */
 shapy.editor.Executor.prototype.applyDelete = function(data) {
   // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
     return;
   }
 
@@ -630,6 +526,233 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
  * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
 shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
+
+};
+
+
+/**
+ * Handles extrude command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyExtrude = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  var object = this.scene_.objects[data['objId']];
+
+  // Extrude the faces.
+  object.extrude(goog.array.map(data['faceIds'], function(faceId) {
+    return object.faces[faceId];
+  }, this));
+};
+
+
+
+/**
+ * Applies and makes changes to the scene.
+ *
+ * @constructor
+ * @extends {shapy.editor.Executor}
+ *
+ * @param {!shapy.editor.Scene}  scene
+ * @param {!shapy.editor.Editor} editor
+ */
+shapy.editor.WriteExecutor = function(scene, editor) {
+  shapy.editor.Executor.call(
+      this, scene, editor, shapy.editor.Executor.Type.WRITE);
+};
+goog.inherits(shapy.editor.WriteExecutor, shapy.editor.Executor);
+
+
+/**
+ * Executes the create command.
+ *
+ * @param {string} type
+ */
+shapy.editor.WriteExecutor.prototype.emitCreate = function(type) {
+  this.sendCommand({
+    type: 'create',
+    object: type
+  });
+};
+
+
+/**
+ * Executes the select command.
+ *
+ * @param {!Array<!shapy.editor.Object>} toLock
+ * @param {!Array<!shapy.editor.Object>} toUnlock
+ */
+shapy.editor.WriteExecutor.prototype.emitSelect = function(toLock, toUnlock) {
+  if (!goog.array.isEmpty(toLock)) {
+    this.sendCommand({
+      type: 'lock',
+      user: this.editor_.user.id,
+      objects: goog.array.map(toLock, function(object) {
+        return object.id;
+      })
+    });
+  }
+
+  if (!goog.array.isEmpty(toUnlock)) {
+    this.sendCommand({
+      type: 'unlock',
+      user: this.editor_.user.id,
+      objects: goog.array.map(toUnlock, function(object) {
+        return object.id;
+      })
+    });
+  }
+};
+
+
+/**
+ * Executes the translate command.
+ *
+ * @param {shapy.editor.Editable.Type} obj Object to be translated.
+ * @param {number}                     dx  Delta on x.
+ * @param {number}                     dy  Delta on y.
+ * @param {number}                     dz  Delta on z.
+ */
+shapy.editor.WriteExecutor.prototype.emitTranslate = function(obj, dx, dy, dz) {
+  var data = {
+    type: 'edit',
+    tool: 'translate',
+    userId: this.editor_.user.id,
+
+    dx: dx,
+    dy: dy,
+    dz: dz,
+
+    objMode: this.editor_.mode.object
+  };
+
+  // Object group.
+  if (this.editor_.mode.object) {
+    data.ids = obj.getObjIds();
+  } else {
+    // Parts group.
+    data.ids = obj.getObjVertIds();
+  }
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Executes the rotate command.
+ *
+ * @param {shapy.editor.Editable.Type} obj
+ * @param {number}                     x
+ * @param {number}                     y
+ * @param {number}                     z
+ * @param {number}                     w
+ */
+shapy.editor.WriteExecutor.prototype.emitRotate = function(obj, x, y, z, w) {
+  var mid = obj.getPosition();
+
+  var data = {
+    type: 'edit',
+    tool: 'rotate',
+    userId: this.editor_.user.id,
+
+    mx: mid[0],
+    my: mid[1],
+    mz: mid[2],
+
+    x: x,
+    y: y,
+    z: z,
+    w: w,
+
+    objMode: this.editor_.mode.object
+  };
+
+  // Objects group
+  if (this.editor_.mode.object) {
+    data.ids = obj.getObjIds();
+  } else {
+    // Parts group rotation to be implemented.
+  }
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Executed the scale command.
+ *
+ * @param {shapy.editor.Editable.Type} obj
+ * @param {number}                     sx
+ * @param {number}                     sy
+ * @param {number}                     sz
+ */
+shapy.editor.WriteExecutor.prototype.emitScale = function(obj, sx, sy, sz) {
+  var mid = obj.getPosition();
+
+  var data = {
+    type: 'edit',
+    tool: 'scale',
+    userId: this.editor_.user.id,
+
+    mx: mid[0],
+    my: mid[1],
+    mz: mid[2],
+
+    sx: sx,
+    sy: sy,
+    sz: sz,
+
+    objMode: this.editor_.mode.object
+  };
+
+  // Objects group
+  if (this.editor_.mode.object) {
+    data.ids = obj.getObjIds();
+  } else {
+    // Parts group scaling to be implemented.
+  }
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Executes delete command.
+ *
+ * @param {shapy.editor.Editable}
+ */
+shapy.editor.WriteExecutor.prototype.emitDelete = function(obj) {
+  var data = {
+    type: 'edit',
+    tool: 'delete',
+    userId: this.editor_.user.id,
+
+    objMode: this.editor_.mode.object
+  };
+
+  // Object group.
+  if (this.editor_.mode.object) {
+    data.ids = obj.getObjIds();
+  } else {
+    // Parts group.
+    data.ids = obj.getObjPartIds();
+  }
+
+  this.sendCommand(data);
+};
+
+
+/**
+ * Executes extrude command.
+ *
+ * @param {shapy.editor.Editable} obj   Object the group belonds to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
+ */
+shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
   this.sendCommand({
     type: 'edit',
     tool: 'extrude',
@@ -641,21 +764,29 @@ shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
 };
 
 
+
 /**
- * Handles extrude command.
+ * Receives changes and upates the scene.
  *
- * @param {!Object} data
+ * @constructor
+ * @extends {shapy.editor.Executor}
+ *
+ * @param {!shapy.editor.Scene}  scene
+ * @param {!shapy.editor.Editor} editor
  */
-shapy.editor.Executor.prototype.applyExtrude = function(data) {
-  // Ignore edits performed by the current user.
-  if (data['userId'] == this.editor_.user.id) {
-    return;
-  }
+shapy.editor.ReadExecutor = function(scene, editor) {
+  shapy.editor.Executor.call(
+      this, scene, editor, shapy.editor.Executor.Type.READ);
+};
+goog.inherits(shapy.editor.ReadExecutor, shapy.editor.Executor);
 
-  var object = this.scene_.objects[data['objId']];
 
-  // Extrude the faces.
-  object.extrude(goog.array.map(data['faceIds'], function(faceId) {
-    return object.faces[faceId];
-  }, this));
+
+/**
+ * List of executor types.
+ * @enum {string}
+ */
+shapy.editor.Executor.Type = {
+  WRITE: 'write',
+  READ: 'read'
 };
