@@ -1,23 +1,41 @@
-<div class="sharing-add">
-  <input id="shared-with" placeholder="Share.." ng-model="input">
-  <span id="new-write" ng-click="newWrite()">Write</span>
-  <button id="add"
-          ng-click="add()"
-          ng-style="(isAvailable())? {{style}}">
+<div class="share-new">
+  <input
+      type="text"
+      class="share-new-email"
+      placeholder="Share with..."
+      ng-model="newEmail">
+  <button
+      class="share-new-add"
+      ng-click="add()"
+      ng-disabled="!checkEmail()">
     Add
   </button>
 </div>
-<span id="shared-text">Shared with:</span>
-<div class="permission-list">
-  <div ng-repeat="permission in shared">
-    <div class="permission">
-        <span id="email"
-               ng-click="select(permission)"
-               ng-class="{selectedperm: permission == whichSelected()}">
-          {{permission.email}}
-        </span>
-        <span id="write" ng-style="(permission.write) ? {{black}} : {{gray}}">Write</span>
-    </div>
-  </div>
-</div>
-<button id="remove" ng-click="remove()">Remove</button>
+<table class="share-list">
+  <tr class="share-list-header">
+    <th class="email">Email</th>
+    <th class="delete"></th>
+    <th class="write">Write</th>
+  </tr>
+  <tr
+      class="share-list-item"
+      ng-repeat="perm in permissions"
+      ng-mouseenter="hover=$index"
+      ng-mouseleave="hover=-1">
+    <td
+        class="email">
+      {{perm.email}}
+    </td>
+    <td class="delete">
+      <button
+          ng-show="hover==$index"
+          type="button"
+          ng-click="permissions.splice($index, 1)">
+        Delete
+      </button>
+    </td>
+    <td class="write">
+      <input type="checkbox" ng-checked="perm.write"/>
+    </td>
+  </tr>
+</table>

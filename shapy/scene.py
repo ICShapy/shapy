@@ -2,6 +2,8 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
+import StringIO
+
 
 
 class Scene(object):
@@ -66,3 +68,10 @@ class Scene(object):
     return {
       'objects': dict((k, v.__dict__) for k, v in self.objects.iteritems())
     }
+
+  def to_obj(self):
+    """Converts the scene to wavefront obj format."""
+
+    string = StringIO.StringIO()
+    print >>string, 'x'
+    return string.getvalue()
