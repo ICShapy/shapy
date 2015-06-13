@@ -548,6 +548,12 @@ shapy.browser.share = function(shModal, shBrowser, shUser) {
           $scope.newEmail = '';
         };
 
+        var onApply = function(e, ui) {
+          $scope.$apply(goog.bind(function() {
+            $scope.newEmail = ui.item.value;
+          }, this));
+        };
+
         // Autocomplete.
         $('.share-new-email').autocomplete({
           source: function(request, response) {
@@ -568,11 +574,8 @@ shapy.browser.share = function(shModal, shBrowser, shUser) {
                 response([]);
               });
           },
-          change: function(e, ui) {
-            $scope.$apply(goog.bind(function() {
-              $scope.newEmail = ui.item.value;
-            }, this));
-          }
+          change: onApply,
+          select: onApply
         });
 
         // Check availability.
