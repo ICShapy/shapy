@@ -518,22 +518,18 @@ shapy.browser.Service.prototype.deleteTexture = function(texture) {
  * Fetches permissions data for given asset.
  *
  * @param {!shapy.browser.Asset} asset Asset which sharing status we check.
+ *
+ * @return {!angular.$q}
  */
 shapy.browser.Service.prototype.getPermissions = function(asset) {
-  // Request asset data from server.
   return this.http_.get('/api/permissions', {params: { id: asset.id }})
     .then(goog.bind(function(response) {
-      var emails = [[], []];
-      goog.array.forEach(response.data['available'], function(email) {
-        emails[0].push(email);
-      });
-      goog.array.forEach(response.data['shared'], function(permission) {
-        emails[1].push(new shapy.browser.Permission(
+      return goog.array.map(response.data, function(permission) {
+        return new shapy.browser.Permission(
+            0,
             permission['email'],
-            permission['write']));
+            permission['write']);
       });
-
-      return emails;
     }, this));
 };
 
@@ -605,11 +601,12 @@ shapy.browser.Service.prototype.setPublicTexture = function(texture, public) {
  *
  * @constructor
  *
+ * @param {number}  id    ID of the user.
  * @param {string}  email Email of the user.
  * @param {boolean} write Write permission
-
  */
-shapy.browser.Permission = function(email, write) {
+shapy.browser.Permission = function(id, email, write) {
+  this.id = id;
   this.email = email;
   this.write = write;
 };

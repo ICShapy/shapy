@@ -15,6 +15,7 @@ import shapy.editor
 import shapy.user
 import shapy.assets
 import shapy.permissions
+import shapy.public
 
 
 
@@ -40,7 +41,7 @@ def main(args):
     # API for accessing assets.
     (r'/api/assets/dir$',        shapy.assets.DirHandler),
     (r'/api/assets/filtered$',   shapy.assets.FilteredHandler),
-    (r'/api/assets/public',      shapy.assets.PublicHandler),
+    (r'/api/assets/public',      shapy.public.PublicHandler),
     (r'/api/assets/scene$',      shapy.assets.SceneHandler),
     (r'/api/assets/shared$',     shapy.assets.SharedHandler),
     (r'/api/assets/texture$',    shapy.assets.TextureHandler),
@@ -57,7 +58,8 @@ def main(args):
     (r'/api/user/login',         shapy.user.LoginHandler),
     (r'/api/user/logout',        shapy.user.LogoutHandler),
     (r'/api/user/register',      shapy.user.RegisterHandler),
-    (r'/api/user/([0-9]+)',      shapy.user.InfoHandler),
+    (r'/api/user$',              shapy.user.InfoHandler),
+    (r'/api/user/filter$',       shapy.user.FilterHandler),
 
     # WebSocket handler.
     (r'/api/edit/([0-9]+)',      shapy.editor.WSHandler),
