@@ -794,11 +794,27 @@ shapy.editor.Object.prototype.connect = function(verts) {
       v.sort();
       return v[0] == e[0] && v[1] == e[1] && v[2] == e[2];
     });
+
     if (exists) {
       return;
     }
+
+    var e0, e1, e2;
+    e0 = this.edges[e[0]];
+    e1 = this.edges[e[1]];
+    e2 = this.edges[e[2]];
+    if (e0.v1 != e1.v0 || e0.v1 != e1.v1) {
+      e1 = this.edges[e[2]];
+      e2 = this.edges[e[1]];
+    }
+
     var faceID = this.nextFace_++;
-    this.faces[faceID] = new shapy.editor.Face(this, faceID, e[0], e[1], e[2]);
+    this.faces[faceID] = new shapy.editor.Face(
+        this,
+        faceID,
+        e0.id,
+        e0.v1 == e1.v0 ? e1.id : -e1.id,
+        e0.v0 == e2.v1 ? e2.id : -e2.id);
     this.dirty = true;
   }
 };
