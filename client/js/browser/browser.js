@@ -693,8 +693,14 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
 
         // Starts the upload.
         $scope.okay = function() {
-          shBrowser.createTexture();
-          console.log($scope.upload);
+          for (var i = 0; i < $scope.files.length; i++) {
+            var reader = new FileReader();
+            $(reader).bind('load', function() {
+              shBrowser.createTexture(reader.result);
+            });
+            reader.readAsDataURL($scope.files[i]);
+          }
+          
         };
       }
     });
