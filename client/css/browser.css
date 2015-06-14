@@ -486,5 +486,14 @@ sh-upload.hover {
   z-index: 30;
 }
 
+/**
+ * Texture display
+ */
+
+#texture-display {
+  max-width: 100%;
+  max-height: 100%;
+}
+
 
 

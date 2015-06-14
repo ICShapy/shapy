@@ -80,10 +80,10 @@
           asset="asset"
           selected="browserCtrl.selected"
           owner="asset.owner"
+          select-asset="browserCtrl.select(asset, enter)"
           ng-class="{selected: browserCtrl.selected==asset}">
         <div class="image"
-            ng-click="browserCtrl.selected=asset"
-            ng-dblclick="browserCtrl.select(asset, true)">
+            ng-click="browserCtrl.selected=asset">
           <img class="assetmenu" ng-src="{{asset.image}}">
         </div>
         <div ng-switch on="asset.write">

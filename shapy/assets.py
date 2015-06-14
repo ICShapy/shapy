@@ -143,7 +143,7 @@ class AssetHandler(APIHandler):
 
   @coroutine
   def _fetch(self, id, user):
-    """Retrieves a scene from the database."""
+    """Retrieves an asset from the database."""
 
     # Fetch data from the asset and permission table.
     # The write flag will have 3 possible values: None, True, False
@@ -191,7 +191,7 @@ class AssetHandler(APIHandler):
   @coroutine
   @asynchronous
   def get(self, user):
-    """Retrieves a scene from the database."""
+    """Retrieves an asset from the database."""
 
     id = self.get_argument('id')
     if not id:
@@ -204,7 +204,8 @@ class AssetHandler(APIHandler):
         'id': data['id'],
         'name': data['name'],
         'preview': str(data['preview'] or ''),
-        'data': json.loads(str(data['data'] or 'null')),
+        'data': str(data['data'] or '') if self.TYPE == 'texture'
+                else json.loads(str(data['data'] or 'null')),
         'public': data['public'],
         'owner': owner,
         'write': write,

@@ -366,12 +366,31 @@ shapy.browser.asset = function(shModal) {
     });
   };
 
+  /**
+   * Handles displaying a texture in full size.
+   * @param {!shapy.browser.Asset} asset
+   */
+  var displayTexture = function(asset) {
+    shModal.open({
+      size: 'large',
+      title: 'Texture',
+      template:
+          '<img id="texture-display" ng-src="{{asset.imageFull}}">',
+      controller: function($scope) {
+        $scope.asset = asset;
+        $scope.cancel = function() { return false; };
+        $scope.okay = function() { return false; };
+      }
+    });
+  };
+
   return {
     restrict: 'E',
     scope: {
       asset: '=',
       selected: '=',
       owner: '=',
+      selectAsset: '&'
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
@@ -426,6 +445,20 @@ shapy.browser.asset = function(shModal) {
         });
 
       });
+
+      // Select or display texture
+      $elem.bind('dblclick', function(evt) {
+        if ($scope.asset.type != shapy.browser.Asset.Type.TEXTURE) {
+          console.log('aa');
+          $scope.selectAsset($scope.asset, true);
+          return;
+        } else {
+          $scope.asset.shBrowser_.getTexture($scope.asset.id).then(function(){
+            displayTexture($scope.asset);
+          });
+        }
+      });
+
     }
   };
 };

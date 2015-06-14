@@ -43,6 +43,8 @@ shapy.browser.Texture = function(shBrowser, id, opt_data) {
 
   // Set preview
   this.image = (opt_data && opt_data['preview']) || '/img/logo.png';
+  // Full preview
+  this.imageFull = '';
 };
 goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
 
@@ -93,9 +95,21 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
 
 
 /**
- * Loads the image from base64 data.
+ * Loads the texture data.
+ *
+ * @param {Object} data
  */
 shapy.browser.Texture.prototype.load = function(data) {
+  // Fill in the name if unknown.
+  this.name = data.name || this.shBrowser_.defaultName(this.type);
+  // Fill in permission flags
+  this.owner = !!data.owner;
+  this.write = !!data.write;
+  this.public = !!data.public;
+  this.loaded = true;
+  // Set full preview
+  this.imageFull = data.data;
+
   var defer = this.shBrowser_.q_.defer();
 
   var image = new Image();
@@ -110,3 +124,4 @@ shapy.browser.Texture.prototype.load = function(data) {
 
   return defer.promise;
 };
+
