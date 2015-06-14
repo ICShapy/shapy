@@ -728,12 +728,11 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
         $scope.okay = function() {
           for (var i = 0; i < $scope.files.length; i++) {
             var reader = new FileReader();
-            $(reader).bind('load', function() {
-              shBrowser.createTexture(reader.result);
-            });
+            reader.onload = goog.bind(function() {
+              shBrowser.createTexture(this.result);
+            }, reader);
             reader.readAsDataURL($scope.files[i]);
           }
-          
         };
       }
     });
