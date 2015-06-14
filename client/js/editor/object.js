@@ -823,22 +823,50 @@ shapy.editor.Object.prototype.createFace = function(id, e0, e1, e2) {
   var edge1 = this.edges[e1];
   var edge2 = this.edges[e2];
 
+  console.log("before", edge0.v0, edge0.v1, edge1.v0, edge1.v1, edge2.v0, edge2.v1, e0, e1, e2);
+
   // Make sure that the edges are ordered.
-  var vertices = [edge0.v0, edge0.v1, edge1.v0, edge1.v1, edge2.v0, edge2.v1];
-  goog.array.removeDuplicates(vertices);
+  if (edge0.v1 == edge1.v0) {
+    console.log("good");
+    // e1 already good
+  } else if (edge0.v1 == edge2.v0) {
+    //console.log("swap 1 2");
+    console.log("____before", e1, e2);
+    var t = e1;
+    e1 = e2;
+    e2 = t;
 
-  edge0.v0 = vertices[0];
-  edge0.v1 = vertices[1];
+    console.log("____after", e1, e2);
 
-  edge1.v0 = vertices[1];
-  edge1.v1 = vertices[2];
-
-  edge2.v0 = vertices[2];
-  edge2.v1 = vertices[0];
+    var tmp = edge1;
+    edge1 = edge2;
+    edge2 = tmp;
+  } else if (edge0.v1 == edge1.v1) {
+    console.log("negate 1");
+    e1 = -e1;
+  } else if (edge0.v1 == edge2.v1) {
+    console.log("swap 12 and negate");
+    var t = e1;
+    e1 = e2;
+    e2 = t;
+    console.log("BEFORE!!", edge1.id, edge2.id);
+    var tmp = edge1;
+    edge1 = edge2;
+    edge2 = tmp;
+    console.log("AFTER!", edge1.id, edge2.id);
+    e1 = -e1;
+  }
   
+  if ((e1 > 0 && edge1.v1 == edge2.v0) || (e1 < 0 && edge1.v0 == edge2.v0)) {
+    // e2 is already good
+  } else if ((e1 > 0 && edge1.v1 == edge2.v1) || (e1 < 0 && edge1.v0 == edge2.v1)) {
+    e2 = -e2;
+  }
+
+  console.log("after", edge0.v0, edge0.v1, edge1.v0, edge1.v1, edge2.v0, edge2.v1, e0, e1, e2);
+
   // Create a new face.
-  this.faces[id] = new shapy.editor.Face(
-      this, id, edge0.id, edge1.id, edge2.id);
+  this.faces[id] = new shapy.editor.Face(this, id, e0, e1, e2);
 };
 
 
@@ -1018,7 +1046,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       // Construct a new edge that splits the face in two.
       var e = new shapy.editor.Edge(this, this.nextEdge_, q[1].id, third.id);
       this.nextEdge_++;
-      
+
       // Add the new edge to the object.
       this.edges[e.id] = e;
 
@@ -1039,7 +1067,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
 
       //console.log("SIDE", side);
 
-      this.createFace(this.nextFace_, q[2].id, e.id, side);
+      this.createFace(this.nextFace_, e.id, q[2].id, side);
       this.nextFace_++; 
 
       console.log("creating", q[2].id, e.id, side);
@@ -1054,7 +1082,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
         }       
       }
 
-      this.createFace(this.nextFace_, q[3].id, side, e.id);
+      this.createFace(this.nextFace_, e.id, q[3].id, side);
       this.nextFace_++;
 
       console.log("creating", q[3].id, side, e.id);
