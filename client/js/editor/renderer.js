@@ -438,13 +438,14 @@ shapy.editor.Renderer.prototype.updateTexture = function(texture) {
   }
 
   this.gl_.bindTexture(goog.webgl.TEXTURE_2D, tex);
+  this.gl_.pixelStorei(goog.webgl.PACK_ALIGNMENT, 1);
   this.gl_.texImage2D(
       goog.webgl.TEXTURE_2D,
       0,
-      goog.webgl.RGB,
+      goog.webgl.RGBA,
       texture.width, texture.height,
       0,
-      goog.webgl.RGB,
+      goog.webgl.RGBA,
       goog.webgl.UNSIGNED_BYTE,
       texture.data);
   this.gl_.texParameteri(
@@ -455,6 +456,14 @@ shapy.editor.Renderer.prototype.updateTexture = function(texture) {
       goog.webgl.TEXTURE_2D,
       goog.webgl.TEXTURE_MIN_FILTER,
       goog.webgl.LINEAR);
+  this.gl_.texParameteri(
+      goog.webgl.TEXTURE_2D,
+      goog.webgl.TEXTURE_WRAP_S,
+      goog.webgl.CLAMP_TO_EDGE);
+  this.gl_.texParameteri(
+      goog.webgl.TEXTURE_2D,
+      goog.webgl.TEXTURE_WRAP_T,
+      goog.webgl.CLAMP_TO_EDGE);
   this.gl_.bindTexture(goog.webgl.TEXTURE_2D, null);
 };
 

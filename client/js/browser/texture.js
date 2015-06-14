@@ -36,8 +36,8 @@ shapy.browser.Texture = function(shBrowser, id, opt_data) {
    * Raw texture data for editing.
    * @public {number}
    */
-  this.data = new Uint8Array(this.width * this.height * 3);
-  for (var i = 0; i < this.width * this.height * 3; ++i) {
+  this.data = new Uint8Array(this.width * this.height * 4);
+  for (var i = 0; i < this.width * this.height * 4; ++i) {
     this.data[i] = 0xFF;
   }
 
@@ -73,9 +73,9 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
       var dy = (i - y) / size;
       var a = Math.max(Math.min(1.0 - Math.sqrt(dx * dx + dy * dy), 1), 0);
 
-      var r = this.data[k * 3 + 0];
-      var g = this.data[k * 3 + 1];
-      var b = this.data[k * 3 + 2];
+      var r = this.data[k * 4 + 0];
+      var g = this.data[k * 4 + 1];
+      var b = this.data[k * 4 + 2];
 
       r = r * (1 - a) + colour[0] * a;
       g = g * (1 - a) + colour[1] * a;
@@ -84,9 +84,9 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
       g = Math.max(Math.min(g, 255), 0);
       b = Math.max(Math.min(b, 255), 0);
 
-      this.data[k * 3 + 0] = r;
-      this.data[k * 3 + 1] = g;
-      this.data[k * 3 + 2] = b;
+      this.data[k * 4 + 0] = r;
+      this.data[k * 4 + 1] = g;
+      this.data[k * 4 + 2] = b;
     }
   }
 
@@ -120,7 +120,11 @@ shapy.browser.Texture.prototype.load = function(data) {
 
     var ctx = canvas.getContext('2d');
     ctx.drawImage(image, 0, 0);
-    this.data = ctx.getImageData(0, 0, image.width, image.height);
+    this.width = image.width;
+    this.height = image.height;
+    this.data = new Uint8Array(
+        ctx.getImageData(0, 0, image.width, image.height).data);
+    this.dirty = true;
   }, this);
   image.src = data.data;
 

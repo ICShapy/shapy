@@ -30,6 +30,7 @@ goog.require('shapy.editor.geom');
  *
  * @param {string}              id
  * @param {!shapy.editor.Scene} scene
+ * @param {=string}             opt_texture
  * @param {=Array<Object>}      opt_verts
  * @param {=Array<Object>}      opt_edges
  * @param {=Array<Object>}      opt_faces
@@ -39,6 +40,7 @@ goog.require('shapy.editor.geom');
 shapy.editor.Object = function(
     id,
     scene,
+    opt_texture,
     opt_verts,
     opt_edges,
     opt_faces,
@@ -69,7 +71,7 @@ shapy.editor.Object = function(
    * Texture attached to the object.
    * @public {?string}
    */
-  this.texture = null;
+  this.texture = opt_texture;
 
   /**
    * @private {goog.vec.Vec3}
@@ -1186,6 +1188,8 @@ shapy.editor.Object.prototype.toJSON = function() {
     ry: this.rotQuat_[1],
     rz: this.rotQuat_[2],
     rw: this.rotQuat_[3],
+
+    texture: this.texture,
 
     verts: goog.object.map(this.verts, function(v) {
       return [trunc(v.position[0]), trunc(v.position[1]), trunc(v.position[2])];

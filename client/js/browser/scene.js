@@ -81,6 +81,7 @@ shapy.browser.Scene.prototype.load = function(data) {
     var obj = new shapy.editor.Object(
         data.id,
         this,
+        data.texture,
         data.verts || {},
         data.edges || {},
         data.faces || {},

@@ -228,6 +228,12 @@ shapy.editor.Editor = function(
    * @private {!goog.vec.Vec3.Type}
    */
   this.brushColour_ = goog.vec.Vec3.createFloat32(0, 0, 0);
+
+  /**
+   * Cached textures.
+   * @private {Object}
+   */
+  this.textures_ = {};
 };
 
 
@@ -327,6 +333,17 @@ shapy.editor.Editor.prototype.setScene = function(scene, user) {
     });
     this.exec_ = new shapy.editor.ReadExecutor(this.scene_, this);
   }
+
+  // Load all textures.
+  goog.object.forEach(this.scene_.objects, function(object) {
+    if (!object.texture) {
+      return;
+    }
+    this.shBrowser_.getTexture(object.texture)
+      .then(goog.bind(function(texture) {
+        this.textures_[object.texture] = texture;
+      }, this));
+  }, this);
 };
 
 
@@ -449,6 +466,7 @@ shapy.editor.Editor.prototype.applyTexture = function(id) {
   object = this.objectGroup.editables[0];
   this.shBrowser_.getTexture(id).then(goog.bind(function(texture) {
     object.texture = id;
+    this.textures_[id] = texture;
   }, this));
 };
 
@@ -469,8 +487,8 @@ shapy.editor.Editor.prototype.render = function() {
   // Synchronise meshes & textures.
   goog.object.forEach(this.scene_.objects, function(object) {
     this.renderer_.updateObject(object);
-    if (object.texture && this.scene_.textures[object.texture]) {
-      this.renderer_.updateTexture(this.scene_.textures[object.texture]);
+    if (object.texture && this.textures_[object.texture]) {
+      this.renderer_.updateTexture(this.textures_[object.texture]);
     }
   }, this);
 

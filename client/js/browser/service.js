@@ -264,13 +264,14 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
  * @return {!angular.$q}
  */
 shapy.browser.Service.prototype.filter_ = function(url, cache, cons, name) {
-  return this.http_.get(url, {params: {name: name }}).then(function(data) {
-    return goog.array.map(data.data || [], function(data) {
-      var asset = new cons(this, data.id, data);
-      cache[data.id] = asset;
-      return asset;
-    }, this);
-  });
+  return this.http_.get(url, {params: {name: name }})
+    .then(goog.bind(function(data) {
+      return goog.array.map(data.data || [], function(data) {
+          var asset = new cons(this, data.id, data);
+          cache[data.id] = asset;
+          return asset;
+      }, this);
+    }, this));
 };
 
 
