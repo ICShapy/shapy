@@ -1,133 +1,137 @@
 <sh-menu>
-  <!-- Displays the number of users & shows a list. -->
-  <div id="editor-user-counter">
-    <span>{{ editorCtrl.users.length }}</span>
-    <ul>
-      <li ng-repeat="user in editorCtrl.users"
-          style="background-color: rgba(
-                 {{floor(user.colour[0]*255)}},
-                 {{floor(user.colour[1]*255)}},
-                 {{floor(user.colour[2]*255)}},
-                 1.0)">
-        {{ user.name }}
-      </li>
-    </ul>
-  </div>
-
-  <!-- Chat button -->
-  <div ng-click="editorCtrl.toggleChatbox()">
-    <span ng-if="editorCtrl.getUnreadMessages() > 0">Chat ({{editorCtrl.getUnreadMessages()}})</span>
-    <span ng-if="editorCtrl.getUnreadMessages() == 0">Chat</span>
-  </div>
-
-  <!-- Static display of scene name. -->
-  <div>
-    <sh-editable
-        id="editor-title"
-        default-name="Untitled Scene"
-        ng-model="editorCtrl.scene.name">
-    </sh-editable>
-  </div>
-
-  <!-- Toggles between layouts. -->
-  <div>
-    <span>View</span>
-    <ul>
-      <li ng-click="editorCtrl.layout('single')">Single</li>
-      <li ng-click="editorCtrl.layout('double')">Double</li>
-      <li ng-click="editorCtrl.layout('quad')">Quad</li>
-      <li ng-click="editorCtrl.toggleUV()">
-        UV
-        <span class="hint">U</span>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Menu for adding objects. -->
-  <div>
-    <span> Add </span>
-    <ul>
-      <li ng-click="editorCtrl.addObject('cube')">Cube</li>
-      <li ng-click="editorCtrl.addObject('sphere')">Sphere</li>
-    </ul>
-  </div>
-
-  <!-- Menu for rig selection. -->
-  <div>
-    <span> Rig </span>
-    <ul>
-      <li ng-click="editorCtrl.rig('translate')">
-        Translate
-        <span class="hint">T</span>
-      </li>
-      <li ng-click="editorCtrl.rig('rotate')">
-        Rotate
-        <span class="hint">R</span>
-      </li>
-      <li ng-click="editorCtrl.rig('scale')">
-        Scale
-        <span class="hint">S</span>
-      </li>
-      <li ng-click="editorCtrl.rig('cut')">
-        Cut
-        <span class="hint">C</span>
-      </li>
-      <li ng-click="editorCtrl.rig('extrude')">
-        Extrude
-        <span class="hint">E</span>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Menu for paint colour picking. -->
-  <div
-      ng-class="{select: editorCtrl.mode.paint}">
-    <span ng-click="editorCtrl.mode.togglePaint()"> Paint </span>
-    <div class="content">
-      <span>Brush Size</span>
-      <sh-slider></sh-slider>
-      <span>Brush Colour</span>
-      <sh-colour-picker></sh-colour-picker>
+  <div id="toolbar-left">
+    <!-- Displays the number of users & shows a list. -->
+    <div class="toolbar-button" id="editor-user-counter">
+      <span>{{ editorCtrl.users.length }}</span>
+      <ul>
+        <li ng-repeat="user in editorCtrl.users"
+            style="background-color: rgba(
+                   {{floor(user.colour[0]*255)}},
+                   {{floor(user.colour[1]*255)}},
+                   {{floor(user.colour[2]*255)}},
+                   1.0)">
+          {{ user.name }}
+        </li>
+      </ul>
     </div>
-  </div>
 
-  <!-- Menu for selection modes. -->
-  <div
-      ng-click="editorCtrl.mode.toggleObject()"
-      ng-class="{select: editorCtrl.mode.object}">
-    Object
-  </div>
-  <div
-      ng-click="editorCtrl.mode.toggleFace()"
-      ng-class="{select: editorCtrl.mode.face}">
-    Face
-  </div>
-  <div
-      ng-click="editorCtrl.mode.toggleEdge()"
-      ng-class="{select: editorCtrl.mode.edge}">
-    Edge
-  </div>
-  <div
-      ng-click="editorCtrl.mode.toggleVertex()"
-      ng-class="{select: editorCtrl.mode.vertex}">
-    Vertex
-  </div>
+    <!-- Chat button -->
+    <div class="toolbar-button" ng-click="editorCtrl.toggleChatbox()">
+      <span ng-if="editorCtrl.getUnreadMessages() > 0">Chat ({{editorCtrl.getUnreadMessages()}})</span>
+      <span ng-if="editorCtrl.getUnreadMessages() == 0">Chat</span>
+    </div>
 
-  <!-- Texture selection. -->
-  <div>
-    <span> Texture </span>
-    <div class="content">
-      <input
-          class="texture-select"
-          type="text"
-          ng-model="editorCtrl.textureName" />
-      <div
-          class="texture-preview"
-          ng-click="editorCtrl.applyTexture(texture.id)"
-          ng-repeat="texture in editorCtrl.textures">
-        <img ng-show="texture.image" ng-src="{{texture.image}}"/>
-        {{texture.name}}
+    <!-- Static display of scene name. -->
+    <div class="toolbar-button">
+      <sh-editable
+          id="editor-title"
+          default-name="Untitled Scene"
+          ng-model="editorCtrl.scene.name">
+      </sh-editable>
+    </div>
+
+    <!-- Toggles between layouts. -->
+    <div class="toolbar-button">
+      <span>View</span>
+      <ul>
+        <li ng-click="editorCtrl.layout('single')">Single</li>
+        <li ng-click="editorCtrl.layout('double')">Double</li>
+        <li ng-click="editorCtrl.layout('quad')">Quad</li>
+        <li ng-click="editorCtrl.toggleUV()">
+          UV Unwrap
+          <span class="hint">U</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Menu for adding objects. -->
+    <div class="toolbar-button">
+      <span> Add </span>
+      <ul>
+        <li ng-click="editorCtrl.addObject('cube')">Cube</li>
+        <li ng-click="editorCtrl.addObject('sphere')">Sphere</li>
+      </ul>
+    </div>
+
+    <!-- Menu for rig selection. -->
+    <div class="toolbar-button">
+      <span> Rig </span>
+      <ul>
+        <li ng-click="editorCtrl.rig('translate')">
+          Translate
+          <span class="hint">T</span>
+        </li>
+        <li ng-click="editorCtrl.rig('rotate')">
+          Rotate
+          <span class="hint">R</span>
+        </li>
+        <li ng-click="editorCtrl.rig('scale')">
+          Scale
+          <span class="hint">S</span>
+        </li>
+        <li ng-click="editorCtrl.rig('cut')">
+          Cut
+          <span class="hint">C</span>
+        </li>
+        <li ng-click="editorCtrl.rig('extrude')">
+          Extrude
+          <span class="hint">E</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Menu for paint colour picking. -->
+    <div class="toolbar-button" ng-class="{select: editorCtrl.mode.paint}">
+      <span ng-click="editorCtrl.mode.togglePaint()"> Paint </span>
+      <div class="content">
+        <span>Brush Size</span>
+        <sh-slider></sh-slider>
+        <span>Brush Colour</span>
+        <sh-colour-picker></sh-colour-picker>
       </div>
     </div>
+
+    <!-- Menu for selection modes. -->
+    <div class="toolbar-button"
+        ng-click="editorCtrl.mode.toggleObject()"
+        ng-class="{select: editorCtrl.mode.object}">
+      Object
+    </div>
+    <div class="toolbar-button"
+        ng-click="editorCtrl.mode.toggleFace()"
+        ng-class="{select: editorCtrl.mode.face}">
+      Face
+    </div>
+    <div class="toolbar-button"
+        ng-click="editorCtrl.mode.toggleEdge()"
+        ng-class="{select: editorCtrl.mode.edge}">
+      Edge
+    </div>
+    <div class="toolbar-button"
+        ng-click="editorCtrl.mode.toggleVertex()"
+        ng-class="{select: editorCtrl.mode.vertex}">
+      Vertex
+    </div>
+
+    <!-- Texture selection. -->
+    <div class="toolbar-button">
+      <span> Texture </span>
+      <div class="content">
+        <input
+            class="texture-select"
+            type="text"
+            ng-model="editorCtrl.textureName" />
+        <div
+            class="texture-preview"
+            ng-click="editorCtrl.applyTexture(texture.id)"
+            ng-repeat="texture in editorCtrl.textures">
+          <img ng-show="texture.image" ng-src="{{texture.image}}"/>
+          {{texture.name}}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toolbar-right">
+    <div class="toolbar-button">Hello</div>
   </div>
 </sh-menu>

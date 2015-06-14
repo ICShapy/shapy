@@ -1,4 +1,3 @@
-
 html {
   font-family: 'Open Sans', sans-serif;
 }
@@ -65,20 +64,25 @@ html {
   height: 15px;
 }
 
-#header .profile {
-  float: right;
-}
-
-#header .profile > span {
-  float: right;
-}
-
-#header .profile > a {
-  float: right;
-}
-
 #header .select {
   background-color: #cc3300;
+}
+
+/* Left/Right organisation */
+#header-left {
+  float: left;
+}
+
+#header-right {
+  float: right;
+}
+
+#header-right > span {
+  float: left;
+}
+
+#header-right > a {
+  float: left;
 }
 
 #body {
@@ -157,19 +161,23 @@ sh-notify-bar {
 /**
  * Toolbar
  */
-#toolbar {
+#toolbar-left {
   float: left;
+}
+
+#toolbar-right {
+  float: right;
 }
 
 sh-menu {
   display: block;
-  float: left;
   list-style-type: none;
   padding: 0;
   margin: 0;
 }
 
-sh-menu > div {
+/* Buttons */
+.toolbar-button {
   font-size: 14px;
   position: relative;
   display: block;
@@ -180,15 +188,17 @@ sh-menu > div {
   height: 16px;
 }
 
-sh-menu > div > span {
+.toolbar-button:hover {
+  background-color: #555555;
+}
+
+
+.toolbar-button > span {
   padding: 0 !important;
   margin: 0 !important;
 }
 
-sh-menu > div:hover {
-  background-color: #555555;
-}
-
+/* Drop down menus */
 sh-menu ul, sh-menu .content {
   background-color: #222222;
   display: block;

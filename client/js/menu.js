@@ -14,7 +14,7 @@ shapy.menu = function() {
   return {
     restrict: 'E',
     link: function($scope, $elem) {
-      $('>div', $elem[0]).each(function() {
+      $('>div>div', $elem[0]).each(function() {
         var child = $('>ul, .content', this);
         child.hide();
 
