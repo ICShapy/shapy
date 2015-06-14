@@ -807,20 +807,48 @@ shapy.editor.Object.prototype.connect = function(verts) {
 
 
 /**
+ * Creates a face out of the given edge ids and adds it to the object.
+ * Ensures that the created face has edges properly ordered.
+ *
+ * @param {number} id
+ * @param {number} e0
+ * @param {number} e1
+ * @param {number} e2
+ */
+shapy.editor.Object.prototype.createFace = function(id, e0, e1, e2) {
+  console.log(e0, e1, e2);
+
+  // Fix the first edge.
+  var edge0 = this.edges[e0];
+  var edge1 = this.edges[e1];
+  var edge2 = this.edges[e2];
+
+  // Make sure that the edges are ordered.
+  var vertices = [edge0.v0, edge0.v1, edge1.v0, edge1.v1, edge2.v0, edge2.v1];
+  goog.array.removeDuplicates(vertices);
+
+  edge0.v0 = vertices[0];
+  edge0.v1 = vertices[1];
+
+  edge1.v0 = vertices[1];
+  edge1.v1 = vertices[2];
+
+  edge2.v0 = vertices[2];
+  edge2.v1 = vertices[0];
+  
+  // Create a new face.
+  this.faces[id] = new shapy.editor.Face(
+      this, id, edge0.id, edge1.id, edge2.id);
+};
+
+
+/**
  * Cuts the object using the plane.
  *
  * @param {!goog.vec.Vec3.Type} n Normal of the plane.
  * @param {!goog.vec.Vec3.Type} p A point in the plane.
  */
 shapy.editor.Object.prototype.cut = function(n, p) {
- goog.object.forEach(this.faces, function(f) { 
-    // Remove the split edge.
-    var edges = f.getEdges();
-    console.log(f.e0, f.e1, f.e2, edges[0].id, edges[1].id, edges[2].id);
-
-  }, this);
-
-
   var u = goog.vec.Vec3.createFloat32();
   
   var left = [];
@@ -990,6 +1018,9 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       // Construct a new edge that splits the face in two.
       var e = new shapy.editor.Edge(this, this.nextEdge_, q[1].id, third.id);
       this.nextEdge_++;
+      
+      // Add the new edge to the object.
+      this.edges[e.id] = e;
 
       // Construct new faces.
       var side;
@@ -1008,7 +1039,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
 
       //console.log("SIDE", side);
 
-      var f1 = new shapy.editor.Face(this, this.nextFace_, q[2].id, e.id, side);
+      this.createFace(this.nextFace_, q[2].id, e.id, side);
       this.nextFace_++; 
 
       console.log("creating", q[2].id, e.id, side);
@@ -1023,7 +1054,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
         }       
       }
 
-      var f2 = new shapy.editor.Face(this, this.nextFace_, q[3].id, side, e.id);
+      this.createFace(this.nextFace_, q[3].id, side, e.id);
       this.nextFace_++;
 
       console.log("creating", q[3].id, side, e.id);
@@ -1032,14 +1063,11 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       goog.object.remove(this.faces, f.id);
 
       // Add new faces to the object.
-      goog.array.insert(newFaces, f1);
-      goog.array.insert(newFaces, f2);
+      //goog.array.insert(newFaces, f1);
+      //goog.array.insert(newFaces, f2);
 
-      this.faces[f1.id] = f1;
-      this.faces[f2.id] = f2;
-
-      // Add new edges to the object.
-      this.edges[e.id] = e;
+      //this.faces[f1.id] = f1;
+      //this.faces[f2.id] = f2;
 
     }, this);
   }, this);
