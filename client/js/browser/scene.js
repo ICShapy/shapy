@@ -47,12 +47,6 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
   this.objects = {};
 
   /**
-   * List of textures in the scene.
-   * @public {!Object<string, shapy.browser.Texture>}
-   */
-  this.textures = {};
-
-  /**
    * Next identifier.
    * @private {string}
    */

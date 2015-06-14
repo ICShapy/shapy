@@ -448,7 +448,6 @@ shapy.editor.Editor.prototype.applyTexture = function(id) {
 
   object = this.objectGroup.editables[0];
   this.shBrowser_.getTexture(id).then(goog.bind(function(texture) {
-    this.scene_.textures[id] = texture;
     object.texture = id;
   }, this));
 };
@@ -468,11 +467,11 @@ shapy.editor.Editor.prototype.render = function() {
   }
 
   // Synchronise meshes & textures.
-  goog.object.forEach(this.scene_.textures, function(texture) {
-    this.renderer_.updateTexture(texture);
-  }, this);
   goog.object.forEach(this.scene_.objects, function(object) {
     this.renderer_.updateObject(object);
+    if (object.texture && this.scene_.textures[object.texture]) {
+      this.renderer_.updateTexture(this.scene_.textures[object.texture]);
+    }
   }, this);
 
   // Clear the screen, render the scenes and then render overlays.
