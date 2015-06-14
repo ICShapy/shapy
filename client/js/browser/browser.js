@@ -366,12 +366,31 @@ shapy.browser.asset = function(shModal) {
     });
   };
 
+  /**
+   * Handles displaying a texture in full size.
+   * @param {!shapy.browser.Asset} asset
+   */
+  var displayTexture = function(asset) {
+    shModal.open({
+      size: 'large',
+      title: 'Texture',
+      template:
+          '<img id="texture-display" ng-src="{{asset.imageFull}}">',
+      controller: function($scope) {
+        $scope.asset = asset;
+        $scope.cancel = function() { return false; };
+        $scope.okay = function() { return false; };
+      }
+    });
+  };
+
   return {
     restrict: 'E',
     scope: {
       asset: '=',
       selected: '=',
       owner: '=',
+      selectAsset: '&'
     },
     link: function($scope, $elem) {
       $(window).on('keydown', function(evt) {
@@ -426,6 +445,20 @@ shapy.browser.asset = function(shModal) {
         });
 
       });
+
+      // Select or display texture
+      $elem.bind('dblclick', function(evt) {
+        if ($scope.asset.type != shapy.browser.Asset.Type.TEXTURE) {
+          console.log('aa');
+          $scope.selectAsset($scope.asset, true);
+          return;
+        } else {
+          $scope.asset.shBrowser_.getTexture($scope.asset.id).then(function(){
+            displayTexture($scope.asset);
+          });
+        }
+      });
+
     }
   };
 };
@@ -670,18 +703,36 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
          */
         $scope.files = [];
 
-        // Adds a new file to the list.
-        $scope.add = function() {
-          console.log('aaaa');
-        };
+        // Add files chosen via input element
+        $("#files-manual").bind('change', function(evt) {
+          var file;
+          var newFiles = evt.target.files;
+          $scope.$apply(function() {
+            for (var i = 0; file = newFiles[i]; i++) {
+              $scope.files.push(file);
+            }
+          });
+        });
+
+        //Delegate click to actual input element
+        $(".button-choose").bind('click', function(evt) {
+          $("#files-manual").trigger('click');
+          $(".button-choose").trigger('blur');
+        });
+
 
         // Cancels the upload.
         $scope.cancel = function() { return false; };
 
         // Starts the upload.
         $scope.okay = function() {
-          shBrowser.createTexture();
-          console.log($scope.upload);
+          for (var i = 0; i < $scope.files.length; i++) {
+            var reader = new FileReader();
+            reader.onload = goog.bind(function() {
+              shBrowser.createTexture(this.result);
+            }, reader);
+            reader.readAsDataURL($scope.files[i]);
+          }
         };
       }
     });
@@ -710,8 +761,10 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
 shapy.browser.upload = function() {
   return {
     restrict: 'E',
-    require: 'ngModel',
-    link: function($scope, $elem, $attrs, $ngModel) {
+    scope: {
+     filesUpload: '='
+    },
+    link: function($scope, $elem, $attrs) {
       $elem
         .on('dragover', function(e) {
           e.preventDefault();
@@ -728,7 +781,17 @@ shapy.browser.upload = function() {
           $elem.removeClass('hover');
         })
         .on('drop', function(e) {
-          var files = e.originalEvent.dataTransfer.files;
+          // Add files chosen via drop
+          var newFiles = e.originalEvent.dataTransfer.files;
+          var file;
+          $scope.$apply(function() {
+            for (var i = 0; file = newFiles[i]; i++) {
+              $scope.filesUpload.push(file);
+            }
+          });
+
+          $(".upload-choose").show();
+          $elem.removeClass('hover');
 
           e.preventDefault();
           e.stopPropagation();
@@ -736,8 +799,8 @@ shapy.browser.upload = function() {
           return false;
         });
     }
-  }
-}
+  };
+};
 
 
 /**
