@@ -824,7 +824,11 @@ shapy.editor.Object.prototype.cut = function(n, p) {
   // Helper used to retrieve faces formed using the given edge.
   var getEdgeFaces = goog.bind(function(edge) {
     return goog.object.filter(this.faces, function(face) {
-      return face.e0 == edge.id || face.e1 == edge.id || face.e2 == edge.id;
+      return (
+        Math.abs(face.e0) == edge.id || 
+        Math.abs(face.e1) == edge.id || 
+        Math.abs(face.e2) == edge.id
+      );
     }, this);
   }, this);
 
@@ -870,28 +874,16 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       this.nextEdge_++;
 
       // Record new edges.
-      newEdges[e1.id] = e1;
-      newEdges[e2.id] = e2;
+      goog.array.insert(newEdges, [e, i, e1, e2]);
 
       count++;
 
       // Remove the edge from the object.
-      goog.object.remove(this.edges, e.id);
+      //goog.object.remove(this.edges, e.id);
     }
   }, this);
 
   console.log("deleted", count);
-
-  // Construct the edges across the cut.
-  //for (var j = 0; j < newVerts.length; j++) {
-  //  var e = new shapy.editor.Edge(this, this.nextEdge_,
-  //    newVerts[j].id,
-  //    newVerts[(j + 1) % newVerts.length].id
-  //  );
-  //  this.nextEdge_++;
-  //  // Add the new edge to the object.
-  //  this.edges[e.id] = e;
-  //}
 
       // Split faces formed by this edge in two.
       //goog.object.forEach(getEdgeFaces(e), function(f) {
@@ -955,9 +947,16 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       //  this.edges[e3.id] = e3;
       //}, this);  
 
-  // Add new edges.
-  goog.object.forEach(newEdges, function(e) {
-    this.edges[e.id] = e;
+  console.log("All faces", this.faces);
+
+  // Construct new faces.
+  goog.array.forEach(newEdges, function(q) {
+    console.log(q);
+    console.log("faces", getEdgeFaces(q[0]));
+    // Split faces formed by this edge in two.
+    goog.object.forEach(getEdgeFaces(q[0]), function(f) {
+    
+    }, this);
   }, this);
 
   this.dirty = true;
