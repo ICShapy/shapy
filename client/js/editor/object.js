@@ -813,6 +813,14 @@ shapy.editor.Object.prototype.connect = function(verts) {
  * @param {!goog.vec.Vec3.Type} p A point in the plane.
  */
 shapy.editor.Object.prototype.cut = function(n, p) {
+ goog.object.forEach(this.faces, function(f) { 
+    // Remove the split edge.
+    var edges = f.getEdges();
+    console.log(f.e0, f.e1, f.e2, edges[0].id, edges[1].id, edges[2].id);
+
+  }, this);
+
+
   var u = goog.vec.Vec3.createFloat32();
   
   var left = [];
@@ -874,7 +882,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       this.nextEdge_++;
 
       // Record new edges.
-      goog.array.insert(newEdges, [e, i, e1, e2]);
+      goog.array.insert(newEdges, [e, newVertex, e1, e2]);
 
       count++;
 
@@ -883,7 +891,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
     }
   }, this);
 
-  console.log("deleted", count);
+    //console.log("deleted", count);
 
       // Split faces formed by this edge in two.
       //goog.object.forEach(getEdgeFaces(e), function(f) {
@@ -949,6 +957,8 @@ shapy.editor.Object.prototype.cut = function(n, p) {
 
   console.log("All faces", this.faces);
 
+  var newFaces = [];
+
   // Construct new faces.
   goog.array.forEach(newEdges, function(q) {
     // Insert new edges.
@@ -958,9 +968,9 @@ shapy.editor.Object.prototype.cut = function(n, p) {
     // Split faces formed by this edge in two.
     goog.object.forEach(getEdgeFaces(q[0]), function(f) {
       var edgeVerts = q[0].getVertices();
-      console.log("face", f);
+      //console.log("face", f);
       var faceEdges = f.getEdges();
-      console.log("faceEdges", faceEdges);
+      //console.log("faceEdges", faceEdges);
       var faceVerts = f.getVertices();
       var third;
 
@@ -973,20 +983,21 @@ shapy.editor.Object.prototype.cut = function(n, p) {
         third = faceVerts[2];
       }
 
-      //console.log("face verts", faceVerts);
-      //console.log("edge verts", edgeVerts);
-      //console.log("third", third);
+      //console.log("face verts", faceVerts[0].id, faceVerts[1].id, faceVerts[2].id, f);
+      //console.log("edge verts", edgeVerts[0].id, edgeVerts[1].id);
+      //console.log("third", third.id);
     
       // Construct a new edge that splits the face in two.
-      var e = new shapy.editor.Edge(this, this.nextEdge_, third.id, q[1].id);
-      console.log("EEEEEEEEEEEE", e);
+      var e = new shapy.editor.Edge(this, this.nextEdge_, q[1].id, third.id);
       this.nextEdge_++;
 
       // Construct new faces.
       var side;
 
+      //console.log("THIRD", third);
+
       // Construct face formed by: q[2].v0 q[2].v1 third.
-      for (var k = 0; k < 2; k++) {
+      for (var k = 0; k < 3; k++) {
         if ((faceEdges[k].v0 == third.id && faceEdges[k].v1 == q[2].v0) ||
             (faceEdges[k].v1 == third.id && faceEdges[k].v0 == q[2].v0)) 
         {
@@ -995,28 +1006,35 @@ shapy.editor.Object.prototype.cut = function(n, p) {
         }
       }
 
+      //console.log("SIDE", side);
+
       var f1 = new shapy.editor.Face(this, this.nextFace_, q[2].id, e.id, side);
       this.nextFace_++; 
 
+      console.log("creating", q[2].id, e.id, side);
+
       // Construct face formed by: q[3].v0 q[3].v1 third.
-      for (var k = 0; k < 2; k++) {
-        if ((faceEdges[k].v0 == third.id && faceEdges[k].v1 == q[3].v0) ||
-            (faceEdges[k].v1 == third.id && faceEdges[k].v0 == q[3].v0)) 
+      for (var k = 0; k < 3; k++) {
+        if ((faceEdges[k].v0 == third.id && faceEdges[k].v1 == q[3].v1) ||
+            (faceEdges[k].v1 == third.id && faceEdges[k].v0 == q[3].v1)) 
         {
           side = faceEdges[k].id;
           break;
-        }
+        }       
       }
 
       var f2 = new shapy.editor.Face(this, this.nextFace_, q[3].id, side, e.id);
       this.nextFace_++;
 
-      console.log("faces 1 2 ", f1, f2);
+      console.log("creating", q[3].id, side, e.id);
 
       // Remove the old face from the object.
       goog.object.remove(this.faces, f.id);
 
       // Add new faces to the object.
+      goog.array.insert(newFaces, f1);
+      goog.array.insert(newFaces, f2);
+
       this.faces[f1.id] = f1;
       this.faces[f2.id] = f2;
 
@@ -1031,6 +1049,9 @@ shapy.editor.Object.prototype.cut = function(n, p) {
     // Remove the split edge.
     goog.object.remove(this.edges, q[0].id);
   }, this);
+
+  //console.log("all faces", this.faces);
+  console.log(newFaces);
 
   this.dirty = true;
 };
