@@ -11,6 +11,11 @@ import psycopg2
 from tornado.gen import Return, coroutine
 from tornado.web import HTTPError, asynchronous
 
+from PIL import Image
+import re
+import cStringIO
+import base64
+
 from shapy.account import Account
 from shapy.common import APIHandler, BaseHandler, session
 from shapy.scene import Scene
@@ -226,6 +231,15 @@ class AssetHandler(APIHandler):
     parent = int(self.get_argument('parent'))
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
+    if preview is None and mainData is not None:
+      image_data = re.sub('^data:image/.+;base64,', '', str(mainData)).decode('base64')
+      im = Image.open(cStringIO.StringIO(image_data))
+      im = im.convert('RGB')
+      im.thumbnail((150, 150), Image.ANTIALIAS)
+      jpeg_image_buffer = cStringIO.StringIO()
+      im.save(jpeg_image_buffer, format="JPEG")
+      imStr = base64.b64encode(jpeg_image_buffer.getvalue())
+      preview = "data:image/jpeg;base64," + imStr
 
     # Reject parent dirs not owned by user
     if parent != 0:
@@ -246,13 +260,14 @@ class AssetHandler(APIHandler):
 
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
-      '''INSERT INTO assets (name, type, data, owner, parent, public)
-         VALUES (%(name)s, %(type)s, %(data)s, %(owner)s, %(parent)s, %(public)s)
+      '''INSERT INTO assets (name, type, data, preview, owner, parent, public)
+         VALUES (%(name)s, %(type)s, %(data)s, %(preview)s, %(owner)s, %(parent)s, %(public)s)
          RETURNING id, name
       ''', {
       'name': self.NEW_NAME,
       'type': self.TYPE,
       'data': psycopg2.Binary(str(mainData)) if mainData else None,
+      'preview': psycopg2.Binary(str(preview)) if preview else None,
       'owner': user.id,
       'parent': parent,
       'public': False
@@ -270,6 +285,7 @@ class AssetHandler(APIHandler):
         'owner': True,
         'write': True,
         'public': False,
+        'preview': preview,
         'data': []
     })
     self.finish()
