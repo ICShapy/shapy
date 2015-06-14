@@ -449,8 +449,7 @@ shapy.browser.asset = function(shModal) {
       // Select or display texture
       $elem.bind('dblclick', function(evt) {
         if ($scope.asset.type != shapy.browser.Asset.Type.TEXTURE) {
-          console.log('aa');
-          $scope.selectAsset($scope.asset, true);
+          $scope.selectAsset({asset:$scope.asset, enter: true});
           return;
         } else {
           $scope.asset.shBrowser_.getTexture($scope.asset.id).then(function(){
