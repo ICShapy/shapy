@@ -25,7 +25,7 @@
 
     <!-- Menu for adding objects. -->
     <div class="toolbar-button">
-      <span> Add </span>
+      <span>Add</span>
       <ul>
         <li ng-click="editorCtrl.addObject('cube')">Cube</li>
         <li ng-click="editorCtrl.addObject('sphere')">Sphere</li>
@@ -74,27 +74,27 @@
     <div class="toolbar-button"
         ng-click="editorCtrl.mode.toggleObject()"
         ng-class="{select: editorCtrl.mode.object}">
-      Object
+      <span>Object</span>
     </div>
     <div class="toolbar-button"
         ng-click="editorCtrl.mode.toggleFace()"
         ng-class="{select: editorCtrl.mode.face}">
-      Face
+      <span>Face</span>
     </div>
     <div class="toolbar-button"
         ng-click="editorCtrl.mode.toggleEdge()"
         ng-class="{select: editorCtrl.mode.edge}">
-      Edge
+      <span>Edge</span>
     </div>
     <div class="toolbar-button"
         ng-click="editorCtrl.mode.toggleVertex()"
         ng-class="{select: editorCtrl.mode.vertex}">
-      Vertex
+      <span>Vertex</span>
     </div>
 
     <!-- Texture selection. -->
     <div class="toolbar-button">
-      <span> Texture </span>
+      <span>Texture</span>
       <div class="content">
         <input
             class="texture-select"

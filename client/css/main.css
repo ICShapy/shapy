@@ -33,13 +33,13 @@ html {
   left: 0;
   right: 0;
   height: 30px;
-  background: linear-gradient(to bottom, #0a1e38 0%,#181f5b 100%);
+  background: #1c1f26;
   border-bottom: 1px solid #111111;
   z-index: 1000;
 }
 
 #header a, #header span {
-  color: white;
+  color: #dee1e3;
   padding: 7px;
   height: 16px;
   font-size: 14px;
@@ -56,11 +56,11 @@ html {
 }
 
 #header a:hover {
-  background-color: #555555;
+  color: #fff;
 }
 
 #header a.highlight {
-  border-bottom: 2px solid #ffff00;
+  border-bottom: 2px solid #2b303b;
   height: 15px;
 }
 
@@ -170,7 +170,6 @@ sh-notify-bar {
 }
 
 sh-menu {
-  display: block;
   list-style-type: none;
   padding: 0;
   margin: 0;
@@ -182,29 +181,35 @@ sh-menu {
   position: relative;
   display: block;
   float: left;
+  color: #dee1e3;
   cursor: pointer;
-  color: white;
   padding: 7px;
   height: 16px;
 }
 
-.toolbar-button:hover {
-  background-color: #555555;
+.header-button-selected {
+  background-color: #3b404b;
 }
-
 
 .toolbar-button > span {
   padding: 0 !important;
   margin: 0 !important;
+
+  /* Disable text selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Drop down menus */
 sh-menu ul, sh-menu .content {
-  background-color: #222222;
+  background-color: #3b404b;
   display: block;
   position: absolute;
   list-style-type: none;
-  border: 1px solid black;
   top: 30px;
   left: 0px;
   padding: 0;
@@ -219,9 +224,17 @@ sh-menu .content {
 
 sh-menu ul > li {
   display: block;
-  padding: 2px;
+  padding: 7px;
   margin: 0;
   text-align: left;
+
+  /* Disable text selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 sh-menu ul > li:hover {
@@ -392,7 +405,7 @@ input.ng-invalid.ng-touched {
   padding: 8px;
   border-bottom: 1px solid #777;
   color: white;
-  background: linear-gradient(to bottom, #0a1e38 0%,#181f5b 100%)
+  background: #FFF; /*linear-gradient(to bottom, #0a1e38 0%, #181f5b 100%)*/
 }
 
 #modal > .dialog > .content {
