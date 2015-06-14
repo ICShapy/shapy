@@ -48,7 +48,7 @@ shapy.editor.Edge.prototype.getPosition = function() {
 
   goog.vec.Vec3.add(v0, v1, t);
   goog.vec.Vec3.scale(t, 0.5, t);
-  goog.vec.Mat4.multVec3(this.object.model_, t, t);
+  goog.vec.Mat4.multVec3(this.object.model, t, t);
 
   return t;
 };

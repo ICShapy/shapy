@@ -5,6 +5,8 @@ goog.provide('shapy.editor.Rig.Cut');
 
 goog.require('shapy.editor.Rig');
 
+
+
 /**
  * Rig used for cutting.
  *
@@ -140,7 +142,9 @@ shapy.editor.Rig.Cut.prototype.mouseMove = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
-  var hits = goog.array.flatten(this.object.pickRay(ray));
+  // TODO(Ilija): Handle in a safe way.
+  var object = this.object.getObjects()[0];
+  var hits = goog.array.flatten(object.pickRay(ray));
 
   if (goog.array.isEmpty(hits)) {
     return null;
@@ -173,6 +177,10 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
     goog.vec.Vec3.normalize(this.norm_, this.norm_);
 
     this.renderCutPlane_ = true;
+
+    // TODO(Ilija): move this to a proper place once debugging is done.
+    //object.cut(this.norm_, this.ps_[0]);
+    //console.log("performed cut");
   }
 };
 
@@ -191,6 +199,7 @@ shapy.editor.Rig.Cut.prototype.mouseUp = function(ray) {
  * Handles mouse leave event.
  */
 shapy.editor.Rig.Cut.prototype.mouseLeave = function() {
+
 };
 
 
@@ -201,5 +210,3 @@ shapy.editor.Rig.Cut.prototype.reset = function() {
   this.renderCutPlane_ = false;
   this.turn_ = 0;
 };
-
-

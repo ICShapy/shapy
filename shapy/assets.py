@@ -143,7 +143,7 @@ class AssetHandler(APIHandler):
 
   @coroutine
   def _fetch(self, id, user):
-    """Retrieves a scene from the database."""
+    """Retrieves an asset from the database."""
 
     # Fetch data from the asset and permission table.
     # The write flag will have 3 possible values: None, True, False
@@ -191,7 +191,7 @@ class AssetHandler(APIHandler):
   @coroutine
   @asynchronous
   def get(self, user):
-    """Retrieves a scene from the database."""
+    """Retrieves an asset from the database."""
 
     id = self.get_argument('id')
     if not id:
@@ -204,7 +204,8 @@ class AssetHandler(APIHandler):
         'id': data['id'],
         'name': data['name'],
         'preview': str(data['preview'] or ''),
-        'data': json.loads(str(data['data'] or 'null')),
+        'data': str(data['data'] or '') if self.TYPE == 'texture'
+                else json.loads(str(data['data'] or 'null')),
         'public': data['public'],
         'owner': owner,
         'write': write,
@@ -223,9 +224,9 @@ class AssetHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'User not logged in.')
     parent = int(self.get_argument('parent'))
-    preview = None
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
+
     # Reject parent dirs not owned by user
     if parent != 0:
       cursor = yield momoko.Op(self.db.execute,
@@ -245,16 +246,17 @@ class AssetHandler(APIHandler):
 
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
-      '''INSERT INTO assets (name, type, owner, parent, public)
-         VALUES (%s, %s, %s, %s, %s)
+      '''INSERT INTO assets (name, type, data, owner, parent, public)
+         VALUES (%(name)s, %(type)s, %(data)s, %(owner)s, %(parent)s, %(public)s)
          RETURNING id, name
-      ''', (
-      self.NEW_NAME,
-      self.TYPE,
-      user.id,
-      parent,
-      False
-    ))
+      ''', {
+      'name': self.NEW_NAME,
+      'type': self.TYPE,
+      'data': psycopg2.Binary(str(mainData)) if mainData else None,
+      'owner': user.id,
+      'parent': parent,
+      'public': False
+    })
 
     # Check if the asset was created successfully.
     data = cursor.fetchone()
