@@ -4,12 +4,15 @@
     <a ng-show="headerCtrl.user" ui-sref="main.browser">Assets</a>
     <a ng-show="!headerCtrl.user" ui-sref="main.public">Assets</a>
     <a ui-sref="main.help">Help</a>
+    <div class="header-divider"></div>
   </div>
   <div ng-show="headerCtrl.user" id="header-right">
+    <div class="header-divider"></div>
     <span>{{ headerCtrl.user.name }}</span>
     <a ng-click="headerCtrl.logout()">Logout</a>
   </div>
   <div ng-show="!headerCtrl.user" id="header-right">
+    <div class="header-divider"></div>
     <a ui-sref="main.register">Register</a>
     <a ui-sref="main.login">Login</a>
   </div>

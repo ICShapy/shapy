@@ -34,16 +34,22 @@ html {
   right: 0;
   height: 30px;
   background: #1c1f26;
-  border-bottom: 1px solid #111111;
   z-index: 1000;
 }
 
+/* TODO(David): Merge this and toolbar together for cleaner CSS */
 #header a, #header span {
   color: #dee1e3;
   padding: 7px;
   height: 16px;
   font-size: 14px;
   display: block;
+}
+
+.header-divider {
+  float: left;
+  width: 15px;
+  height: 1px;
 }
 
 #header a {
@@ -68,7 +74,7 @@ html {
   background-color: #cc3300;
 }
 
-/* Left/Right organisation */
+/* Left/right organisation */
 #header-left {
   float: left;
 }
@@ -99,63 +105,6 @@ html {
   height: 300px;
   margin-left: auto;
   margin-right: auto;
-}
-
-sh-notify-bar {
-  position: fixed;
-  display: block;
-  top: 25px;
-  left: 50%;
-  margin-left: -250px;
-  width: 500px;
-  z-index: 1000;
-}
-
-.notification {
-  text-align: center;
-}
-
-.notification > span {
-  display: inline-block;
-  border-width: 1px;
-  border-style: solid;
-  transition: opacity 1s ease-in-out;
-  transition: 1;
-  font-size: 14px;
-  padding: 1px 5px 2px 5px;
-  margin-top: 2px;
-  border-radius: 2px;
-  box-shadow: 1px 1px 2px #222;
-  font-weight: bold;
-}
-
-.notification > span.fade {
-  opacity: 0.2;
-}
-
-.notification > span.notice {
-  border-color: #045400;
-  background-color: #1cb814;
-}
-
-.notification > span.warning {
-  border-color: #f76300;
-  background-color: #f79d00;
-}
-
-.notification > span.error {
-  border-color: #4a0000;
-  background-color: #8c0a0a;
-}
-
-.notification a.content {
-  color: white;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.notification span.content {
-  cursor: pointer;
 }
 
 /**
@@ -249,6 +198,67 @@ sh-menu .hint {
   padding: 0 !important;
   margin: 1px 10px 1px 0;
   color: gray !important;
+}
+
+/**
+ * Notifications
+ */
+
+sh-notify-bar {
+  position: fixed;
+  display: block;
+  top: 25px;
+  left: 50%;
+  margin-left: -250px;
+  width: 500px;
+  z-index: 1000;
+}
+
+.notification {
+  text-align: center;
+}
+
+.notification > span {
+  display: inline-block;
+  border-width: 1px;
+  border-style: solid;
+  transition: opacity 1s ease-in-out;
+  transition: 1;
+  font-size: 14px;
+  padding: 1px 5px 2px 5px;
+  margin-top: 2px;
+  border-radius: 2px;
+  box-shadow: 1px 1px 2px #222;
+  font-weight: bold;
+}
+
+.notification > span.fade {
+  opacity: 0.2;
+}
+
+.notification > span.notice {
+  border-color: #045400;
+  background-color: #1cb814;
+}
+
+.notification > span.warning {
+  border-color: #f76300;
+  background-color: #f79d00;
+}
+
+.notification > span.error {
+  border-color: #4a0000;
+  background-color: #8c0a0a;
+}
+
+.notification a.content {
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.notification span.content {
+  cursor: pointer;
 }
 
 /**
