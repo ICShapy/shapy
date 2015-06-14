@@ -48,7 +48,7 @@ shapy.editor.EditorController = function($scope, user, scene, shEditor) {
   /** @public {string} */
   this.message = '';
   /** @public {!Array<Object>} */
-  this.messageList = this.shEditor_.messageList;
+  this.messageList = this.shEditor_.messageList = [];
 
   // Initialise the scene.
   this.shEditor_.setScene(this.scene_, this.user);
