@@ -229,8 +229,6 @@ shapy.editor.Object.prototype.translate = function(dx, dy, dz) {
   this.translate_[1] += dy;
   this.translate_[2] += dz;
   this.dirty = true;
-
-  console.log(this.edges);
 };
 
 
@@ -860,6 +858,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
   
   var left = [];
   var right = [];
+
   var newEdges = [];
 
   // Helper used to retrieve faces formed using the given edge.
@@ -987,6 +986,18 @@ shapy.editor.Object.prototype.cut = function(n, p) {
     // Remove the split edge.
     goog.object.remove(this.edges, q[0].id);
   }, this);
+
+  // Get mid point on the cut surface.
+  var mid = shapy.editor.geom.getMid(goog.array.map(newEdges, function(q) {
+    return q[1].position;
+  }, this));
+
+  // Create a new vertex.
+  var midVertex = new shapy.editor.Vertex(
+      this, this.nextVert_, mid[0], mid[1], mid[2]);
+  this.nextVert_++;
+
+  this.verts[midVertex.id] = midVertex;
 
   this.dirty = true;
 };
