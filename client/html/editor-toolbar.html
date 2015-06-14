@@ -1,26 +1,5 @@
 <sh-menu>
   <div id="toolbar-left">
-    <!-- Displays the number of users & shows a list. -->
-    <div class="toolbar-button" id="editor-user-counter">
-      <span>{{ editorCtrl.users.length }}</span>
-      <ul>
-        <li ng-repeat="user in editorCtrl.users"
-            style="background-color: rgba(
-                   {{floor(user.colour[0]*255)}},
-                   {{floor(user.colour[1]*255)}},
-                   {{floor(user.colour[2]*255)}},
-                   1.0)">
-          {{ user.name }}
-        </li>
-      </ul>
-    </div>
-
-    <!-- Chat button -->
-    <div class="toolbar-button" ng-click="editorCtrl.toggleChatbox()">
-      <span ng-if="editorCtrl.getUnreadMessages() > 0">Chat ({{editorCtrl.getUnreadMessages()}})</span>
-      <span ng-if="editorCtrl.getUnreadMessages() == 0">Chat</span>
-    </div>
-
     <!-- Static display of scene name. -->
     <div class="toolbar-button">
       <sh-editable
@@ -132,6 +111,25 @@
     </div>
   </div>
   <div id="toolbar-right">
-    <div class="toolbar-button">Hello</div>
+    <!-- Displays the number of users & shows a list. -->
+    <div class="toolbar-button" id="editor-user-counter">
+      <span>{{ editorCtrl.users.length }}</span>
+      <ul>
+        <li ng-repeat="user in editorCtrl.users"
+            style="background-color: rgba(
+                   {{floor(user.colour[0]*255)}},
+                   {{floor(user.colour[1]*255)}},
+                   {{floor(user.colour[2]*255)}},
+                   1.0)">
+          {{ user.name }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Chat button -->
+    <div class="toolbar-button" ng-click="editorCtrl.toggleChatbox()">
+      <span ng-if="editorCtrl.getUnreadMessages() > 0">Chat ({{editorCtrl.getUnreadMessages()}})</span>
+      <span ng-if="editorCtrl.getUnreadMessages() == 0">Chat</span>
+    </div>
   </div>
 </sh-menu>
