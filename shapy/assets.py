@@ -541,7 +541,7 @@ class TextureFilterHandler(APIHandler):
       {
         'id': asset['id'],
         'name': asset['name'],
-        'preview': asset['preview']
+        'preview': str(asset['preview'])
       }
       for asset in cursor.fetchall()
     ])
