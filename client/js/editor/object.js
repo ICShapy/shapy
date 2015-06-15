@@ -164,6 +164,7 @@ shapy.editor.Object = function(
   this.uvPoints = {};
   this.nextUVPoint_ = 0;
   goog.object.forEach(opt_uvPoints || {}, function(up, i) {
+    i = parseInt(i);
     this.nextUVPoint_ = Math.max(this.nextUVPoint_, i + 1);
     this.uvPoints[i] = new shapy.editor.Object.UVPoint(this, i, up[0], up[1]);
   }, this);
@@ -175,6 +176,7 @@ shapy.editor.Object = function(
   this.uvEdges = {};
   this.nextUVEdge_ = 0;
   goog.object.forEach(opt_uvEdges || {}, function(ue, i) {
+    i = parseInt(i);
     this.nextUVEdge_ = Math.max(this.nextUVEdge_, i + 1);
     this.uvEdges[i] = new shapy.editor.Object.UVEdge(this, i, ue[0], ue[1]);
   }, this);
@@ -636,42 +638,50 @@ shapy.editor.Object.prototype.mergeVertices = function(verts) {
       this, vertID, center[0], center[1], center[2]);
 
   // Remove all edges & convert some to vertices.
-  var faceIDs = [], edge = {}, map = {};
+  // - edgeIDs store a list of all remaining edges
+  // - edge maps a vertex id to a map of destination vertex ids, representing a
+  // list of edges from a vertex
+  var edgeIDs = [], edge = {}, map = {};
   this.edges = goog.object.filter(this.edges, function(e) {
+    // Replace affected vertices with the new vertex
     e.v0 = goog.array.contains(vertIDs, e.v0) ? vertID : e.v0;
     e.v1 = goog.array.contains(vertIDs, e.v1) ? vertID : e.v1;
 
-    // If both endpoints were removed, dump the edge.
+    // If an edge becomes zero-dimensional, remove it
     if (e.v0 == e.v1) {
       return false;
     }
 
-    // If an identical or an inverse edge was formed, get rid of edge
+    // If an identical or an inverse edge was formed, get rid of it
+    // edge[v0][v1] translates to "does an edge exist between v0 and v1?"
+    // (edge[v0] || {}) is needed incase edge[v0] is null, to avoid type errors
     if ((edge[e.v0] || {})[e.v1]) {
-      map[e.id] = edge[e.v0][e.v1];
+      map[e.id] = edge[e.v0][e.v1]; // Map the deleted edge to the duplicate
       return false;
     }
     if ((edge[e.v1] || {})[e.v0]) {
-      map[e.id] = edge[e.v1][e.v0];
+      map[e.id] = -edge[e.v1][e.v0]; // Map the deleted edge to the duplicate
       return false;
     }
 
     map[e.id] = e.id;
     edge[e.v0] = edge[e.v0] || {};
-    edge[e.v0][e.v1] = e.id;
-    faceIDs.push(e.id);
+    edge[e.v0][e.v1] = e.id;    // Add an entry joining v0 and v1
+    edgeIDs.push(e.id);         // List this edge as a surviving edge
+
     return true;
   }, this);
 
   // Remove faces that had any edges removed.
   this.faces = goog.object.filter(this.faces, function(f) {
+    // If a mapping exists from e0, then it must be positive, otherwise negate
+    // it, map the positive version, and negate that.
     f.e0 = map[f.e0] || -map[-f.e0];
     f.e1 = map[f.e1] || -map[-f.e1];
     f.e2 = map[f.e2] || -map[-f.e2];
-    var e0 = goog.array.contains(faceIDs, Math.abs(f.e0));
-    var e1 = goog.array.contains(faceIDs, Math.abs(f.e1));
-    var e2 = goog.array.contains(faceIDs, Math.abs(f.e2));
-
+    var e0 = goog.array.contains(edgeIDs, Math.abs(f.e0));
+    var e1 = goog.array.contains(edgeIDs, Math.abs(f.e1));
+    var e2 = goog.array.contains(edgeIDs, Math.abs(f.e2));
     return e0 && e1 && e2;
   }, this);
 
