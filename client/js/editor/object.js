@@ -124,6 +124,7 @@ shapy.editor.Object = function(
   this.verts = {};
   this.nextVert_ = 0;
   goog.object.forEach(opt_verts || {}, function(v, i) {
+    i = parseInt(i);
     this.nextVert_ = Math.max(this.nextVert_, i + 1);
     this.verts[i] = new shapy.editor.Vertex(this, i, v[0], v[1], v[2]);
   }, this);
@@ -136,6 +137,7 @@ shapy.editor.Object = function(
   this.edges = {};
   this.nextEdge_ = 0;
   goog.object.forEach(opt_edges || {}, function(e, i) {
+    i = parseInt(i);
     this.nextEdge_ = Math.max(this.nextEdge_, i + 1);
     this.edges[i] = new shapy.editor.Edge(this, i, e[0], e[1], e[2], e[3]);
   }, this);
@@ -149,6 +151,7 @@ shapy.editor.Object = function(
    this.faces = {};
    this.nextFace_ = 0;
    goog.object.forEach(opt_faces || {}, function(f, i) {
+    i = parseInt(i);
     this.nextFace_ = Math.max(this.nextFace_, i + 1);
     this.faces[i] = new shapy.editor.Face(
         this, i, f[0], f[1], f[2], f[3], f[4], f[5]);
