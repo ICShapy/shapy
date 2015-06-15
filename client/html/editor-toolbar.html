@@ -8,6 +8,7 @@
           ng-model="editorCtrl.scene.name">
       </sh-editable>
     </div>
+    <div class="header-divider"></div>
 
     <!-- Toggles between layouts. -->
     <div class="toolbar-button">
@@ -59,16 +60,25 @@
       </ul>
     </div>
 
-    <!-- Menu for paint colour picking. -->
-    <div class="toolbar-button" ng-class="{select: editorCtrl.mode.paint}">
-      <span ng-click="editorCtrl.mode.togglePaint()"> Paint </span>
+    <!-- Texture selection. -->
+    <div class="toolbar-button">
+      <span>Texture</span>
       <div class="content">
-        <span>Brush Size</span>
-        <sh-slider></sh-slider>
-        <span>Brush Colour</span>
-        <sh-colour-picker></sh-colour-picker>
+        <input
+            class="texture-select"
+            type="text"
+            ng-model="editorCtrl.textureName" />
+        <div
+            class="texture-preview"
+            ng-click="editorCtrl.applyTexture(texture.id)"
+            ng-repeat="texture in editorCtrl.textures">
+          <img ng-show="texture.image" ng-src="{{texture.image}}"/>
+          {{texture.name}}
+        </div>
       </div>
     </div>
+
+    <div class="header-divider"></div>
 
     <!-- Menu for selection modes. -->
     <div class="toolbar-button"
@@ -91,22 +101,23 @@
         ng-class="{select: editorCtrl.mode.vertex}">
       <span>Vertex</span>
     </div>
+    <div class="toolbar-button"
+        ng-click="editorCtrl.mode.togglePaint()"
+        ng-class="{select: editorCtrl.mode.paint}">
+      <span>Paint</span>
+    </div>
 
-    <!-- Texture selection. -->
-    <div class="toolbar-button">
-      <span>Texture</span>
+    <!-- Start of conditional buttons -->
+    <div class="header-divider"></div>
+
+    <!-- Menu for paint colour picking. -->
+    <div ng-show="editorCtrl.mode.paint" class="toolbar-button">
+      <span>Brush</span>
       <div class="content">
-        <input
-            class="texture-select"
-            type="text"
-            ng-model="editorCtrl.textureName" />
-        <div
-            class="texture-preview"
-            ng-click="editorCtrl.applyTexture(texture.id)"
-            ng-repeat="texture in editorCtrl.textures">
-          <img ng-show="texture.image" ng-src="{{texture.image}}"/>
-          {{texture.name}}
-        </div>
+        <span>Brush Size</span>
+        <sh-slider></sh-slider>
+        <span>Brush Colour</span>
+        <sh-colour-picker></sh-colour-picker>
       </div>
     </div>
   </div>

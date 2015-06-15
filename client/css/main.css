@@ -169,6 +169,7 @@ sh-menu ul, sh-menu .content {
 sh-menu .content {
   min-width: 0 !important;
   cursor: default;
+  padding: 7px;
 }
 
 sh-menu ul > li {
