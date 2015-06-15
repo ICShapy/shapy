@@ -366,7 +366,7 @@ shapy.editor.Editor.prototype.setCanvas = function(canvas) {
 
   // Initialise the layout.
   this.vp_.width = this.vp_.height = 0;
-  this.layout = new shapy.editor.Layout.Double(this);
+  this.layout = new shapy.editor.Layout.Single(this);
   this.rig(this.rigTranslate_);
 
   // Start checkpointing.
@@ -705,6 +705,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (verts.length != 3 && verts.length != 2) {
         return;
       }
+      this.exec_.emitConnect(object, this.partGroup);
       object.connect(verts);
       return;
     }
@@ -712,7 +713,8 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (!(object = this.partGroup.getObject())) {
         return;
       }
-      vert = object.mergeVertices(this.partGroup.getVertices());
+      this.exec_.emitMerge(object, this.partGroup);
+      object.mergeVertices(this.partGroup.getVertices());
       this.partGroup.clear();
       this.rig(null);
       return;

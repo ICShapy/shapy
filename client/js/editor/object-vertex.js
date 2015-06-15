@@ -45,7 +45,7 @@ goog.inherits(shapy.editor.Vertex, shapy.editor.Editable);
  */
 shapy.editor.Vertex.prototype.getPosition = function() {
   var position = goog.vec.Vec3.createFloat32();
-  goog.vec.Mat4.multVec3(this.object.model, this.position, position);
+  goog.vec.Mat4.multVec3NoTranslate(this.object.model, this.position, position);
   return position;
 };
 

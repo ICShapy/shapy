@@ -418,3 +418,23 @@ shapy.editor.geom.triangleArea = function(a, b, c) {
       c.v * a.u
   ) / 2.0);
 };
+
+
+/**
+ * Computes a point between a set of points.
+ *
+ * @param {!Array<!goog.vec.Vec3.Type>}
+ */
+shapy.editor.geom.getMid = function(points) {
+  var mid = goog.vec.Vec3.createFloat32FromValues(0, 0, 0);
+
+  goog.array.forEach(points, function(p) {
+    goog.vec.Vec3.add(mid, p, mid);
+  }, this);
+
+  goog.vec.Vec3.scale(mid, 1 / points.length, mid);
+  return mid;
+};
+
+
+
