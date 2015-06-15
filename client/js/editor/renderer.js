@@ -166,7 +166,7 @@ shapy.editor.GROUND_VS =
 
   'void main() {                                                      \n' +
   '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);            \n' +
-  '  v_uv = (a_vertex.xz + vec2(1.0)) * vec2(0.5);                    \n' +
+  '  v_uv = vec2((a_vertex.x + 1.0) * 0.5, (1.0 - a_vertex.z) * 0.5); \n' +
   '  v_vertex = vertex;                                               \n' +
   '  gl_Position = u_vp * vec4(vertex, 1.0);                          \n' +
   '}                                                                  \n';
