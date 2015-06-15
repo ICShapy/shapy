@@ -27,7 +27,7 @@ shapy.editor.Vertex = function(object, id, x, y, z) {
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
   /** @public {!number} @const */
-  this.id = id;
+  this.id = parseInt(id);
 
   /**
    * Position of the vertex.

@@ -793,7 +793,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
       if ((e.v0 == v[0] && e.v1 == v[1]) ||
           (e.v0 == v[1] && e.v1 == v[0]))
       {
-        return id;
+        return parseInt(id);
       }
     }
 
@@ -820,7 +820,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
     e0 = this.edges[e[0]];
     e1 = this.edges[e[1]];
     e2 = this.edges[e[2]];
-    if (e0.v1 != e1.v0 || e0.v1 != e1.v1) {
+    if (e0.v1 != e1.v0 && e0.v1 != e1.v1) {
       e1 = this.edges[e[2]];
       e2 = this.edges[e[1]];
     }
@@ -1339,11 +1339,11 @@ shapy.editor.Object.UVEdge = function(object, id, uv0, uv1) {
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
   /** @public {number} @const */
-  this.id = id;
+  this.id = parseInt(id);
   /** @public {number} */
-  this.uv0 = uv0;
+  this.uv0 = parseInt(uv0);
   /** @public {number} */
-  this.uv1 = uv1;
+  this.uv1 = parseInt(uv1);
 };
 goog.inherits(shapy.editor.Object.UVEdge, shapy.editor.Editable);
 

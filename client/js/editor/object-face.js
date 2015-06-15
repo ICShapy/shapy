@@ -36,13 +36,13 @@ shapy.editor.Face = function(
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
   /** @public {!number} @const */
-  this.id = id;
+  this.id = parseInt(id);
   /** @public {number} @const */
-  this.e0 = e0;
+  this.e0 = parseInt(e0);
   /** @public {number} @const */
-  this.e1 = e1;
+  this.e1 = parseInt(e1);
   /** @public {number} @const */
-  this.e2 = e2;
+  this.e2 = parseInt(e2);
   /** @public {number} @const */
   this.ue0 = opt_ue0 || 0;
   /** @public {number} @const */
