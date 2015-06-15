@@ -696,7 +696,8 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (!(object = this.partGroup.getObject())) {
         return;
       }
-      vert = object.mergeVertices(this.partGroup.getVertices());
+      this.exec_.emitMerge(object, this.partGroup);
+      object.mergeVertices(this.partGroup.getVertices());
       this.partGroup.clear();
       this.rig(null);
       return;

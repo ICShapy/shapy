@@ -156,6 +156,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyConnect(data);
             break;
           }
+          case 'merge': {
+            this.applyMerge(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -609,6 +613,38 @@ shapy.editor.Executor.prototype.applyConnect = function(data) {
 };
 
 
+/**
+ * Executes merge command.
+ *
+ * @param {shapy.editor.Editable} obj   Object the group belongs to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
+ */
+shapy.editor.Executor.prototype.emitMerge = function(obj, group) {
+
+};
+
+
+/**
+ * Handles merge command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyMerge = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  // Get the object.
+  var object = this.scene_.objects[data['objId']];
+
+  // Merge the vertices.
+  object.mergeVertices(goog.array.map(data['vertIds'], function(vertId) {
+    return object.verts[vertId];
+  }, this));
+};
+
+
 
 /**
  * Applies and makes changes to the scene.
@@ -833,6 +869,24 @@ shapy.editor.Executor.prototype.emitConnect = function(obj, group) {
   this.sendCommand({
     type: 'edit',
     tool: 'connect',
+    userId: this.editor_.user.id,
+
+    objId: obj.id,
+    vertIds: group.getVertIds()
+  });
+};
+
+
+/**
+ * Executes merge command.
+ *
+ * @param {shapy.editor.Editable} obj   Object the group belongs to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
+ */
+shapy.editor.Executor.prototype.emitMerge = function(obj, group) {
+  this.sendCommand({
+    type: 'edit',
+    tool: 'merge',
     userId: this.editor_.user.id,
 
     objId: obj.id,
