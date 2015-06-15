@@ -463,6 +463,38 @@ shapy.browser.asset = function(shModal) {
         }
       });
 
+      // Drag handling - changing parent dir
+
+      $elem.on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+      });
+      $elem.on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+      });
+      $elem.on('dragstart', function(e) {
+        // Block if not owner
+        if (!$scope.asset.owner) {
+          return;
+        }
+
+        e.originalEvent.dataTransfer.setData("asset", $scope.asset.id);
+      });
+      $elem.on('drop', function(e) {
+        var id = parseInt(e.originalEvent.dataTransfer.getData("asset"), 10);
+        
+        //Change dir of dragged if applicable
+        $scope.asset.shBrowser_.move($scope.asset, id);
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        return false;
+      });
+
     }
   };
 };
