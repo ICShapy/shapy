@@ -18,27 +18,30 @@ shapy.editor.Rig.Scale = function() {
   shapy.editor.Rig.call(this, shapy.editor.Rig.Type.SCALE);
 
   /**
-   * @private {goog.vec.Vec3.Type}
+   * @private {!goog.vec.Vec3.Type}
    */
   this.currPos_ = goog.vec.Vec3.createFloat32();
 
   /**
-   * @private {goog.vec.Vec3.Type}
+   * @private {!goog.vec.Vec3.Type}
    */
   this.lastPos_ = goog.vec.Vec3.createFloat32();
 
   /**
-   * @private {goog.vec.Vec3.Type}
+   * @private {!goog.vec.Vec3.Type}
    */
   this.startPos_ = goog.vec.Vec3.createFloat32();
 
   /**
-   * @private {goog.vec.Vec3.Type}
+   * @private {!goog.vec.Vec3.Type}
    */
   this.scale_ = goog.vec.Vec3.createFloat32FromValues(1.0, 1.0, 1.0);
 
+  /** @pricate {!goog.vec.Vec3.Type} */
+  this.startMid_ = goog.vec.Vec3.createFloat32();
+
   /**
-   * @private {goog.vec.Vec3.Type}
+   * @private {!goog.vec.Vec3.Type}
    * @const
    */
   this.noScale_ = goog.vec.Vec3.createFloat32FromValues(1.0, 1.0, 1.0);
@@ -108,7 +111,7 @@ shapy.editor.Rig.Scale.prototype.finish_ = function(captured) {
   var sz = (this.noScale_[2] + d[2]) / this.noScale_[2];
 
   // Update the scale of the model to be the relative scale
-  this.onFinish(this.object, sx, sy, sz);
+  this.onFinish(this.object, sx, sy, sz, this.startMid_);
 };
 
 
@@ -302,6 +305,7 @@ shapy.editor.Rig.Scale.prototype.mouseDown = function(ray) {
   this.currPos_ = this.getClosest_(ray);
   goog.vec.Vec3.setFromArray(this.lastPos_, this.currPos_);
   goog.vec.Vec3.setFromArray(this.startPos_, this.currPos_);
+  goog.vec.Vec3.setFromArray(this.startMid_, this.object.getPosition());
 
   return this.hover_.x || this.hover_.y || this.hover_.z;
 };

@@ -376,7 +376,7 @@ shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
 
   // Apply translation to each object
   goog.object.forEach(verts, function(vert) {
-    goog.vec.Vec3.subtract(vert.position, mid, d);
+    goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
     vert.translate(d[0] * x - d[0], d[1] * y - d[1], d[2] * z - d[2]);
   });
 };

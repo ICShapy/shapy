@@ -459,18 +459,27 @@ shapy.editor.Executor.prototype.applyScale = function(data) {
 
   // Scale objects/ parts.
   if (data['objMode']) {
-    goog.array.forEach(data.ids, function(id) {
-      goog.vec.Vec3.subtract(this.scene_.objects[id].getPosition(), mid, d);
+    goog.array.forEach(data['ids'], function(id) {
+      var obj = this.scene_.objects[id];
+      goog.vec.Vec3.subtract(obj.getPosition(), mid, d);
 
-      this.scene_.objects[id].translate(
+      obj.translate(
           d[0] * data['sx'] - d[0],
           d[1] * data['sy'] - d[1],
           d[2] * data['sz'] - d[2]
       );
-      this.scene_.objects[id].scale(data['sx'], data['sy'], data['sz']);
+      obj.scale(data['sx'], data['sy'], data['sz']);
     }, this);
   } else {
-    // To be implemented.
+    goog.array.forEach(data['ids'], function(p) {
+      var vert = this.scene_.objects[p[0]].verts[p[1]];
+      goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
+      vert.translate(
+          d[0] * data['sx'] - d[0],
+          d[1] * data['sy'] - d[1],
+          d[2] * data['sz'] - d[2]
+      );
+    }, this);
   }
 };
 
@@ -702,18 +711,17 @@ shapy.editor.WriteExecutor.prototype.emitRotate = function(obj, x, y, z, w, m) {
  * @param {number}                     sx
  * @param {number}                     sy
  * @param {number}                     sz
+ * @param {!goog.vec.Vec3.Type}        m
  */
-shapy.editor.WriteExecutor.prototype.emitScale = function(obj, sx, sy, sz) {
-  var mid = obj.getPosition();
-
+shapy.editor.WriteExecutor.prototype.emitScale = function(obj, sx, sy, sz, m) {
   var data = {
     type: 'edit',
     tool: 'scale',
     userId: this.editor_.user.id,
 
-    mx: mid[0],
-    my: mid[1],
-    mz: mid[2],
+    mx: m[0],
+    my: m[1],
+    mz: m[2],
 
     sx: sx,
     sy: sy,
@@ -722,11 +730,12 @@ shapy.editor.WriteExecutor.prototype.emitScale = function(obj, sx, sy, sz) {
     objMode: this.editor_.mode.object
   };
 
-  // Objects group
+  // Objects group.
   if (this.editor_.mode.object) {
     data.ids = obj.getObjIds();
   } else {
-    // Parts group scaling to be implemented.
+    // Parts group.
+    data.ids = obj.getObjVertIds();
   }
 
   this.sendCommand(data);
