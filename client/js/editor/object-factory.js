@@ -74,7 +74,7 @@ shapy.editor.create.cube = function(id, scene, w, h, d) {
     12: [-3, +15, -14],   // -X
   };
 
-  return new shapy.editor.Object(id, scene, vertices, edges, faces);
+  return new shapy.editor.Object(id, scene, null, vertices, edges, faces);
 };
 
 
@@ -165,5 +165,5 @@ shapy.editor.create.sphere = function(id, scene, r, slices, stacks) {
     ];
   }
 
-  return new shapy.editor.Object(id, scene, verts, edges, faces);
+  return new shapy.editor.Object(id, scene, null, verts, edges, faces);
 };
