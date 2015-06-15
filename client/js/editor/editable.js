@@ -442,6 +442,18 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
 
 
 /**
+ * Retrieves ids of all the vertices from the group.
+ *
+ * @return {!Array<number>}
+ */
+shapy.editor.PartsGroup.prototype.getVertIds = function() {
+  return goog.array.map(this.getVertices(), function(vertex) {
+    return vertex.id;
+  }, this);
+};
+
+
+/**
  * Retrieves the faces forming the group.
  *
  * @return {!Array<!shapy.editor.Vertex>}
@@ -454,21 +466,23 @@ shapy.editor.PartsGroup.prototype.getFaces = function() {
 
 
 /**
- * Retrives [obj id, vert id] pairs forming the group.
+ * Retrieves ids of the faces forming the group.
+ *
+ * @return {!Array<number>}
  */
-shapy.editor.PartsGroup.prototype.getObjVertIds = function() {
-  return goog.array.map(this.getVertices(), function(vertex) {
-    return [vertex.object.id, vertex.id];
+shapy.editor.PartsGroup.prototype.getFaceIds = function() {
+  return goog.array.map(this.getFaces(), function(face) {
+    return face.id;
   }, this);
 };
 
 
 /**
- * Retrieves ids of the faces forming the group.
+ * Retrives [obj id, vert id] pairs forming the group.
  */
-shapy.editor.PartsGroup.prototype.getFaceIds = function() {
-  return goog.array.map(this.getFaces(), function(face) {
-    return face.id;
+shapy.editor.PartsGroup.prototype.getObjVertIds = function() {
+  return goog.array.map(this.getVertices(), function(vertex) {
+    return [vertex.object.id, vertex.id];
   }, this);
 };
 

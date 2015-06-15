@@ -152,6 +152,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyExtrude(data);
             break;
           }
+          case 'connect': {
+            this.applyConnect(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -544,7 +548,7 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
 /**
  * Executes extrude command.
  *
- * @param {shapy.editor.Editable} obj   Object the group belonds to.
+ * @param {shapy.editor.Editable} obj   Object the group belongs to.
  * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
 shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
@@ -563,11 +567,44 @@ shapy.editor.Executor.prototype.applyExtrude = function(data) {
     return;
   }
 
+  // Get the object.
   var object = this.scene_.objects[data['objId']];
 
   // Extrude the faces.
   object.extrude(goog.array.map(data['faceIds'], function(faceId) {
     return object.faces[faceId];
+  }, this));
+};
+
+
+/**
+ * Executes connect command.
+ *
+ * @param {shapy.editor.Editable} obj   Object the group belongs to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
+ */
+shapy.editor.Executor.prototype.emitConnect = function(obj, group) {
+
+};
+
+
+/**
+ * Handles connect command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyConnect = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  // Get the object.
+  var object = this.scene_.objects[data['objId']];
+
+  // Connect the vertices.
+  object.connect(goog.array.map(data['vertIds'], function(vertId) {
+    return object.verts[vertId];
   }, this));
 };
 
@@ -782,6 +819,24 @@ shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
 
     objId: obj.id,
     faceIds: group.getFaceIds()
+  });
+};
+
+
+/**
+ * Executes connect command.
+ *
+ * @param {shapy.editor.Editable} obj   Object the group belongs to.
+ * @param {shapy.editor.Editable} group Parts group to be extruded.
+ */
+shapy.editor.Executor.prototype.emitConnect = function(obj, group) {
+  this.sendCommand({
+    type: 'edit',
+    tool: 'connect',
+    userId: this.editor_.user.id,
+
+    objId: obj.id,
+    vertIds: group.getVertIds()
   });
 };
 

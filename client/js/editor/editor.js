@@ -688,6 +688,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (verts.length != 3 && verts.length != 2) {
         return;
       }
+      this.exec_.emitConnect(object, this.partGroup);
       object.connect(verts);
       return;
     }

@@ -757,6 +757,7 @@ shapy.editor.Object.prototype.projectUV = function() {
  */
 shapy.editor.Object.prototype.connect = function(verts) {
   var pairs;
+
   if (verts.length == 2) {
     pairs = [
       [verts[0].id, verts[1].id]
