@@ -26,6 +26,8 @@ shapy.editor.Rig.Rotate = function() {
   this.currentAngle_ = 0.0;
   /** @private {number} @const */
   this.lastAngle_ = 0.0;
+  /** @pricate {!goog.vec.Vec3.Type} */
+  this.startMid_ = goog.vec.Vec3.createFloat32();
 };
 goog.inherits(shapy.editor.Rig.Rotate, shapy.editor.Rig);
 
@@ -331,7 +333,8 @@ shapy.editor.Rig.Rotate.prototype.finish_ = function() {
   var quat = goog.vec.Quaternion.createFloat32();
   this.computeRotQuater_(quat, this.startAngle_);
 
-  this.onFinish(this.object, quat[0], quat[1], quat[2], quat[3]);
+  this.onFinish(
+      this.object, quat[0], quat[1], quat[2], quat[3], this.startMid_);
 };
 
 
@@ -425,6 +428,7 @@ shapy.editor.Rig.Rotate.prototype.mouseDown = function(ray) {
   this.currentAngle_ = this.getAngle_();
   this.startAngle_ = this.currentAngle_;
   this.lastAngle_ = this.currentAngle_;
+  goog.vec.Vec3.setFromArray(this.startMid_, this.object.getPosition());
 
   return true;
 };

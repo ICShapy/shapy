@@ -390,6 +390,7 @@ shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
 shapy.editor.PartsGroup.prototype.rotate = function(q) {
   var mid = this.getPosition();
   var verts = this.getVertices();
+
   var c = goog.vec.Quaternion.createFloat32();
   var d = goog.vec.Vec3.createFloat32();
   var dq = goog.vec.Quaternion.createFloat32();

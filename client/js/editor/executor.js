@@ -394,7 +394,7 @@ shapy.editor.Executor.prototype.applyRotate = function(data) {
 
   // Rotate objects/ parts.
   if (data['objMode']) {
-    goog.array.forEach(data.ids, function(id) {
+    goog.array.forEach(data['ids'], function(id) {
       goog.vec.Vec3.subtract(this.scene_.objects[id].getPosition(), mid, d);
 
       // Compute the rotation quaternion.
@@ -411,7 +411,20 @@ shapy.editor.Executor.prototype.applyRotate = function(data) {
       this.scene_.objects[id].rotate(quat);
     }, this);
   } else {
-    // To be implemented.
+    goog.array.forEach(data['ids'], function(p) {
+      var vert = this.scene_.objects[p[0]].verts[p[1]];
+
+      // Compute distance from the middle.
+      goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
+
+      // Compue teh rotation quaternion.
+      goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
+      goog.vec.Quaternion.concat(quat, dq, dq);
+      goog.vec.Quaternion.concat(dq, c, dq);
+
+      // Translate.
+      vert.translate(dq[0] - d[0], dq[1] - d[1], dq[2] - d[2]);
+    }, this);
   }
 };
 
@@ -650,18 +663,17 @@ shapy.editor.WriteExecutor.prototype.emitTranslate = function(obj, dx, dy, dz) {
  * @param {number}                     y
  * @param {number}                     z
  * @param {number}                     w
+ * @param {!goog.vec.Vec3.Type}        m
  */
-shapy.editor.WriteExecutor.prototype.emitRotate = function(obj, x, y, z, w) {
-  var mid = obj.getPosition();
-
+shapy.editor.WriteExecutor.prototype.emitRotate = function(obj, x, y, z, w, m) {
   var data = {
     type: 'edit',
     tool: 'rotate',
     userId: this.editor_.user.id,
 
-    mx: mid[0],
-    my: mid[1],
-    mz: mid[2],
+    mx: m[0],
+    my: m[1],
+    mz: m[2],
 
     x: x,
     y: y,
@@ -675,7 +687,8 @@ shapy.editor.WriteExecutor.prototype.emitRotate = function(obj, x, y, z, w) {
   if (this.editor_.mode.object) {
     data.ids = obj.getObjIds();
   } else {
-    // Parts group rotation to be implemented.
+    // Parts group.
+    data.ids = obj.getObjVertIds();
   }
 
   this.sendCommand(data);
