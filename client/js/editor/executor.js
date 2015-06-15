@@ -160,6 +160,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyMerge(data);
             break;
           }
+          case 'paint': {
+            this.applyPaint(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -645,6 +649,48 @@ shapy.editor.Executor.prototype.applyMerge = function(data) {
 };
 
 
+/**
+ * Executes paint command.
+ *
+ * @param {!shapy.browser.Texture} t Texture.
+ * @param {number}                 u U coordinate.
+ * @param {number}                 v V coordinate.
+ * @param {{!goog.vec.Vec3.Type}}  bc Brush colour.
+ * @param {number}                 br Brush radius.
+ */
+shapy.editor.Executor.prototype.emitPaint = function(t, u, v, bc, br) {
+
+};
+
+
+/**
+ * Handles paint command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyPaint = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  // Get the texture.
+  var texture = this.editor_.textures_[data['textureId']];
+
+  // Paint the texture.
+  texture.paint(
+      data['u'],
+      data['v'],
+      goog.vec.Vec3.createFloat32FromValues(
+          data['bcr'],
+          data['bcg'],
+          data['bcb']
+      ),
+      data['br']
+  );
+};
+
+
 
 /**
  * Applies and makes changes to the scene.
@@ -891,6 +937,36 @@ shapy.editor.WriteExecutor.prototype.emitMerge = function(obj, group) {
 
     objId: obj.id,
     vertIds: group.getVertIds()
+  });
+};
+
+
+/**
+ * Executes paint command.
+ *
+ * @param {!shapy.browser.Texture} t Texture.
+ * @param {number}                 u U coordinate.
+ * @param {number}                 v V coordinate.
+ * @param {{!goog.vec.Vec3.Type}}  bc Brush colour.
+ * @param {number}                 br Brush radius.
+ */
+shapy.editor.WriteExecutor.prototype.emitPaint = function(t, u, v, bc, br) {
+  // TODO(ilija): Remove when texture is applied.
+  return;
+
+  this.sendCommand({
+    type: 'edit',
+    tool: 'paint',
+    userId: this.editor_.user.id,
+
+    textureId: t.id,
+    u: u,
+    v: v,
+
+    bcr: bc[0],
+    bcg: bc[1],
+    bcb: bc[2],
+    br: br
   });
 };
 
