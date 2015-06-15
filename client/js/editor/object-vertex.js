@@ -69,14 +69,8 @@ shapy.editor.Vertex.prototype.getObject = function() {
  */
 shapy.editor.Vertex.prototype.translate = function(dx, dy, dz) {
   // Convert to world space.
-
-  //console.log("ID", this.id);
-  //console.log("BEFORE", this.position);
-
   goog.vec.Mat4.multVec3NoTranslate(
       this.object.model, this.position, this.position);
-
-  //console.log("mid1", this.position);
 
   // Apply translation.
   goog.vec.Vec3.setFromValues(
@@ -86,14 +80,9 @@ shapy.editor.Vertex.prototype.translate = function(dx, dy, dz) {
       this.position[2] + dz
   );
 
-  //console.log("mid2", this.position);
-  //console.log("inv model", this.object.invModel_);
-
   // Convert back to model space.
   goog.vec.Mat4.multVec3NoTranslate(
       this.object.invModel_, this.position, this.position);
-
-  //console.log("AFTER", this.position);
 
   this.object.dirty = true;
 };
