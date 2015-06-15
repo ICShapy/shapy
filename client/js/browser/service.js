@@ -143,16 +143,18 @@ shapy.browser.Service.prototype.defaultName = function(type) {
  *
  * @private
  *
- * @param {string}   url  URL of the resource.
- * @param {!Object<string, Object>} cache Cache for the resource.
- * @param {Function} cons Asset constructor.
+ * @param {string}                  url    URL of the resource.
+ * @param {!Object<string, Object>} cache  Cache for the resource.
+ * @param {Function}                cons   Asset constructor.
+ * @param {=Object}                 params Optional params.
  *
  * @return {!angular.$q} Promise to return a new asset.
  */
-shapy.browser.Service.prototype.create_ = function(url, cache, cons) {
+shapy.browser.Service.prototype.create_ = function(url, cache, cons, params) {
   var parent = this.current;
   // Request new asset from server.
-  return this.http_.post(url, { parent: parent.id })
+  var allParams = $.extend({ parent: parent.id }, params);
+  return this.http_.post(url, allParams)
       .then(goog.bind(function(response) {
         // Create asset representation, cache it, update parent/child refs.
         var asset = new cons(this, response.data.id, response.data);
@@ -189,13 +191,16 @@ shapy.browser.Service.prototype.createScene = function() {
 /**
  * Creates a new texture.
  *
+ * @param {string} texture New texture.
+ *
  * @return {!angular.$q} Promise to return a new texture.
  */
-shapy.browser.Service.prototype.createTexture = function() {
+shapy.browser.Service.prototype.createTexture = function(texture) {
   return this.create_(
       '/api/assets/texture',
       this.textures_,
-      shapy.browser.Texture);
+      shapy.browser.Texture,
+      {'data': texture});
 };
 
 
@@ -259,13 +264,14 @@ shapy.browser.Service.prototype.get_ = function(url, cache, cons, id) {
  * @return {!angular.$q}
  */
 shapy.browser.Service.prototype.filter_ = function(url, cache, cons, name) {
-  return this.http_.get(url, {params: {name: name }}).then(function(data) {
-    return goog.array.map(data.data || [], function(data) {
-      var asset = new cons(this, data.id, data);
-      cache[data.id] = asset;
-      return asset;
-    }, this);
-  });
+  return this.http_.get(url, {params: {name: name }})
+    .then(goog.bind(function(data) {
+      return goog.array.map(data.data || [], function(data) {
+          var asset = new cons(this, data.id, data);
+          cache[data.id] = asset;
+          return asset;
+      }, this);
+    }, this));
 };
 
 

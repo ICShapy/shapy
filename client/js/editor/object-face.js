@@ -173,6 +173,9 @@ shapy.editor.Face.prototype.getPosition = function() {
  * Deletes the face.
  */
 shapy.editor.Face.prototype.delete = function() {
+  // Removes UV edges if not shared with other faces.
+
+  // Removes the face from the object.
   goog.object.remove(this.object.faces, this.id);
   this.object.dirty = true;
 };

@@ -47,12 +47,6 @@ shapy.browser.Scene = function(shBrowser, id , opt_data) {
   this.objects = {};
 
   /**
-   * List of textures in the scene.
-   * @public {!Object<string, shapy.browser.Texture>}
-   */
-  this.textures = {};
-
-  /**
    * Next identifier.
    * @private {string}
    */
@@ -87,6 +81,7 @@ shapy.browser.Scene.prototype.load = function(data) {
     var obj = new shapy.editor.Object(
         data.id,
         this,
+        data.texture,
         data.verts || {},
         data.edges || {},
         data.faces || {},

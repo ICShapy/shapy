@@ -1,7 +1,15 @@
 <div>
   <div class="upload-choose">
     Drag files here or choose manually...
-    <input type="file" />
+    <input id="files-manual" type="file" name="files[]" multiple/>
   </div>
-  <sh-upload ng-model="files"></sh-upload>
+  <button class="button-choose">
+      Choose Textures
+  </button>
+  <div class="files-list">
+    <div ng-repeat="file in files">
+        {{file.name}}
+    </div>
+  </div>
+  <sh-upload files-upload="files"></sh-upload>
 </div>

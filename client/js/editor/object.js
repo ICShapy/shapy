@@ -30,6 +30,7 @@ goog.require('shapy.editor.geom');
  *
  * @param {string}              id
  * @param {!shapy.editor.Scene} scene
+ * @param {=string}             opt_texture
  * @param {=Array<Object>}      opt_verts
  * @param {=Array<Object>}      opt_edges
  * @param {=Array<Object>}      opt_faces
@@ -39,6 +40,7 @@ goog.require('shapy.editor.geom');
 shapy.editor.Object = function(
     id,
     scene,
+    opt_texture,
     opt_verts,
     opt_edges,
     opt_faces,
@@ -69,7 +71,7 @@ shapy.editor.Object = function(
    * Texture attached to the object.
    * @public {?string}
    */
-  this.texture = null;
+  this.texture = opt_texture;
 
   /**
    * @private {goog.vec.Vec3}
@@ -809,11 +811,27 @@ shapy.editor.Object.prototype.connect = function(verts) {
       v.sort();
       return v[0] == e[0] && v[1] == e[1] && v[2] == e[2];
     });
+
     if (exists) {
       return;
     }
+
+    var e0, e1, e2;
+    e0 = this.edges[e[0]];
+    e1 = this.edges[e[1]];
+    e2 = this.edges[e[2]];
+    if (e0.v1 != e1.v0 || e0.v1 != e1.v1) {
+      e1 = this.edges[e[2]];
+      e2 = this.edges[e[1]];
+    }
+
     var faceID = this.nextFace_++;
-    this.faces[faceID] = new shapy.editor.Face(this, faceID, e[0], e[1], e[2]);
+    this.faces[faceID] = new shapy.editor.Face(
+        this,
+        faceID,
+        e0.id,
+        e0.v1 == e1.v0 ? e1.id : -e1.id,
+        e0.v0 == e2.v1 ? e2.id : -e2.id);
     this.dirty = true;
   }
 };
@@ -1240,6 +1258,8 @@ shapy.editor.Object.prototype.toJSON = function() {
     ry: this.rotQuat_[1],
     rz: this.rotQuat_[2],
     rw: this.rotQuat_[3],
+
+    texture: this.texture,
 
     verts: goog.object.map(this.verts, function(v) {
       return [trunc(v.position[0]), trunc(v.position[1]), trunc(v.position[2])];

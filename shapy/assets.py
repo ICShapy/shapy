@@ -8,8 +8,13 @@ import json
 
 import momoko
 import psycopg2
-from tornado.gen import coroutine
+from tornado.gen import Return, coroutine
 from tornado.web import HTTPError, asynchronous
+
+from PIL import Image
+import re
+import cStringIO
+import base64
 
 from shapy.account import Account
 from shapy.common import APIHandler, BaseHandler, session
@@ -141,15 +146,9 @@ class AssetHandler(APIHandler):
   NEW_NAME = None
 
 
-  @session
   @coroutine
-  @asynchronous
-  def get(self, user):
-    """Retrieves a scene from the database."""
-
-    id = self.get_argument('id')
-    if not id:
-      raise HTTPError(400, 'Invalid asset ID')
+  def _fetch(self, id, user):
+    """Retrieves an asset from the database."""
 
     # Fetch data from the asset and permission table.
     # The write flag will have 3 possible values: None, True, False
@@ -190,12 +189,28 @@ class AssetHandler(APIHandler):
       owner = False
       write = user is not None and data['write']
 
+    raise Return((data, owner, write))
+
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Retrieves an asset from the database."""
+
+    id = self.get_argument('id')
+    if not id:
+      raise HTTPError(400, 'Invalid asset ID')
+
+    data, owner, write = yield self._fetch(id, user)
+
     # Dump JSON formatted data.
     self.write_json({
         'id': data['id'],
         'name': data['name'],
         'preview': str(data['preview'] or ''),
-        'data': json.loads(str(data['data'] or 'null')),
+        'data': str(data['data'] or '') if self.TYPE == 'texture'
+                else json.loads(str(data['data'] or 'null')),
         'public': data['public'],
         'owner': owner,
         'write': write,
@@ -214,9 +229,18 @@ class AssetHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'User not logged in.')
     parent = int(self.get_argument('parent'))
-    preview = None
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
+    if preview is None and mainData is not None:
+      image_data = re.sub('^data:image/.+;base64,', '', str(mainData)).decode('base64')
+      im = Image.open(cStringIO.StringIO(image_data))
+      im = im.convert('RGB')
+      im.thumbnail((150, 150), Image.ANTIALIAS)
+      jpeg_image_buffer = cStringIO.StringIO()
+      im.save(jpeg_image_buffer, format="JPEG")
+      imStr = base64.b64encode(jpeg_image_buffer.getvalue())
+      preview = "data:image/jpeg;base64," + imStr
+
     # Reject parent dirs not owned by user
     if parent != 0:
       cursor = yield momoko.Op(self.db.execute,
@@ -236,16 +260,18 @@ class AssetHandler(APIHandler):
 
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
-      '''INSERT INTO assets (name, type, owner, parent, public)
-         VALUES (%s, %s, %s, %s, %s)
+      '''INSERT INTO assets (name, type, data, preview, owner, parent, public)
+         VALUES (%(name)s, %(type)s, %(data)s, %(preview)s, %(owner)s, %(parent)s, %(public)s)
          RETURNING id, name
-      ''', (
-      self.NEW_NAME,
-      self.TYPE,
-      user.id,
-      parent,
-      False
-    ))
+      ''', {
+      'name': self.NEW_NAME,
+      'type': self.TYPE,
+      'data': psycopg2.Binary(str(mainData)) if mainData else None,
+      'preview': psycopg2.Binary(str(preview)) if preview else None,
+      'owner': user.id,
+      'parent': parent,
+      'public': False
+    })
 
     # Check if the asset was created successfully.
     data = cursor.fetchone()
@@ -259,6 +285,7 @@ class AssetHandler(APIHandler):
         'owner': True,
         'write': True,
         'public': False,
+        'preview': preview,
         'data': []
     })
     self.finish()
@@ -443,21 +470,38 @@ class DirHandler(AssetHandler):
     self.finish()
 
 
-
-class SceneHandler(AssetHandler):
-  """Handles requests to a scene asset."""
-
-  TYPE = 'scene'
-  NEW_NAME = 'New Scene'
-
-
-
 class TextureHandler(AssetHandler):
   """Handles requests to a texture asset."""
 
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
 
+
+
+class SceneHandler(AssetHandler):
+  """Handles requests to a texture asset."""
+
+  TYPE = 'scene'
+  NEW_NAME = 'New Scene'
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Fetches a scene either as JSON or some other format."""
+
+    fmt = self.get_argument('format', None)
+    if not fmt or fmt == 'json':
+      yield super(SceneHandler, self).get()
+    else:
+      data, _, _ = yield self._fetch(self.get_argument('id'), user)
+      scene = Scene(data['name'], json.loads(str(data['data'] or 'null')))
+      if fmt == 'obj':
+        self.set_header('Content-Type', 'text/plain')
+        self.write(scene.to_obj())
+        self.finish()
+      else:
+        raise HTTPError(400, 'Format not supported.')
 
 
 class TextureFilterHandler(APIHandler):
@@ -497,7 +541,7 @@ class TextureFilterHandler(APIHandler):
       {
         'id': asset['id'],
         'name': asset['name'],
-        'preview': asset['preview']
+        'preview': str(asset['preview'])
       }
       for asset in cursor.fetchall()
     ])

@@ -36,13 +36,15 @@ shapy.browser.Texture = function(shBrowser, id, opt_data) {
    * Raw texture data for editing.
    * @public {number}
    */
-  this.data = new Uint8Array(this.width * this.height * 3);
-  for (var i = 0; i < this.width * this.height * 3; ++i) {
+  this.data = new Uint8Array(this.width * this.height * 4);
+  for (var i = 0; i < this.width * this.height * 4; ++i) {
     this.data[i] = 0xFF;
   }
 
   // Set preview
   this.image = (opt_data && opt_data['preview']) || '/img/logo.png';
+  // Full preview
+  this.imageFull = '';
 };
 goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
 
@@ -71,9 +73,9 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
       var dy = (i - y) / size;
       var a = Math.max(Math.min(1.0 - Math.sqrt(dx * dx + dy * dy), 1), 0);
 
-      var r = this.data[k * 3 + 0];
-      var g = this.data[k * 3 + 1];
-      var b = this.data[k * 3 + 2];
+      var r = this.data[k * 4 + 0];
+      var g = this.data[k * 4 + 1];
+      var b = this.data[k * 4 + 2];
 
       r = r * (1 - a) + colour[0] * a;
       g = g * (1 - a) + colour[1] * a;
@@ -82,9 +84,9 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
       g = Math.max(Math.min(g, 255), 0);
       b = Math.max(Math.min(b, 255), 0);
 
-      this.data[k * 3 + 0] = r;
-      this.data[k * 3 + 1] = g;
-      this.data[k * 3 + 2] = b;
+      this.data[k * 4 + 0] = r;
+      this.data[k * 4 + 1] = g;
+      this.data[k * 4 + 2] = b;
     }
   }
 
@@ -93,9 +95,21 @@ shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
 
 
 /**
- * Loads the image from base64 data.
+ * Loads the texture data.
+ *
+ * @param {Object} data
  */
 shapy.browser.Texture.prototype.load = function(data) {
+  // Fill in the name if unknown.
+  this.name = data.name || this.shBrowser_.defaultName(this.type);
+  // Fill in permission flags
+  this.owner = !!data.owner;
+  this.write = !!data.write;
+  this.public = !!data.public;
+  this.loaded = true;
+  // Set full preview
+  this.imageFull = data.data;
+
   var defer = this.shBrowser_.q_.defer();
 
   var image = new Image();
@@ -103,10 +117,17 @@ shapy.browser.Texture.prototype.load = function(data) {
     var canvas = document.createElement('canvas');
     canvas.width = image.width;
     canvas.height = image.height;
-    canvas.getContext('2d').drawImage(image, 0, 0);
-    this.data = canvas.getImageData(0, 0, image.width, image.height);
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+    this.width = image.width;
+    this.height = image.height;
+    this.data = new Uint8Array(
+        ctx.getImageData(0, 0, image.width, image.height).data);
+    this.dirty = true;
   }, this);
   image.src = data.data;
 
   return defer.promise;
 };
+
