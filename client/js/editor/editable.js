@@ -397,7 +397,7 @@ shapy.editor.PartsGroup.prototype.rotate = function(q) {
   goog.vec.Quaternion.conjugate(q, c);
 
   goog.object.forEach(verts, function(vert) {
-    goog.vec.Vec3.subtract(vert.position, mid, d);
+    goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
 
     // Compute the rotation quaternion
     goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
