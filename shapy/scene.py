@@ -3,7 +3,7 @@
 # (C) 2015 The Shapy Team. All rights reserved.
 
 import StringIO
-
+from pyrr.objects import Quaternion, Matrix44, Vector4
 
 
 class Scene(object):
@@ -95,16 +95,32 @@ class Scene(object):
   def to_obj(self):
     """Converts the scene to wavefront obj format."""
 
+
     s = StringIO.StringIO()
     for id, obj in self.objects.iteritems():
+      q = Quaternion()
+      q.x = obj.rx
+      q.y = obj.ry
+      q.z = obj.rz
+      q.w = obj.rw
+      trans = Matrix44.from_translation([obj.tx, obj.ty, obj.tz])
+      scale = Matrix44([
+        [obj.sx, 0, 0, 0],
+        [0, obj.sy, 0, 0],
+        [0, 0, obj.sz, 0],
+        [0, 0, 0, 1]
+      ])
+      model = trans * q * scale
+
       print >>s, 'o "%s"' % id
 
       vmap = {}
       i = 1
       for k, v in obj.verts.iteritems():
+        v = model * Vector4([float(v[0]), float(v[1]), float(v[2]), 1.])
         vmap[k] = i
         i += 1
-        print >>s, 'v %f %f %f' % v
+        print >>s, 'v %f %f %f' % (v.x, v.y, v.z)
 
       uvmap = {}
       i = 1
