@@ -6,12 +6,10 @@
     <div class="header-divider"></div>
   </div>
   <div ng-show="headerCtrl.user" id="header-right">
-    <div class="header-divider"></div>
     <span>{{ headerCtrl.user.name }}</span>
     <a ng-click="headerCtrl.logout()">Logout</a>
   </div>
   <div ng-show="!headerCtrl.user" id="header-right">
-    <div class="header-divider"></div>
     <a ui-sref="main.login">Login</a>
     <a ui-sref="main.register">Register</a>
   </div>
