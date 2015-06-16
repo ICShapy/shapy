@@ -137,14 +137,15 @@ class WSHandler(WebSocketHandler, BaseHandler):
       data['objects'] = objects
 
     # Broadcast the message, appending a seqnum.
-    seq = self.to_channel(data)
+    if self.writeable:
+      seq = self.to_channel(data)
 
 
   @coroutine
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not self.writeable or message.kind != 'message':
+    if message.kind != 'message':
       return
 
     self.write_message(message.body)
