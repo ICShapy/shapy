@@ -454,10 +454,10 @@ shapy.browser.asset = function(shModal) {
         }
 
         if ($scope.asset.type != shapy.browser.Asset.Type.TEXTURE) {
-          $scope.selectAsset({asset:$scope.asset, enter: true});
+          $scope.selectAsset({asset: $scope.asset, enter: true});
           return;
         } else {
-          $scope.asset.shBrowser_.getTexture($scope.asset.id).then(function(){
+          $scope.asset.shBrowser_.getTexture($scope.asset.id).then(function() {
             displayTexture($scope.asset);
           });
         }
@@ -465,36 +465,41 @@ shapy.browser.asset = function(shModal) {
 
       // Drag handling - changing parent dir
 
-      $elem.on('dragover', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-      });
-      $elem.on('dragleave', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-      });
-      $elem.on('dragstart', function(e) {
-        // Block if not owner
-        if (!$scope.asset.owner) {
-          return;
-        }
-
-        e.originalEvent.dataTransfer.setData("asset", $scope.asset.id);
-      });
-      $elem.on('drop', function(e) {
-        var id = parseInt(e.originalEvent.dataTransfer.getData("asset"), 10);
-        
-        //Change dir of dragged if applicable
-        $scope.asset.shBrowser_.move($scope.asset, id);
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        return false;
-      });
-
+      $elem
+        .on('dragover', function(e) {
+          var evt = e.originalEvent;
+          e.preventDefault();
+          e.stopPropagation();
+          $(this).addClass('drag-over');
+          evt.dataTransfer.dropEffect = 'move';
+          return false;
+        })
+        .on('dragenter', function(e) {
+          $(this).addClass('drag-over');
+          return true;
+        })
+        .on('dragleave', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $(this).removeClass('drag-over');
+          return true;
+        })
+        .on('dragstart', function(e) {
+          var evt = e.originalEvent;
+          if (!$scope.asset.owner) {
+            return;
+          }
+          evt.dataTransfer.setData('asset', $scope.asset.id);
+          return true;
+        })
+        .on('drop', function(e) {
+          var id = parseInt(e.originalEvent.dataTransfer.getData('asset'), 10);
+          $scope.asset.shBrowser_.move($scope.asset, id);
+          e.preventDefault();
+          e.stopPropagation();
+          $('sh-asset').removeClass('drag-over');
+          return false;
+        });
     }
   };
 };

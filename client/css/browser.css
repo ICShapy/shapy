@@ -419,6 +419,10 @@ sh-asset > div > img {
   max-height: 100%;
 }
 
+sh-asset.drag-over .image {
+  border: 1px solid #0000cc;
+  box-shadow: 2px 4px 4px #5555cc;
+}
 
 /**
  * Texture upload
