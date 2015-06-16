@@ -850,7 +850,7 @@ shapy.editor.Object.prototype.createFace = function(e0, e1, e2) {
   }
 
   // Create a new face.
-  this.faces[id] = new shapy.editor.Face(
+  this.faces[this.nextFace_] = new shapy.editor.Face(
       this, this.nextFace_, is[0], is[1], is[2]);
   this.nextFace_++;
 };
