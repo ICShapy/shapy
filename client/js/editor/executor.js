@@ -984,9 +984,6 @@ shapy.editor.WriteExecutor.prototype.emitMerge = function(obj, group) {
  * @param {number}                 br Brush radius.
  */
 shapy.editor.WriteExecutor.prototype.emitPaint = function(t, u, v, bc, br) {
-  // TODO(ilija): Remove when texture is applied.
-  return;
-
   this.sendCommand({
     type: 'edit',
     tool: 'paint',
