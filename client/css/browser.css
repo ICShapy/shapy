@@ -147,6 +147,7 @@ sh-sidebar .space > button.right {
 sh-sidebar .directory {
   position: relative;
   overflow: hidden;
+  padding: 7px;
 }
 
 sh-sidebar .directory img {
@@ -162,7 +163,7 @@ sh-sidebar .directory .name {
 
 sh-sidebar .directory .name > span {
   position: absolute;
-  left: 15px;
+  left: 23px;
   height: 15px;
 }
 
