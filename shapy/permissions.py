@@ -84,7 +84,9 @@ class PermissionsHandler(APIHandler):
     if not user:
       raise HTTPError(401, 'Not authorized.')
     id = int(self.get_argument('id'))
-    permissions = [(str(perm[0]), perm[1]) for perm in json.loads(self.get_argument('permissions'))]
+    permissions = [
+      (str(perm[0]), perm[1])
+      for perm in json.loads(self.get_argument('permissions'))]
 
     # Check if user owns a non-dir asset with given id
     cursor = yield momoko.Op(self.db.execute,

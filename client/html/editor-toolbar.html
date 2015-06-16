@@ -92,7 +92,7 @@
             ng-click="editorCtrl.applyTexture(texture.id); close()"
             ng-repeat="texture in editorCtrl.textures">
           <img ng-show="texture.image" ng-src="{{texture.image}}"/>
-          {{texture.name}}
+        <span>{{texture.name}}</span>
         </div>
       </div>
     </div>

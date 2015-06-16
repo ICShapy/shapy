@@ -536,6 +536,10 @@ class SceneHandler(AssetHandler):
         self.set_header('Content-Type', 'text/plain')
         self.write(scene.to_obj())
         self.finish()
+      elif fmt == 'stl':
+        self.set_header('Content-Type', 'text/plain')
+        self.write(scene.to_stl())
+        self.finish()
       else:
         raise HTTPError(400, 'Format not supported.')
 
