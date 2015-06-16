@@ -390,6 +390,10 @@ sh-path-asset {
   color: white;
 }
 
+sh-path-asset.drag-over {
+  background-color: blue;
+}
+
 sh-path-asset:hover {
   background-color: #555555;
 }
@@ -419,6 +423,10 @@ sh-asset > div > img {
   max-height: 100%;
 }
 
+sh-asset.drag-over .image {
+  border: 1px solid #0000cc;
+  box-shadow: 2px 4px 4px #5555cc;
+}
 
 /**
  * Texture upload
@@ -446,6 +454,7 @@ sh-upload.hover {
   margin-left: 150px;
   margin-right: 150px;
   text-align: center;
+  pointer-events: none
 }
 .upload-choose input {
   display: block;
@@ -468,7 +477,6 @@ sh-upload.hover {
   width:160px;
   margin-left: 170px;
   margin-right: 170px;
-
   cursor: pointer;
 }
 
@@ -484,6 +492,7 @@ sh-upload.hover {
   overflow-x: hidden;
   overflow-y: auto;
   z-index: 30;
+  pointer-events: none;
 }
 
 /**

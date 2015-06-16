@@ -114,17 +114,19 @@ shapy.browser.Texture.prototype.load = function(data) {
 
   var image = new Image();
   image.onload = goog.bind(function() {
-    var canvas = document.createElement('canvas');
-    canvas.width = image.width;
-    canvas.height = image.height;
+    this.shBrowser_.rootScope_.$apply(goog.bind(function() {
+      var canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
 
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(image, 0, 0);
-    this.width = image.width;
-    this.height = image.height;
-    this.data = new Uint8Array(
-        ctx.getImageData(0, 0, image.width, image.height).data);
-    this.dirty = true;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(image, 0, 0);
+      this.width = image.width;
+      this.height = image.height;
+      this.data = new Uint8Array(
+          ctx.getImageData(0, 0, image.width, image.height).data);
+      this.dirty = true;
+    }, this));
   }, this);
   image.src = data.data;
 

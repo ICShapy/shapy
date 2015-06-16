@@ -231,6 +231,7 @@ class AssetHandler(APIHandler):
     parent = int(self.get_argument('parent'))
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
+    name = self.get_argument('name', None)
     if preview is None and mainData is not None:
       image_data = re.sub('^data:image/.+;base64,', '', str(mainData)).decode('base64')
       im = Image.open(cStringIO.StringIO(image_data))
@@ -264,7 +265,7 @@ class AssetHandler(APIHandler):
          VALUES (%(name)s, %(type)s, %(data)s, %(preview)s, %(owner)s, %(parent)s, %(public)s)
          RETURNING id, name
       ''', {
-      'name': self.NEW_NAME,
+      'name': name or self.NEW_NAME,
       'type': self.TYPE,
       'data': psycopg2.Binary(str(mainData)) if mainData else None,
       'preview': psycopg2.Binary(str(preview)) if preview else None,
@@ -338,6 +339,7 @@ class AssetHandler(APIHandler):
       raise HTTPError(401, 'User not logged in.')
     id = int(self.get_argument('id'))
     name = self.get_argument('name', None)
+    parent = self.get_argument('parent', None)
     data = self.get_argument('data', None)
     preview = self.get_argument('preview', None)
     public = self.get_argument('public', None)
@@ -348,34 +350,70 @@ class AssetHandler(APIHandler):
     if public is not None and self.TYPE == 'dir':
       raise HTTPError(400, 'Asset update failed.')
 
-    # Check if user has write permission
-    cursor = yield momoko.Op(self.db.execute,
+    if parent == id:
+      raise HTTPError(400, 'Cannot move a directory into itself.')
+
+    if parent is not None:
+      # Check ownership of asset and potential new parent
+      cursors = yield momoko.Op(self.db.transaction, (
+      (
       '''SELECT 1
          FROM assets
-         LEFT OUTER JOIN permissions
-         ON permissions.asset_id = assets.id
-         WHERE assets.id = %(id)s
-           AND assets.type = %(type)s
-           AND ((permissions.user_id = %(user)s AND
-                 permissions.write IS TRUE AND
-                 %(public)s IS NULL) OR
-                (assets.owner = %(user)s))
+         WHERE id = %(id)s
+           AND owner = %(owner)s
+           AND type = %(type)s
       ''', {
-      'id': id,
-      'type': self.TYPE,
-      'user': user.id,
-      'public': public
-    })
+          'id': id,
+          'owner': user.id,
+          'type': self.TYPE,
+      }),
+      (
+      '''SELECT 1
+         FROM assets
+         WHERE id = %(parent)s
+           AND (id = 0 OR owner = %(owner)s)
+           AND type = %(type)s
+      ''',{
+          'parent': parent,
+          'owner': user.id,
+          'type': 'dir',
+      })
+      ))
 
-    if not cursor.fetchone():
-      raise HTTPError(400, 'Asset cannot be edited.')
+      if not cursors[0].fetchone() or not cursors[1].fetchone():
+        raise HTTPError(400, 'Asset cannot be edited that way.')
 
+    else:
+      # Check if user has write permission
+      cursor = yield momoko.Op(self.db.execute,
+        '''SELECT 1
+           FROM assets
+           LEFT OUTER JOIN permissions
+           ON permissions.asset_id = assets.id
+           WHERE assets.id = %(id)s
+             AND assets.type = %(type)s
+             AND ((permissions.user_id = %(user)s AND
+                   permissions.write IS TRUE AND
+                   %(public)s IS NULL) OR
+                  (assets.owner = %(user)s))
+        ''', {
+        'id': id,
+        'type': self.TYPE,
+        'user': user.id,
+        'public': public
+      })
+
+      if not cursor.fetchone():
+        raise HTTPError(400, 'Asset cannot be edited.')
+
+    # Update
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets
          SET name = COALESCE(%(name)s, name),
              data = COALESCE(%(data)s, data)::bytea,
              public = COALESCE(%(public)s, public),
-             preview = COALESCE(%(preview)s, preview)::bytea
+             preview = COALESCE(%(preview)s, preview)::bytea,
+             parent = COALESCE(%(parent)s, parent)
 
          WHERE id = %(id)s
          RETURNING id
@@ -384,7 +422,8 @@ class AssetHandler(APIHandler):
       'name': name,
       'data': psycopg2.Binary(data.encode('ascii')) if data else None,
       'public': public,
-      'preview': psycopg2.Binary(str(preview)) if preview else None
+      'preview': psycopg2.Binary(str(preview)) if preview else None,
+      'parent': parent
     })
 
     if not cursor.fetchone():
@@ -499,6 +538,10 @@ class SceneHandler(AssetHandler):
       if fmt == 'obj':
         self.set_header('Content-Type', 'text/plain')
         self.write(scene.to_obj())
+        self.finish()
+      elif fmt == 'stl':
+        self.set_header('Content-Type', 'text/plain')
+        self.write(scene.to_stl())
         self.finish()
       else:
         raise HTTPError(400, 'Format not supported.')
