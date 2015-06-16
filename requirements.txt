@@ -5,3 +5,4 @@ Momoko==1.1.5
 redis==2.8
 Pillow==2.8.2
 pyrr==0.6.5
+numpy==1.9.2
