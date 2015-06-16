@@ -215,7 +215,7 @@ shapy.browser.BrowserToolbarController.prototype.current = function() {
  */
 shapy.browser.BrowserToolbarController.prototype.private = function() {
   return this.shBrowser_.private;
-}
+};
 
 
 /**
