@@ -284,7 +284,9 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
   }
 
   goog.object.forEach(this.editables, function(editable) {
-    goog.vec.Vec3.add(position, editable.getPosition(), position);
+    if (editable.getPosition) {
+      goog.vec.Vec3.add(position, editable.getPosition(), position);
+    }
   }, this);
   goog.vec.Vec3.scale(position, 1 / this.editables.length, position);
   return position;
@@ -371,7 +373,12 @@ shapy.editor.PartsGroup.prototype.translate = function(dx, dy, dz) {
  */
 shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
   var verts = this.getVertices();
-  var mid = this.getPosition();
+  var mid = goog.vec.Vec3.createFloat32();
+  goog.object.forEach(verts, function(v) {
+    goog.vec.Vec3.add(mid, v.getPosition(), mid);
+  });
+  goog.vec.Vec3.scale(mid, 1.0 / verts.length, mid);
+
   var d = goog.vec.Vec3.createFloat32();
 
   // Apply translation to each object
@@ -388,8 +395,12 @@ shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
  * @param {!goog.vec.Quaternion} q
  */
 shapy.editor.PartsGroup.prototype.rotate = function(q) {
-  var mid = this.getPosition();
   var verts = this.getVertices();
+  var mid = goog.vec.Vec3.createFloat32();
+  goog.object.forEach(verts, function(v) {
+    goog.vec.Vec3.add(mid, v.getPosition(), mid);
+  });
+  goog.vec.Vec3.scale(mid, 1.0 / verts.length, mid);
 
   var c = goog.vec.Quaternion.createFloat32();
   var d = goog.vec.Vec3.createFloat32();
@@ -436,8 +447,20 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
     return e.getVertices();
   }, this));
   goog.array.removeDuplicates(verts);
-
   return verts;
+};
+
+/**
+ * Returns the uv points.
+ *
+ * @return {!Array<!shapy.editor.UVPoint>}
+ */
+shapy.editor.PartsGroup.prototype.getUVPoints = function() {
+  var uvs = goog.array.flatten(goog.array.map(this.editables, function(e) {
+    return e.getUVs();
+  }, this));
+  goog.array.removeDuplicates(uvs);
+  return uvs;
 };
 
 
