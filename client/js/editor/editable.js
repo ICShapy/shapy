@@ -436,8 +436,20 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
     return e.getVertices();
   }, this));
   goog.array.removeDuplicates(verts);
-
   return verts;
+};
+
+/**
+ * Returns the uv points.
+ *
+ * @return {!Array<!shapy.editor.UVPoint>}
+ */
+shapy.editor.PartsGroup.prototype.getUVPoints = function() {
+  var uvs = goog.array.flatten(goog.array.map(this.editables, function(e) {
+    return e.getUVs();
+  }, this));
+  goog.array.removeDuplicates(uvs);
+  return uvs;
 };
 
 

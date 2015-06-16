@@ -679,7 +679,7 @@ shapy.editor.Editor.prototype.extrude_ = function() {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
-  var object, faces;
+  var object, faces, uvs;
 
   switch (String.fromCharCode(e.keyCode)) {
     case 'D': {
@@ -708,6 +708,15 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       this.exec_.emitConnect(object, this.partGroup);
       object.connect(verts);
       return;
+    }
+    case 'W': {
+      if (!(object = this.partGroup.getObject())) {
+        return;
+      }
+      uvs = this.partGroup.getUVPoints();
+      object.weld(uvs);
+      this.partGroup.clear();
+      return
     }
     case 'M': {
       if (!(object = this.partGroup.getObject())) {

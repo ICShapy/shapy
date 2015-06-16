@@ -33,23 +33,23 @@ shapy.editor.OBJECT_TEXTURE_VS =
 
 /** @type {string} @const */
 shapy.editor.OBJECT_TEXTURE_FS =
-  '#extension GL_OES_standard_derivatives : enable             \n' +
+  '#extension GL_OES_standard_derivatives : enable                 \n' +
 
-  'precision mediump float;                                    \n' +
+  'precision mediump float;                                        \n' +
 
-  'uniform sampler2D u_texture;                                \n' +
+  'uniform sampler2D u_texture;                                    \n' +
 
-  'varying vec4 v_colour;                                      \n' +
-  'varying vec2 v_uv;                                          \n' +
+  'varying vec4 v_colour;                                          \n' +
+  'varying vec2 v_uv;                                              \n' +
 
-  'void main() {                                               \n' +
-  '  vec4 texture = texture2D(u_texture, v_uv);                \n' +
-  '  if (!gl_FrontFacing) {                                    \n' +
-  '    gl_FragColor = vec4(v_colour.rgb * texture.rgb, 1.0);   \n' +
-  '  } else {                                                  \n' +
-  '    gl_FragColor = vec4(v_colour.rgb, 1.0);                 \n' +
-  '  }                                                         \n' +
-  '}                                                           \n';
+  'void main() {                                                   \n' +
+  '  vec4 texture = texture2D(u_texture, v_uv);                    \n' +
+  '  if (!gl_FrontFacing) {                                        \n' +
+  '    gl_FragColor = vec4(v_colour.rgb * texture.rgb, 1.0);       \n' +
+  '  } else {                                                      \n' +
+  '    gl_FragColor = vec4(v_colour.rgb * texture.rgb * 0.6, 1.0); \n' +
+  '  }                                                             \n' +
+  '}                                                               \n';
 
 
 /** @type {string} @const */

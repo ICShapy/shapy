@@ -547,6 +547,9 @@ shapy.editor.Object.prototype.pickUVCoord = function(pt, mode) {
     var uv = face.getUVs();
 
     var a0 = shapy.editor.geom.triangleArea(uv[0], uv[1], uv[2]);
+    if (a0 < 0.001) {
+      return false;
+    }
     var a1 = shapy.editor.geom.triangleArea(pt, uv[1], uv[2]);
     var a2 = shapy.editor.geom.triangleArea(uv[0], pt, uv[2]);
     var a3 = shapy.editor.geom.triangleArea(uv[0], uv[1], pt);
@@ -1216,6 +1219,44 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     normal: normal,
     faces: clonedFaces
   };
+};
+
+
+/**
+ * Welds UV points.
+ *
+ * @param {!Array<!shapy.editor.Object.UVPoint>} uvs
+ */
+shapy.editor.Object.prototype.weld = function(uvs) {
+  var u = 0, v = 0, map = {};
+
+  goog.array.forEach(uvs, function(uv) {
+    u += uv.u;
+    v += uv.v;
+    map[uv.id] = uv;
+  });
+
+  u /= uvs.length;
+  v /= uvs.length;
+
+  var pt = new shapy.editor.Object.UVPoint(this, this.nextUVPoint_, u, v);
+  this.uvPoints[pt.id] = pt;
+  this.nextUVPoint_++;
+
+  goog.object.forEach(this.uvEdges, function(edge) {
+    if (goog.object.containsKey(map, edge.uv0)) {
+      edge.uv0 = pt.id;
+    }
+    if (goog.object.containsKey(map, edge.uv1)) {
+      edge.uv1 = pt.id;
+    }
+  }, this);
+
+  this.uvPoints = goog.object.filter(this.uvPoints, function(uv) {
+    return !goog.object.containsKey(map, uv.id);
+  });
+
+  this.dirty = true;
 };
 
 
