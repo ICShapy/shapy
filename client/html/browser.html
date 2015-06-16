@@ -81,13 +81,17 @@
           selected="browserCtrl.selected"
           owner="asset.owner"
           select-asset="browserCtrl.select(asset, enter)"
-          ng-class="{selected: browserCtrl.selected==asset}">
+          ng-class="{selected: browserCtrl.selected==asset}"
+          draggable="true">
         <div class="image"
             ng-click="browserCtrl.selected=asset">
-          <img class="assetmenu" ng-src="{{asset.image}}">
+          <img
+            draggable="false"
+            class="assetmenu"
+            ng-src="{{asset.image}}">
         </div>
         <div ng-switch on="asset.write">
-          <div ng-switch-when="true" 
+          <div ng-switch-when="true"
                class="name assetmenu">
             <sh-editable
                 ng-click="browserCtrl.selected = null"
@@ -97,7 +101,7 @@
                 ng-model="name">
             </sh-editable>
           </div>
-          <div ng-switch-default 
+          <div ng-switch-default
                class="name noneditable assetmenu">
             {{asset.name}}
           </div>
