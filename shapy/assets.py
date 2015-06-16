@@ -2,7 +2,6 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
-from binascii import a2b_base64
 import hashlib
 import json
 
@@ -233,12 +232,13 @@ class AssetHandler(APIHandler):
     mainData = self.get_argument('data', None)
     name = self.get_argument('name', None)
     if preview is None and mainData is not None:
-      image_data = re.sub('^data:image/.+;base64,', '', str(mainData)).decode('base64')
+      image_data = re.sub(
+          '^data:image/.+;base64,', '', str(mainData)).decode('base64')
       im = Image.open(cStringIO.StringIO(image_data))
       im = im.convert('RGB')
       im.thumbnail((150, 150), Image.ANTIALIAS)
       jpeg_image_buffer = cStringIO.StringIO()
-      im.save(jpeg_image_buffer, format="JPEG")
+      im.save(jpeg_image_buffer, format='JPEG')
       imStr = base64.b64encode(jpeg_image_buffer.getvalue())
       preview = "data:image/jpeg;base64," + imStr
 
@@ -262,7 +262,15 @@ class AssetHandler(APIHandler):
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
       '''INSERT INTO assets (name, type, data, preview, owner, parent, public)
-         VALUES (%(name)s, %(type)s, %(data)s, %(preview)s, %(owner)s, %(parent)s, %(public)s)
+         VALUES (
+            %(name)s,
+            %(type)s,
+            %(data)s,
+            %(preview)s,
+            %(owner)s,
+            %(parent)s,
+            %(public)s
+         )
          RETURNING id, name
       ''', {
       'name': name or self.NEW_NAME,
@@ -515,6 +523,39 @@ class TextureHandler(AssetHandler):
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
 
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Fetches a scene either as JSON or some other format."""
+
+    # If format is unspecified, dump as JSON.
+    fmt = self.get_argument('format', None)
+    if not fmt or fmt == 'json':
+      yield super(SceneHandler, self).get()
+      return
+
+    # Decode image.
+    data, _, _ = yield self._fetch(self.get_argument('id'), user)
+    image = Image.open(cStringIO.StringIO(re.sub(
+        '^data:image/.+;base64,', '', data['data']).decode('base64')))
+    stream = cStringIO.StringIO()
+
+    if fmt == 'png':
+      self.set_header('Content-Type', 'image/png')
+      image.save(stream, 'png')
+    elif fmt == 'jpeg':
+      self.set_header('Content-Type', 'image/jpeg')
+      image.save(stream, 'jpeg')
+    else:
+      raise HTTPError(400, 'Unsupported image format.')
+
+    data = stream.getvalue()
+    self.set_header('Content-Length', str(len(data)))
+    self.write(data)
+    self.finish()
+
+
 
 
 class SceneHandler(AssetHandler):
@@ -532,19 +573,21 @@ class SceneHandler(AssetHandler):
     fmt = self.get_argument('format', None)
     if not fmt or fmt == 'json':
       yield super(SceneHandler, self).get()
+      return
+
+    data, _, _ = yield self._fetch(self.get_argument('id'), user)
+    scene = Scene(data['name'], json.loads(str(data['data'] or 'null')))
+
+    if fmt == 'obj':
+      self.set_header('Content-Type', 'text/plain')
+      self.write(scene.to_obj())
+    elif fmt == 'stl':
+      self.set_header('Content-Type', 'text/plain')
+      self.write(scene.to_stl())
     else:
-      data, _, _ = yield self._fetch(self.get_argument('id'), user)
-      scene = Scene(data['name'], json.loads(str(data['data'] or 'null')))
-      if fmt == 'obj':
-        self.set_header('Content-Type', 'text/plain')
-        self.write(scene.to_obj())
-        self.finish()
-      elif fmt == 'stl':
-        self.set_header('Content-Type', 'text/plain')
-        self.write(scene.to_stl())
-        self.finish()
-      else:
-        raise HTTPError(400, 'Format not supported.')
+      raise HTTPError(400, 'Format not supported.')
+
+    self.finish()
 
 
 class TextureFilterHandler(APIHandler):
