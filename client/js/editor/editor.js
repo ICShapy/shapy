@@ -586,6 +586,16 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
   if (this.mode.object) {
     this.partGroup.setSelected(null);
     this.partGroup.clear();
+  } else {
+    // Deselect parts no longer allowed.
+    this.partGroup.editables = goog.array.filter(
+        this.partGroup.editables, function(e) {
+          var allowed = this.mode[e.type];
+          if (!allowed) {
+            e.setSelected(null);
+          }
+          return allowed;
+        }, this);
   }
   this.rig(this.rigTranslate_);
 };

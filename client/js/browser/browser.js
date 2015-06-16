@@ -162,6 +162,20 @@ shapy.browser.BrowserController.prototype.defaultName = function(type) {
   return this.shBrowser_.defaultName(type);
 };
 
+/**
+ * Returns shapy scene type.
+ */
+shapy.browser.BrowserController.prototype.sceneType = function() {
+  return shapy.browser.Asset.Type.SCENE;
+};
+
+/**
+ * Returns shapy texture type.
+ */
+shapy.browser.BrowserController.prototype.textureType = function() {
+  return shapy.browser.Asset.Type.TEXTURE;
+};
+
 
 
 /**
