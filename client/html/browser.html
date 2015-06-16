@@ -113,9 +113,19 @@
   <div class='asset-menu'>
     <ul>
       <li ng-click=""
-          ng-show="browserCtrl.selected.type != browserCtrl.home.type"
+          ng-show="browserCtrl.selected.type == browserCtrl.sceneType()"
+          ng-style="{'cursor': 'pointer'}">
+        Download as OBJ
+      </li>
+      <li ng-click=""
+          ng-show="browserCtrl.selected.type == browserCtrl.sceneType()"
           ng-style="{'cursor': 'pointer'}">
         Download as STL
+      </li>
+      <li ng-click=""
+          ng-show="browserCtrl.selected.type == browserCtrl.textureType()"
+          ng-style="{'cursor': 'pointer'}">
+        Download Image
       </li>
       <sh-share
           ng-show="browserCtrl.selected.type != browserCtrl.home.type"
