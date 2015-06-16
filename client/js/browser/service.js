@@ -191,16 +191,19 @@ shapy.browser.Service.prototype.createScene = function() {
 /**
  * Creates a new texture.
  *
+ * @param {string} name    Name of the texture.
  * @param {string} texture New texture.
  *
  * @return {!angular.$q} Promise to return a new texture.
  */
-shapy.browser.Service.prototype.createTexture = function(texture) {
+shapy.browser.Service.prototype.createTexture = function(name, texture) {
   return this.create_(
       '/api/assets/texture',
       this.textures_,
-      shapy.browser.Texture,
-      {'data': texture});
+      shapy.browser.Texture, {
+        'name': name,
+        'data': texture
+  });
 };
 
 
@@ -604,7 +607,7 @@ shapy.browser.Service.prototype.setPublicTexture = function(texture, public) {
  * Moves asset to new parent dir.
  *
  * @param {!shapy.browser.Asset} newParent new parent for asset.
- * @param {boolean}              id        ID of dragged asset.     
+ * @param {boolean}              id        ID of dragged asset.
  */
 shapy.browser.Service.prototype.move = function(newParent, id) {
   // Move only if parent is an owned dir.

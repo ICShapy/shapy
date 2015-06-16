@@ -231,6 +231,7 @@ class AssetHandler(APIHandler):
     parent = int(self.get_argument('parent'))
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
+    name = self.get_argument('name', None)
     if preview is None and mainData is not None:
       image_data = re.sub('^data:image/.+;base64,', '', str(mainData)).decode('base64')
       im = Image.open(cStringIO.StringIO(image_data))
@@ -264,7 +265,7 @@ class AssetHandler(APIHandler):
          VALUES (%(name)s, %(type)s, %(data)s, %(preview)s, %(owner)s, %(parent)s, %(public)s)
          RETURNING id, name
       ''', {
-      'name': self.NEW_NAME,
+      'name': name or self.NEW_NAME,
       'type': self.TYPE,
       'data': psycopg2.Binary(str(mainData)) if mainData else None,
       'preview': psycopg2.Binary(str(preview)) if preview else None,
