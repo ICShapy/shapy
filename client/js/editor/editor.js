@@ -454,16 +454,10 @@ shapy.editor.Editor.prototype.create = function(type) {
 /**
  * Applies a texture to the currently selected objects.
  *
- * @param {number} id ID of the texture to apply.
+ * @param {number}                    id ID of the texture to apply.
+ * @param {shapy.editor.Editable} object Object the texture is to be applied to.
  */
-shapy.editor.Editor.prototype.applyTexture = function(id) {
-  var object;
-
-  if (this.objectGroup.editables.length != 1) {
-    return;
-  }
-
-  object = this.objectGroup.editables[0];
+shapy.editor.Editor.prototype.applyTexture = function(id, object) {
   this.shBrowser_.getTexture(id).then(goog.bind(function(texture) {
     object.texture = id;
     this.textures_[id] = texture;

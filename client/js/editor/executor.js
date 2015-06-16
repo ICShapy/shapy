@@ -716,8 +716,10 @@ shapy.editor.Executor.prototype.applyTexture = function(data) {
     return;
   }
 
+  console.log("applying texture");
+
   // Apply the texture.
-  this.editor_.applyTexture(data['textureId']);
+  //this.editor_.applyTexture(data['textureId'], data['objId']);
 };
 
 
@@ -1004,15 +1006,17 @@ shapy.editor.WriteExecutor.prototype.emitPaint = function(t, u, v, bc, br) {
 /**
  * Executes texture apply command.
  *
- * @param {number} id ID of the texture to apply.
+ * @param {number}                 id ID of the texture to apply.
+ * @param {shapy.editor.Editable} obj Object the texture is to be applied to.
  */
-shapy.editor.Executor.prototype.emitTexture = function(id) {
+shapy.editor.Executor.prototype.emitTexture = function(obj, id) {
   this.sendCommand({
     type: 'edit',
     tool: 'texture',
     userId: this.editor_.user.id,
 
-    textureId: t.id
+    objId: obj.id,
+    textureId: id
   });
 };
 
