@@ -383,25 +383,22 @@ shapy.browser.asset = function(shModal) {
         // Adjust dialog size
         $scope.$watch(
           function($scope) {
-            return $scope.asset.width;
+            return $scope.asset.width + 'x' + $scope.asset.height;
           },
           function() {
-            $('.dialog')
-              .css('width',
-                   Math.min(1000, Math.max($scope.asset.width + 10, 160)));
-          }
-        );
-        $scope.$watch(
-          function($scope) {
-            return $scope.asset.height;
-          },
-          function() {
-            $('.dialog')
-              .css('height',
-                   Math.min(600, Math.max($scope.asset.height + 52, 160)));
-          }
-        );
+            var w = $scope.asset.width;
+            var h = $scope.asset.height + 74;
+            var aspect = w / h;
 
+            h = Math.max(Math.min(h, 600), 150);
+            w = h * aspect;
+
+            $('.dialog').css({
+              width: w,
+              height: h
+            });
+          }
+        );
 
         $scope.cancel = function() { return false; };
         $scope.okay = function() { return false; };
