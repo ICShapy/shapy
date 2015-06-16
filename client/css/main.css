@@ -426,7 +426,7 @@ input.ng-invalid.ng-touched {
   padding: 8px;
   border-bottom: 1px solid #777;
   color: white;
-  background: #FFF; /*linear-gradient(to bottom, #0a1e38 0%, #181f5b 100%)*/
+  background: #1a2c4a;
 }
 
 #modal > .dialog > .content {
