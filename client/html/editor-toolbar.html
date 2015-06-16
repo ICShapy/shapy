@@ -141,9 +141,10 @@
     </div>
   </div>
   <div id="toolbar-right">
-    <!-- Displays the number of users & shows a list. -->
-    <div class="toolbar-button" id="editor-user-counter">
-      <span>{{ editorCtrl.users.length }}</span>
+    <!-- Displays the list of users as a row of buttons, with a tooltip -->
+    <div class="toolbar-button" id="editor-user-counter" ng-repeat="user in editorCtrl.users">
+      <span>{{user.name[0]}}</span>
+      <!--
       <ul>
         <li ng-repeat="user in editorCtrl.users"
             style="background-color: rgba(
@@ -154,6 +155,7 @@
           {{ user.name }}
         </li>
       </ul>
+      -->
     </div>
 
     <!-- Chat button -->
