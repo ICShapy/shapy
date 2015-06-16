@@ -578,6 +578,16 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
   if (this.mode.object) {
     this.partGroup.setSelected(null);
     this.partGroup.clear();
+  } else {
+    // Deselect parts no longer allowed.
+    this.partGroup.editables = goog.array.filter(
+        this.partGroup.editables, function(e) {
+          var allowed = this.mode[e.type];
+          if (!allowed) {
+            e.setSelected(null);
+          }
+          return allowed;
+        }, this);
   }
   this.rig(this.rigTranslate_);
 };
@@ -650,7 +660,7 @@ shapy.editor.Editor.prototype.doDelete = function() {
     this.partGroup.clear();
   }
   this.rig(null);
-}
+};
 
 
 /**
@@ -699,7 +709,7 @@ shapy.editor.Editor.prototype.doMerge = function() {
   object.mergeVertices(this.partGroup.getVertices());
   this.partGroup.clear();
   this.rig(null);
-}
+};
 
 
 /**
@@ -717,7 +727,7 @@ shapy.editor.Editor.prototype.doConnect = function() {
   this.exec_.emitConnect(object, this.partGroup);
   object.connect(verts);
   return;
-}
+};
 
 
 /**
@@ -726,9 +736,18 @@ shapy.editor.Editor.prototype.doConnect = function() {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.keyDown = function(e) {
-  var object, faces;
+  var object, faces, uvs;
 
   switch (String.fromCharCode(e.keyCode)) {
+    case 'W': {
+      if (!(object = this.partGroup.getObject())) {
+        return;
+      }
+      uvs = this.partGroup.getUVPoints();
+      object.weld(uvs);
+      this.partGroup.clear();
+      return;
+    }
     case 'O': {
       if (!this.layout || !this.layout.active) {
         return;

@@ -115,6 +115,7 @@ shapy.editor.Viewport.Edit.prototype.resize = function(x, y, w, h) {
 shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
   shapy.editor.Viewport.prototype.mouseMove.call(this, x, y);
   var pick, hits = [], hit, ray, frustum, uv, object, texture;
+  var hasGroup = this.group && this.group.width > 3 && this.group.height > 3;
 
   // Check if camcube requires the event.
   this.currMousePos.x = x;
@@ -135,12 +136,12 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
 
   // Check if the rig requires the event.
   ray = this.raycast(x, y);
-  if (this.rig && this.rig.mouseMove(ray)) {
+  if (!hasGroup && this.rig && this.rig.mouseMove(ray)) {
     this.group = null;
     return [];
   }
 
-  if (this.group && this.group.width > 3 && this.group.height > 3) {
+  if (hasGroup) {
     frustum = this.groupcast(this.group);
     hits = this.editor.scene_.pickFrustum(frustum, this.editor.mode);
   } else if (ray) {
@@ -154,23 +155,10 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
     if (!(texture = this.editor.textures_[hit.object.texture])) {
       return [];
     }
-
     uv = hit.pickUV(ray);
-
-    this.editor.exec_.emitPaint(
-        texture,
-        uv.u,
-        uv.v,
-        this.editor.brushColour_,
-        this.editor.brushRadius_
-    );
-
-    texture.paint(
-        uv.u,
-        uv.v,
-        this.editor.brushColour_,
-        this.editor.brushRadius_
-        );
+    
+    // Paint the texture.
+    this.paint_(texture, uv.u, uv.v);    
     return [];
   }
   return hits;

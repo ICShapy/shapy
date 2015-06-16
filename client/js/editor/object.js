@@ -249,19 +249,6 @@ shapy.editor.Object.prototype.getPosition = function() {
 
 
 /**
- * Sets object position.
- *
- * @param {number} x
- * @param {number} y
- * @param {number} z
- */
-shapy.editor.Object.prototype.setPosition = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
-  this.dirty = true;
-};
-
-
-/**
  * Updates the object scale.
  *
  * @param {number} x
@@ -547,6 +534,9 @@ shapy.editor.Object.prototype.pickUVCoord = function(pt, mode) {
     var uv = face.getUVs();
 
     var a0 = shapy.editor.geom.triangleArea(uv[0], uv[1], uv[2]);
+    if (a0 < 0.001) {
+      return false;
+    }
     var a1 = shapy.editor.geom.triangleArea(pt, uv[1], uv[2]);
     var a2 = shapy.editor.geom.triangleArea(uv[0], pt, uv[2]);
     var a3 = shapy.editor.geom.triangleArea(uv[0], uv[1], pt);
@@ -816,8 +806,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
       return;
     }
 
-    this.createFace(this.nextFace_, e[0], e[1], e[2]);
-    this.nextFace_++;
+    this.createFace(e[0], e[1], e[2]);
     this.dirty = true;
   }
 };
@@ -827,12 +816,11 @@ shapy.editor.Object.prototype.connect = function(verts) {
  * Creates a face out of the given edge ids and adds it to the object.
  * Ensures that the created face has edges properly ordered.
  *
- * @param {number} id
  * @param {number} e0
  * @param {number} e1
  * @param {number} e2
  */
-shapy.editor.Object.prototype.createFace = function(id, e0, e1, e2) {
+shapy.editor.Object.prototype.createFace = function(e0, e1, e2) {
   var is = [e0, e1, e2];
   var es = [this.edges[e0], this.edges[e1], this.edges[e2]];
 
@@ -862,7 +850,9 @@ shapy.editor.Object.prototype.createFace = function(id, e0, e1, e2) {
   }
 
   // Create a new face.
-  this.faces[id] = new shapy.editor.Face(this, id, is[0], is[1], is[2]);
+  this.faces[this.nextFace_] = new shapy.editor.Face(
+      this, this.nextFace_, is[0], is[1], is[2]);
+  this.nextFace_++;
 };
 
 
@@ -977,8 +967,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       }
 
       // Make sure the edges are ordered.
-      this.createFace(this.nextFace_, e.id, q[2].id, side);
-      this.nextFace_++;
+      this.createFace(e.id, q[2].id, side);
 
       // Construct face formed by: q[3].v0 q[3].v1 third.
       for (var k = 0; k < 3; k++) {
@@ -991,8 +980,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       }
 
       // Make sure the edges are ordered.
-      this.createFace(this.nextFace_, e.id, q[3].id, side);
-      this.nextFace_++;
+      this.createFace(e.id, q[3].id, side);
 
       // Remove the old face from the object.
       goog.object.remove(this.faces, f.id);
@@ -1216,6 +1204,44 @@ shapy.editor.Object.prototype.extrude = function(faces) {
     normal: normal,
     faces: clonedFaces
   };
+};
+
+
+/**
+ * Welds UV points.
+ *
+ * @param {!Array<!shapy.editor.Object.UVPoint>} uvs
+ */
+shapy.editor.Object.prototype.weld = function(uvs) {
+  var u = 0, v = 0, map = {};
+
+  goog.array.forEach(uvs, function(uv) {
+    u += uv.u;
+    v += uv.v;
+    map[uv.id] = uv;
+  });
+
+  u /= uvs.length;
+  v /= uvs.length;
+
+  var pt = new shapy.editor.Object.UVPoint(this, this.nextUVPoint_, u, v);
+  this.uvPoints[pt.id] = pt;
+  this.nextUVPoint_++;
+
+  goog.object.forEach(this.uvEdges, function(edge) {
+    if (goog.object.containsKey(map, edge.uv0)) {
+      edge.uv0 = pt.id;
+    }
+    if (goog.object.containsKey(map, edge.uv1)) {
+      edge.uv1 = pt.id;
+    }
+  }, this);
+
+  this.uvPoints = goog.object.filter(this.uvPoints, function(uv) {
+    return !goog.object.containsKey(map, uv.id);
+  });
+
+  this.dirty = true;
 };
 
 
