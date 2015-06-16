@@ -126,7 +126,9 @@ sh-menu {
 }
 
 /* Buttons */
-.toolbar-button, .toolbar-button-selected {
+.toolbar-button,
+.toolbar-button-selected,
+.toolbar-scene-name {
   font-size: 14px;
   position: relative;
   display: block;
@@ -146,7 +148,9 @@ sh-menu {
   background-color: #3b404b;
 }
 
-.toolbar-button > span, .toolbar-button-selected > span {
+.toolbar-button > span,
+.toolbar-button-selected > span,
+.toolbar-scene-name > span {
   padding: 0 !important;
   margin: 0 !important;
 

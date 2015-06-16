@@ -53,18 +53,19 @@ shapy.menu = function() {
         // If the mouse is pressed, toggle whichever element is the current
         // focus. If the mouse moves to a different element, focus on that
         // instead.
-        $('>span', this)
-          .mousedown(function() {
-            ctx.visible = !ctx.visible;
-            ctx.focus = child;
-            shapy.toggleDropdown(ctx.visible);
-          })
+        $(this)
           .mouseenter(function() {
             if (ctx.visible) {
               shapy.toggleDropdown(false);
               ctx.focus = child;
               shapy.toggleDropdown(true);
             }
+          });
+        $('>span', this)
+          .mousedown(function() {
+            ctx.visible = !ctx.visible;
+            ctx.focus = child;
+            shapy.toggleDropdown(ctx.visible);
           });
       });
     }
