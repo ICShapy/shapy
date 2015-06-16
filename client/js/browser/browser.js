@@ -723,7 +723,7 @@ shapy.browser.public = function(shBrowser) {
  *
  * @return {!angular.Directive}
  */
-shapy.browser.createTexture = function(shModal, shBrowser) {
+shapy.browser.createTexture = function(shModal, shNotify, shBrowser) {
   /**
    * Handles creating/uploading texture.
    */
@@ -745,7 +745,20 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
           var newFiles = evt.target.files;
           $scope.$apply(function() {
             for (var i = 0; file = newFiles[i]; i++) {
-              $scope.files.push(file);
+              // Add file if it passes checks
+              if (file.type != 'image/jpeg' && file.type != 'image/png') {
+                shNotify.error({
+                  text: 'Only accepted types are jpeg and png.',
+                  dismiss: 5000
+                });
+              } else if (file.size > 4*1024*1024) {
+                shNotify.error({
+                  text: 'File size over 4MB.',
+                  dismiss: 5000
+                });
+              } else {
+                $scope.files.push(file);
+              }
             }
           });
         });
@@ -794,7 +807,7 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
 /**
  * Upload directive.
  */
-shapy.browser.upload = function() {
+shapy.browser.upload = function(shNotify) {
   return {
     restrict: 'E',
     scope: {
@@ -822,7 +835,20 @@ shapy.browser.upload = function() {
           var file;
           $scope.$apply(function() {
             for (var i = 0; file = newFiles[i]; i++) {
-              $scope.filesUpload.push(file);
+              // Add file if it passes checks
+              if (file.type != 'image/jpeg' && file.type != 'image/png') {
+                shNotify.error({
+                  text: 'Only accepted types are jpeg and png.',
+                  dismiss: 5000
+                });
+              } else if (file.size > 4*1024*1024) {
+                shNotify.error({
+                  text: 'File size over 4MB.',
+                  dismiss: 5000
+                });
+              } else {
+                $scope.filesUpload.push(file);
+              }
             }
           });
 
