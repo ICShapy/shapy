@@ -806,8 +806,7 @@ shapy.editor.Object.prototype.connect = function(verts) {
       return;
     }
 
-    this.createFace(this.nextFace_, e[0], e[1], e[2]);
-    this.nextFace_++;
+    this.createFace(e[0], e[1], e[2]);
     this.dirty = true;
   }
 };
@@ -817,12 +816,11 @@ shapy.editor.Object.prototype.connect = function(verts) {
  * Creates a face out of the given edge ids and adds it to the object.
  * Ensures that the created face has edges properly ordered.
  *
- * @param {number} id
  * @param {number} e0
  * @param {number} e1
  * @param {number} e2
  */
-shapy.editor.Object.prototype.createFace = function(id, e0, e1, e2) {
+shapy.editor.Object.prototype.createFace = function(e0, e1, e2) {
   var is = [e0, e1, e2];
   var es = [this.edges[e0], this.edges[e1], this.edges[e2]];
 
@@ -852,7 +850,9 @@ shapy.editor.Object.prototype.createFace = function(id, e0, e1, e2) {
   }
 
   // Create a new face.
-  this.faces[id] = new shapy.editor.Face(this, id, is[0], is[1], is[2]);
+  this.faces[id] = new shapy.editor.Face(
+      this, this.nextFace_, is[0], is[1], is[2]);
+  this.nextFace_++;
 };
 
 
@@ -967,8 +967,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       }
 
       // Make sure the edges are ordered.
-      this.createFace(this.nextFace_, e.id, q[2].id, side);
-      this.nextFace_++;
+      this.createFace(e.id, q[2].id, side);
 
       // Construct face formed by: q[3].v0 q[3].v1 third.
       for (var k = 0; k < 3; k++) {
@@ -981,8 +980,7 @@ shapy.editor.Object.prototype.cut = function(n, p) {
       }
 
       // Make sure the edges are ordered.
-      this.createFace(this.nextFace_, e.id, q[3].id, side);
-      this.nextFace_++;
+      this.createFace(e.id, q[3].id, side);
 
       // Remove the old face from the object.
       goog.object.remove(this.faces, f.id);
