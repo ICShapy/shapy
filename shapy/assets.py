@@ -350,6 +350,9 @@ class AssetHandler(APIHandler):
     if public is not None and self.TYPE == 'dir':
       raise HTTPError(400, 'Asset update failed.')
 
+    if parent == id:
+      raise HTTPError(400, 'Cannot move a directory into itself.')
+
     if parent is not None:
       # Check ownership of asset and potential new parent
       cursors = yield momoko.Op(self.db.transaction, (
