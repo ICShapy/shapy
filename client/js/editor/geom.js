@@ -435,30 +435,3 @@ shapy.editor.geom.getMid = function(points) {
   goog.vec.Vec3.scale(mid, 1 / points.length, mid);
   return mid;
 };
-
-
-/**
- * Computes the pixel to which the uv coordinate is mapped.
- *
- * @param {number} u
- * @param {number} v
- * @param {number} w
- * @param {number} h
- *
- * @return {!goog.math.Vec2.Type}
- */
-shapy.editor.geom.getPixel = function(u, v, w, h) {
-  var x = Math.floor(u * w);
-  var y = Math.floor(v * h);
-
-  // Clamp if needed.
-  if (x > w) {
-    x = w;
-  }
-
-  if (y > h) {
-    y = h;
-  }
-
-  return new goog.math.Vec2(x, y);
-};

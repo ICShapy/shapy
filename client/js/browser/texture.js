@@ -58,7 +58,7 @@ goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
  * @param {number}              size
  */
 shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
-  var p = shapy.editor.geom.getPixel(u, v, this.width, this.height);
+  var p = this.getPixel(u, v);
 
   size = Math.floor(Math.max(Math.min(10 * size / 100, 10), 1));
   for (var i = p.y - size; i <= p.y + size; ++i) {
@@ -130,5 +130,30 @@ shapy.browser.Texture.prototype.load = function(data) {
   image.src = data.data;
 
   return defer.promise;
+};
+
+
+/**
+ * Computes the pixel on the texture to which the uv coordinate is mapped.
+ *
+ * @param {number} u
+ * @param {number} v
+ *
+ * @return {!goog.math.Vec2}
+ */
+shapy.browser.Texture.prototype.getPixel = function(u, v) {
+  var x = Math.floor(u * this.width);
+  var y = Math.floor(v * this.height);
+
+  // Clamp if needed.
+  if (x > this.width) {
+    x = this.width;
+  }
+
+  if (y > this.height) {
+    y = this.height;
+  }
+
+  return new goog.math.Vec2(x, y);
 };
 
