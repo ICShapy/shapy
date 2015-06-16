@@ -600,6 +600,56 @@ shapy.browser.Service.prototype.setPublicTexture = function(texture, public) {
 };
 
 
+/**
+ * Moves asset to new parent dir.
+ *
+ * @param {!shapy.browser.Asset} newParent new parent for asset.
+ * @param {boolean}              id        ID of dragged asset.     
+ */
+shapy.browser.Service.prototype.move = function(newParent, id) {
+  // Move only if parent is an owned dir.
+  if (newParent.type != shapy.browser.Asset.Type.DIRECTORY ||
+      (!newParent.owner && newParent.id !== 0)) {
+    return;
+  }
+  // Find dragged asset
+  var matching = this.current.children.filter(function(child) {
+    return id == child.id;
+  });
+  // Check results, check ownership
+  if (matching.length != 1 || !matching[0].owner) {
+    return;
+  }
+  var asset = matching[0];
+  // Reparent
+  var url = '';
+  switch (asset.type) {
+    case shapy.browser.Asset.Type.DIRECTORY:
+      url = '/api/assets/dir';
+      break;
+    case shapy.browser.Asset.Type.SCENE:
+      url = '/api/assets/scene';
+      break;
+    case shapy.browser.Asset.Type.TEXTURE:
+      url = '/api/assets/texture';
+      break;
+  }
+  this.http_.put(url, {
+    id: asset.id,
+    parent: newParent.id
+  }).then(goog.bind(function() {
+    this.current.children = this.current.children.filter(function(child) {
+      return asset.id !== child.id;
+    });
+    // Add to children only if loaded - avoids duplicates after call to get
+    if (newParent.loaded) {
+      newParent.children.push(asset);
+    }
+    asset.parent = newParent;
+  }, this));
+};
+
+
 
 /**
  * Class representing permission type of user for an asset.
