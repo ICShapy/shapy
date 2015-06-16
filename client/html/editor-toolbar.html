@@ -14,10 +14,10 @@
     <div class="toolbar-button">
       <span>View</span>
       <ul>
-        <li ng-click="editorCtrl.layout('single')">Single</li>
-        <li ng-click="editorCtrl.layout('double')">Double</li>
-        <li ng-click="editorCtrl.layout('quad')">Quad</li>
-        <li ng-click="editorCtrl.toggleUV()">
+        <li ng-click="editorCtrl.layout('single'); close()">Single</li>
+        <li ng-click="editorCtrl.layout('double'); close()">Double</li>
+        <li ng-click="editorCtrl.layout('quad'); close()">Quad</li>
+        <li ng-click="editorCtrl.toggleUV(); close()">
           UV Unwrap
           <span class="hint">U</span>
         </li>
@@ -28,8 +28,8 @@
     <div class="toolbar-button">
       <span>Add</span>
       <ul>
-        <li ng-click="editorCtrl.addObject('cube')">Cube</li>
-        <li ng-click="editorCtrl.addObject('sphere')">Sphere</li>
+        <li ng-click="editorCtrl.addObject('cube'); close()">Cube</li>
+        <li ng-click="editorCtrl.addObject('sphere'); close()">Sphere</li>
       </ul>
     </div>
 
@@ -37,15 +37,15 @@
     <div class="toolbar-button">
       <span>Rig</span>
       <ul>
-        <li ng-click="editorCtrl.rig('translate')">
+        <li ng-click="editorCtrl.rig('translate'); close()">
           Translate
           <span class="hint">T</span>
         </li>
-        <li ng-click="editorCtrl.rig('rotate')">
+        <li ng-click="editorCtrl.rig('rotate'); close()">
           Rotate
           <span class="hint">R</span>
         </li>
-        <li ng-click="editorCtrl.rig('scale')">
+        <li ng-click="editorCtrl.rig('scale'); close()">
           Scale
           <span class="hint">S</span>
         </li>
@@ -56,23 +56,23 @@
     <div class="toolbar-button">
       <span>Modify</span>
       <ul>
-        <li ng-click="editorCtrl.doDelete()">
+        <li ng-click="editorCtrl.doDelete(); close()">
           Delete
           <span class="hint">D</span>
         </li>
-        <li ng-click="editorCtrl.rig('cut')">
+        <li ng-click="editorCtrl.rig('cut'); close()">
           Cut
           <span class="hint">C</span>
         </li>
-        <li ng-click="editorCtrl.rig('extrude')">
+        <li ng-click="editorCtrl.rig('extrude'); close()">
           Extrude
           <span class="hint">E</span>
         </li>
-        <li ng-click="editorCtrl.doMerge()">
+        <li ng-click="editorCtrl.doMerge(); close()">
           Merge
           <span class="hint">M</span>
         </li>
-        <li ng-click="editorCtrl.doConnect()">
+        <li ng-click="editorCtrl.doConnect(); close()">
           Connect
           <span class="hint">F</span>
         </li>
@@ -89,7 +89,7 @@
             ng-model="editorCtrl.textureName" />
         <div
             class="texture-preview"
-            ng-click="editorCtrl.applyTexture(texture.id)"
+            ng-click="editorCtrl.applyTexture(texture.id); close()"
             ng-repeat="texture in editorCtrl.textures">
           <img ng-show="texture.image" ng-src="{{texture.image}}"/>
           {{texture.name}}
@@ -157,7 +157,7 @@
     </div>
 
     <!-- Chat button -->
-    <div class="toolbar-button" ng-click="editorCtrl.toggleChatbox()">
+    <div class="toolbar-button" ng-click="editorCtrl.toggleChatbox(); close()">
       <span ng-if="editorCtrl.getUnreadMessages() > 0">Chat ({{editorCtrl.getUnreadMessages()}})</span>
       <span ng-if="editorCtrl.getUnreadMessages() == 0">Chat</span>
     </div>

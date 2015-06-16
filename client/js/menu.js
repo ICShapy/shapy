@@ -61,16 +61,6 @@ shapy.menu = function() {
               ctx.focus.parent().addClass('header-button-selected');
             }
           });
-
-        // Clicking a button in a dropdown will close the dropdown
-        /*
-        $('>li', child).each(function() {
-          $(this)
-            .mousedown(function() {
-              shapy.toggleDropdown(false);
-            });
-        });
-        */
       });
     }
   };

@@ -33,6 +33,7 @@ shapy.editor.ToolbarController = function(
     shBrowser)
 {
   $scope.floor = Math.floor;
+  $scope.close = function() { shapy.toggleDropdown(false); };
 
   /** @private {!angular.$scope} @const */
   this.rootScope_ = $rootScope;
