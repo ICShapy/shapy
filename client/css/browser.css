@@ -14,6 +14,16 @@ sh-sidebar {
  * Clickable creation button
  */
 
+sh-sidebar .button {
+  width: 100%;
+  height: 20px;
+  background: #aaa;
+}
+
+sh-sidebar .button:hover {
+  background: #fff;
+}
+
 sh-sidebar .create img {
   width: 9px;
   height: 9px;

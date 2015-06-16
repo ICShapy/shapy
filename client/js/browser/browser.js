@@ -796,16 +796,8 @@ shapy.browser.createTexture = function(shModal, shNotify, shBrowser) {
 
   return {
     restrict: 'E',
-    scope: {
-     show: '='
-    },
     link: function($scope, $elem) {
-      $elem.bind('mousedown', function(evt) {
-          $scope.$apply(function() {
-            $scope.show = false;
-          });
-          createTexture();
-      });
+      $elem.bind('mousedown', createTexture);
     }
   };
 };
