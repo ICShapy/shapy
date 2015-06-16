@@ -249,19 +249,6 @@ shapy.editor.Object.prototype.getPosition = function() {
 
 
 /**
- * Sets object position.
- *
- * @param {number} x
- * @param {number} y
- * @param {number} z
- */
-shapy.editor.Object.prototype.setPosition = function(x, y, z) {
-  goog.vec.Vec3.setFromValues(this.translate_, x, y, z);
-  this.dirty = true;
-};
-
-
-/**
  * Updates the object scale.
  *
  * @param {number} x
