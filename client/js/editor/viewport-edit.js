@@ -154,23 +154,10 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
     if (!(texture = this.editor.textures_[hit.object.texture])) {
       return [];
     }
-
     uv = hit.pickUV(ray);
-
-    this.editor.exec_.emitPaint(
-        texture,
-        uv.u,
-        uv.v,
-        this.editor.brushColour_,
-        this.editor.brushRadius_
-    );
-
-    texture.paint(
-        uv.u,
-        uv.v,
-        this.editor.brushColour_,
-        this.editor.brushRadius_
-        );
+    
+    // Paint the texture.
+    this.paint_(texture, uv.u, uv.v);    
     return [];
   }
   return hits;

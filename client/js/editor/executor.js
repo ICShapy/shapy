@@ -980,7 +980,7 @@ shapy.editor.WriteExecutor.prototype.emitMerge = function(obj, group) {
  * @param {!shapy.browser.Texture} t Texture.
  * @param {number}                 u U coordinate.
  * @param {number}                 v V coordinate.
- * @param {{!goog.vec.Vec3.Type}}  bc Brush colour.
+ * @param {!goog.vec.Vec3.Type}    bc Brush colour.
  * @param {number}                 br Brush radius.
  */
 shapy.editor.WriteExecutor.prototype.emitPaint = function(t, u, v, bc, br) {

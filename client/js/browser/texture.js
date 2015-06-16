@@ -52,10 +52,10 @@ goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
 /**
  * Very badass method which uses a brush to paint an object.
  *
- * @param {number} u
- * @param {number} v
- * @param {number} colour
- * @param {number} size
+ * @param {number}              u
+ * @param {number}              v
+ * @param {!goog.vec.Vec3.Type} colour
+ * @param {number}              size
  */
 shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
   var p = shapy.editor.geom.getPixel(u, v, this.width, this.height);

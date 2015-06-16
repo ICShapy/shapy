@@ -193,6 +193,34 @@ shapy.editor.Viewport.prototype.destroy = function() {
 
 
 /**
+ * Performs painting and sends a paint message to the server, if needed.
+ *
+ * @param {!shapy.browser.Texture} texture
+ * @param {number}                 u
+ * @param {number}                 v
+ */
+shapy.editor.Viewport.prototype.paint_ = function(texture, u, v) {
+  // Send message to teh server.
+  this.editor.exec_.emitPaint(
+      texture,
+      u,
+      v,
+      this.editor.brushColour_,
+      this.editor.brushRadius_
+  );
+
+  // Paint the texture.
+  texture.paint(
+      u,
+      v,
+      this.editor.brushColour_,
+      this.editor.brushRadius_
+  );
+};
+
+
+
+/**
  * Enumeration of viewport types.
  * @enum {string}
  */
