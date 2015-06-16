@@ -2,15 +2,36 @@
   <sh-sidebar>
     <!-- Top bar -->
     <div ng-switch on="browserCtrl.private()">
-      <div ng-switch-when="true">
-        <div class="button" ng-click="browserCtrl.createScene()">New Scene</div>
-        <sh-create-texture><div class="button">New Texture</div></sh-create-texture>
-        <div class="button" ng-click="browserCtrl.createDir()">New Folder</div>
+      <div ng-switch-when="true" class="create" ng-init="show=false">
+        <button
+            class="left"
+            ng-click="browserCtrl.createScene()">
+          NEW SCENE
+        </button>
+        <button
+            class="right"
+            ng-click="show=!show">
+          <img src="/img/arrow-right.svg"/>
+        </button>
+        <ul class="menu" ng-show="show">
+          <li
+              ng-click="show=false;browserCtrl.createDir();">
+            Folder
+          </li>
+          <sh-create-texture show="show">
+            <li>
+              Texture
+            </li>
+          <sh-create-texture>
+        </ul>
       </div>
-      <div ng-switch-default>
-        <div class="button-disabled">New Scene</div>
-        <div class="button-disabled">New Texture</div>
-        <div class="button-disabled">New Folder</div>
+      <div ng-switch-default class="space">
+        <button class="left" disabled>
+          NEW SCENE
+        </button>
+        <button class="right" disabled>
+          <img src="/img/arrow-right.svg"/>
+        </button>
       </div>
     </div>
 
