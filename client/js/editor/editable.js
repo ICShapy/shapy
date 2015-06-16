@@ -284,7 +284,9 @@ shapy.editor.EditableGroup.prototype.getPosition = function() {
   }
 
   goog.object.forEach(this.editables, function(editable) {
-    goog.vec.Vec3.add(position, editable.getPosition(), position);
+    if (editable.getPosition) {
+      goog.vec.Vec3.add(position, editable.getPosition(), position);
+    }
   }, this);
   goog.vec.Vec3.scale(position, 1 / this.editables.length, position);
   return position;
