@@ -139,7 +139,8 @@ sh-menu {
   height: 16px;
 }
 
-.toolbar-button:hover {
+.toolbar-button:hover,
+.toolbar-scene-name {
   background-color: #213a62;
   color: #ffffff;
 }
