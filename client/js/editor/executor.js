@@ -164,6 +164,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyPaint(data);
             break;
           }
+          case 'texture': {
+            this.applyTexture(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -691,6 +695,32 @@ shapy.editor.Executor.prototype.applyPaint = function(data) {
 };
 
 
+/**
+ * Executes texture apply command.
+ *
+ * @param {number} id ID of the texture to apply.
+ */
+shapy.editor.Executor.prototype.emitTexture = function(id) {
+
+};
+
+
+/**
+ * Handles texture apply command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyTexture = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  // Apply the texture.
+  this.editor_.applyTexture(data['textureId']);
+};
+
+
 
 /**
  * Applies and makes changes to the scene.
@@ -967,6 +997,22 @@ shapy.editor.WriteExecutor.prototype.emitPaint = function(t, u, v, bc, br) {
     bcg: bc[1],
     bcb: bc[2],
     br: br
+  });
+};
+
+
+/**
+ * Executes texture apply command.
+ *
+ * @param {number} id ID of the texture to apply.
+ */
+shapy.editor.Executor.prototype.emitTexture = function(id) {
+  this.sendCommand({
+    type: 'edit',
+    tool: 'texture',
+    userId: this.editor_.user.id,
+
+    textureId: t.id
   });
 };
 
