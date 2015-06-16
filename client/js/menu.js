@@ -23,7 +23,6 @@ shapy.toggleDropdown = function(show) {
     if (ctx.focus) {
     ctx.focus.toggle(show);
     if (show) {
-      console.log(ctx.focus.parent());
       ctx.focus.parent()
         .removeClass('toolbar-button')
         .addClass('toolbar-button-selected');
