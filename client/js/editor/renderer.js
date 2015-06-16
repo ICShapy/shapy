@@ -428,6 +428,7 @@ shapy.editor.Renderer.prototype.updateTexture = function(texture) {
     return;
   }
   texture.dirty = false;
+  texture.painted = true;
 
   // Rebuild the texture.
   var tex;

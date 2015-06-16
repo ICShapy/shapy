@@ -31,6 +31,8 @@ shapy.browser.Texture = function(shBrowser, id, opt_data) {
   this.dirty = true;
   /** @public {boolean} */
   this.deleted = false;
+  /** @public {boolean} */
+  this.painted = false;
 
   /**
    * Raw texture data for editing.
@@ -157,3 +159,35 @@ shapy.browser.Texture.prototype.getPixel = function(u, v) {
   return new goog.math.Vec2(x, y);
 };
 
+
+/**
+ * Saves the texture data.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.Texture.prototype.save = function() {
+  if (!this.painted) {
+    return;
+  }
+  this.painted = false;
+
+  // Convert to PNG.
+  var canvas = document.createElement('canvas');
+  canvas.width = this.width;
+  canvas.height = this.height;
+  canvas
+    .getContext('2d')
+    .putImageData(new ImageData(
+        new Uint8ClampedArray(this.data),
+        this.width,
+        this.height
+    ), 0, 0);
+
+  // TODO: update preview image.
+
+  // Upload.
+  return this.shBrowser_.http_.put('/api/assets/texture', {
+    id: this.id,
+    data: canvas.toDataURL('image/png')
+  });
+}

@@ -295,6 +295,9 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
     this.scene_.image = canvas.toDataURL('image/jpeg');
     this.scene_.save();
   }, this);
+  goog.object.forEach(this.textures_, function(texture) {
+    texture.save();
+  });
   image.src = this.canvas_.toDataURL('image/jpeg');
 };
 

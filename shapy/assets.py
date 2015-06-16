@@ -144,6 +144,10 @@ class AssetHandler(APIHandler):
   TYPE = None
   NEW_NAME = None
 
+  def _generate_preview(self, data):
+    """Generates a preview image."""
+    return None
+
 
   @coroutine
   def _fetch(self, id, user):
@@ -232,15 +236,7 @@ class AssetHandler(APIHandler):
     mainData = self.get_argument('data', None)
     name = self.get_argument('name', None)
     if preview is None and mainData is not None:
-      image_data = re.sub(
-          '^data:image/.+;base64,', '', str(mainData)).decode('base64')
-      im = Image.open(cStringIO.StringIO(image_data))
-      im = im.convert('RGB')
-      im.thumbnail((150, 150), Image.ANTIALIAS)
-      jpeg_image_buffer = cStringIO.StringIO()
-      im.save(jpeg_image_buffer, format='JPEG')
-      imStr = base64.b64encode(jpeg_image_buffer.getvalue())
-      preview = "data:image/jpeg;base64," + imStr
+      preview = self._generate_preview(mainData)
 
     # Reject parent dirs not owned by user
     if parent != 0:
@@ -414,6 +410,10 @@ class AssetHandler(APIHandler):
       if not cursor.fetchone():
         raise HTTPError(400, 'Asset cannot be edited.')
 
+    # Try generating a preview.
+    if preview is None and data is not None:
+      preview = self._generate_preview(data)
+
     # Update
     cursor = yield momoko.Op(self.db.execute,
       '''UPDATE assets
@@ -523,6 +523,18 @@ class TextureHandler(AssetHandler):
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
 
+  def _generate_preview(self, data):
+    """Generates a preview image."""
+    b64data = re.sub('^data:image/.+;base64,', '', str(data))
+
+    im = Image.open(cStringIO.StringIO(b64data.decode('base64')))
+    im = im.convert('RGB')
+    im.thumbnail((150, 150), Image.ANTIALIAS)
+
+    stream = cStringIO.StringIO()
+    im.save(stream, format='JPEG')
+    return 'data:image/jpeg;base64,%s' % base64.b64encode(stream.getvalue())
+
   @session
   @coroutine
   @asynchronous
@@ -532,7 +544,7 @@ class TextureHandler(AssetHandler):
     # If format is unspecified, dump as JSON.
     fmt = self.get_argument('format', None)
     if not fmt or fmt == 'json':
-      yield super(SceneHandler, self).get()
+      yield super(TextureHandler, self).get()
       return
 
     # Decode image.
