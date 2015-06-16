@@ -46,6 +46,12 @@ shapy.editor.Viewport = function(editor, name, type) {
   this.rect = new goog.math.Rect(0, 0, 0, 0);
 
   /**
+   * Last position of the mouse.
+   * @public {!goog.math.Vec2}
+   */
+  this.lastMousePos = new goog.math.Vec2(0, 0);
+
+  /**
    * Last mouse click position.
    * @protected {!goog.math.Vec2}
    */
@@ -58,10 +64,10 @@ shapy.editor.Viewport = function(editor, name, type) {
   this.currMousePos = new goog.math.Vec2(0, 0);
 
   /**
-   * Last position of the mouse.
-   * @public {!goog.math.Vec2}
+   * Last painted pixel.
+   * @protected {!goog.math.Vec2}
    */
-  this.lastMousePos = new goog.math.Vec2(0, 0);
+  this.lastPixel = new goog.math.Vec2(0, 0);
 };
 
 
@@ -190,6 +196,43 @@ shapy.editor.Viewport.prototype.keyDown = function() {
  */
 shapy.editor.Viewport.prototype.destroy = function() {
 };
+
+
+/**
+ * Performs painting and sends a paint message to the server, if needed.
+ *
+ * @param {!shapy.browser.Texture} texture
+ * @param {number}                 u
+ * @param {number}                 v
+ */
+shapy.editor.Viewport.prototype.paint_ = function(texture, u, v) {
+  // Compute the pixel.
+  var p = texture.getPixel(u, v);
+
+  // Send message to the server, only if the different pixel is painted.  
+  if (p.x != this.lastPixel.x || p.y != this.lastPixel.y) {
+    this.editor.exec_.emitPaint(
+        texture,
+        u,
+        v,
+        this.editor.brushColour_,
+        this.editor.brushRadius_
+    );
+  }
+
+  // Paint the texture.
+  texture.paint(
+      u,
+      v,
+      this.editor.brushColour_,
+      this.editor.brushRadius_
+  );
+
+  // Update the last painted pixel.
+  this.lastPixel.x = p.x;
+  this.lastPixel.y = p.y;
+};
+
 
 
 /**

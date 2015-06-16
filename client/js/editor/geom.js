@@ -435,6 +435,3 @@ shapy.editor.geom.getMid = function(points) {
   goog.vec.Vec3.scale(mid, 1 / points.length, mid);
   return mid;
 };
-
-
-

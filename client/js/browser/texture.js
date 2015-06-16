@@ -52,25 +52,24 @@ goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
 /**
  * Very badass method which uses a brush to paint an object.
  *
- * @param {number} u
- * @param {number} v
- * @param {number} colour
- * @param {number} size
+ * @param {number}              u
+ * @param {number}              v
+ * @param {!goog.vec.Vec3.Type} colour
+ * @param {number}              size
  */
 shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
-  var x = Math.floor(u * this.width);
-  var y = Math.floor(v * this.height);
+  var p = this.getPixel(u, v);
 
   size = Math.floor(Math.max(Math.min(10 * size / 100, 10), 1));
-  for (var i = y - size; i <= y + size; ++i) {
-    for (var j = x - size; j <= x + size; ++j) {
+  for (var i = p.y - size; i <= p.y + size; ++i) {
+    for (var j = p.x - size; j <= p.x + size; ++j) {
       if (i < 0 || this.width <= i || j < 0 || this.height <= j) {
         continue;
       }
 
       var k = i * this.width + j;
-      var dx = (j - x) / size;
-      var dy = (i - y) / size;
+      var dx = (j - p.x) / size;
+      var dy = (i - p.y) / size;
       var a = Math.max(Math.min(1.0 - Math.sqrt(dx * dx + dy * dy), 1), 0);
 
       var r = this.data[k * 4 + 0];
@@ -131,5 +130,30 @@ shapy.browser.Texture.prototype.load = function(data) {
   image.src = data.data;
 
   return defer.promise;
+};
+
+
+/**
+ * Computes the pixel on the texture to which the uv coordinate is mapped.
+ *
+ * @param {number} u
+ * @param {number} v
+ *
+ * @return {!goog.math.Vec2}
+ */
+shapy.browser.Texture.prototype.getPixel = function(u, v) {
+  var x = Math.floor(u * this.width);
+  var y = Math.floor(v * this.height);
+
+  // Clamp if needed.
+  if (x > this.width) {
+    x = this.width;
+  }
+
+  if (y > this.height) {
+    y = this.height;
+  }
+
+  return new goog.math.Vec2(x, y);
 };
 

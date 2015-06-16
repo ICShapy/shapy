@@ -373,7 +373,12 @@ shapy.editor.PartsGroup.prototype.translate = function(dx, dy, dz) {
  */
 shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
   var verts = this.getVertices();
-  var mid = this.getPosition();
+  var mid = goog.vec.Vec3.createFloat32();
+  goog.object.forEach(verts, function(v) {
+    goog.vec.Vec3.add(mid, v.getPosition(), mid);
+  });
+  goog.vec.Vec3.scale(mid, 1.0 / verts.length, mid);
+
   var d = goog.vec.Vec3.createFloat32();
 
   // Apply translation to each object
@@ -390,8 +395,12 @@ shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
  * @param {!goog.vec.Quaternion} q
  */
 shapy.editor.PartsGroup.prototype.rotate = function(q) {
-  var mid = this.getPosition();
   var verts = this.getVertices();
+  var mid = goog.vec.Vec3.createFloat32();
+  goog.object.forEach(verts, function(v) {
+    goog.vec.Vec3.add(mid, v.getPosition(), mid);
+  });
+  goog.vec.Vec3.scale(mid, 1.0 / verts.length, mid);
 
   var c = goog.vec.Quaternion.createFloat32();
   var d = goog.vec.Vec3.createFloat32();
