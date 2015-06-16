@@ -162,6 +162,20 @@ shapy.browser.BrowserController.prototype.defaultName = function(type) {
   return this.shBrowser_.defaultName(type);
 };
 
+/**
+ * Returns shapy scene type.
+ */
+shapy.browser.BrowserController.prototype.sceneType = function() {
+  return shapy.browser.Asset.Type.SCENE;
+};
+
+/**
+ * Returns shapy texture type.
+ */
+shapy.browser.BrowserController.prototype.textureType = function() {
+  return shapy.browser.Asset.Type.TEXTURE;
+};
+
 
 
 /**
@@ -383,25 +397,22 @@ shapy.browser.asset = function(shModal) {
         // Adjust dialog size
         $scope.$watch(
           function($scope) {
-            return $scope.asset.width;
+            return $scope.asset.width + 'x' + $scope.asset.height;
           },
           function() {
-            $('.dialog')
-              .css('width',
-                   Math.min(1000, Math.max($scope.asset.width + 10, 160)));
-          }
-        );
-        $scope.$watch(
-          function($scope) {
-            return $scope.asset.height;
-          },
-          function() {
-            $('.dialog')
-              .css('height',
-                   Math.min(600, Math.max($scope.asset.height + 52, 160)));
-          }
-        );
+            var w = $scope.asset.width;
+            var h = $scope.asset.height + 74;
+            var aspect = w / h;
 
+            h = Math.max(Math.min(h, 600), 150);
+            w = h * aspect;
+
+            $('.dialog').css({
+              width: w,
+              height: h
+            });
+          }
+        );
 
         $scope.cancel = function() { return false; };
         $scope.okay = function() { return false; };
@@ -450,16 +461,20 @@ shapy.browser.asset = function(shModal) {
         evt.preventDefault();
         // Show
         var y = evt.pageY - 30;
-        $('.asset-menu').show().
-          css({
+        $('.asset-menu')
+          .show()
+          .css({
               top: y + 'px',
               left: evt.pageX + 'px'
           });
+        $('.asset-menu a').on('mousedown', function(evt) {
+          return false;
+        });
         return false;
       });
 
       // Hide menu, deselect
-      $(window).on('mousedown', function(evt) {
+      $(document.body).on('mousedown', function(evt) {
         if (($(evt.target).hasClass('assetmenu') && evt.which == 3)) {
           return;
         }
@@ -468,7 +483,6 @@ shapy.browser.asset = function(shModal) {
         $scope.$apply(function() {
           $scope.selected = null;
         });
-
       });
 
       // Select or display texture
@@ -730,7 +744,7 @@ shapy.browser.public = function(shBrowser) {
           if (!$scope.asset.owner) {
             return;
           }
-          switch($scope.asset.type) {
+          switch ($scope.asset.type) {
             case shapy.browser.Asset.Type.SCENE:
               shBrowser.setPublicScene($scope.asset, !$scope.asset.public);
               break;
