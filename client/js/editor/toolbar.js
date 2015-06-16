@@ -67,10 +67,6 @@ shapy.editor.ToolbarController = function(
   $scope.$watch(goog.bind(function() {
     return this.textureName;
   }, this), goog.bind(function() {
-    if (!this.textureName) {
-      this.textures = [];
-      return;
-    }
     shBrowser.filterTextures(this.textureName).then(goog.bind(function(data) {
       this.textures = data;
     }, this));

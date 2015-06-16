@@ -33,23 +33,23 @@ shapy.editor.OBJECT_TEXTURE_VS =
 
 /** @type {string} @const */
 shapy.editor.OBJECT_TEXTURE_FS =
-  '#extension GL_OES_standard_derivatives : enable             \n' +
+  '#extension GL_OES_standard_derivatives : enable                   \n' +
 
-  'precision mediump float;                                    \n' +
+  'precision mediump float;                                          \n' +
 
-  'uniform sampler2D u_texture;                                \n' +
+  'uniform sampler2D u_texture;                                      \n' +
 
-  'varying vec4 v_colour;                                      \n' +
-  'varying vec2 v_uv;                                          \n' +
+  'varying vec4 v_colour;                                            \n' +
+  'varying vec2 v_uv;                                                \n' +
 
-  'void main() {                                               \n' +
-  '  vec4 texture = texture2D(u_texture, v_uv);                \n' +
-  '  if (!gl_FrontFacing) {                                    \n' +
-  '    gl_FragColor = vec4(v_colour.rgb * texture.rgb, 1.0);   \n' +
-  '  } else {                                                  \n' +
-  '    gl_FragColor = vec4(v_colour.rgb, 1.0);                 \n' +
-  '  }                                                         \n' +
-  '}                                                           \n';
+  'void main() {                                                     \n' +
+  '  vec4 texture = texture2D(u_texture, v_uv);                      \n' +
+  '  if (gl_FrontFacing) {                                           \n' +
+  '    gl_FragColor = vec4(v_colour.rgb * texture.rgb * 0.6, 1.0);   \n' +
+  '  } else {                                                        \n' +
+  '    gl_FragColor = vec4(v_colour.rgb * texture.rgb, 1.0);         \n' +
+  '  }                                                               \n' +
+  '}                                                                 \n';
 
 
 /** @type {string} @const */
@@ -166,7 +166,7 @@ shapy.editor.GROUND_VS =
 
   'void main() {                                                      \n' +
   '  vec3 vertex = a_vertex * vec3(u_size.x, 0, u_size.y);            \n' +
-  '  v_uv = (a_vertex.xz + vec2(1.0)) * vec2(0.5);                    \n' +
+  '  v_uv = vec2((a_vertex.x + 1.0) * 0.5, (1.0 - a_vertex.z) * 0.5); \n' +
   '  v_vertex = vertex;                                               \n' +
   '  gl_Position = u_vp * vec4(vertex, 1.0);                          \n' +
   '}                                                                  \n';

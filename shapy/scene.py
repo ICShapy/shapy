@@ -3,7 +3,7 @@
 # (C) 2015 The Shapy Team. All rights reserved.
 
 import StringIO
-
+from pyrr.objects import Quaternion, Matrix44, Vector3, Vector4
 
 
 class Scene(object):
@@ -65,6 +65,21 @@ class Scene(object):
 
       )
 
+      # Model matrix.
+      q = Quaternion()
+      q.x = self.rx
+      q.y = self.ry
+      q.z = self.rz
+      q.w = self.rw
+      trans = Matrix44.from_translation([self.tx, self.ty, self.tz])
+      scale = Matrix44([
+        [self.sx, 0, 0, 0],
+        [0, self.sy, 0, 0],
+        [0, 0, self.sz, 0],
+        [0, 0, 0, 1]
+      ])
+      self.model = trans * q * scale
+
 
     @property
     def __dict__(self):
@@ -92,8 +107,43 @@ class Scene(object):
       'objects': dict((k, v.__dict__) for k, v in self.objects.iteritems())
     }
 
+  def to_stl(self):
+    """Converts the scene to STL format."""
+
+    s = StringIO.StringIO()
+    for id, obj in self.objects.iteritems():
+      print >>s, 'solid %s' % obj.id
+
+      for _, v in obj.faces.iteritems():
+        e0 = obj.edges[abs(v[0])]
+        e1 = obj.edges[abs(v[1])]
+        e2 = obj.edges[abs(v[2])]
+        v0 = obj.verts[e0[0] if v[0] >= 0 else e0[1]]
+        v1 = obj.verts[e1[0] if v[1] >= 0 else e1[1]]
+        v2 = obj.verts[e2[0] if v[2] >= 0 else e2[1]]
+
+        v0 = obj.model * Vector4([v0[0], v0[1], v0[2], 1.0])
+        v1 = obj.model * Vector4([v1[0], v1[1], v1[2], 1.0])
+        v2 = obj.model * Vector4([v2[0], v2[1], v2[2], 1.0])
+        a = v1 - v0
+        b = v2 - v0
+        n = Vector3([a.x, a.y, a.z]).cross(Vector3([b.x, b.y, b.z]))
+        n.normalise()
+
+        print >>s, 'facet normal %f %f %f' % (n.x, n.y, n.z)
+        print >>s, 'outer loop'
+        print >>s, 'vertex %f %f %f' % (v0.x, v0.y, v0.z)
+        print >>s, 'vertex %f %f %f' % (v1.x, v1.y, v1.z)
+        print >>s, 'vertex %f %f %f' % (v2.x, v2.y, v2.z)
+        print >>s, 'end loop'
+
+      print >>s, 'endsolid %s' % obj.id
+
+    return s.getvalue()
+
   def to_obj(self):
     """Converts the scene to wavefront obj format."""
+
 
     s = StringIO.StringIO()
     for id, obj in self.objects.iteritems():
@@ -102,9 +152,10 @@ class Scene(object):
       vmap = {}
       i = 1
       for k, v in obj.verts.iteritems():
+        v = obj.model * Vector4([float(v[0]), float(v[1]), float(v[2]), 1.])
         vmap[k] = i
         i += 1
-        print >>s, 'v %f %f %f' % v
+        print >>s, 'v %f %f %f' % (v.x, v.y, v.z)
 
       uvmap = {}
       i = 1

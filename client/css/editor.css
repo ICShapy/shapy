@@ -140,12 +140,17 @@ textarea:focus {
 .texture-preview img {
   position: absolute;
   width: 50px;
-  left: 0; top: 0; bottom: 0;
+  bottom: 0;
+  left: 0;
+  top: 0;
 }
 
 .texture-preview span {
   position: absolute;
-  left: 50px; top: 0; bottom: 0; right: 0;
+  left: 50px;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
 
 .texture-preview:hover {
