@@ -19,13 +19,16 @@ goog.require('shapy.browser.Texture');
  *
  * @param {!angular.$http}           $http   The angular http service.
  * @param {!angular.$q}              $q      The angular promise service.
+ * @param {!angular.$scope}          $rootScope
  * @param {!shapy.modal.Service}     shModal The modal service.
  */
-shapy.browser.Service = function($http, $q, shModal) {
+shapy.browser.Service = function($http, $q, $rootScope, shModal) {
   /** @private {!angular.$http} @const */
   this.http_ = $http;
   /** @private {!angular.$q} @const */
   this.q_ = $q;
+  /** @private {!angular.$scope} @const */
+  this.rootScope_ = $rootScope;
 
   /*
    * Cached scenes.

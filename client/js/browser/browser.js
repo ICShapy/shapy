@@ -379,6 +379,30 @@ shapy.browser.asset = function(shModal) {
           '<img id="texture-display" ng-src="{{asset.imageFull}}">',
       controller: function($scope) {
         $scope.asset = asset;
+
+        // Adjust dialog size
+        $scope.$watch(
+          function($scope) {
+            return $scope.asset.width;
+          },
+          function() {
+            $('.dialog')
+              .css('width',
+                   Math.min(1000, Math.max($scope.asset.width + 10, 160)));
+          }
+        );
+        $scope.$watch(
+          function($scope) {
+            return $scope.asset.height;
+          },
+          function() {
+            $('.dialog')
+              .css('height',
+                   Math.min(600, Math.max($scope.asset.height + 52, 160)));
+          }
+        );
+
+
         $scope.cancel = function() { return false; };
         $scope.okay = function() { return false; };
       }
@@ -458,8 +482,8 @@ shapy.browser.asset = function(shModal) {
           $scope.selectAsset({asset: $scope.asset, enter: true});
           return;
         } else {
-          $scope.asset.shBrowser_.getTexture($scope.asset.id).then(function() {
-            displayTexture($scope.asset);
+          $scope.asset.shBrowser_.getTexture($scope.asset.id).then(function(asset) {
+            displayTexture(asset);
           });
         }
       });

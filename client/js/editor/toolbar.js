@@ -172,7 +172,18 @@ shapy.editor.ToolbarController.prototype.addObject = function(name) {
  * @param {number} id ID of the texture to apply.
  */
 shapy.editor.ToolbarController.prototype.applyTexture = function(id) {
-  this.shEditor_.applyTexture(id);
+  var object;
+
+  if (this.shEditor_.objectGroup.editables.length != 1) {
+    return;
+  }
+
+  object = this.shEditor_.objectGroup.editables[0];
+
+  // Send message to the server.
+  this.shEditor_.exec_.emitTexture(id, object);
+  // Apply the texture.
+  this.shEditor_.applyTexture(id, object);
 };
 
 

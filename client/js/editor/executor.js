@@ -160,6 +160,14 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyMerge(data);
             break;
           }
+          case 'paint': {
+            this.applyPaint(data);
+            break;
+          }
+          case 'texture': {
+            this.applyTexture(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -645,6 +653,76 @@ shapy.editor.Executor.prototype.applyMerge = function(data) {
 };
 
 
+/**
+ * Executes paint command.
+ *
+ * @param {!shapy.browser.Texture} t Texture.
+ * @param {number}                 u U coordinate.
+ * @param {number}                 v V coordinate.
+ * @param {{!goog.vec.Vec3.Type}}  bc Brush colour.
+ * @param {number}                 br Brush radius.
+ */
+shapy.editor.Executor.prototype.emitPaint = function(t, u, v, bc, br) {
+
+};
+
+
+/**
+ * Handles paint command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyPaint = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  // Get the texture.
+  var texture = this.editor_.textures_[data['textureId']];
+
+  // Paint the texture.
+  texture.paint(
+      data['u'],
+      data['v'],
+      goog.vec.Vec3.createFloat32FromValues(
+          data['bcr'],
+          data['bcg'],
+          data['bcb']
+      ),
+      data['br']
+  );
+};
+
+
+/**
+ * Executes texture apply command.
+ *
+ * @param {number} id ID of the texture to apply.
+ */
+shapy.editor.Executor.prototype.emitTexture = function(id) {
+
+};
+
+
+/**
+ * Handles texture apply command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyTexture = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  console.log("applying texture");
+
+  // Apply the texture.
+  //this.editor_.applyTexture(data['textureId'], data['objId']);
+};
+
+
 
 /**
  * Applies and makes changes to the scene.
@@ -891,6 +969,54 @@ shapy.editor.WriteExecutor.prototype.emitMerge = function(obj, group) {
 
     objId: obj.id,
     vertIds: group.getVertIds()
+  });
+};
+
+
+/**
+ * Executes paint command.
+ *
+ * @param {!shapy.browser.Texture} t Texture.
+ * @param {number}                 u U coordinate.
+ * @param {number}                 v V coordinate.
+ * @param {{!goog.vec.Vec3.Type}}  bc Brush colour.
+ * @param {number}                 br Brush radius.
+ */
+shapy.editor.WriteExecutor.prototype.emitPaint = function(t, u, v, bc, br) {
+  // TODO(ilija): Remove when texture is applied.
+  return;
+
+  this.sendCommand({
+    type: 'edit',
+    tool: 'paint',
+    userId: this.editor_.user.id,
+
+    textureId: t.id,
+    u: u,
+    v: v,
+
+    bcr: bc[0],
+    bcg: bc[1],
+    bcb: bc[2],
+    br: br
+  });
+};
+
+
+/**
+ * Executes texture apply command.
+ *
+ * @param {number}                 id ID of the texture to apply.
+ * @param {shapy.editor.Editable} obj Object the texture is to be applied to.
+ */
+shapy.editor.Executor.prototype.emitTexture = function(obj, id) {
+  this.sendCommand({
+    type: 'edit',
+    tool: 'texture',
+    userId: this.editor_.user.id,
+
+    objId: obj.id,
+    textureId: id
   });
 };
 
