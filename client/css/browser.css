@@ -390,6 +390,10 @@ sh-path-asset {
   color: white;
 }
 
+sh-path-asset.drag-over {
+  background-color: blue;
+}
+
 sh-path-asset:hover {
   background-color: #555555;
 }

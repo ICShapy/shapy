@@ -491,6 +491,7 @@ shapy.browser.asset = function(shModal) {
             return;
           }
           evt.dataTransfer.setData('asset', $scope.asset.id);
+          evt.dataTransfer.setDragImage(e.target, 10, 10);
           return true;
         })
         .on('drop', function(e) {
@@ -812,6 +813,10 @@ shapy.browser.createTexture = function(shModal, shNotify, shBrowser) {
 
 /**
  * Upload directive.
+ *
+ * @param {!shapy.notification.Service} shNotify
+ *
+ * @return {!angular.Directive}
  */
 shapy.browser.upload = function(shNotify) {
   return {
@@ -825,14 +830,14 @@ shapy.browser.upload = function(shNotify) {
           e.preventDefault();
           e.stopPropagation();
 
-          $(".upload-choose").hide();
+          $('.upload-choose').hide();
           $elem.addClass('hover');
         })
         .on('dragleave', function(e) {
           e.preventDefault();
           e.stopPropagation();
 
-          $(".upload-choose").show();
+          $('.upload-choose').show();
           $elem.removeClass('hover');
         })
         .on('drop', function(e) {
@@ -847,7 +852,7 @@ shapy.browser.upload = function(shNotify) {
                   text: 'Only accepted types are jpeg and png.',
                   dismiss: 5000
                 });
-              } else if (file.size > 4*1024*1024) {
+              } else if (file.size > 4 * 1024 * 1024) {
                 shNotify.error({
                   text: 'File size over 4MB.',
                   dismiss: 5000
@@ -858,7 +863,7 @@ shapy.browser.upload = function(shNotify) {
             }
           });
 
-          $(".upload-choose").show();
+          $('.upload-choose').show();
           $elem.removeClass('hover');
 
           e.preventDefault();
@@ -882,28 +887,27 @@ shapy.browser.pathAsset = function() {
      dir: '='
     },
     link: function($scope, $elem, $attrs) {
-      $elem.on('dragover', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-      });
-      $elem.on('dragleave', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-      });
-      $elem.on('drop', function(e) {
-        var id = parseInt(e.originalEvent.dataTransfer.getData("asset"), 10);
-        
-        //Change dir of dragged if applicable
-        $scope.dir.shBrowser_.move($scope.dir, id);
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        return false;
-      });
-
+      $elem
+        .on('dragover', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $(this).addClass('drag-over');
+          return false;
+        })
+        .on('dragleave', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          $(this).removeClass('drag-over');
+          return true;
+        })
+        .on('drop', function(e) {
+          var id = parseInt(e.originalEvent.dataTransfer.getData('asset'), 10);
+          $scope.dir.shBrowser_.move($scope.dir, id);
+          e.preventDefault();
+          e.stopPropagation();
+          $('sh-path-asset').removeClass('drag-over');
+          return false;
+        });
     }
   };
 };
