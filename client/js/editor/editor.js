@@ -434,14 +434,6 @@ shapy.editor.Editor.prototype.setLayout = function(layout) {
 
 
 /**
- * Toggles to UV view.
- */
-shapy.editor.Editor.prototype.toggleUV = function() {
-  this.layout.toggleUV(this.partGroup);
-};
-
-
-/**
  * Creates a new object, adding it to the scene.
  *
  * @param {string} type Type of the object.
@@ -629,7 +621,7 @@ shapy.editor.Editor.prototype.rig = function(rig) {
  */
 shapy.editor.Editor.prototype.setRig = function(name) {
   switch (name) {
-    case 'extrude': this.extrude_(); return;
+    case 'extrude': this.doExtrude(); return;
     case 'translate': this.rig(this.rigTranslate_); return;
     case 'rotate': this.rig(this.rigRotate_); return;
     case 'scale': this.rig(this.rigScale_); return;
@@ -639,12 +631,40 @@ shapy.editor.Editor.prototype.setRig = function(name) {
 
 
 /**
- * Extrudes the current selection.
- *
- * @private
+ * Toggles to UV view.
  */
-shapy.editor.Editor.prototype.extrude_ = function() {
-  if (!(object = this.partGroup.getObject())) {
+shapy.editor.Editor.prototype.toggleUV = function() {
+  this.layout.toggleUV(this.partGroup);
+  this.layout.active.object = this.objectGroup.editables[0];
+  this.layout.active.object.projectUV();
+};
+
+
+/**
+ * Delete object
+ */
+shapy.editor.Editor.prototype.doDelete = function() {
+  if (this.mode.object) {
+    this.exec_.emitDelete(this.objectGroup);
+    this.objectGroup.delete();
+    this.objectGroup.clear();
+    this.partGroup.clear();
+    this.layout.closeUV();
+  } else if (!this.mode.paint) {
+    this.exec_.emitDelete(this.partGroup);
+    this.partGroup.delete();
+    this.partGroup.clear();
+  }
+  this.rig(null);
+}
+
+
+/**
+ * Extrudes the current selection.
+ */
+shapy.editor.Editor.prototype.doExtrude = function() {
+  var object = this.partGroup.getObject();
+  if (!object) {
     return;
   }
 
@@ -674,6 +694,39 @@ shapy.editor.Editor.prototype.extrude_ = function() {
 
 
 /**
+ * Merge vertices
+ */
+shapy.editor.Editor.prototype.doMerge = function() {
+  var object = this.partGroup.getObject();
+  if (!object) {
+    return;
+  }
+  this.exec_.emitMerge(object, this.partGroup);
+  object.mergeVertices(this.partGroup.getVertices());
+  this.partGroup.clear();
+  this.rig(null);
+}
+
+
+/**
+ * Connect
+ */
+shapy.editor.Editor.prototype.doConnect = function() {
+  var object = this.partGroup.getObject();
+  if (!object) {
+    return;
+  }
+  verts = this.partGroup.getVertices();
+  if (verts.length != 3 && verts.length != 2) {
+    return;
+  }
+  this.exec_.emitConnect(object, this.partGroup);
+  object.connect(verts);
+  return;
+}
+
+
+/**
  * Handles a key down event.
  *
  * @param {Event} e
@@ -682,43 +735,6 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   var object, faces;
 
   switch (String.fromCharCode(e.keyCode)) {
-    case 'D': {
-      if (this.mode.object) {
-        this.exec_.emitDelete(this.objectGroup);
-        this.objectGroup.delete();
-        this.objectGroup.clear();
-        this.partGroup.clear();
-        this.layout.closeUV();
-      } else if (!this.mode.paint) {
-        this.exec_.emitDelete(this.partGroup);
-        this.partGroup.delete();
-        this.partGroup.clear();
-      }
-      this.rig(null);
-      return;
-    }
-    case 'F': {
-      if (!(object = this.partGroup.getObject())) {
-        return;
-      }
-      verts = this.partGroup.getVertices();
-      if (verts.length != 3 && verts.length != 2) {
-        return;
-      }
-      this.exec_.emitConnect(object, this.partGroup);
-      object.connect(verts);
-      return;
-    }
-    case 'M': {
-      if (!(object = this.partGroup.getObject())) {
-        return;
-      }
-      this.exec_.emitMerge(object, this.partGroup);
-      object.mergeVertices(this.partGroup.getVertices());
-      this.partGroup.clear();
-      this.rig(null);
-      return;
-    }
     case 'O': {
       if (!this.layout || !this.layout.active) {
         return;
@@ -749,17 +765,18 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         return;
       }
       if (this.layout && this.layout.active) {
-        this.layout.toggleUV(this.partGroup);
-        this.layout.active.object = this.objectGroup.editables[0];
-        this.layout.active.object.projectUV();
+        this.toggleUV();
       }
       break;
     }
-    case 'E': this.extrude_(); return;
+    case 'D': this.doDelete(); return;
+    case 'C': this.rig(this.rigCut_); return;
+    case 'E': this.doExtrude(); return;
+    case 'M': this.doMerge(); return;
+    case 'F': this.doConnect(); return;
     case 'T': this.rig(this.rigTranslate_); return;
     case 'R': this.rig(this.rigRotate_); return;
     case 'S': this.rig(this.rigScale_); return;
-    case 'C': this.rig(this.rigCut_); return;
     case 'P': this.mode.togglePaint(); return;
     case '1': this.mode.toggleObject(); return;
     case '2': this.mode.toggleFace(); return;
@@ -896,6 +913,7 @@ shapy.editor.Editor.prototype.mouseMove = function(e) {
  * @param {Event} e
  */
 shapy.editor.Editor.prototype.mouseDown = function(e) {
+  shapy.toggleDropdown(false);
   this.layout.mouseDown(e);
 };
 

@@ -4,6 +4,28 @@
 goog.provide('shapy.menu');
 
 
+/**
+ * Context for the menu toggle function
+ */
+shapy.menuContext = {
+  visible: false,
+  focus: null
+};
+
+
+shapy.toggleDropdown = function(show) {
+  var ctx = shapy.menuContext;
+  ctx.visible = show;
+    if (ctx.focus) {
+    ctx.focus.toggle(show);
+    if (show) {
+      ctx.focus.parent().addClass('header-button-selected');
+    } else {
+      ctx.focus.parent().removeClass('header-button-selected');
+    }
+  }
+};
+
 
 /**
  * Menu directive.
@@ -14,9 +36,8 @@ shapy.menu = function() {
   return {
     restrict: 'E',
     link: function($scope, $elem) {
-      var down = false;
-      var focus = null;
       $('>div>div', $elem[0]).each(function() {
+        var ctx = shapy.menuContext;
         var child = $('>ul, .content', this);
         child.hide();
 
@@ -25,20 +46,19 @@ shapy.menu = function() {
         // instead.
         $('>span', this)
           .mousedown(function() {
-            down = !down;
-            focus = child;
-            focus.toggle(down);
-            focus.parent().toggleClass('header-button-selected');
+            ctx.visible = !ctx.visible;
+            ctx.focus = child;
+            shapy.toggleDropdown(ctx.visible);
           })
           .mouseenter(function() {
-            if (down) {
-              if (focus) {
-                focus.hide();
-                focus.parent().removeClass('header-button-selected');
+            if (ctx.visible) {
+              if (ctx.focus) {
+                ctx.focus.hide();
+                ctx.focus.parent().removeClass('header-button-selected');
               }
-              focus = child;
-              focus.show();
-              focus.parent().addClass('header-button-selected');
+              ctx.focus = child;
+              ctx.focus.show();
+              ctx.focus.parent().addClass('header-button-selected');
             }
           });
 
@@ -47,12 +67,10 @@ shapy.menu = function() {
         $('>li', child).each(function() {
           $(this)
             .mousedown(function() {
-
-              down = false;
-              focus.hide();
+              shapy.toggleDropdown(false);
             });
         });
-      */
+        */
       });
     }
   };

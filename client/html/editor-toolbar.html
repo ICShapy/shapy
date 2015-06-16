@@ -35,7 +35,7 @@
 
     <!-- Menu for rig selection. -->
     <div class="toolbar-button">
-      <span> Rig </span>
+      <span>Rig</span>
       <ul>
         <li ng-click="editorCtrl.rig('translate')">
           Translate
@@ -49,6 +49,17 @@
           Scale
           <span class="hint">S</span>
         </li>
+      </ul>
+    </div>
+
+    <!-- Menu for mesh operations -->
+    <div class="toolbar-button">
+      <span>Modify</span>
+      <ul>
+        <li ng-click="editorCtrl.doDelete()">
+          Delete
+          <span class="hint">D</span>
+        </li>
         <li ng-click="editorCtrl.rig('cut')">
           Cut
           <span class="hint">C</span>
@@ -56,6 +67,14 @@
         <li ng-click="editorCtrl.rig('extrude')">
           Extrude
           <span class="hint">E</span>
+        </li>
+        <li ng-click="editorCtrl.doMerge()">
+          Merge
+          <span class="hint">M</span>
+        </li>
+        <li ng-click="editorCtrl.doConnect()">
+          Connect
+          <span class="hint">F</span>
         </li>
       </ul>
     </div>
