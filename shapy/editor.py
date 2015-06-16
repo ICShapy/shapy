@@ -144,7 +144,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if not self.writeable and message.kind != 'message':
+    if not self.writeable or message.kind != 'message':
       return
 
     self.write_message(message.body)
