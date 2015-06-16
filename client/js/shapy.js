@@ -19,6 +19,7 @@ goog.require('shapy.browser.createTexture');
 goog.require('shapy.browser.sidebar');
 goog.require('shapy.browser.share');
 goog.require('shapy.browser.upload');
+goog.require('shapy.browser.pathAsset');
 goog.require('shapy.editable');
 goog.require('shapy.editor.Editor');
 goog.require('shapy.editor.EditorController');
@@ -282,6 +283,7 @@ shapy.module = angular
   .directive('shColourPicker', shapy.editor.colourPicker)
   .directive('shSlider', shapy.editor.slider)
   .directive('shUpload', shapy.browser.upload)
+  .directive('shPathAsset', shapy.browser.pathAsset)
 
 
   .factory('shHttp', shapy.HttpInterceptor)

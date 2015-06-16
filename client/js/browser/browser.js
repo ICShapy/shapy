@@ -14,6 +14,7 @@ goog.provide('shapy.browser.public');
 goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.share');
 goog.provide('shapy.browser.upload');
+goog.provide('shapy.browser.pathAsset');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Directory');
@@ -860,6 +861,44 @@ shapy.browser.upload = function(shNotify) {
 
           return false;
         });
+    }
+  };
+};
+
+
+
+/**
+ * Path asset directive
+ */
+shapy.browser.pathAsset = function() {
+  return {
+    restrict: 'E',
+    scope: {
+     dir: '='
+    },
+    link: function($scope, $elem, $attrs) {
+      $elem.on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+      });
+      $elem.on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+      });
+      $elem.on('drop', function(e) {
+        var id = parseInt(e.originalEvent.dataTransfer.getData("asset"), 10);
+        
+        //Change dir of dragged if applicable
+        $scope.dir.shBrowser_.move($scope.dir, id);
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        return false;
+      });
+
     }
   };
 };
