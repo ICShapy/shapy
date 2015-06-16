@@ -312,6 +312,11 @@ sh-asset.selected > div .name {
   padding: 8px 12px;
 }
 
+.asset-menu a {
+  text-decoration: none;
+  color: black;
+}
+
 .asset-menu li:hover {
    background-color: #3399FF;
 }

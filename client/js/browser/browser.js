@@ -447,16 +447,21 @@ shapy.browser.asset = function(shModal) {
         evt.preventDefault();
         // Show
         var y = evt.pageY - 30;
-        $('.asset-menu').show().
-          css({
+        $('.asset-menu')
+          .show()
+          .css({
               top: y + 'px',
               left: evt.pageX + 'px'
           });
+        $('.asset-menu a').on('mousedown', function(evt) {
+          console.log('x');
+          return false;
+        });
         return false;
       });
 
       // Hide menu, deselect
-      $(window).on('mousedown', function(evt) {
+      $(document.body).on('mousedown', function(evt) {
         if (($(evt.target).hasClass('assetmenu') && evt.which == 3)) {
           return;
         }
@@ -465,7 +470,6 @@ shapy.browser.asset = function(shModal) {
         $scope.$apply(function() {
           $scope.selected = null;
         });
-
       });
 
       // Select or display texture
@@ -727,7 +731,7 @@ shapy.browser.public = function(shBrowser) {
           if (!$scope.asset.owner) {
             return;
           }
-          switch($scope.asset.type) {
+          switch ($scope.asset.type) {
             case shapy.browser.Asset.Type.SCENE:
               shBrowser.setPublicScene($scope.asset, !$scope.asset.public);
               break;

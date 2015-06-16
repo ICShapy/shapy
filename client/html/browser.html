@@ -112,10 +112,21 @@
 
   <div class='asset-menu'>
     <ul>
-      <li ng-click=""
-          ng-show="browserCtrl.selected.type != browserCtrl.home.type"
+      <li ng-show="browserCtrl.selected.type == 'scene'"
           ng-style="{'cursor': 'pointer'}">
-        Download as STL
+        <a
+            href="/api/assets/scene?id={{browserCtrl.selected.id}}&amp;format=stl"
+            target="_blank">
+          Download as STL
+        </a>
+      </li>
+      <li ng-show="browserCtrl.selected.type == 'scene'"
+          ng-style="{'cursor': 'pointer'}">
+        <a
+            href="/api/assets/scene?id={{browserCtrl.selected.id}}&amp;format=obj"
+            target="_blank">
+          Download as Obj
+        </a>
       </li>
       <sh-share
           ng-show="browserCtrl.selected.type != browserCtrl.home.type"
