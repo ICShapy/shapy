@@ -350,6 +350,9 @@ class AssetHandler(APIHandler):
     if public is not None and self.TYPE == 'dir':
       raise HTTPError(400, 'Asset update failed.')
 
+    if parent == id:
+      raise HTTPError(400, 'Cannot move a directory into itself.')
+
     if parent is not None:
       # Check ownership of asset and potential new parent
       cursors = yield momoko.Op(self.db.transaction, (
@@ -553,14 +556,8 @@ class TextureFilterHandler(APIHandler):
   def get(self, user):
     """Filters textures by a query string."""
 
-    # Fetch the name.
-    name = self.get_argument('name', None)
-    if not name:
-      self.write('[]')
-      self.finish()
-      return
-
     # Retrieve textures.
+    name = self.get_argument('name', '')
     cursor = yield momoko.Op(self.db.execute,
       '''SELECT id, name, preview
          FROM assets

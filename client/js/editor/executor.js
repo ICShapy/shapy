@@ -847,7 +847,7 @@ shapy.editor.WriteExecutor.prototype.emitDelete = function(obj) {
  * @param {shapy.editor.Editable} obj   Object the group belonds to.
  * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
-shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
+shapy.editor.WriteExecutor.prototype.emitExtrude = function(obj, group) {
   this.sendCommand({
     type: 'edit',
     tool: 'extrude',
@@ -865,7 +865,7 @@ shapy.editor.Executor.prototype.emitExtrude = function(obj, group) {
  * @param {shapy.editor.Editable} obj   Object the group belongs to.
  * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
-shapy.editor.Executor.prototype.emitConnect = function(obj, group) {
+shapy.editor.WriteExecutor.prototype.emitConnect = function(obj, group) {
   this.sendCommand({
     type: 'edit',
     tool: 'connect',
@@ -883,7 +883,7 @@ shapy.editor.Executor.prototype.emitConnect = function(obj, group) {
  * @param {shapy.editor.Editable} obj   Object the group belongs to.
  * @param {shapy.editor.Editable} group Parts group to be extruded.
  */
-shapy.editor.Executor.prototype.emitMerge = function(obj, group) {
+shapy.editor.WriteExecutor.prototype.emitMerge = function(obj, group) {
   this.sendCommand({
     type: 'edit',
     tool: 'merge',

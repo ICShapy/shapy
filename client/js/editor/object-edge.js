@@ -26,12 +26,12 @@ shapy.editor.Edge = function(object, id, v0, v1) {
   /** @public {!shapy.editor.Object} @const */
   this.object = object;
   /** @public {!number} @const */
-  this.id = id;
+  this.id = parseInt(id);
 
   /** @public {number} */
-  this.v0 = v0;
+  this.v0 = parseInt(v0);
   /** @public {number} */
-  this.v1 = v1;
+  this.v1 = parseInt(v1);
 };
 goog.inherits(shapy.editor.Edge, shapy.editor.Editable);
 
