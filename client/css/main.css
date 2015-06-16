@@ -62,7 +62,8 @@ html {
 }
 
 #header a:hover {
-  color: #fff;
+  background-color: #213a62;
+  color: #ffffff;
 }
 
 #header a.highlight {
@@ -125,7 +126,7 @@ sh-menu {
 }
 
 /* Buttons */
-.toolbar-button {
+.toolbar-button, .toolbar-button-selected {
   font-size: 14px;
   position: relative;
   display: block;
@@ -136,11 +137,16 @@ sh-menu {
   height: 16px;
 }
 
-.header-button-selected {
+.toolbar-button:hover {
+  background-color: #213a62;
+  color: #ffffff;
+}
+
+.toolbar-button-selected {
   background-color: #3b404b;
 }
 
-.toolbar-button > span {
+.toolbar-button > span, .toolbar-button-selected > span {
   padding: 0 !important;
   margin: 0 !important;
 

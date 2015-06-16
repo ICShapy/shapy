@@ -13,15 +13,24 @@ shapy.menuContext = {
 };
 
 
+/**
+ * Show or hide the current dropdown menu
+ * @param  {boolean} show
+ */
 shapy.toggleDropdown = function(show) {
   var ctx = shapy.menuContext;
   ctx.visible = show;
     if (ctx.focus) {
     ctx.focus.toggle(show);
     if (show) {
-      ctx.focus.parent().addClass('header-button-selected');
+      console.log(ctx.focus.parent());
+      ctx.focus.parent()
+        .removeClass('toolbar-button')
+        .addClass('toolbar-button-selected');
     } else {
-      ctx.focus.parent().removeClass('header-button-selected');
+      ctx.focus.parent()
+        .removeClass('toolbar-button-selected')
+        .addClass('toolbar-button');
     }
   }
 };
@@ -52,13 +61,9 @@ shapy.menu = function() {
           })
           .mouseenter(function() {
             if (ctx.visible) {
-              if (ctx.focus) {
-                ctx.focus.hide();
-                ctx.focus.parent().removeClass('header-button-selected');
-              }
+              shapy.toggleDropdown(false);
               ctx.focus = child;
-              ctx.focus.show();
-              ctx.focus.parent().addClass('header-button-selected');
+              shapy.toggleDropdown(true);
             }
           });
       });
