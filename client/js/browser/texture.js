@@ -58,19 +58,18 @@ goog.inherits(shapy.browser.Texture, shapy.browser.Asset);
  * @param {number} size
  */
 shapy.browser.Texture.prototype.paint = function(u, v, colour, size) {
-  var x = Math.floor(u * this.width);
-  var y = Math.floor(v * this.height);
+  var p = shapy.editor.geom.getPixel(u, v, this.width, this.height);
 
   size = Math.floor(Math.max(Math.min(10 * size / 100, 10), 1));
-  for (var i = y - size; i <= y + size; ++i) {
-    for (var j = x - size; j <= x + size; ++j) {
+  for (var i = p.y - size; i <= p.y + size; ++i) {
+    for (var j = p.x - size; j <= p.x + size; ++j) {
       if (i < 0 || this.width <= i || j < 0 || this.height <= j) {
         continue;
       }
 
       var k = i * this.width + j;
-      var dx = (j - x) / size;
-      var dy = (i - y) / size;
+      var dx = (j - p.x) / size;
+      var dy = (i - p.y) / size;
       var a = Math.max(Math.min(1.0 - Math.sqrt(dx * dx + dy * dy), 1), 0);
 
       var r = this.data[k * 4 + 0];
