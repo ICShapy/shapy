@@ -14,6 +14,7 @@ goog.provide('shapy.browser.public');
 goog.provide('shapy.browser.sidebar');
 goog.provide('shapy.browser.share');
 goog.provide('shapy.browser.upload');
+goog.provide('shapy.browser.pathAsset');
 
 goog.require('shapy.browser.Asset');
 goog.require('shapy.browser.Directory');
@@ -728,7 +729,7 @@ shapy.browser.public = function(shBrowser) {
  *
  * @return {!angular.Directive}
  */
-shapy.browser.createTexture = function(shModal, shBrowser) {
+shapy.browser.createTexture = function(shModal, shNotify, shBrowser) {
   /**
    * Handles creating/uploading texture.
    */
@@ -750,7 +751,20 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
           var newFiles = evt.target.files;
           $scope.$apply(function() {
             for (var i = 0; file = newFiles[i]; i++) {
-              $scope.files.push(file);
+              // Add file if it passes checks
+              if (file.type != 'image/jpeg' && file.type != 'image/png') {
+                shNotify.error({
+                  text: 'Only accepted types are jpeg and png.',
+                  dismiss: 5000
+                });
+              } else if (file.size > 4*1024*1024) {
+                shNotify.error({
+                  text: 'File size over 4MB.',
+                  dismiss: 5000
+                });
+              } else {
+                $scope.files.push(file);
+              }
             }
           });
         });
@@ -799,7 +813,7 @@ shapy.browser.createTexture = function(shModal, shBrowser) {
 /**
  * Upload directive.
  */
-shapy.browser.upload = function() {
+shapy.browser.upload = function(shNotify) {
   return {
     restrict: 'E',
     scope: {
@@ -827,7 +841,20 @@ shapy.browser.upload = function() {
           var file;
           $scope.$apply(function() {
             for (var i = 0; file = newFiles[i]; i++) {
-              $scope.filesUpload.push(file);
+              // Add file if it passes checks
+              if (file.type != 'image/jpeg' && file.type != 'image/png') {
+                shNotify.error({
+                  text: 'Only accepted types are jpeg and png.',
+                  dismiss: 5000
+                });
+              } else if (file.size > 4*1024*1024) {
+                shNotify.error({
+                  text: 'File size over 4MB.',
+                  dismiss: 5000
+                });
+              } else {
+                $scope.filesUpload.push(file);
+              }
             }
           });
 
@@ -839,6 +866,44 @@ shapy.browser.upload = function() {
 
           return false;
         });
+    }
+  };
+};
+
+
+
+/**
+ * Path asset directive
+ */
+shapy.browser.pathAsset = function() {
+  return {
+    restrict: 'E',
+    scope: {
+     dir: '='
+    },
+    link: function($scope, $elem, $attrs) {
+      $elem.on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+      });
+      $elem.on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+      });
+      $elem.on('drop', function(e) {
+        var id = parseInt(e.originalEvent.dataTransfer.getData("asset"), 10);
+        
+        //Change dir of dragged if applicable
+        $scope.dir.shBrowser_.move($scope.dir, id);
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        return false;
+      });
+
     }
   };
 };

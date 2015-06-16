@@ -28,10 +28,13 @@
       </span>
     </div>
   </div>
-  <sh-path-asset
+  <sh-path
       ng-repeat="dir in browserCtrl.path() track by dir.id"
       ng-click="browserCtrl.selectPath(dir)">
-    {{dir.name}}
-    <img src="/img/arrow.svg" ng-if="!$last"/>
-  </sh-path-asset>
+    <sh-path-asset
+        dir="dir">
+      {{dir.name}}
+      <img src="/img/arrow.svg" ng-if="!$last"/>
+    </sh-path-asset>
+  </sh-path>
 </div>
