@@ -14,141 +14,31 @@ sh-sidebar {
  * Clickable creation button
  */
 
-sh-sidebar .button {
+sh-sidebar .button,
+sh-sidebar .button-disabled {
   width: 100%;
   height: 20px;
+  text-align: center;
+  padding: 7px 0;
+  cursor: pointer;
+}
+
+sh-sidebar .button {
   background: #aaa;
+}
+
+sh-sidebar .button-disabled {
+  background: #999;
 }
 
 sh-sidebar .button:hover {
   background: #fff;
 }
 
-sh-sidebar .create img {
-  width: 9px;
-  height: 9px;
+sh-sidebar .button-disabled > span {
+  color: #444;
 }
 
-sh-sidebar .create {
-  position: relative;
-  height: 28px;
-  padding: 7px 0px 7px 0px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 119px;
-}
-
-sh-sidebar ul.menu {
-  position: absolute;
-  top: 18px; left: 98px;
-  width: 100px;
-  border: 1px solid #222222;
-  box-shadow: 1px 1px 1px #777777;
-  background-color: #eeeeee;
-  z-index: 2000;
-}
-
-sh-sidebar ul.menu {
-  list-style-type: none;
-  padding: 0;
-}
-
-sh-sidebar ul.menu li {
-  padding: 5px;
-  margin: 0;
-  cursor: pointer;
-}
-
-sh-sidebar ul.menu li:hover {
-  background-color: #ccc;
-}
-
-sh-sidebar ul.menu li:active {
-  background-color: #bbb;
-}
-
-
-
-
-sh-sidebar .create > button {
-  display: block;
-  float: left;
-  height: 28px;
-  background: linear-gradient(to bottom, #2f56af 0%,#232682 99%);
-  border: none;
-  cursor: pointer;
-  z-index: 5000;
-}
-
-sh-sidebar .create > button.left {
-  border-bottom-left-radius: 2px;
-  border-top-left-radius: 2px;
-  width: 99px;
-  border-right: 1px solid #009;
-  color: white;
-  font-weight: bold;
-}
-
-sh-sidebar .create > button.right {
-  border-bottom-right-radius: 2px;
-  border-top-right-radius: 2px;
-  width: 20px;
-}
-
-sh-sidebar .create > button:hover {
-  background: linear-gradient(to bottom, #2f569f 0%,#232662 99%);
-  outline: 0;
-}
-
-sh-sidebar .create > button:focus {
-  outline: 0;
-}
-
-sh-sidebar .create > button:active {
-  background: linear-gradient(to bottom, #2f566f 0%,#232652 99%);
-}
-
-/**
- * Faded creation button
- */
-
-sh-sidebar .space img {
-  width: 9px;
-  height: 9px;
-}
-
-sh-sidebar .space {
-  position: relative;
-  height: 28px;
-  padding: 7px 0px 7px 0px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 119px;
-}
-
-sh-sidebar .space > button {
-  display: block;
-  float: left;
-  height: 28px;
-  background: linear-gradient(to bottom, #bbbbbb 0%,#bbbbbb 99%);
-  border: none;
-  z-index: 5000;
-}
-
-sh-sidebar .space > button.left {
-  border-bottom-left-radius: 2px;
-  border-top-left-radius: 2px;
-  width: 99px;
-  border-right: 1px solid #a0a0a0;
-  color: white;
-  font-weight: bold;
-}
-
-sh-sidebar .space > button.right {
-  border-bottom-right-radius: 2px;
-  border-top-right-radius: 2px;
-  width: 20px;
-}
 
 /**
  * Dir tree
@@ -157,6 +47,7 @@ sh-sidebar .space > button.right {
 sh-sidebar .directory {
   position: relative;
   overflow: hidden;
+  padding: 7px;
 }
 
 sh-sidebar .directory img {
@@ -172,7 +63,7 @@ sh-sidebar .directory .name {
 
 sh-sidebar .directory .name > span {
   position: absolute;
-  left: 15px;
+  left: 23px;
   height: 15px;
 }
 

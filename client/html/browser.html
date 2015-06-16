@@ -3,14 +3,28 @@
     <!-- Top bar -->
     <div ng-switch on="browserCtrl.private()">
       <div ng-switch-when="true">
-        <div class="button" ng-click="browserCtrl.createScene()">New Scene</div>
-        <sh-create-texture><div class="button">New Texture</div></sh-create-texture>
-        <div class="button" ng-click="browserCtrl.createDir()">New Folder</div>
+        <div class="button" ng-click="browserCtrl.createScene()">
+          <span>Create Scene</span>
+        </div>
+        <sh-create-texture>
+          <div class="button">
+            <span>Create Texture</span>
+          </div>
+        </sh-create-texture>
+        <div class="button" ng-click="browserCtrl.createDir()">
+          <span>Create Folder</span>
+        </div>
       </div>
       <div ng-switch-default>
-        <div class="button-disabled">New Scene</div>
-        <div class="button-disabled">New Texture</div>
-        <div class="button-disabled">New Folder</div>
+        <div class="button-disabled">
+          <span>Create Scene</span>
+        </div>
+        <div class="button-disabled">
+          <span>Create Texture</span>
+        </div>
+        <div class="button-disabled">
+          <span>Create Folder</span>
+        </div>
       </div>
     </div>
 
