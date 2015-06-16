@@ -454,6 +454,7 @@ sh-upload.hover {
   margin-left: 150px;
   margin-right: 150px;
   text-align: center;
+  pointer-events: none
 }
 .upload-choose input {
   display: block;
@@ -476,7 +477,6 @@ sh-upload.hover {
   width:160px;
   margin-left: 170px;
   margin-right: 170px;
-
   cursor: pointer;
 }
 
@@ -492,6 +492,7 @@ sh-upload.hover {
   overflow-x: hidden;
   overflow-y: auto;
   z-index: 30;
+  pointer-events: none;
 }
 
 /**
