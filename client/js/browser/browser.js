@@ -454,7 +454,6 @@ shapy.browser.asset = function(shModal) {
               left: evt.pageX + 'px'
           });
         $('.asset-menu a').on('mousedown', function(evt) {
-          console.log('x');
           return false;
         });
         return false;
