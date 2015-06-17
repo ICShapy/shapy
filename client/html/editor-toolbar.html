@@ -62,22 +62,30 @@
           Delete
           <span class="hint">D</span>
         </li>
-        <li ng-click="editorCtrl.rig('cut'); close()">
-          Cut
-          <span class="hint">C</span>
-        </li>
-        <li ng-click="editorCtrl.rig('extrude'); close()">
-          Extrude
-          <span class="hint">E</span>
-        </li>
-        <li ng-click="editorCtrl.doMerge(); close()">
-          Merge
-          <span class="hint">M</span>
-        </li>
-        <li ng-click="editorCtrl.doConnect(); close()">
-          Connect
-          <span class="hint">F</span>
-        </li>
+        <div ng-show="!editorCtrl.isUV()">
+          <li ng-click="editorCtrl.rig('cut'); close()">
+            Cut
+            <span class="hint">C</span>
+          </li>
+          <li ng-click="editorCtrl.rig('extrude'); close()">
+            Extrude
+            <span class="hint">E</span>
+          </li>
+          <li ng-click="editorCtrl.doMerge(); close()">
+            Merge
+            <span class="hint">M</span>
+          </li>
+          <li ng-click="editorCtrl.doConnect(); close()">
+            Connect
+            <span class="hint">F</span>
+          </li>
+        </div>
+        <div ng-show="editorCtrl.isUV()">
+          <li ng-click="editorCtrl.doWeld(); close()">
+            Weld
+            <span class="hint">W</span>
+          </li>
+        </div>
       </ul>
     </div>
 
