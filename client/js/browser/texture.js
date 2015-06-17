@@ -225,7 +225,7 @@ shapy.browser.Texture.preview = function(image) {
   canvas.height = shapy.browser.Texture.PREVIEW_HEIGHT;
 
   var ctx = canvas.getContext('2d');
-  ctx.translate(-diff / 2, 0);
+  ctx.translate(Math.min(-diff / 2, 0), 0);
   ctx.drawImage(image, 0, 0, width, canvas.height);
 
   return canvas;
