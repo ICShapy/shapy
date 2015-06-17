@@ -628,7 +628,7 @@ class TextureFilterHandler(APIHandler):
     # Retrieve textures.
     name = self.get_argument('name', '')
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, preview, public, write, owner
+      '''SELECT DISTINCT id, name, preview, public, write, owner
          FROM assets
          LEFT OUTER JOIN permissions ON permissions.asset_id = assets.id
          WHERE assets.type = %(type)s
