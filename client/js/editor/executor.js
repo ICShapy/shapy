@@ -168,6 +168,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyTexture(data);
             break;
           }
+          case 'weld': {
+            this.applyWeld(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -726,6 +730,40 @@ shapy.editor.Executor.prototype.applyTexture = function(data) {
 };
 
 
+/**
+ * Executes weld command.
+ *
+ * @param {shapy.editor.Editable} obj     Object the group belongs to.
+ * @param {!Array<!shapy.editor.UVPoint>} UV points.
+ */
+shapy.editor.Executor.prototype.emitWeld = function(obj, uvs) {
+
+};
+
+
+/**
+ * Handles weld command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyWeld = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  // Get the object.
+  var object = this.scene_.objects[data['objId']];
+
+  // Get uvs.
+  var uvs = goog.array.map(data['uvIds'], function(uvId) {
+    return object.uvPoints[uvId];
+  }, this);
+
+  object.weld(uvs);
+};
+
+
 
 /**
  * Applies and makes changes to the scene.
@@ -1023,7 +1061,7 @@ shapy.editor.WriteExecutor.prototype.emitPaint = function(t, u, v, bc, br) {
  * @param {number}                 id ID of the texture to apply.
  * @param {shapy.editor.Editable} obj Object the texture is to be applied to.
  */
-shapy.editor.Executor.prototype.emitTexture = function(id, obj) {
+shapy.editor.WriteExecutor.prototype.emitTexture = function(id, obj) {
   this.sendCommand({
     type: 'edit',
     tool: 'texture',
@@ -1031,6 +1069,28 @@ shapy.editor.Executor.prototype.emitTexture = function(id, obj) {
 
     textureId: id,
     objId: obj.id
+  });
+};
+
+
+/**
+ * Executes weld command.
+ *
+ * @param {shapy.editor.Editable} obj     Object the group belongs to.
+ * @param {!Array<!shapy.editor.UVPoint>} UV points.
+ */
+shapy.editor.WriteExecutor.prototype.emitWeld = function(obj, uvs) {
+  var uvIds = goog.array.map(uvs, function(uv) {
+    return uv.id;
+  }, this);
+
+  this.sendCommand({
+    type: 'edit',
+    tool: 'weld',
+    userId: this.editor_.user.id,
+
+    objId: obj.id,
+    uvIds: uvIds
   });
 };
 

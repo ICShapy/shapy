@@ -725,6 +725,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
         return;
       }
       uvs = this.partGroup.getUVPoints();
+      this.exec_.emitWeld(object, uvs);
       object.weld(uvs);
       this.partGroup.clear();
       return;

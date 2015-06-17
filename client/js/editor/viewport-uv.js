@@ -246,6 +246,7 @@ shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, button) {
   if (this.moveUV_) {
     dx = ((this.currMousePos.x - this.lastMousePos.x) * d) / (2 * w);
     dy = ((this.currMousePos.y - this.lastMousePos.y) * d) / (2 * w);
+    console.log(this.editor.partGroup.moveUV);
     this.editor.partGroup.moveUV(dx, dy);
     return [];
   }
