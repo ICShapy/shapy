@@ -33,6 +33,7 @@ shapy.editor.ToolbarController = function(
     shBrowser)
 {
   $scope.floor = Math.floor;
+  $scope.close = function() { shapy.toggleDropdown(false); };
 
   /** @private {!angular.$scope} @const */
   this.rootScope_ = $rootScope;
@@ -121,6 +122,38 @@ shapy.editor.ToolbarController.prototype.toggleUV = function() {
 shapy.editor.ToolbarController.prototype.rig = function(name) {
   this.shEditor_.setRig(name);
 };
+
+
+/**
+ * Called when delete is pressed
+ */
+shapy.editor.ToolbarController.prototype.doDelete = function() {
+  this.shEditor_.doDelete();
+}
+
+
+/**
+ * Called when extrude is pressed
+ */
+shapy.editor.ToolbarController.prototype.doExtrude = function() {
+  this.shEditor_.doExtrude();
+}
+
+
+/**
+ * Called when merge is pressed
+ */
+shapy.editor.ToolbarController.prototype.doMerge = function() {
+  this.shEditor_.doMerge();
+}
+
+
+/**
+ * Called when connect is pressed
+ */
+shapy.editor.ToolbarController.prototype.doConnect = function() {
+  this.shEditor_.doConnect();
+}
 
 
 /**

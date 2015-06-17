@@ -1,9 +1,10 @@
 <div>
+  <div class="header-divider" style="width: 96.625px"></div>
   <div id="browser-search" ng-init="open=false">
     <input
         id="browser-search-input"
         type="text"
-        placeholder="{{(browserCtrl.private()) ? 'Search assets' : 'Search ' + browserCtrl.current().name}}"
+        placeholder="{{(browserCtrl.private()) ? 'Search Assets' : 'Search ' + browserCtrl.current().name}}"
         ng-model="browserCtrl.query">
     <img
         id="browser-search-settings"
@@ -13,21 +14,15 @@
         ng-show="open"
         id="browser-search-panel"
         ng-click="open=false">
-      <div class="title"> Filter </div>
-      <span ng-click="browserCtrl.selectScenes()"> 
-        All Scenes 
-      </span>
-      <span ng-click="browserCtrl.selectTextures()"> 
-        All Textures 
-      </span>
-      <span ng-click="browserCtrl.selectShared()"> 
-        Shared 
-      </span>
-      <span ng-click="browserCtrl.selectPublic()">
-        Public
-      </span>
+      <span ng-click="browserCtrl.selectPath(browserCtrl.path()[0])">All Assets</span>
+      <span ng-click="browserCtrl.selectScenes()">My Scenes</span>
+      <span ng-click="browserCtrl.selectTextures()">My Textures</span>
+      <hr>
+      <span ng-click="browserCtrl.selectShared()">Shared</span>
+      <span ng-click="browserCtrl.selectPublic()">Public</span>
     </div>
   </div>
+  <div class="header-divider"></div>
   <sh-path
       ng-repeat="dir in browserCtrl.path() track by dir.id"
       ng-click="browserCtrl.selectPath(dir)">

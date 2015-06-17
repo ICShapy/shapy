@@ -1,4 +1,3 @@
-
 html {
   font-family: 'Open Sans', sans-serif;
 }
@@ -33,18 +32,24 @@ html {
   top: 0;
   left: 0;
   right: 0;
-  height: 30px;
-  background: linear-gradient(to bottom, #0a1e38 0%,#181f5b 100%);
-  border-bottom: 1px solid #111111;
+  height: 31px;
+  background: #1a2c4a;
   z-index: 1000;
 }
 
+/* TODO(David): Merge this and toolbar together for cleaner CSS */
 #header a, #header span {
-  color: white;
+  color: #dee1e3;
   padding: 7px;
   height: 16px;
   font-size: 14px;
   display: block;
+}
+
+.header-divider {
+  float: left;
+  width: 15px;
+  height: 1px;
 }
 
 #header a {
@@ -57,28 +62,34 @@ html {
 }
 
 #header a:hover {
-  background-color: #555555;
+  background-color: #213a62;
+  color: #ffffff;
 }
 
 #header a.highlight {
-  border-bottom: 2px solid #ffff00;
+  border-bottom: 2px solid #9ab;
   height: 15px;
-}
-
-#header .profile {
-  float: right;
-}
-
-#header .profile > span {
-  float: right;
-}
-
-#header .profile > a {
-  float: right;
 }
 
 #header .select {
   background-color: #cc3300;
+}
+
+/* Left/right organisation */
+#header-left {
+  float: left;
+}
+
+#header-right {
+  float: right;
+}
+
+#header-right > span {
+  float: left;
+}
+
+#header-right > a {
+  float: left;
 }
 
 #body {
@@ -96,6 +107,114 @@ html {
   margin-left: auto;
   margin-right: auto;
 }
+
+/**
+ * Toolbar
+ */
+#toolbar-left {
+  float: left;
+}
+
+#toolbar-right {
+  float: right;
+}
+
+sh-menu {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Buttons */
+.toolbar-button,
+.toolbar-button-selected,
+.toolbar-scene-name {
+  font-size: 14px;
+  position: relative;
+  display: block;
+  float: left;
+  color: #dee1e3;
+  cursor: pointer;
+  padding: 7px;
+  height: 16px;
+}
+
+.toolbar-button:hover,
+.toolbar-scene-name {
+  background-color: #213a62;
+  color: #ffffff;
+}
+
+.toolbar-button-selected {
+  background-color: #3b404b;
+}
+
+.toolbar-button > span,
+.toolbar-button-selected > span,
+.toolbar-scene-name > span {
+  padding: 0 !important;
+  margin: 0 !important;
+
+  /* Disable text selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Drop down menus */
+sh-menu ul, sh-menu .content {
+  background-color: #3b404b;
+  display: block;
+  position: absolute;
+  list-style-type: none;
+  top: 30px;
+  left: 0px;
+  padding: 0;
+  margin: 0;
+  min-width: 200px;
+}
+
+sh-menu .content {
+  min-width: 0 !important;
+  cursor: default;
+  padding: 7px;
+}
+
+sh-menu ul > li {
+  display: block;
+  padding: 7px;
+  margin: 0;
+  text-align: left;
+
+  /* Disable text selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+sh-menu ul > li:hover {
+  background-color: #555555;
+}
+
+sh-menu .hint {
+  display: block;
+  float: right;
+  height: 12px;
+  font-size: 12px !important;
+  padding: 0 !important;
+  margin: 1px 10px 1px 0;
+  color: gray !important;
+}
+
+/**
+ * Notifications
+ */
 
 sh-notify-bar {
   position: fixed;
@@ -152,80 +271,6 @@ sh-notify-bar {
 
 .notification span.content {
   cursor: pointer;
-}
-
-/**
- * Toolbar
- */
-#toolbar {
-  float: left;
-}
-
-sh-menu {
-  display: block;
-  float: left;
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-sh-menu > div {
-  font-size: 14px;
-  position: relative;
-  display: block;
-  float: left;
-  cursor: pointer;
-  color: white;
-  padding: 7px;
-  height: 16px;
-}
-
-sh-menu > div > span {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-sh-menu > div:hover {
-  background-color: #555555;
-}
-
-sh-menu ul, sh-menu .content {
-  background-color: #222222;
-  display: block;
-  position: absolute;
-  list-style-type: none;
-  border: 1px solid black;
-  top: 30px;
-  left: 0px;
-  padding: 0;
-  margin: 0;
-  min-width: 200px;
-}
-
-sh-menu .content {
-  min-width: 0 !important;
-  cursor: default;
-}
-
-sh-menu ul > li {
-  display: block;
-  padding: 2px;
-  margin: 0;
-  text-align: left;
-}
-
-sh-menu ul > li:hover {
-  background-color: #555555;
-}
-
-sh-menu .hint {
-  display: block;
-  float: right;
-  height: 12px;
-  font-size: 12px !important;
-  padding: 0 !important;
-  margin: 1px 10px 1px 0;
-  color: gray !important;
 }
 
 /**
@@ -382,7 +427,7 @@ input.ng-invalid.ng-touched {
   padding: 8px;
   border-bottom: 1px solid #777;
   color: white;
-  background: linear-gradient(to bottom, #0a1e38 0%,#181f5b 100%)
+  background: #1a2c4a;
 }
 
 #modal > .dialog > .content {

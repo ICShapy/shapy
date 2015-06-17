@@ -4,6 +4,36 @@
 goog.provide('shapy.menu');
 
 
+/**
+ * Context for the menu toggle function
+ */
+shapy.menuContext = {
+  visible: false,
+  focus: null
+};
+
+
+/**
+ * Show or hide the current dropdown menu
+ * @param  {boolean} show
+ */
+shapy.toggleDropdown = function(show) {
+  var ctx = shapy.menuContext;
+  ctx.visible = show;
+    if (ctx.focus) {
+    ctx.focus.toggle(show);
+    if (show) {
+      ctx.focus.parent()
+        .removeClass('toolbar-button')
+        .addClass('toolbar-button-selected');
+    } else {
+      ctx.focus.parent()
+        .removeClass('toolbar-button-selected')
+        .addClass('toolbar-button');
+    }
+  }
+};
+
 
 /**
  * Menu directive.
@@ -14,16 +44,27 @@ shapy.menu = function() {
   return {
     restrict: 'E',
     link: function($scope, $elem) {
-      $('>div', $elem[0]).each(function() {
+      $('>div>div', $elem[0]).each(function() {
+        var ctx = shapy.menuContext;
         var child = $('>ul, .content', this);
         child.hide();
 
+        // If the mouse is pressed, toggle whichever element is the current
+        // focus. If the mouse moves to a different element, focus on that
+        // instead.
         $(this)
           .mouseenter(function() {
-            child.show();
-          })
-          .mouseleave(function() {
-            child.hide();
+            if (ctx.visible) {
+              shapy.toggleDropdown(false);
+              ctx.focus = child;
+              shapy.toggleDropdown(true);
+            }
+          });
+        $('>span', this)
+          .mousedown(function() {
+            ctx.visible = !ctx.visible;
+            ctx.focus = child;
+            shapy.toggleDropdown(ctx.visible);
           });
       });
     }

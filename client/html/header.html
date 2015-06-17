@@ -1,17 +1,17 @@
 <nav id="header" sh-highlight>
-  <a ui-sref="main">Home</a>
-  <a ng-show="headerCtrl.user" ui-sref="main.browser">Assets</a>
-  <a ng-show="!headerCtrl.user" ui-sref="main.public">Assets</a>
-  <a ui-sref="main.help">Help</a>
-  <div id="toolbar" ui-view="toolbar"></div>
-  <div ng-show="headerCtrl.user" class="profile">
+  <div id="header-left">
+    <a ui-sref="main">Home</a>
+    <a ng-show="headerCtrl.user" ui-sref="main.browser">Assets</a>
+    <a ng-show="!headerCtrl.user" ui-sref="main.public">Assets</a>
+    <div class="header-divider"></div>
+  </div>
+  <div ng-show="headerCtrl.user" id="header-right">
+    <span>{{ headerCtrl.user.name }}</span>
     <a ng-click="headerCtrl.logout()">Logout</a>
-    <span>
-    {{ headerCtrl.user.name }}
-    </span>
   </div>
-  <div ng-hide="headerCtrl.user" class="profile">
-    <a ui-sref="main.register">Register</a>
+  <div ng-show="!headerCtrl.user" id="header-right">
     <a ui-sref="main.login">Login</a>
+    <a ui-sref="main.register">Register</a>
   </div>
+  <div ui-view="toolbar"></div>
 </nav>
