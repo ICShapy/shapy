@@ -135,7 +135,8 @@ class WSHandler(WebSocketHandler, BaseHandler):
       for id in data['objects']:
         self.redis.delete('scene:%s:%s' % (self.scene_id, id))
         objects.append(id)
-        self.objects.remove(id)
+        if id in self.objects:
+          self.objects.remove(id)
       data['objects'] = objects
 
     # Broadcast the message, appending a seqnum.
