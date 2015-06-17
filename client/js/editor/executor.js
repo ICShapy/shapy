@@ -172,6 +172,10 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
             this.applyWeld(data);
             break;
           }
+          case 'moveUV': {
+            this.applyMoveUV(data);
+            break;
+          }
           default: {
             console.error('Invalid tool "' + data['tool'] + "'");
             break;
@@ -764,6 +768,44 @@ shapy.editor.Executor.prototype.applyWeld = function(data) {
 };
 
 
+/**
+ * Executes moveUV command.
+ *
+ * @param {shapy.editor.Editable} group Parts group.
+ */
+shapy.editor.Executor.prototype.emitMoveUV = function(group) {
+
+};
+
+
+/**
+ * Handles moveUV command.
+ *
+ * @param {!Object} data
+ */
+shapy.editor.Executor.prototype.applyMoveUV = function(data) {
+  // Ignore edits performed by the current user.
+  if (this.editor_.user && data['userId'] == this.editor_.user.id) {
+    return;
+  }
+
+  // Get the object.
+  var object = this.scene_.objects[data['objId']];
+
+  // Get uvs.
+  var uvs = goog.array.map(data['uvIds'], function(uvId) {
+    return object.uvPoints[uvId];
+  }, this);
+
+  // Move uvs.
+  goog.array.map(uvs, function(uv) {
+    uv.object.dirty = true;
+    uv.u += data['du'];
+    uv.v += data['dv'];
+  }, this);
+}; 
+
+
 
 /**
  * Applies and makes changes to the scene.
@@ -1091,6 +1133,28 @@ shapy.editor.WriteExecutor.prototype.emitWeld = function(obj, uvs) {
 
     objId: obj.id,
     uvIds: uvIds
+  });
+};
+
+
+/**
+ * Executes moveUV command.
+ *
+ * @param {shapy.editor.Editable} group Parts group.
+ * @param {number}                du
+ * @param {number}                dv
+ */
+shapy.editor.WriteExecutor.prototype.emitMoveUV = function(group, du, dv) {
+  this.sendCommand({
+    type: 'edit',
+    tool: 'moveUV',
+    userId: this.editor_.user.id,
+
+    objId: group.getObject().id,
+    uvIds: group.getUVIds(),
+
+    du: du,
+    dv: dv
   });
 };
 
