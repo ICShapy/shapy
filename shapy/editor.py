@@ -47,6 +47,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
     """Handles an incoming connection."""
 
     # Read the scene ID & create a unique channel ID.
+    self.open = False
     self.user = user
     self.scene_id = scene_id
     self.writeable = yield self.is_writeable()
@@ -100,6 +101,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
         'objects': [id],
         'user': user
       }))
+    self.open = True
 
   @coroutine
   def on_message(self, message):
@@ -145,7 +147,7 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_channel(self, message):
     """Handles a message from the redis channel."""
 
-    if message.kind != 'message':
+    if message.kind != 'message' or not self.open:
       return
 
     self.write_message(message.body)
@@ -155,6 +157,10 @@ class WSHandler(WebSocketHandler, BaseHandler):
   def on_close(self):
     """Handles connection termination."""
 
+    # Stop sending messages.
+    self.open = False
+
+    # Leave the scene.
     if self.user and self.writeable:
       # Remove the user from the scene.
       def remove_user(scene):
