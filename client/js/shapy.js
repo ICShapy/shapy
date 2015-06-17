@@ -183,16 +183,10 @@ shapy.configStates_ = function(
 shapy.HttpInterceptor = function($q, shNotify) {
   return {
     responseError: function(error) {
-      var data, message;
+      var message;
 
-      try {
-        data = JSON.parse(error.data);
-      } catch (e) {
-        data = null;
-      }
-
-      if (data && data['error']) {
-        message = data['error'];
+      if (error.data && error.data['error']) {
+        message = error.data['error'];
       } else {
         message = 'HTTP ' + error.status + ': ' + error.statusText;
       }
