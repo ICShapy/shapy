@@ -183,7 +183,7 @@ sh-menu .content {
   padding: 7px;
 }
 
-sh-menu ul > li {
+sh-menu ul li {
   display: block;
   padding: 7px;
   margin: 0;
@@ -198,7 +198,7 @@ sh-menu ul > li {
   user-select: none;
 }
 
-sh-menu ul > li:hover {
+sh-menu ul li:hover {
   background-color: #555555;
 }
 
