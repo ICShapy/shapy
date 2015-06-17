@@ -17,9 +17,8 @@ goog.require('shapy.editor.Viewport');
  *
  * @param {!shapy.editor.Editor}  editor Editor service.
  * @param {string}                name   Name of the viewport.
- * @param {!shapy.editor.UVGroup} group  UV group.
  */
-shapy.editor.Viewport.UV = function(editor, name, group) {
+shapy.editor.Viewport.UV = function(editor, name) {
   shapy.editor.Viewport.call(this, editor, name, shapy.editor.Viewport.Type.UV);
 
   /**
@@ -87,12 +86,6 @@ shapy.editor.Viewport.UV = function(editor, name, group) {
    * @public {!shapy.editor.Object}
    */
   this.object = null;
-
-  /**
-   * UV group selected.
-   * @private {!shapy.editor.UVGroup}
-   */
-  this.partGroup_ = group;
 
   /**
    * UVs are being moved.
@@ -282,7 +275,7 @@ shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, button) {
     if (texture.write) {
       this.paint_(texture, uv.u, uv.v);
     }
-    
+
     return [];
   }
   return hits;
@@ -316,28 +309,31 @@ shapy.editor.Viewport.UV.prototype.mouseLeave = function() {
  * @param {number} x      Mouse X coordinate.
  * @param {number} y      Mouse Y coordinate.
  * @param {number} button Mouse button that was clicked.
+ * @param {boolean} keys
  */
-shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
+shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button, keys) {
   shapy.editor.Viewport.prototype.mouseDown.call(this, x, y, button);
   var hits, same, user;
 
   switch (button) {
     case 1: {
-      hits = this.object.pickUVCoord(this.raycast(x, y), {
-        edge: true, vertex: true, face: true
-      });
+      hits = this.object.pickUVCoord(this.raycast(x, y), this.editor.mode);
       if (goog.array.isEmpty(hits)) {
         return;
       }
       // If clicked on different UVs, select them.
       same = goog.array.some(hits, function(hit) {
-        return this.partGroup_.contains(hit);
+        return this.editor.partGroup.contains(hit);
       }, this);
-      if (!same) {
-        return;
-      }
       this.group = null;
       this.moveUV_ = true;
+
+      if (!same && !keys) {
+        this.editor.partGroup.setSelected(null);
+        this.editor.partGroup.clear();
+        this.editor.partGroup.add(this.editor.hover_);
+        this.editor.partGroup.setSelected(this.editor.user);
+      }
       return;
     }
     case 3: {
