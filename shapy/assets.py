@@ -20,6 +20,17 @@ from shapy.common import APIHandler, BaseHandler, session
 from shapy.scene import Scene
 
 
+def is_owner(user, asset):
+  """Checks if a user owns an asset."""
+
+  return user and asset['owner'] == user.id
+
+
+def is_write(user, asset):
+  """Checks if a user can write an asset."""
+
+  return user and (asset['owner'] == user.id or asset['write'])
+
 
 class SharedHandler(APIHandler):
   """Handles requests to shared space."""
@@ -614,7 +625,7 @@ class TextureFilterHandler(APIHandler):
     # Retrieve textures.
     name = self.get_argument('name', '')
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, preview
+      '''SELECT id, name, preview, public, write, owner
          FROM assets
          LEFT OUTER JOIN permissions ON permissions.asset_id = assets.id
          WHERE assets.type = %(type)s
@@ -633,6 +644,9 @@ class TextureFilterHandler(APIHandler):
       {
         'id': asset['id'],
         'name': asset['name'],
+        'owner': is_owner(user, asset),
+        'write': is_write(user, asset),
+        'public': asset['public'],
         'preview': str(asset['preview'])
       }
       for asset in cursor.fetchall()
