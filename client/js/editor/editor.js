@@ -265,7 +265,9 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
 
   // Save all textures.
   goog.object.forEach(this.textures_, function(texture) {
-    texture.save();
+    if (texture.write) {
+      texture.save();
+    }
   });
 
   // Generate & save the preview.
