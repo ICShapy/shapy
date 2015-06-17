@@ -348,11 +348,11 @@ sh-asset.selected > div .name {
 }
 
 #browser-search-input {
-  height: 25px;
+  height: 19px;
   width: 295px;
   font-size: 15px;
   padding: 2px 0 2px 3px;
-  margin: 0;
+  margin: 3px 0;
   border: 1px solid gray;
 }
 
