@@ -308,8 +308,9 @@ shapy.editor.Viewport.UV.prototype.mouseLeave = function() {
  * @param {number} x      Mouse X coordinate.
  * @param {number} y      Mouse Y coordinate.
  * @param {number} button Mouse button that was clicked.
+ * @param {boolean} keys
  */
-shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
+shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button, keys) {
   shapy.editor.Viewport.prototype.mouseDown.call(this, x, y, button);
   var hits, same, user;
 
@@ -325,12 +326,12 @@ shapy.editor.Viewport.UV.prototype.mouseDown = function(x, y, button) {
       }, this);
       this.group = null;
       this.moveUV_ = true;
-      if (!same) {
-        var user = this.editor.partGroup.isSelected();
+
+      if (!same && !keys) {
         this.editor.partGroup.setSelected(null);
         this.editor.partGroup.clear();
         this.editor.partGroup.add(this.editor.hover_);
-        this.editor.partGroup.setSelected(user);
+        this.editor.partGroup.setSelected(this.editor.user);
       }
       return;
     }

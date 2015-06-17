@@ -194,7 +194,8 @@ shapy.editor.Layout.prototype.mouseDown = function(e) {
     return;
   }
 
-  var ray = result.vp.mouseDown(result.x, result.y, e.which);
+  var ray = result.vp.mouseDown(
+      result.x, result.y, e.which, e.ctrlKey || e.shiftKey);
 
   this.active.active = false;
   var rig = this.active.rig;
