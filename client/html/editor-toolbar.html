@@ -156,9 +156,9 @@
         class="user-box"
         ng-repeat="user in editorCtrl.users"
         style="background-color: rgba(
-                   {{floor(user.colour[0]*255)}},
-                   {{floor(user.colour[1]*255)}},
-                   {{floor(user.colour[2]*255)}},
+                   {{floor(user.colour[0]*128)}},
+                   {{floor(user.colour[1]*128)}},
+                   {{floor(user.colour[2]*128)}},
                    1.0)"
         onmouseenter="$('.tooltip', this).show()"
         onmouseleave="$('.tooltip', this).hide()">
