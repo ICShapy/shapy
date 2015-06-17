@@ -150,7 +150,7 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
   }
 
   // Check if the object can be painted.
-  if (this.editor.mode.paint && hit && hit.selected && button == 1) {
+  if (this.editor.mode.paint && hit && hit.object.selected && button == 1) {
     this.editor.hover = [];
     if (!(texture = this.editor.textures_[hit.object.texture])) {
       return [];
