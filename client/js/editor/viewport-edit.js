@@ -156,10 +156,14 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
       return [];
     }
 
-    uv = hit.pickUV(ray);
+    // Paint the texture only if the user has the permission.
+    if (texture.write) {
+      uv = hit.pickUV(ray);
     
-    // Paint the texture.
-    this.paint_(texture, uv.u, uv.v);    
+      // Paint the texture.
+      this.paint_(texture, uv.u, uv.v); 
+    }
+   
     return [];
   }
   return hits;
