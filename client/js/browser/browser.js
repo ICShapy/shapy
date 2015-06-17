@@ -414,10 +414,7 @@ shapy.browser.asset = function(shModal) {
           }
         );
 
-        $scope.cancel = function() {
-          $('.dialog').removeAttr('style');
-          return false;
-        };
+        $scope.cancel = null;
         $scope.okay = function() {
           $('.dialog').removeAttr('style');
           return false;
