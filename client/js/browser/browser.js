@@ -414,8 +414,14 @@ shapy.browser.asset = function(shModal) {
           }
         );
 
-        $scope.cancel = function() { return false; };
-        $scope.okay = function() { return false; };
+        $scope.cancel = function() {
+          $('.dialog').removeAttr('style');
+          return false;
+        };
+        $scope.okay = function() {
+          $('.dialog').removeAttr('style');
+          return false;
+        };
       }
     });
   };
