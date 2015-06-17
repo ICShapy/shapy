@@ -8,7 +8,7 @@ goog.require('shapy.editor.Object');
 
 
 /**
- * Build an cube object from triangles.
+ * Build a cube object from triangles.
  *
  * @param {string}      id
  * @param {shapy.Scene} scene
@@ -79,7 +79,7 @@ shapy.editor.create.cube = function(id, scene, w, h, d) {
 
 
 /**
- * Builds an sphere object from triangles.
+ * Builds a sphere object from triangles.
  *
  * @param {string}      id
  * @param {shapy.Scene} scene
@@ -256,4 +256,15 @@ shapy.editor.create.quad = function(id, scene, a) {
   };
 
   return new shapy.editor.Object(id, scene, null, vertices, edges, faces);
+};
+
+
+/**
+ * Build a cylinder object from triangles. 
+ *
+ * @param {string}      id
+ * @param {shapy.Scene} scene
+ */
+shapy.editor.create.cylinder = function(id, scene) {
+
 };
