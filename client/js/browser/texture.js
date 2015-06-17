@@ -183,11 +183,50 @@ shapy.browser.Texture.prototype.save = function() {
         this.height
     ), 0, 0);
 
-  // TODO: update preview image.
+  this.image = shapy.browser.Texture.preview(canvas).toDataURL('image/jpeg');
 
   // Upload.
   return this.shBrowser_.http_.put('/api/assets/texture', {
     id: this.id,
     data: canvas.toDataURL('image/png')
   });
-}
+};
+
+
+/**
+ * Width of a preview image.
+ * @type {number} @const
+ */
+shapy.browser.Texture.PREVIEW_WIDTH = 147;
+
+
+/**
+ * Height of a preview image.
+ * @type {number} @const
+ */
+shapy.browser.Texture.PREVIEW_HEIGHT = 105;
+
+
+/**
+ * Creates a preview out of an image.
+ *
+ * @param {HTMLCanvasElement} image
+ *
+ * @return {HTMLCanvasElement}
+ */
+shapy.browser.Texture.preview = function(image) {
+  var aspect = image.width / image.height;
+  var width = shapy.browser.Texture.PREVIEW_HEIGHT * aspect;
+  var diff = width - shapy.browser.Texture.PREVIEW_WIDTH;
+
+  // Resize the image.
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.min(shapy.browser.Texture.PREVIEW_WIDTH, width);
+  canvas.height = shapy.browser.Texture.PREVIEW_HEIGHT;
+
+  var ctx = canvas.getContext('2d');
+  ctx.translate(-diff / 2, 0);
+  ctx.drawImage(image, 0, 0, width, canvas.height);
+
+  return canvas;
+};
