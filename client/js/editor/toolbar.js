@@ -116,10 +116,12 @@ shapy.editor.ToolbarController.prototype.toggleUV = function() {
 
 /**
  * Returns true if in UV viewport
+ *
+ * @return {boolean}
  */
 shapy.editor.ToolbarController.prototype.isUV = function() {
   return this.shEditor_.layout.active.type == shapy.editor.Viewport.Type.UV;
-}
+};
 
 
 /**

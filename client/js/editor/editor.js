@@ -723,7 +723,7 @@ shapy.editor.Editor.prototype.doWeld = function() {
   this.exec_.emitWeld(object, uvs);
   object.weld(uvs);
   this.partGroup.clear();
-}
+};
 
 
 /**
