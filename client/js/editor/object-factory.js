@@ -259,12 +259,46 @@ shapy.editor.create.quad = function(id, scene, a) {
 };
 
 
+
 /**
  * Build a cylinder object from triangles. 
  *
  * @param {string}      id
  * @param {shapy.Scene} scene
+ * @param {number}      b Number of points in the base.
+ * @param {number}      l Length of the tube.
+ * @param {number}      r Radius of the base.
+ *
+ * @return {!shapy.editor.Object} 
  */
-shapy.editor.create.cylinder = function(id, scene) {
+shapy.editor.create.cylinder = function(id, scene, b, l, r) {
+  // Vertex layout:
+  //      4 -------------- 8 
+  //    /   \            /   \
+  //   3  1  5 -------- 7  2  10
+  //    \   /            \   /
+  //      6 -------------- 9
+  //
+  var vertices = {};
+  var edges = {};
+  var faces = {};
+
+  var vertIndex = 1;
+  var edgeIndex = 1;
+  var faceIndex = 1;
+
+  var angle = 2 * Math.PI / b;
+
+  vertices[vertIndex] = [ 0, -l,  0];
+  vertIndex++;
+  vertices[vertIndex] = [ 0, +l,  0];
+  vertIndex++;
+
+  for (var i = 0; i < b; i++) {
+    var x = r * Math.sin(i * angle);
+    var z = r * Math.cos(i * angle);
+
+    
+  }
 
 };
