@@ -619,7 +619,7 @@ shapy.editor.Editor.prototype.setRig = function(name) {
  * Toggles to UV view.
  */
 shapy.editor.Editor.prototype.toggleUV = function() {
-  this.layout.toggleUV(this.partGroup);
+  this.layout.toggleUV();
   this.layout.active.object = this.objectGroup.editables[0];
   this.layout.active.object.projectUV();
 };
@@ -750,7 +750,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (this.layout &&
           this.layout.active.type == shapy.editor.Viewport.Type.UV)
       {
-        this.layout.toggleUV(this.partGroup);
+        this.layout.toggleUV();
         return;
       }
 
