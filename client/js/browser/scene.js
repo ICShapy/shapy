@@ -284,3 +284,21 @@ shapy.browser.Scene.prototype.createSphere = function(r, sli, sta, seq) {
   this.objects[id] = object;
   return object;
 };
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} b   Base.
+ * @param {number} h   Height.
+ * @param {number} seq Sequence number to be used for generating an id.
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.browser.Scene.prototype.createPyramid = function(b, h, seq) {
+  var id = this.getNextID(seq);
+  var object = shapy.editor.create.pyramid(id, this, b, h);
+  this.objects[id] = object;
+  return object;
+};
+
