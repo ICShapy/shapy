@@ -190,11 +190,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
  * @param {string} message
  */
 shapy.editor.Executor.prototype.emitMessage = function(message) {
-  this.sendCommand({
-    type: 'message',
-    user: this.editor_.user.id,
-    message: message
-  });
+
 };
 
 
@@ -745,6 +741,20 @@ shapy.editor.WriteExecutor = function(scene, editor) {
       this, scene, editor, shapy.editor.Executor.Type.WRITE);
 };
 goog.inherits(shapy.editor.WriteExecutor, shapy.editor.Executor);
+
+
+/**
+ * Executes a chat message
+ *
+ * @param {string} message
+ */
+shapy.editor.WriteExecutor.prototype.emitMessage = function(message) {
+  this.sendCommand({
+    type: 'message',
+    user: this.editor_.user.id,
+    message: message
+  });
+};
 
 
 /**
