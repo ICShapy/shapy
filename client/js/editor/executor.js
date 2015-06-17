@@ -902,7 +902,7 @@ shapy.editor.WriteExecutor.prototype.emitTranslate = function(obj, dx, dy, dz) {
 
   // Object group.
   if (this.editor_.mode.object) {
-    data.ids = obj.getObjIDs ? obj.getObjIds() : [];
+    data.ids = obj.getObjIds ? obj.getObjIds() : [];
   } else {
     // Parts group.
     data.ids = obj.getObjVertIds();
