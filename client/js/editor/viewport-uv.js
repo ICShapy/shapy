@@ -268,7 +268,7 @@ shapy.editor.Viewport.UV.prototype.mouseMove = function(x, y, button) {
   if (this.editor.mode.paint && button == 1) {
     uv = this.raycast(x, y);
     object = this.object;
-    if (!(texture = this.editor.scene_.textures[object.texture])) {
+    if (!(texture = this.editor.textures_[object.texture])) {
       return [];
     }
 
