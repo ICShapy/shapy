@@ -249,7 +249,6 @@ shapy.browser.Scene.prototype.pickFrustum = function(frustum, mode) {
   return goog.array.flatten(hits);
 };
 
-
 /**
  * Creates a new object, adding it to the scene.
  *
@@ -302,3 +301,18 @@ shapy.browser.Scene.prototype.createPyramid = function(b, h, seq) {
   return object;
 };
 
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} a   Half side length.
+ * @param {number} seq Sequence number to be used for generating an id.
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.browser.Scene.prototype.createQuad = function(a, seq) {
+  var id = this.getNextID(seq);
+  var object = shapy.editor.create.quad(id, this, a);
+  this.objects[id] = object;
+  return object;
+};

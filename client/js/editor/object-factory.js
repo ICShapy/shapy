@@ -219,3 +219,41 @@ shapy.editor.create.pyramid = function(id, scene, b, h) {
   return new shapy.editor.Object(id, scene, null, vertices, edges, faces);
 };
 
+
+/**
+ * Build a quad object from triangles.
+ *
+ * @param {string}      id
+ * @param {shapy.Scene} scene
+ * @param {number}      a
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.editor.create.quad = function(id, scene, a) {
+  // Vertex layout:
+  // 
+  //   4-----3
+  //  /     /
+  // 1-----2
+  var vertices = {
+    1: [-a, -a, 0],
+    2: [+a, -a, 0],
+    3: [+a, +a, 0],
+    4: [-a, +a, 0]
+  };
+
+  var edges = {
+    1: [1, 2],
+    2: [2, 3],
+    3: [3, 1],
+    4: [1, 4],
+    5: [4, 3]
+  };
+
+  var faces = {
+    1: [+1, +2, +3],
+    2: [+3, +4, +5]
+  };
+
+  return new shapy.editor.Object(id, scene, null, vertices, edges, faces);
+};
