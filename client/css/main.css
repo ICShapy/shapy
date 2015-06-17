@@ -38,7 +38,7 @@ html {
 }
 
 /* TODO(David): Merge this and toolbar together for cleaner CSS */
-#header a, #header span {
+#header a, #header > div > span {
   color: #dee1e3;
   padding: 7px;
   height: 16px;
@@ -183,7 +183,7 @@ sh-menu .content {
   padding: 7px;
 }
 
-sh-menu ul > li {
+sh-menu ul li {
   display: block;
   padding: 7px;
   margin: 0;
@@ -198,7 +198,7 @@ sh-menu ul > li {
   user-select: none;
 }
 
-sh-menu ul > li:hover {
+sh-menu ul li:hover {
   background-color: #555555;
 }
 
@@ -210,6 +210,41 @@ sh-menu .hint {
   padding: 0 !important;
   margin: 1px 10px 1px 0;
   color: gray !important;
+}
+
+/**
+ * User List
+ */
+
+.user-box {
+  float: left;
+  padding: 3px !important;
+  position: relative;
+  width: 20px;
+  height: 18px !important;
+  background-color: #0066FF !important;
+  border: 1px solid #0033CC;
+  border-radius: 3px;
+  margin: 2px !important;
+  text-align: center;
+}
+
+.user-box > span {
+  color: white;
+  font-weight: bold;
+}
+
+.user-box .tooltip {
+  background-color: #222;
+  color: #aaa;
+  display: block;
+  position: absolute;
+  top: 30px;
+  left: 0;
+  padding: 5px;
+  margin: 0;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 /**

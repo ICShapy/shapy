@@ -115,6 +115,16 @@ shapy.editor.ToolbarController.prototype.toggleUV = function() {
 
 
 /**
+ * Returns true if in UV viewport
+ *
+ * @return {boolean}
+ */
+shapy.editor.ToolbarController.prototype.isUV = function() {
+  return this.shEditor_.layout.active.type == shapy.editor.Viewport.Type.UV;
+};
+
+
+/**
  * Called when the rig has to be changed.
  *
  * @param {string} name Name of the new rig.
@@ -129,7 +139,7 @@ shapy.editor.ToolbarController.prototype.rig = function(name) {
  */
 shapy.editor.ToolbarController.prototype.doDelete = function() {
   this.shEditor_.doDelete();
-}
+};
 
 
 /**
@@ -137,7 +147,7 @@ shapy.editor.ToolbarController.prototype.doDelete = function() {
  */
 shapy.editor.ToolbarController.prototype.doExtrude = function() {
   this.shEditor_.doExtrude();
-}
+};
 
 
 /**
@@ -145,7 +155,7 @@ shapy.editor.ToolbarController.prototype.doExtrude = function() {
  */
 shapy.editor.ToolbarController.prototype.doMerge = function() {
   this.shEditor_.doMerge();
-}
+};
 
 
 /**
@@ -153,7 +163,15 @@ shapy.editor.ToolbarController.prototype.doMerge = function() {
  */
 shapy.editor.ToolbarController.prototype.doConnect = function() {
   this.shEditor_.doConnect();
-}
+};
+
+
+/**
+ * Called when weld is pressed
+ */
+shapy.editor.ToolbarController.prototype.doWeld = function() {
+  this.shEditor_.doWeld();
+};
 
 
 /**

@@ -456,6 +456,7 @@ shapy.editor.PartsGroup.prototype.getVertices = function() {
   return verts;
 };
 
+
 /**
  * Returns the uv points.
  *
@@ -467,6 +468,17 @@ shapy.editor.PartsGroup.prototype.getUVPoints = function() {
   }, this));
   goog.array.removeDuplicates(uvs);
   return uvs;
+};
+
+
+/**
+ * Returns ids of the uv points.
+ * @return {!Array<number>}
+ */
+shapy.editor.PartsGroup.prototype.getUVIds = function() {
+  return goog.array.map(this.getUVPoints(), function(uv) {
+    return uv.id;
+  }, this);
 };
 
 
@@ -542,16 +554,14 @@ shapy.editor.PartsGroup.prototype.projectUV = function() {
  * @param {number} dv
  */
 shapy.editor.PartsGroup.prototype.moveUV = function(du, dv) {
-  var uvs = goog.array.flatten(goog.array.map(this.editables, function(e) {
-    return e.getUVs();
-  }));
-  goog.array.removeDuplicates(uvs);
+  var uvs = this.getUVPoints();
   goog.array.map(uvs, function(uv) {
     uv.object.dirty = true;
     uv.u += du;
     uv.v += dv;
   });
 };
+
 
 
 /**

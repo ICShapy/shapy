@@ -619,7 +619,7 @@ shapy.editor.Editor.prototype.setRig = function(name) {
  * Toggles to UV view.
  */
 shapy.editor.Editor.prototype.toggleUV = function() {
-  this.layout.toggleUV(this.partGroup);
+  this.layout.toggleUV();
   this.layout.active.object = this.objectGroup.editables[0];
   this.layout.active.object.projectUV();
 };
@@ -712,6 +712,21 @@ shapy.editor.Editor.prototype.doConnect = function() {
 
 
 /**
+ * Weld (UV editor)
+ */
+shapy.editor.Editor.prototype.doWeld = function() {
+  var object = this.partGroup.getObject();
+  if (!object) {
+    return;
+  }
+  uvs = this.partGroup.getUVPoints();
+  this.exec_.emitWeld(object, uvs);
+  object.weld(uvs);
+  this.partGroup.clear();
+};
+
+
+/**
  * Handles a key down event.
  *
  * @param {Event} e
@@ -720,15 +735,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
   var object, faces, uvs;
 
   switch (String.fromCharCode(e.keyCode)) {
-    case 'W': {
-      if (!(object = this.partGroup.getObject())) {
-        return;
-      }
-      uvs = this.partGroup.getUVPoints();
-      object.weld(uvs);
-      this.partGroup.clear();
-      return;
-    }
+    case 'W': this.doWeld(); return;
     case 'O': {
       if (!this.layout || !this.layout.active) {
         return;
@@ -750,7 +757,7 @@ shapy.editor.Editor.prototype.keyDown = function(e) {
       if (this.layout &&
           this.layout.active.type == shapy.editor.Viewport.Type.UV)
       {
-        this.layout.toggleUV(this.partGroup);
+        this.layout.toggleUV();
         return;
       }
 

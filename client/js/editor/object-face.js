@@ -104,6 +104,9 @@ shapy.editor.Face.prototype.getUVEdges = function() {
  * @return {!Array<!shapy.editor.Vertex>}
  */
 shapy.editor.Face.prototype.getUVs = function() {
+  if (!this.ue0 || !this.ue1 || !this.ue2) {
+    return [];
+  }
   var e = this.getUVEdges();
   return [
     this.object.uvPoints[this.ue0 >= 0 ? e[0].uv0 : e[0].uv1],
