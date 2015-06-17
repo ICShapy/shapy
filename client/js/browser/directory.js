@@ -65,6 +65,7 @@ shapy.browser.Directory.prototype.load = function(data) {
   this.owner = !(!(data.owner));
   this.write = !(!(data.write));
   this.public = !(!(data.public));
+  this.email = data.email || 'You';
 
   // Fill in child assets.
   goog.array.forEach(data['data'], function(child) {

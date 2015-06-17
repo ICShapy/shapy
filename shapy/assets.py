@@ -55,10 +55,12 @@ class SharedHandler(APIHandler):
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
       '''SELECT assets.id, assets.name, assets.type, assets.preview,
-                assets.owner, assets.public, permissions.write
+                assets.owner, assets.public, permissions.write, users.email
          FROM assets
          INNER JOIN permissions
          ON assets.id = permissions.asset_id
+         INNER JOIN users
+         ON assets.owner = users.id
          WHERE permissions.user_id = %s
       ''', (
       user.id,
@@ -79,7 +81,8 @@ class SharedHandler(APIHandler):
           'preview': str(item[3]) if item[3] else '',
           'owner': item[4] == int(user.id),
           'public': item[5],
-          'write': item[6]
+          'write': item[6],
+          'email': 'You' if item[4] == int(user.id) else item[7]
         }
         for item in cursor.fetchall()
       ]

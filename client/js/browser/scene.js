@@ -70,6 +70,7 @@ shapy.browser.Scene.prototype.load = function(data) {
   this.owner = !!data.owner;
   this.write = !!data.write;
   this.public = !!data.public;
+  this.email = data.email || 'You';
   this.loaded = true;
 
   // Read objects.

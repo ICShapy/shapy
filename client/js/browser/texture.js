@@ -107,6 +107,7 @@ shapy.browser.Texture.prototype.load = function(data) {
   this.owner = !!data.owner;
   this.write = !!data.write;
   this.public = !!data.public;
+  this.email = data.email || 'You';
   this.loaded = true;
   // Set full preview
   this.imageFull = data.data;
