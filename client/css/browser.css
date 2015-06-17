@@ -244,7 +244,7 @@ sh-asset {
 sh-asset > div .name {
   display: block;
   position: absolute;
-  bottom: 0; left: 0; right: 0; height: 16px;
+  bottom: 0; left: 0; right: 0; height: 20px;
   padding: 0;
   margin: 0;
   text-align: left;
