@@ -180,7 +180,6 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
 
     // TODO(Ilija): move this to a proper place once debugging is done.
     object.cut(this.norm_, this.ps_[0]);
-    console.log("performed cut");
   }
 };
 
