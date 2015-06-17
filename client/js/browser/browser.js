@@ -980,6 +980,12 @@ shapy.browser.assetMatch = function() {
 shapy.browser.assetOrder = function() {
   return function(assets) {
     return assets.sort(function(asset1, asset2) {
+      if (asset1.owner) {
+        return -1;
+      }
+      if (asset2.owner) {
+        return 1;
+      }
       if (asset1.type == asset2.type) {
         return asset1.name.localeCompare(asset2.name);
       }
