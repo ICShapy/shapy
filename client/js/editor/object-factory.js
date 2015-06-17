@@ -167,3 +167,93 @@ shapy.editor.create.sphere = function(id, scene, r, slices, stacks) {
 
   return new shapy.editor.Object(id, scene, null, verts, edges, faces);
 };
+
+
+/**
+ * Build a pyramid object from triangles.
+ *
+ * @param {string}      id
+ * @param {shapy.Scene} scene
+ * @param {number}      b
+ * @param {number}      h
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.editor.create.pyramid = function(id, scene, b, h) {
+  // Vertex layout:
+  //
+  //      5
+  // 
+  //   4-----3
+  //  /     /
+  // 1-----2
+  var vertices = {
+    1: [-b, -h, -b],
+    2: [+b, -h, -b],
+    3: [+b, -h, +b],
+    4: [-b, -h, +b],
+    5: [ 0, +h,  0]
+  };
+
+  var edges = {
+    1: [1, 2],
+    2: [2, 3],
+    3: [3, 1],
+    4: [1, 4],
+    5: [4, 3],
+    6: [2, 5],
+    7: [5, 1],
+    8: [4, 5],
+    9: [5, 3]
+  };
+
+  var faces = {
+    1: [+1, +2, +3],
+    2: [+3, +4, +5],
+    3: [+2, -9, -6],
+    4: [+1, +6, +7],
+    5: [+4, +8, +7],
+    6: [+5, -9, -8]
+  };
+
+  return new shapy.editor.Object(id, scene, null, vertices, edges, faces);
+};
+
+
+/**
+ * Build a quad object from triangles.
+ *
+ * @param {string}      id
+ * @param {shapy.Scene} scene
+ * @param {number}      a
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.editor.create.quad = function(id, scene, a) {
+  // Vertex layout:
+  // 
+  //   4-----3
+  //  /     /
+  // 1-----2
+  var vertices = {
+    1: [-a, -a, 0],
+    2: [+a, -a, 0],
+    3: [+a, +a, 0],
+    4: [-a, +a, 0]
+  };
+
+  var edges = {
+    1: [1, 2],
+    2: [2, 3],
+    3: [3, 1],
+    4: [1, 4],
+    5: [4, 3]
+  };
+
+  var faces = {
+    1: [+1, +2, +3],
+    2: [+3, +4, +5]
+  };
+
+  return new shapy.editor.Object(id, scene, null, vertices, edges, faces);
+};

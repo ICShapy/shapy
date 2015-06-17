@@ -254,6 +254,12 @@ shapy.editor.Executor.prototype.applyCreate = function(data) {
       this.scene_.createSphere(0.5, 16, 16, data['seq']);
       break;
     }
+    case 'pyramid':
+      this.scene_.createPyramid(0.5, 0.5, data['seq']);
+      break;
+    case 'quad':
+      this.scene_.createQuad(0.5, data['seq']);
+      break;
     default: {
       console.error('Invalid object type "' + data['object'] + "'");
       return;

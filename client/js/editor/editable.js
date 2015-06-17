@@ -397,6 +397,7 @@ shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
 shapy.editor.PartsGroup.prototype.rotate = function(q) {
   var verts = this.getVertices();
   var mid = goog.vec.Vec3.createFloat32();
+
   goog.object.forEach(verts, function(v) {
     goog.vec.Vec3.add(mid, v.getPosition(), mid);
   });
