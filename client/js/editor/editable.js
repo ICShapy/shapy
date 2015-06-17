@@ -58,6 +58,11 @@ shapy.editor.Editable.prototype.setHover = function(hover) {
  */
 shapy.editor.Editable.prototype.setSelected = function(selected) {
   this.selected = selected;
+
+  goog.object.forEach(this.editables, function(editable) {
+    editable.setSelected(selected);
+  }, this);
+
   this.object.dirty = true;
 };
 
