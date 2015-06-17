@@ -486,7 +486,8 @@ shapy.editor.Editor.prototype.render = function() {
   // Second pass - render rigs.
   if (this.layout.active &&
       this.layout.active.rig &&
-      this.layout.active.camera)
+      this.layout.active.camera &&
+      this.rig_ && !this.rig_.object.isEmpty())
   {
     this.renderer_.renderRig(this.layout.active, this.layout.active.rig);
   }
