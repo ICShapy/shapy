@@ -31,12 +31,12 @@ class SharedHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'Not authorized.')
+      raise HTTPError(401, 'Not authorized')
     id = int(self.get_argument('id'))
     if not id:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
     if id != -2:
-      raise HTTPError(404, 'Incorrect shared space id.')
+      raise HTTPError(404, 'Incorrect shared space id')
 
     # Initialise filtered space data.
     data = (id, 'Shared')
@@ -87,10 +87,10 @@ class FilteredHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'Not authorized.')
+      raise HTTPError(401, 'Not authorized')
     id = int(self.get_argument('id'))
     if not id:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
     if id == -3:
       type = 'texture'
       name = 'Textures'
@@ -98,7 +98,7 @@ class FilteredHandler(APIHandler):
       type = 'scene'
       name = 'Scenes'
     else:
-      raise HTTPError(404, 'Incorrect filter id.')
+      raise HTTPError(404, 'Incorrect filter id')
 
     # Initialise filtered space data.
     data = (id, name)
@@ -173,7 +173,7 @@ class AssetHandler(APIHandler):
 
     data = cursor.fetchone()
     if not data:
-      raise HTTPError(404, 'Asset not found.')
+      raise HTTPError(404, 'Asset not found')
 
     if user and data['owner'] == user.id:
       # Owner - full permissions.
@@ -182,7 +182,7 @@ class AssetHandler(APIHandler):
     elif data['write'] is None:
       if not data['public']:
         # No permissions.
-        raise HTTPError(400, 'Asset not found.')
+        raise HTTPError(400, 'Asset not found')
       else:
         # Public asset - read only.
         owner = False
@@ -203,7 +203,7 @@ class AssetHandler(APIHandler):
 
     id = self.get_argument('id')
     if not id:
-      raise HTTPError(400, 'Invalid asset ID')
+      raise HTTPError(400, 'Missing asset ID')
 
     data, owner, write = yield self._fetch(id, user)
 
@@ -230,7 +230,7 @@ class AssetHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      raise HTTPError(401, 'User not logged in')
     parent = int(self.get_argument('parent'))
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
@@ -253,7 +253,7 @@ class AssetHandler(APIHandler):
       ))
       data = cursor.fetchone()
       if not data:
-        raise HTTPError(404, 'Parent directory does not exist.')
+        raise HTTPError(404, 'Parent directory does not exist')
 
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
@@ -281,7 +281,7 @@ class AssetHandler(APIHandler):
     # Check if the asset was created successfully.
     data = cursor.fetchone()
     if not data:
-      raise HTTPError(400, 'Asset creation failed.')
+      raise HTTPError(400, 'Asset creation failed')
 
     # Return the asset data.
     self.write_json({
@@ -304,12 +304,12 @@ class AssetHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      raise HTTPError(401, 'User not logged in')
     id = int(self.get_argument('id'))
     if not id:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
     if id <= 0:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
 
     # Delete folder entry.
     cursor = yield momoko.Op(self.db.execute,
@@ -328,7 +328,7 @@ class AssetHandler(APIHandler):
     # Check if deletion successful
     data = cursor.fetchone()
     if not data:
-      raise HTTPError(400, 'Asset deletion failed.')
+      raise HTTPError(400, 'Asset deletion failed')
 
     self.finish()
 
@@ -340,7 +340,7 @@ class AssetHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      raise HTTPError(401, 'User not logged in')
     id = int(self.get_argument('id'))
     name = self.get_argument('name', None)
     parent = self.get_argument('parent', None)
@@ -352,10 +352,10 @@ class AssetHandler(APIHandler):
 
     # Block changing public setting of a dir
     if public is not None and self.TYPE == 'dir':
-      raise HTTPError(400, 'Asset update failed.')
+      raise HTTPError(400, 'Asset update failed')
 
     if parent == id:
-      raise HTTPError(400, 'Cannot move a directory into itself.')
+      raise HTTPError(400, 'Cannot move a directory into itself')
 
     if parent is not None:
       # Check ownership of asset and potential new parent
@@ -385,7 +385,7 @@ class AssetHandler(APIHandler):
       ))
 
       if not cursors[0].fetchone() or not cursors[1].fetchone():
-        raise HTTPError(400, 'Asset cannot be edited that way.')
+        raise HTTPError(400, 'Asset cannot be edited that way')
 
     else:
       # Check if user has write permission
@@ -408,7 +408,7 @@ class AssetHandler(APIHandler):
       })
 
       if not cursor.fetchone():
-        raise HTTPError(400, 'Asset cannot be edited.')
+        raise HTTPError(400, 'Asset cannot be edited')
 
     # Try generating a preview.
     if preview is None and data is not None:
@@ -455,11 +455,11 @@ class DirHandler(AssetHandler):
     # Validate arguments.
     id = int(self.get_argument('id'))
     if not user:
-      raise HTTPError(401, 'Not authorized.')
+      raise HTTPError(401, 'Not authorized')
 
     # Reject IDs of not private dir
     if id < 0:
-      raise HTTPError(404, 'Directory does not exist.')
+      raise HTTPError(404, 'Directory does not exist')
     if id:
       # If ID is not 0, retrieve information about a directory.
       cursor = yield momoko.Op(self.db.execute,
@@ -477,7 +477,7 @@ class DirHandler(AssetHandler):
       # See if resource exists.
       data = cursor.fetchone()
       if not data:
-        raise HTTPError(404, 'Directory does not exist.')
+        raise HTTPError(404, 'Directory does not exist')
     else:
       # Otherwise, fetch home directory.
       data = (0, 'home')
@@ -560,7 +560,7 @@ class TextureHandler(AssetHandler):
       self.set_header('Content-Type', 'image/jpeg')
       image.save(stream, 'jpeg')
     else:
-      raise HTTPError(400, 'Unsupported image format.')
+      raise HTTPError(400, 'Unsupported image format')
 
     data = stream.getvalue()
     self.set_header('Content-Length', str(len(data)))
@@ -597,7 +597,7 @@ class SceneHandler(AssetHandler):
       self.set_header('Content-Type', 'text/plain')
       self.write(scene.to_stl())
     else:
-      raise HTTPError(400, 'Format not supported.')
+      raise HTTPError(400, 'Format not supported')
 
     self.finish()
 
