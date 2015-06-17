@@ -58,6 +58,11 @@ shapy.editor.Editable.prototype.setHover = function(hover) {
  */
 shapy.editor.Editable.prototype.setSelected = function(selected) {
   this.selected = selected;
+
+  goog.object.forEach(this.editables, function(editable) {
+    editable.setSelected(selected);
+  }, this);
+
   this.object.dirty = true;
 };
 
@@ -397,6 +402,7 @@ shapy.editor.PartsGroup.prototype.scale = function(x, y, z) {
 shapy.editor.PartsGroup.prototype.rotate = function(q) {
   var verts = this.getVertices();
   var mid = goog.vec.Vec3.createFloat32();
+
   goog.object.forEach(verts, function(v) {
     goog.vec.Vec3.add(mid, v.getPosition(), mid);
   });

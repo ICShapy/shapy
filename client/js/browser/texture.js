@@ -31,6 +31,8 @@ shapy.browser.Texture = function(shBrowser, id, opt_data) {
   this.dirty = true;
   /** @public {boolean} */
   this.deleted = false;
+  /** @public {boolean} */
+  this.painted = false;
 
   /**
    * Raw texture data for editing.
@@ -105,6 +107,7 @@ shapy.browser.Texture.prototype.load = function(data) {
   this.owner = !!data.owner;
   this.write = !!data.write;
   this.public = !!data.public;
+  this.email = data.email || 'You';
   this.loaded = true;
   // Set full preview
   this.imageFull = data.data;
@@ -157,3 +160,74 @@ shapy.browser.Texture.prototype.getPixel = function(u, v) {
   return new goog.math.Vec2(x, y);
 };
 
+
+/**
+ * Saves the texture data.
+ *
+ * @return {!angular.$q}
+ */
+shapy.browser.Texture.prototype.save = function() {
+  if (!this.painted) {
+    return;
+  }
+  this.painted = false;
+
+  // Convert to PNG.
+  var canvas = document.createElement('canvas');
+  canvas.width = this.width;
+  canvas.height = this.height;
+  canvas
+    .getContext('2d')
+    .putImageData(new ImageData(
+        new Uint8ClampedArray(this.data),
+        this.width,
+        this.height
+    ), 0, 0);
+
+  this.image = shapy.browser.Texture.preview(canvas).toDataURL('image/jpeg');
+
+  // Upload.
+  return this.shBrowser_.http_.put('/api/assets/texture', {
+    id: this.id,
+    data: canvas.toDataURL('image/png')
+  });
+};
+
+
+/**
+ * Width of a preview image.
+ * @type {number} @const
+ */
+shapy.browser.Texture.PREVIEW_WIDTH = 147;
+
+
+/**
+ * Height of a preview image.
+ * @type {number} @const
+ */
+shapy.browser.Texture.PREVIEW_HEIGHT = 105;
+
+
+/**
+ * Creates a preview out of an image.
+ *
+ * @param {HTMLCanvasElement} image
+ *
+ * @return {HTMLCanvasElement}
+ */
+shapy.browser.Texture.preview = function(image) {
+  var aspect = image.width / image.height;
+  var width = shapy.browser.Texture.PREVIEW_HEIGHT * aspect;
+  var diff = width - shapy.browser.Texture.PREVIEW_WIDTH;
+
+  // Resize the image.
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.min(shapy.browser.Texture.PREVIEW_WIDTH, width);
+  canvas.height = shapy.browser.Texture.PREVIEW_HEIGHT;
+
+  var ctx = canvas.getContext('2d');
+  ctx.translate(Math.min(-diff / 2, 0), 0);
+  ctx.drawImage(image, 0, 0, width, canvas.height);
+
+  return canvas;
+};

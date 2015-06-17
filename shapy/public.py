@@ -44,8 +44,11 @@ class PublicHandler(APIHandler):
 
     # Fetch information about public assets.
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, type, preview, owner
+      '''SELECT assets.id, assets.name, assets.type, assets.preview,
+                assets.owner, users.email
          FROM assets
+         INNER JOIN users
+         ON assets.owner = users.id
          WHERE public = %s
       ''', (
       True,
@@ -66,7 +69,8 @@ class PublicHandler(APIHandler):
           'preview': str(item[3]) if item[3] else '',
           'public': True,
           'owner': item[4] == int(user.id),
-          'write': item[4] == int(user.id) or item[0] in assetsWrite
+          'write': item[4] == int(user.id) or item[0] in assetsWrite,
+          'email': 'You' if item[4] == int(user.id) else item[5]
         }
         for item in cursor.fetchall()
       ]

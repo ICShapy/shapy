@@ -2,7 +2,6 @@
 # Licensing information can be found in the LICENSE file.
 # (C) 2015 The Shapy Team. All rights reserved.
 
-from binascii import a2b_base64
 import hashlib
 import json
 
@@ -21,6 +20,17 @@ from shapy.common import APIHandler, BaseHandler, session
 from shapy.scene import Scene
 
 
+def is_owner(user, asset):
+  """Checks if a user owns an asset."""
+
+  return user and asset['owner'] == user.id
+
+
+def is_write(user, asset):
+  """Checks if a user can write an asset."""
+
+  return user and (asset['owner'] == user.id or asset['write'])
+
 
 class SharedHandler(APIHandler):
   """Handles requests to shared space."""
@@ -32,12 +42,12 @@ class SharedHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'Not authorized.')
+      raise HTTPError(401, 'Not authorized')
     id = int(self.get_argument('id'))
     if not id:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
     if id != -2:
-      raise HTTPError(404, 'Incorrect shared space id.')
+      raise HTTPError(404, 'Incorrect shared space id')
 
     # Initialise filtered space data.
     data = (id, 'Shared')
@@ -45,10 +55,12 @@ class SharedHandler(APIHandler):
     # Fetch information about children.
     cursor = yield momoko.Op(self.db.execute,
       '''SELECT assets.id, assets.name, assets.type, assets.preview,
-                assets.owner, assets.public, permissions.write
+                assets.owner, assets.public, permissions.write, users.email
          FROM assets
          INNER JOIN permissions
          ON assets.id = permissions.asset_id
+         INNER JOIN users
+         ON assets.owner = users.id
          WHERE permissions.user_id = %s
       ''', (
       user.id,
@@ -69,7 +81,8 @@ class SharedHandler(APIHandler):
           'preview': str(item[3]) if item[3] else '',
           'owner': item[4] == int(user.id),
           'public': item[5],
-          'write': item[6]
+          'write': item[6],
+          'email': 'You' if item[4] == int(user.id) else item[7]
         }
         for item in cursor.fetchall()
       ]
@@ -88,10 +101,10 @@ class FilteredHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'Not authorized.')
+      raise HTTPError(401, 'Not authorized')
     id = int(self.get_argument('id'))
     if not id:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
     if id == -3:
       type = 'texture'
       name = 'Textures'
@@ -99,7 +112,7 @@ class FilteredHandler(APIHandler):
       type = 'scene'
       name = 'Scenes'
     else:
-      raise HTTPError(404, 'Incorrect filter id.')
+      raise HTTPError(404, 'Incorrect filter id')
 
     # Initialise filtered space data.
     data = (id, name)
@@ -145,6 +158,10 @@ class AssetHandler(APIHandler):
   TYPE = None
   NEW_NAME = None
 
+  def _generate_preview(self, data):
+    """Generates a preview image."""
+    return None
+
 
   @coroutine
   def _fetch(self, id, user):
@@ -170,7 +187,7 @@ class AssetHandler(APIHandler):
 
     data = cursor.fetchone()
     if not data:
-      raise HTTPError(404, 'Asset not found.')
+      raise HTTPError(404, 'Asset not found')
 
     if user and data['owner'] == user.id:
       # Owner - full permissions.
@@ -179,7 +196,7 @@ class AssetHandler(APIHandler):
     elif data['write'] is None:
       if not data['public']:
         # No permissions.
-        raise HTTPError(400, 'Asset not found.')
+        raise HTTPError(400, 'Asset not found')
       else:
         # Public asset - read only.
         owner = False
@@ -200,7 +217,7 @@ class AssetHandler(APIHandler):
 
     id = self.get_argument('id')
     if not id:
-      raise HTTPError(400, 'Invalid asset ID')
+      raise HTTPError(400, 'Missing asset ID')
 
     data, owner, write = yield self._fetch(id, user)
 
@@ -227,20 +244,13 @@ class AssetHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      raise HTTPError(401, 'User not logged in')
     parent = int(self.get_argument('parent'))
     preview = self.get_argument('preview', None)
     mainData = self.get_argument('data', None)
     name = self.get_argument('name', None)
     if preview is None and mainData is not None:
-      image_data = re.sub('^data:image/.+;base64,', '', str(mainData)).decode('base64')
-      im = Image.open(cStringIO.StringIO(image_data))
-      im = im.convert('RGB')
-      im.thumbnail((150, 150), Image.ANTIALIAS)
-      jpeg_image_buffer = cStringIO.StringIO()
-      im.save(jpeg_image_buffer, format="JPEG")
-      imStr = base64.b64encode(jpeg_image_buffer.getvalue())
-      preview = "data:image/jpeg;base64," + imStr
+      preview = self._generate_preview(mainData)
 
     # Reject parent dirs not owned by user
     if parent != 0:
@@ -257,12 +267,20 @@ class AssetHandler(APIHandler):
       ))
       data = cursor.fetchone()
       if not data:
-        raise HTTPError(404, 'Parent directory does not exist.')
+        raise HTTPError(404, 'Parent directory does not exist')
 
     # Create new asset - store in database
     cursor = yield momoko.Op(self.db.execute,
       '''INSERT INTO assets (name, type, data, preview, owner, parent, public)
-         VALUES (%(name)s, %(type)s, %(data)s, %(preview)s, %(owner)s, %(parent)s, %(public)s)
+         VALUES (
+            %(name)s,
+            %(type)s,
+            %(data)s,
+            %(preview)s,
+            %(owner)s,
+            %(parent)s,
+            %(public)s
+         )
          RETURNING id, name
       ''', {
       'name': name or self.NEW_NAME,
@@ -277,7 +295,7 @@ class AssetHandler(APIHandler):
     # Check if the asset was created successfully.
     data = cursor.fetchone()
     if not data:
-      raise HTTPError(400, 'Asset creation failed.')
+      raise HTTPError(400, 'Asset creation failed')
 
     # Return the asset data.
     self.write_json({
@@ -300,12 +318,12 @@ class AssetHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      raise HTTPError(401, 'User not logged in')
     id = int(self.get_argument('id'))
     if not id:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
     if id <= 0:
-      raise HTTPError(404, 'Asset does not exist.')
+      raise HTTPError(404, 'Asset does not exist')
 
     # Delete folder entry.
     cursor = yield momoko.Op(self.db.execute,
@@ -324,7 +342,7 @@ class AssetHandler(APIHandler):
     # Check if deletion successful
     data = cursor.fetchone()
     if not data:
-      raise HTTPError(400, 'Asset deletion failed.')
+      raise HTTPError(400, 'Asset deletion failed')
 
     self.finish()
 
@@ -336,7 +354,7 @@ class AssetHandler(APIHandler):
 
     # Validate arguments.
     if not user:
-      raise HTTPError(401, 'User not logged in.')
+      raise HTTPError(401, 'User not logged in')
     id = int(self.get_argument('id'))
     name = self.get_argument('name', None)
     parent = self.get_argument('parent', None)
@@ -348,10 +366,10 @@ class AssetHandler(APIHandler):
 
     # Block changing public setting of a dir
     if public is not None and self.TYPE == 'dir':
-      raise HTTPError(400, 'Asset update failed.')
+      raise HTTPError(400, 'Asset update failed')
 
     if parent == id:
-      raise HTTPError(400, 'Cannot move a directory into itself.')
+      raise HTTPError(400, 'Cannot move a directory into itself')
 
     if parent is not None:
       # Check ownership of asset and potential new parent
@@ -381,7 +399,7 @@ class AssetHandler(APIHandler):
       ))
 
       if not cursors[0].fetchone() or not cursors[1].fetchone():
-        raise HTTPError(400, 'Asset cannot be edited that way.')
+        raise HTTPError(400, 'Asset cannot be edited that way')
 
     else:
       # Check if user has write permission
@@ -404,7 +422,11 @@ class AssetHandler(APIHandler):
       })
 
       if not cursor.fetchone():
-        raise HTTPError(400, 'Asset cannot be edited.')
+        raise HTTPError(400, 'Asset cannot be edited')
+
+    # Try generating a preview.
+    if preview is None and data is not None:
+      preview = self._generate_preview(data)
 
     # Update
     cursor = yield momoko.Op(self.db.execute,
@@ -447,11 +469,11 @@ class DirHandler(AssetHandler):
     # Validate arguments.
     id = int(self.get_argument('id'))
     if not user:
-      raise HTTPError(401, 'Not authorized.')
+      raise HTTPError(401, 'Not authorized')
 
     # Reject IDs of not private dir
     if id < 0:
-      raise HTTPError(404, 'Directory does not exist.')
+      raise HTTPError(404, 'Directory does not exist')
     if id:
       # If ID is not 0, retrieve information about a directory.
       cursor = yield momoko.Op(self.db.execute,
@@ -469,7 +491,7 @@ class DirHandler(AssetHandler):
       # See if resource exists.
       data = cursor.fetchone()
       if not data:
-        raise HTTPError(404, 'Directory does not exist.')
+        raise HTTPError(404, 'Directory does not exist')
     else:
       # Otherwise, fetch home directory.
       data = (0, 'home')
@@ -515,6 +537,51 @@ class TextureHandler(AssetHandler):
   TYPE = 'texture'
   NEW_NAME = 'New Texture'
 
+  def _generate_preview(self, data):
+    """Generates a preview image."""
+    b64data = re.sub('^data:image/.+;base64,', '', str(data))
+
+    im = Image.open(cStringIO.StringIO(b64data.decode('base64')))
+    im = im.convert('RGB')
+    im.thumbnail((150, 150), Image.ANTIALIAS)
+
+    stream = cStringIO.StringIO()
+    im.save(stream, format='JPEG')
+    return 'data:image/jpeg;base64,%s' % base64.b64encode(stream.getvalue())
+
+  @session
+  @coroutine
+  @asynchronous
+  def get(self, user):
+    """Fetches a scene either as JSON or some other format."""
+
+    # If format is unspecified, dump as JSON.
+    fmt = self.get_argument('format', None)
+    if not fmt or fmt == 'json':
+      yield super(TextureHandler, self).get()
+      return
+
+    # Decode image.
+    data, _, _ = yield self._fetch(self.get_argument('id'), user)
+    image = Image.open(cStringIO.StringIO(re.sub(
+        '^data:image/.+;base64,', '', data['data']).decode('base64')))
+    stream = cStringIO.StringIO()
+
+    if fmt == 'png':
+      self.set_header('Content-Type', 'image/png')
+      image.save(stream, 'png')
+    elif fmt == 'jpeg':
+      self.set_header('Content-Type', 'image/jpeg')
+      image.save(stream, 'jpeg')
+    else:
+      raise HTTPError(400, 'Unsupported image format')
+
+    data = stream.getvalue()
+    self.set_header('Content-Length', str(len(data)))
+    self.write(data)
+    self.finish()
+
+
 
 
 class SceneHandler(AssetHandler):
@@ -532,19 +599,21 @@ class SceneHandler(AssetHandler):
     fmt = self.get_argument('format', None)
     if not fmt or fmt == 'json':
       yield super(SceneHandler, self).get()
+      return
+
+    data, _, _ = yield self._fetch(self.get_argument('id'), user)
+    scene = Scene(data['name'], json.loads(str(data['data'] or 'null')))
+
+    if fmt == 'obj':
+      self.set_header('Content-Type', 'text/plain')
+      self.write(scene.to_obj())
+    elif fmt == 'stl':
+      self.set_header('Content-Type', 'text/plain')
+      self.write(scene.to_stl())
     else:
-      data, _, _ = yield self._fetch(self.get_argument('id'), user)
-      scene = Scene(data['name'], json.loads(str(data['data'] or 'null')))
-      if fmt == 'obj':
-        self.set_header('Content-Type', 'text/plain')
-        self.write(scene.to_obj())
-        self.finish()
-      elif fmt == 'stl':
-        self.set_header('Content-Type', 'text/plain')
-        self.write(scene.to_stl())
-        self.finish()
-      else:
-        raise HTTPError(400, 'Format not supported.')
+      raise HTTPError(400, 'Format not supported')
+
+    self.finish()
 
 
 class TextureFilterHandler(APIHandler):
@@ -559,7 +628,7 @@ class TextureFilterHandler(APIHandler):
     # Retrieve textures.
     name = self.get_argument('name', '')
     cursor = yield momoko.Op(self.db.execute,
-      '''SELECT id, name, preview
+      '''SELECT id, name, preview, public, write, owner
          FROM assets
          LEFT OUTER JOIN permissions ON permissions.asset_id = assets.id
          WHERE assets.type = %(type)s
@@ -578,6 +647,9 @@ class TextureFilterHandler(APIHandler):
       {
         'id': asset['id'],
         'name': asset['name'],
+        'owner': is_owner(user, asset),
+        'write': is_write(user, asset),
+        'public': asset['public'],
         'preview': str(asset['preview'])
       }
       for asset in cursor.fetchall()

@@ -86,6 +86,7 @@
         <div class="image"
             ng-click="browserCtrl.selected=asset">
           <img
+            title="Owned by: {{asset.email}}"
             draggable="false"
             class="assetmenu"
             ng-src="{{asset.image}}">
@@ -129,10 +130,21 @@
           Download as Obj
         </a>
       </li>
-      <li ng-click=""
-          ng-show="browserCtrl.selected.type == browserCtrl.textureType()"
+      <li ng-show="browserCtrl.selected.type == browserCtrl.textureType()"
           ng-style="{'cursor': 'pointer'}">
-        Download Image
+        <a
+            href="/api/assets/texture?id={{browserCtrl.selected.id}}&amp;format=png"
+            target="_blank">
+          Download as PNG
+        </a>
+      </li>
+      <li ng-show="browserCtrl.selected.type == browserCtrl.textureType()"
+          ng-style="{'cursor': 'pointer'}">
+        <a
+            href="/api/assets/texture?id={{browserCtrl.selected.id}}&amp;format=jpeg"
+            target="_blank">
+          Download as JPEG
+        </a>
       </li>
       <sh-share
           ng-show="browserCtrl.selected.type != browserCtrl.home.type"

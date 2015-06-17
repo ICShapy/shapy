@@ -58,6 +58,12 @@ shapy.browser.Asset = function(shBrowser, id, type, opt_data) {
   this.public = !(!(data['public']));
 
   /**
+   * Email of the owner.
+   * @public {string} @const
+   */
+  this.email = data['email'] || 'You';
+
+  /**
    * Promise resolved when the asset is loaded.
    * @public {!angular.$q}
    */

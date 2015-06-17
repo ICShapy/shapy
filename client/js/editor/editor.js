@@ -9,6 +9,7 @@ goog.require('goog.math.Size');
 goog.require('goog.object');
 goog.require('goog.string.format');
 goog.require('goog.webgl');
+goog.require('shapy.browser.Texture');
 goog.require('shapy.editor.Camera');
 goog.require('shapy.editor.Editable');
 goog.require('shapy.editor.Executor');
@@ -238,20 +239,6 @@ shapy.editor.Editor = function(
 
 
 /**
- * Width of a preview image.
- * @type {number} @const
- */
-shapy.editor.Editor.PREVIEW_WIDTH = 147;
-
-
-/**
- * Height of a preview image.
- * @type {number} @const
- */
-shapy.editor.Editor.PREVIEW_HEIGHT = 105;
-
-
-/**
  * Sends a message.
  *
  * @param {string} msg
@@ -276,26 +263,20 @@ shapy.editor.Editor.prototype.snapshot_ = function() {
     text: 'Saving asset...'
   });
 
-  var image = new Image();
-  image.onload = goog.bind(function() {
-    var aspect = this.vp_.width / this.vp_.height;
-    var width = shapy.editor.Editor.PREVIEW_HEIGHT * aspect;
-    var diff = width - shapy.editor.Editor.PREVIEW_WIDTH;
+  // Save all textures.
+  goog.object.forEach(this.textures_, function(texture) {
+    if (texture.write) {
+      texture.save();
+    }
+  });
 
-    // Resize the image.
-    var canvas = document.createElement('canvas');
-    canvas.width = Math.min(shapy.editor.Editor.PREVIEW_WIDTH, width);
-    canvas.height = shapy.editor.Editor.PREVIEW_HEIGHT;
+  // Generate & save the preview.
+  this.scene_.image = shapy.browser.Texture.preview(
+    this.canvas_
+  ).toDataURL('image/jpeg');
 
-    var ctx = canvas.getContext('2d');
-    ctx.translate(-diff / 2, 0);
-    ctx.drawImage(image, 0, 0, width, canvas.height);
-
-    // Upload.
-    this.scene_.image = canvas.toDataURL('image/jpeg');
-    this.scene_.save();
-  }, this);
-  image.src = this.canvas_.toDataURL('image/jpeg');
+  // Save the scene.
+  this.scene_.save();
 };
 
 

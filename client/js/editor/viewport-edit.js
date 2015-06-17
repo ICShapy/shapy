@@ -150,15 +150,20 @@ shapy.editor.Viewport.Edit.prototype.mouseMove = function(x, y, button) {
   }
 
   // Check if the object can be painted.
-  if (this.editor.mode.paint && hit && button == 1) {
+  if (this.editor.mode.paint && hit && hit.object.selected && button == 1) {
     this.editor.hover = [];
     if (!(texture = this.editor.textures_[hit.object.texture])) {
       return [];
     }
-    uv = hit.pickUV(ray);
+
+    // Paint the texture only if the user has the permission.
+    if (texture.write) {
+      uv = hit.pickUV(ray);
     
-    // Paint the texture.
-    this.paint_(texture, uv.u, uv.v);    
+      // Paint the texture.
+      this.paint_(texture, uv.u, uv.v); 
+    }
+   
     return [];
   }
   return hits;

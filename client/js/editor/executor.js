@@ -190,11 +190,7 @@ shapy.editor.Executor.prototype.onMessage_ = function(evt) {
  * @param {string} message
  */
 shapy.editor.Executor.prototype.emitMessage = function(message) {
-  this.sendCommand({
-    type: 'message',
-    user: this.editor_.user.id,
-    message: message
-  });
+
 };
 
 
@@ -254,6 +250,12 @@ shapy.editor.Executor.prototype.applyCreate = function(data) {
       this.scene_.createSphere(0.5, 16, 16, data['seq']);
       break;
     }
+    case 'pyramid':
+      this.scene_.createPyramid(0.5, 0.5, data['seq']);
+      break;
+    case 'quad':
+      this.scene_.createQuad(0.5, data['seq']);
+      break;
     default: {
       console.error('Invalid object type "' + data['object'] + "'");
       return;
@@ -739,6 +741,20 @@ shapy.editor.WriteExecutor = function(scene, editor) {
       this, scene, editor, shapy.editor.Executor.Type.WRITE);
 };
 goog.inherits(shapy.editor.WriteExecutor, shapy.editor.Executor);
+
+
+/**
+ * Executes a chat message
+ *
+ * @param {string} message
+ */
+shapy.editor.WriteExecutor.prototype.emitMessage = function(message) {
+  this.sendCommand({
+    type: 'message',
+    user: this.editor_.user.id,
+    message: message
+  });
+};
 
 
 /**

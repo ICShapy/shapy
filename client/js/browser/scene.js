@@ -70,6 +70,7 @@ shapy.browser.Scene.prototype.load = function(data) {
   this.owner = !!data.owner;
   this.write = !!data.write;
   this.public = !!data.public;
+  this.email = data.email || 'You';
   this.loaded = true;
 
   // Read objects.
@@ -249,7 +250,6 @@ shapy.browser.Scene.prototype.pickFrustum = function(frustum, mode) {
   return goog.array.flatten(hits);
 };
 
-
 /**
  * Creates a new object, adding it to the scene.
  *
@@ -281,6 +281,39 @@ shapy.browser.Scene.prototype.createCube = function(w, h, d, seq) {
 shapy.browser.Scene.prototype.createSphere = function(r, sli, sta, seq) {
   var id = this.getNextID(seq);
   var object = shapy.editor.create.sphere(id, this, r, sli, sta);
+  this.objects[id] = object;
+  return object;
+};
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} b   Base.
+ * @param {number} h   Height.
+ * @param {number} seq Sequence number to be used for generating an id.
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.browser.Scene.prototype.createPyramid = function(b, h, seq) {
+  var id = this.getNextID(seq);
+  var object = shapy.editor.create.pyramid(id, this, b, h);
+  this.objects[id] = object;
+  return object;
+};
+
+
+/**
+ * Creates a new object, adding it to the scene.
+ *
+ * @param {number} a   Half side length.
+ * @param {number} seq Sequence number to be used for generating an id.
+ *
+ * @return {!shapy.editor.Object}
+ */
+shapy.browser.Scene.prototype.createQuad = function(a, seq) {
+  var id = this.getNextID(seq);
+  var object = shapy.editor.create.quad(id, this, a);
   this.objects[id] = object;
   return object;
 };
