@@ -106,8 +106,8 @@ shapy.editor.Vertex.prototype.delete = function() {
 
   this.object.edges = goog.object.filter(this.object.edges, function(edge) {
     return (
-      goog.object.containsKey(this.object.verts, edge.start) &&
-      goog.object.containsKey(this.object.verts, edge.end)
+      goog.object.containsKey(this.object.verts, edge.v0) &&
+      goog.object.containsKey(this.object.verts, edge.v1)
     );
   }, this);
 
