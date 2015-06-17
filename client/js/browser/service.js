@@ -200,6 +200,11 @@ shapy.browser.Service.prototype.createScene = function() {
  * @return {!angular.$q} Promise to return a new texture.
  */
 shapy.browser.Service.prototype.createTexture = function(name, texture) {
+  // Remove accepted extensions from name
+  name = name.replace(/.jpeg$/i, '');
+  name = name.replace(/.jpg$/i, '');
+  name = name.replace(/.png$/i, '');
+
   return this.create_(
       '/api/assets/texture',
       this.textures_,

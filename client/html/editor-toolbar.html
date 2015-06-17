@@ -152,20 +152,18 @@
   </div>
   <div id="toolbar-right">
     <!-- Displays the list of users as a row of buttons, with a tooltip -->
-    <div class="toolbar-button" id="editor-user-counter" ng-repeat="user in editorCtrl.users">
-      <span>{{user.name[0]}}</span>
-      <!--
-      <ul>
-        <li ng-repeat="user in editorCtrl.users"
-            style="background-color: rgba(
+    <div
+        class="user-box"
+        ng-repeat="user in editorCtrl.users"
+        style="background-color: rgba(
                    {{floor(user.colour[0]*255)}},
                    {{floor(user.colour[1]*255)}},
                    {{floor(user.colour[2]*255)}},
-                   1.0)">
-          {{ user.name }}
-        </li>
-      </ul>
-      -->
+                   1.0)"
+        onmouseenter="$('.tooltip', this).show()"
+        onmouseleave="$('.tooltip', this).hide()">
+      <span>{{user.name[0]}}</span>
+      <div class="tooltip" style="display: none;">{{user.name}}</div>
     </div>
 
     <!-- Chat button -->

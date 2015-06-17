@@ -4,7 +4,7 @@ sh-sidebar {
   left: 0;
   width: 221px;
   bottom: 0;
-  background-color: #eeeeee;
+  background-color: #E8ECF2;
   border-right: 1px solid #cccccc;
   z-index: 1000;
   overflow: visible;
@@ -227,7 +227,7 @@ sh-sidebar-folder {
 sh-assets {
   padding: 20px 0 0 20px;
   display: grid;
-  background-color: #eeeeee;
+  background-color: #E8ECF2;
   overflow: auto;
 }
 
@@ -244,7 +244,7 @@ sh-asset {
 sh-asset > div .name {
   display: block;
   position: absolute;
-  bottom: 0; left: 0; right: 0; height: 16px;
+  bottom: 0; left: 0; right: 0; height: 20px;
   padding: 0;
   margin: 0;
   text-align: left;
