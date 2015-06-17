@@ -556,6 +556,11 @@ shapy.editor.Editor.prototype.destroy = function() {
  * @private
  */
 shapy.editor.Editor.prototype.modeChange_ = function() {
+  if (this.rig_) {
+    this.rig_.cancel();
+    this.rig(null);
+  }
+
   if (this.mode.object) {
     this.partGroup.setSelected(null);
     this.partGroup.clear();
@@ -570,7 +575,6 @@ shapy.editor.Editor.prototype.modeChange_ = function() {
           return allowed;
         }, this);
   }
-  this.rig(this.rigTranslate_);
 };
 
 

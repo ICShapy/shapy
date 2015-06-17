@@ -280,6 +280,16 @@ shapy.editor.Rig.prototype.mouseEnter = function(ray) {
 };
 
 
+/**
+ * Cancels the operation of the rig.
+ */
+shapy.editor.Rig.prototype.cancel = function() {
+  this.finish_(this.select_.x || this.select_.y || this.select_.z);
+  this.select_.x = this.select_.y = this.select_.z = false;
+  this.hover_.x = this.hover_.y = this.hover_.z = false;
+};
+
+
 
 /**
  * List of rig types.

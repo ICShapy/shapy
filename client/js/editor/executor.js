@@ -728,7 +728,7 @@ shapy.editor.Executor.prototype.applyTexture = function(data) {
 
   // Apply the texture.
   this.editor_.applyTexture(
-      data['textureId'], 
+      data['textureId'],
       this.scene_.objects[data['objId']]
   );
 };
@@ -803,7 +803,7 @@ shapy.editor.Executor.prototype.applyMoveUV = function(data) {
     uv.u += data['du'];
     uv.v += data['dv'];
   }, this);
-}; 
+};
 
 
 
@@ -902,7 +902,7 @@ shapy.editor.WriteExecutor.prototype.emitTranslate = function(obj, dx, dy, dz) {
 
   // Object group.
   if (this.editor_.mode.object) {
-    data.ids = obj.getObjIds();
+    data.ids = obj.getObjIDs ? obj.getObjIds() : [];
   } else {
     // Parts group.
     data.ids = obj.getObjVertIds();
