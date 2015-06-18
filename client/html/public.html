@@ -10,15 +10,19 @@
           asset="asset"
           selected="browserCtrl.selected"
           owner="asset.owner"
-          ng-class="{selected: browserCtrl.selected==asset}">
+          select-asset="browserCtrl.select(asset, enter)"
+          ng-class="{selected: browserCtrl.selected==asset}"
+          draggable="false">
         <div class="image"
-            ng-click="browserCtrl.selected=asset"
-            ng-dblclick="browserCtrl.select(asset, true)">
-          <img ng-class="{assetmenu: asset.type!=browserCtrl.home.type}" ng-src="{{asset.image}}">
+            ng-click="browserCtrl.selected=asset">
+          <img
+            title="Owned by: {{asset.email}}"
+            draggable="false"
+            class="assetmenu"
+            ng-src="{{asset.image}}">
         </div>
         <div>
-          <div class="name noneditable"
-               ng-class="{assetmenu: asset.type!=browserCtrl.home.type}">
+          <div class="name noneditable assetmenu">
             {{asset.name}}
           </div>
         </div>
@@ -29,8 +33,37 @@
   <div class='asset-menu'>
     <ul>
       <li ng-click=""
+          ng-show="browserCtrl.selected.type == browserCtrl.sceneType()"
           ng-style="{'cursor': 'pointer'}">
-        Download as STL
+        <a
+            href="/api/assets/scene?id={{browserCtrl.selected.id}}&amp;format=stl"
+            target="_blank">
+          Download as STL
+        </a>
+      </li>
+      <li ng-show="browserCtrl.selected.type == browserCtrl.sceneType()"
+          ng-style="{'cursor': 'pointer'}">
+        <a
+            href="/api/assets/scene?id={{browserCtrl.selected.id}}&amp;format=obj"
+            target="_blank">
+          Download as Obj
+        </a>
+      </li>
+      <li ng-show="browserCtrl.selected.type == browserCtrl.textureType()"
+          ng-style="{'cursor': 'pointer'}">
+        <a
+            href="/api/assets/texture?id={{browserCtrl.selected.id}}&amp;format=png"
+            target="_blank">
+          Download as PNG
+        </a>
+      </li>
+      <li ng-show="browserCtrl.selected.type == browserCtrl.textureType()"
+          ng-style="{'cursor': 'pointer'}">
+        <a
+            href="/api/assets/texture?id={{browserCtrl.selected.id}}&amp;format=jpeg"
+            target="_blank">
+          Download as JPEG
+        </a>
       </li>
     </ul>
   </div>
