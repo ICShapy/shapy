@@ -132,7 +132,7 @@ shapy.editor.Rig.Cut.prototype.render = function(gl, sh) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Cut.prototype.mouseMove = function(ray) {
-  //console.log(this.ps_);
+
 };
 
 
@@ -190,7 +190,7 @@ shapy.editor.Rig.Cut.prototype.mouseDown = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Cut.prototype.mouseUp = function(ray) {
-  //console.log(this.ps_);
+
 };
 
 

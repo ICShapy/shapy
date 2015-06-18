@@ -121,7 +121,7 @@ shapy.editor.Rig.Extrude.prototype.mouseMove = function(ray) {
  * @param {!goog.vec.Ray} ray
  */
 shapy.editor.Rig.Extrude.prototype.mouseDown = function(ray) {
-  //console.log("down");
+
 };
 
 
