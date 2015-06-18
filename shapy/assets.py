@@ -143,7 +143,8 @@ class FilteredHandler(APIHandler):
           'preview': str(item[3]) if item[3] else '',
           'public': item[4],
           'owner': True,
-          'write': True
+          'write': True,
+          'email': 'You'
         }
         for item in cursor.fetchall()
       ]
@@ -523,7 +524,8 @@ class DirHandler(AssetHandler):
           'public': item[4],
           'owner': True,
           'write': True,
-          'owner_id': item['owner']
+          'owner_id': item['owner'],
+          'email': 'You'
         }
         for item in cursor.fetchall()
       ]
