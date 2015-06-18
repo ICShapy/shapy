@@ -463,12 +463,18 @@ shapy.browser.asset = function(shModal) {
         evt.stopPropagation();
         evt.preventDefault();
         // Show
-        var y = evt.pageY - 30;
+        var y = Math.min(evt.pageY - $('#header').outerHeight() - 5,
+                         $(window).innerHeight() -
+                         $('.asset-menu').outerHeight() -
+                         $('#header').outerHeight() - 5);
+        var x = Math.min(evt.pageX,
+                         $(window).innerWidth() -
+                         $('.asset-menu').outerWidth() - 5);
         $('.asset-menu')
           .show()
           .css({
               top: y + 'px',
-              left: evt.pageX + 'px'
+              left: x + 'px'
           });
         $('.asset-menu a').on('mousedown', function(evt) {
           return false;
