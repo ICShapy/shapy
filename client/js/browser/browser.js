@@ -985,22 +985,20 @@ shapy.browser.assetMatch = function() {
 shapy.browser.assetOrder = function() {
   return function(assets) {
     return assets.sort(function(asset1, asset2) {
-      if (asset1.owner) {
-        return -1;
+      // No dir
+      if (asset1.type != shapy.browser.Asset.Type.DIRECTORY &&
+          asset2.type != shapy.browser.Asset.Type.DIRECTORY) {
+        if (asset1.owner == asset2.owner) {
+          return asset1.name.localeCompare(asset2.name);
+        }
+        return (asset1.owner) ? -1 : 1;
       }
-      if (asset2.owner) {
-        return 1;
-      }
+      // Both dir
       if (asset1.type == asset2.type) {
         return asset1.name.localeCompare(asset2.name);
       }
-      if (asset1.type == shapy.browser.Asset.Type.DIRECTORY) {
-        return -1;
-      }
-      if (asset2.type == shapy.browser.Asset.Type.DIRECTORY) {
-        return 1;
-      }
-      return asset1.name.localeCompare(asset2.name);
+      // One dir
+      return (asset1.type == shapy.browser.Asset.Type.DIRECTORY) ? -1 : 1;
     });
   };
 };
