@@ -7,6 +7,7 @@
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
       <sh-asset
+          class="assetmenu"
           title="Owned by: {{asset.email}}"
           asset="asset"
           selected="browserCtrl.selected"
@@ -18,11 +19,10 @@
             ng-click="browserCtrl.selected=asset">
           <img
             draggable="false"
-            class="assetmenu"
             ng-src="{{asset.image}}">
         </div>
         <div>
-          <div class="name noneditable assetmenu">
+          <div class="name noneditable">
             {{asset.name}}
           </div>
         </div>

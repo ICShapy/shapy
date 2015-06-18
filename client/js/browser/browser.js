@@ -484,7 +484,9 @@ shapy.browser.asset = function(shModal) {
 
       // Hide menu, deselect
       $(document.body).on('mousedown', function(evt) {
-        if (($(evt.target).hasClass('assetmenu') && evt.which == 3)) {
+        if (($(evt.target).hasClass('assetmenu') ||
+             $(evt.target).parents('.assetmenu').length) &&
+            evt.which == 3) {
           return;
         }
 

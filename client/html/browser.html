@@ -77,6 +77,7 @@
         shAssetMatch:browserCtrl.query() |
         shAssetOrder">
       <sh-asset
+          class="assetmenu"
           title="Owned by: {{asset.email}}"
           asset="asset"
           selected="browserCtrl.selected"
@@ -88,12 +89,11 @@
             ng-click="browserCtrl.selected=asset">
           <img
             draggable="false"
-            class="assetmenu"
             ng-src="{{asset.image}}">
         </div>
         <div ng-switch on="asset.write">
           <div ng-switch-when="true"
-               class="name assetmenu">
+               class="name">
             <sh-editable
                 ng-click="browserCtrl.selected = null"
                 ng-init="name=asset.name"
@@ -103,7 +103,7 @@
             </sh-editable>
           </div>
           <div ng-switch-default
-               class="name noneditable assetmenu">
+               class="name noneditable">
             {{asset.name}}
           </div>
         </div>
