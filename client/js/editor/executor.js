@@ -365,12 +365,20 @@ shapy.editor.Executor.prototype.applyTranslate = function(data) {
   // Translate objects/ parts.
   if (data['objMode']) {
     goog.array.forEach(data['ids'], function(id) {
-      this.scene_.objects[id].translate(data['dx'], data['dy'], data['dz']);
+      if (this.scene_.objects[id]) {
+        this.scene_.objects[id].translate(data['dx'], data['dy'], data['dz']);
+      } else {
+        console.log("transalte objects");
+      }
     }, this);
   } else {
     goog.array.forEach(data['ids'], function(p) {
-      this.scene_.objects[p[0]].verts[p[1]].translate(
-          data['dx'], data['dy'], data['dz']);
+      if (this.scene_.objects[p[0]]) {
+        this.scene_.objects[p[0]].verts[p[1]].translate(
+            data['dx'], data['dy'], data['dz']);
+      } else {
+        console.log("translate parts");
+      }
     }, this);
   }
 };
@@ -421,35 +429,43 @@ shapy.editor.Executor.prototype.applyRotate = function(data) {
   // Rotate objects/ parts.
   if (data['objMode']) {
     goog.array.forEach(data['ids'], function(id) {
-      goog.vec.Vec3.subtract(this.scene_.objects[id].getPosition(), mid, d);
+      if (this.scene_.objects[id]) {
+        goog.vec.Vec3.subtract(this.scene_.objects[id].getPosition(), mid, d);
 
-      // Compute the rotation quaternion.
-      goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
-      goog.vec.Quaternion.concat(quat, dq, dq);
-      goog.vec.Quaternion.concat(dq, c, dq);
+        // Compute the rotation quaternion.
+        goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
+        goog.vec.Quaternion.concat(quat, dq, dq);
+        goog.vec.Quaternion.concat(dq, c, dq);
 
-      // Translate and rotate.
-      this.scene_.objects[id].translate(
-          dq[0] - d[0],
-          dq[1] - d[1],
-          dq[2] - d[2]
-      );
-      this.scene_.objects[id].rotate(quat);
+        // Translate and rotate.
+        this.scene_.objects[id].translate(
+            dq[0] - d[0],
+            dq[1] - d[1],
+            dq[2] - d[2]
+        );
+        this.scene_.objects[id].rotate(quat);
+      } else {
+        console.log("rotate objects");
+      }
     }, this);
   } else {
     goog.array.forEach(data['ids'], function(p) {
-      var vert = this.scene_.objects[p[0]].verts[p[1]];
+      if (this.scene_.objects[p[0]]) {
+        var vert = this.scene_.objects[p[0]].verts[p[1]];
 
-      // Compute distance from the middle.
-      goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
+        // Compute distance from the middle.
+        goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
 
-      // Compue teh rotation quaternion.
-      goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
-      goog.vec.Quaternion.concat(quat, dq, dq);
-      goog.vec.Quaternion.concat(dq, c, dq);
+        // Compue teh rotation quaternion.
+        goog.vec.Quaternion.setFromValues(dq, d[0], d[1], d[2], 0.0);
+        goog.vec.Quaternion.concat(quat, dq, dq);
+        goog.vec.Quaternion.concat(dq, c, dq);
 
-      // Translate.
-      vert.translate(dq[0] - d[0], dq[1] - d[1], dq[2] - d[2]);
+        // Translate.
+        vert.translate(dq[0] - d[0], dq[1] - d[1], dq[2] - d[2]);
+      } else {
+        console.log("rotate parts");
+      }
     }, this);
   }
 };
@@ -487,24 +503,32 @@ shapy.editor.Executor.prototype.applyScale = function(data) {
   if (data['objMode']) {
     goog.array.forEach(data['ids'], function(id) {
       var obj = this.scene_.objects[id];
-      goog.vec.Vec3.subtract(obj.getPosition(), mid, d);
+      if (obj) {
+        goog.vec.Vec3.subtract(obj.getPosition(), mid, d);
 
-      obj.translate(
-          d[0] * data['sx'] - d[0],
-          d[1] * data['sy'] - d[1],
-          d[2] * data['sz'] - d[2]
-      );
-      obj.scale(data['sx'], data['sy'], data['sz']);
+        obj.translate(
+            d[0] * data['sx'] - d[0],
+            d[1] * data['sy'] - d[1],
+            d[2] * data['sz'] - d[2]
+        );
+        obj.scale(data['sx'], data['sy'], data['sz']);
+      } else {
+        console.log("scale objects");
+      }
     }, this);
   } else {
     goog.array.forEach(data['ids'], function(p) {
-      var vert = this.scene_.objects[p[0]].verts[p[1]];
-      goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
-      vert.translate(
-          d[0] * data['sx'] - d[0],
-          d[1] * data['sy'] - d[1],
-          d[2] * data['sz'] - d[2]
-      );
+      if (this.scene_.objects[p[0]]) {
+        var vert = this.scene_.objects[p[0]].verts[p[1]];
+        goog.vec.Vec3.subtract(vert.getPosition(), mid, d);
+        vert.translate(
+            d[0] * data['sx'] - d[0],
+            d[1] * data['sy'] - d[1],
+            d[2] * data['sz'] - d[2]
+        );
+      } else {
+        console.log("translate parts");
+      }
     }, this);
   }
 };
@@ -534,33 +558,41 @@ shapy.editor.Executor.prototype.applyDelete = function(data) {
   // Delete objects.
   if (data['objMode']) {
     goog.array.forEach(data['ids'], function(id) {
-      this.scene_.objects[id].delete();
+      if (this.scene_.objects[id]) {
+        this.scene_.objects[id].delete();
+      } else {
+        console.log("delete objects");
+      }
     }, this);
   } else {
     // Delete parts.
     goog.array.forEach(data['ids'], function(t) {
       var obj = this.scene_.objects[t[0]];
 
-      switch (t[2]) {
-        case 'vertex': {
-          obj.verts[t[1]].delete();
-          break;
-        }
-        case 'edge': {
-          if (obj.edges[t[1]]) {
-            obj.edges[t[1]].delete();
+      if (obj) {
+        switch (t[2]) {
+          case 'vertex': {
+            obj.verts[t[1]].delete();
+            break;
           }
-          break;
-        }
-        case 'face': {
-          if (obj.faces[t[1]]) {
-            obj.faces[t[1]].delete();
+          case 'edge': {
+            if (obj.edges[t[1]]) {
+              obj.edges[t[1]].delete();
+            }
+            break;
           }
-          break;
+          case 'face': {
+            if (obj.faces[t[1]]) {
+              obj.faces[t[1]].delete();
+            }
+            break;
+          }
+          default: {
+            console.error('Invalid part type "' + t[2] + '"');
+          }
         }
-        default: {
-          console.error('Invalid part type "' + t[2] + '"');
-        }
+      } else {
+        console.log("delete parts")
       }
     }, this);
   }
@@ -591,6 +623,11 @@ shapy.editor.Executor.prototype.applyExtrude = function(data) {
 
   // Get the object.
   var object = this.scene_.objects[data['objId']];
+
+  if (!object) {
+    console.log("extrude");
+    return;
+  }
 
   // Extrude the faces.
   object.extrude(goog.array.map(data['faceIds'], function(faceId) {
@@ -624,6 +661,11 @@ shapy.editor.Executor.prototype.applyConnect = function(data) {
   // Get the object.
   var object = this.scene_.objects[data['objId']];
 
+  if (!object) {
+    console.log("connect");
+    return;
+  }
+
   // Connect the vertices.
   object.connect(goog.array.map(data['vertIds'], function(vertId) {
     return object.verts[vertId];
@@ -655,6 +697,11 @@ shapy.editor.Executor.prototype.applyMerge = function(data) {
 
   // Get the object.
   var object = this.scene_.objects[data['objId']];
+
+  if (!object) {
+    console.log("merge");
+    return;
+  }
 
   // Merge the vertices.
   object.mergeVertices(goog.array.map(data['vertIds'], function(vertId) {
@@ -759,6 +806,11 @@ shapy.editor.Executor.prototype.applyWeld = function(data) {
   // Get the object.
   var object = this.scene_.objects[data['objId']];
 
+  if (!object) {
+    console.log("weld");
+    return;
+  }
+
   // Get uvs.
   var uvs = goog.array.map(data['uvIds'], function(uvId) {
     return object.uvPoints[uvId];
@@ -791,6 +843,11 @@ shapy.editor.Executor.prototype.applyMoveUV = function(data) {
 
   // Get the object.
   var object = this.scene_.objects[data['objId']];
+
+  if (!object) {
+    console.log("move UV");
+    return;
+  }
 
   // Get uvs.
   var uvs = goog.array.map(data['uvIds'], function(uvId) {
