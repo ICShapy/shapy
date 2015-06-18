@@ -31,10 +31,10 @@ sh-sidebar .create {
 sh-sidebar ul.menu {
   position: absolute;
   top: 18px; left: 98px;
-  width: 100px;
-  border: 1px solid #222222;
-  box-shadow: 1px 1px 1px #777777;
-  background-color: #eeeeee;
+  width: 70px;
+  border: 1px solid #cccccc;
+  background-color: white;
+  box-shadow: 2px 2px 4px #aaa;
   z-index: 2000;
 }
 
